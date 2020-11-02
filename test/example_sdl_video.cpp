@@ -149,7 +149,7 @@ void load_icon(const uchar * data, const int width, const int height, GLuint &te
 // Main code
 int main(int, char**)
 {
-    GLuint Video_framebuffer_texture = -1;
+    GLuint framebuffer_texture = -1;
     GLuint icon_pause_texture = -1;
     GLuint icon_play_texture = -1;
     IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG);
@@ -237,10 +237,12 @@ int main(int, char**)
     ImGui_ImplOpenGL3_Init();
 
     // Main loop
+    float video_fps = 0;
+    float video_frames = 0;
     float fps = 25.0f;
     bool done = false;
     int play_time = 0;
-    int total_time = 0;
+    float total_time = 0;
     bool is_playing = false;
     while (!done)
     {
@@ -319,8 +321,8 @@ int main(int, char**)
                 mVideoCapture = cv::VideoCapture(filePathName);
                 if (mVideoCapture.isOpened())
                 {
-                    float video_fps = mVideoCapture.get(cv::CAP_PROP_FPS);
-                    float video_frames = mVideoCapture.get(cv::CAP_PROP_FRAME_COUNT);
+                    video_fps = mVideoCapture.get(cv::CAP_PROP_FPS);
+                    video_frames = mVideoCapture.get(cv::CAP_PROP_FRAME_COUNT);
                     if (video_fps > 0 )
                     {
                         fps = video_fps;
@@ -334,7 +336,7 @@ int main(int, char**)
 
         if (is_playing && mVideoCapture.isOpened())
         {
-            load_video(mVideoCapture, Video_framebuffer_texture);
+            load_video(mVideoCapture, framebuffer_texture);
         }
 
         // Show PlayControl panel
@@ -351,7 +353,7 @@ int main(int, char**)
             ImVec2 size = ImVec2(48.0f, 48.0f); // Size of the image we want to make visible
             ImVec2 uv0 = ImVec2(0.0f, 0.0f);                               // UV coordinates for lower-left
             ImVec2 uv1 = ImVec2(1.0f, 1.0f);                               // UV coordinates for (32,32) in our texture
-            ImVec4 bg_col = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);         // Black background
+            ImVec4 bg_col = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);         // Black background
             ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);       // No tint
             ImTextureID icon = is_playing ? (void *)(intptr_t)icon_pause_texture : (void *)(intptr_t)icon_play_texture;
             if (ImGui::ImageButton(icon, size, uv0, uv1, 0, bg_col, tint_col))
@@ -381,7 +383,15 @@ int main(int, char**)
                 ImGui::Text("%02d:%02d:%02d.%03d", hours, mins, secs, ms);
 
                 ImGui::SameLine();
-                ImGui::Text("%.3fms %.1ffps", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+                float ftime = total_time * 1000.0f;
+                hours = ftime / 1000 / 60 / 60; ftime -= hours * 60 * 60 * 1000;
+                mins = ftime / 1000 / 60; ftime -= mins * 60 * 1000;
+                secs = ftime / 1000; ftime -= secs * 1000;
+                ms = ftime;
+                ImGui::Text("/ %02d:%02d:%02d.%03d", hours, mins, secs, ms);
+
+                ImGui::SameLine();
+                ImGui::Text("[%.3fms %.1ffps]", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
             }
             ImGui::End();
         }
@@ -401,10 +411,10 @@ int main(int, char**)
 		ImVec2 initial_size((float)window_width, (float)window_height);
 		ImGui::SetNextWindowPos(pos, ImGuiCond_Always);
 		ImGui::SetNextWindowSize(initial_size, ImGuiCond_Always);
-		if (Video_framebuffer_texture != -1 && ImGui::Begin("screen", nullptr, flags)) 
+		if (framebuffer_texture != -1 && ImGui::Begin("screen", nullptr, flags)) 
 		{
             ImVec2 content_region = ImGui::GetContentRegionAvail();
-            ImGui::Image((void *)(intptr_t)Video_framebuffer_texture,
+            ImGui::Image((void *)(intptr_t)framebuffer_texture,
                         content_region,
                         ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f),
                         tint);

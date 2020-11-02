@@ -80,7 +80,7 @@ void load_image(std::string & path, GLuint &texture)
 // Main code
 int main(int, char**)
 {
-    GLuint Video_framebuffer_texture = -1;
+    GLuint framebuffer_texture = -1;
     IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG);
     // Setup SDL
     // (Some versions of SDL before <2.0.10 appears to have performance/stalling issues on a minority of Windows systems,
@@ -238,7 +238,7 @@ int main(int, char**)
             if (igfd::ImGuiFileDialog::Instance()->IsOk)
 			{
                 std::string filePathName = igfd::ImGuiFileDialog::Instance()->GetFilePathName();
-                load_image(filePathName, Video_framebuffer_texture);
+                load_image(filePathName, framebuffer_texture);
             }
             igfd::ImGuiFileDialog::Instance()->CloseDialog("ChooseFileDlgKey");
         }
@@ -258,10 +258,10 @@ int main(int, char**)
 		ImVec2 initial_size((float)window_width, (float)window_height);
 		ImGui::SetNextWindowPos(pos, ImGuiCond_Always);
 		ImGui::SetNextWindowSize(initial_size, ImGuiCond_Always);
-		if (Video_framebuffer_texture != -1 && ImGui::Begin("screen", nullptr, flags)) 
+		if (framebuffer_texture != -1 && ImGui::Begin("screen", nullptr, flags)) 
 		{
             ImVec2 content_region = ImGui::GetContentRegionAvail();
-            ImGui::Image((void *)(intptr_t)Video_framebuffer_texture,
+            ImGui::Image((void *)(intptr_t)framebuffer_texture,
                         content_region,
                         ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f),
                         tint);
