@@ -39,12 +39,12 @@ target_link_libraries(
 )
 
 add_executable(
-    png_2_c
-    misc/tools/png_2_c.cpp
+    img2c
+    misc/tools/img2c.cpp
 )
 
 target_link_libraries(
-    png_2_c
+    img2c
     ${SDL2_IMAGE_LIBRARY}
     ${SDL2_LIBRARY}
 )
