@@ -77,18 +77,6 @@ target_link_libraries(
 )
 
 add_executable(
-    example_file_dialog
-    test/example_file_dialog
-)
-
-target_link_libraries(
-    example_file_dialog
-    imgui
-    ${SDL2_LIBRARY}
-    GLEW::glew
-)
-
-add_executable(
     example_sdl_rendering
     test/example_sdl_rendering.cpp
 )
