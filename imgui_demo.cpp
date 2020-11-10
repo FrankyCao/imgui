@@ -2962,6 +2962,31 @@ static void ShowDemoWindowLayout()
 
         ImGui::TreePop();
     }
+    if (ImGui::TreeNode("Splitter windows"))
+    {
+        float h = 200;
+        static float hsz1 = 300;
+        static float hsz2 = 300;
+        static float vsz1 = 100;
+        static float vsz2 = 100;
+        ImGui::Splitter(true, 8.0f, &hsz1, &hsz2, 8, 8, h);
+        ImGui::BeginChild("1", ImVec2(hsz1, h), true);
+            ImGui::Text("Window 1");
+        ImGui::EndChild();
+        ImGui::SameLine();
+
+        ImGui::BeginChild("2", ImVec2(hsz2, h), true);
+            ImGui::Splitter(false, 8.0f, &vsz1, &vsz2, 8, 8, hsz2);
+            ImGui::BeginChild("3", ImVec2(hsz2, vsz1), false);
+                ImGui::Text("Window 2");
+            ImGui::EndChild();
+            ImGui::BeginChild("4", ImVec2(hsz2, vsz2), false);
+                ImGui::Text("Window 3");
+            ImGui::EndChild();
+        ImGui::EndChild();
+
+        ImGui::TreePop();
+    }
 }
 
 static void ShowDemoWindowPopups()
