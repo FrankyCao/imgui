@@ -121,6 +121,13 @@ int main(int, char**)
     // load file dialog resource
     igfd::prepare_file_dialog_demo_window();
 
+    // init memory edit
+    MemoryEditor mem_edit;
+    mem_edit.Open = false;
+    mem_edit.OptShowDataPreview = true;
+    size_t data_size = 0x1000;
+    void* data = malloc(data_size);
+
     // Our state
     bool show_demo_window = true;
     bool show_another_window = false;
@@ -168,6 +175,7 @@ int main(int, char**)
             ImGui::Checkbox("Another Window", &show_another_window);
             ImGui::Checkbox("ImPlot Window", &show_implot_window);
             ImGui::Checkbox("File Dialog Window", &show_file_dialog_window);
+            ImGui::Checkbox("Memory Edit Window", &mem_edit.Open);
 
             ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
             ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
@@ -203,6 +211,14 @@ int main(int, char**)
             igfd::show_file_dialog_demo_window(&show_file_dialog_window);
         }
 
+        // 6. Show Memory Edit window
+        if (mem_edit.Open)
+        {
+            ImGui::Begin("Memory Window", &mem_edit.Open);
+            mem_edit.DrawWindow("Memory Editor", data, data_size);
+            ImGui::End();
+        }
+
         // Rendering
         ImGui::Render();
         glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
@@ -211,6 +227,9 @@ int main(int, char**)
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         SDL_GL_SwapWindow(window);
     }
+    // Cleanup memory edit resource
+    if (data)
+        free(data);
 
     // Store file dialog bookmark
     igfd::end_file_dialog_demo_window();
