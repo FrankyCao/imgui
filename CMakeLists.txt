@@ -50,16 +50,6 @@ target_link_libraries(
 )
 
 add_executable(
-    example_null
-    test/example_null.cpp
-)
-
-target_link_libraries(
-    example_null
-    imgui
-)
-
-add_executable(
     example_sdl_opengl2
     test/example_sdl_opengl2.cpp
 )
@@ -93,18 +83,6 @@ add_executable(
 
 target_link_libraries(
     example_file_dialog
-    imgui
-    ${SDL2_LIBRARY}
-    GLEW::glew
-)
-
-add_executable(
-    example_implot
-    test/example_implot.cpp
-)
-
-target_link_libraries(
-    example_implot
     imgui
     ${SDL2_LIBRARY}
     GLEW::glew
