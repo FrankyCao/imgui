@@ -674,6 +674,19 @@ static void ShowDemoWindowWidgets()
         ImGui::TreePop();
     }
 
+    if (ImGui::TreeNode("Spin"))
+    {
+        static int int_v = 10;
+        ImGui::SpinInt("##spin_int", &int_v, 1, 10);
+        ImGui::SameLine(); HelpMarker("Hold key Ctrl to spin fast.");
+        static float float_v = 10.0f;
+        ImGui::SpinFloat("##spin_float", &float_v, 1.f, 10.f);
+        ImGui::SameLine(); HelpMarker("Hold key Ctrl to spin fast.");
+        static double double_v = 10.0;
+        ImGui::SpinDouble("##spin_double", &double_v, 1., 10.);
+        ImGui::SameLine(); HelpMarker("Hold key Ctrl to spin fast.");
+        ImGui::TreePop();
+    }
     // Testing ImGuiOnceUponAFrame helper.
     //static ImGuiOnceUponAFrame once;
     //for (int i = 0; i < 5; i++)
@@ -1301,6 +1314,28 @@ static void ShowDemoWindowWidgets()
             ImGui::Text("Data: %p\nSize: %d\nCapacity: %d", (void*)my_str.begin(), my_str.size(), my_str.capacity());
             ImGui::TreePop();
         }
+
+        ImGui::TreePop();
+    }
+
+    if (ImGui::TreeNode("Progress Indicators"))
+    {
+        ImGui::Text("Loading %c", "|/-\\"[(int)(ImGui::GetTime() / 0.05f) & 3]);
+        ImGui::Separator();
+
+        const ImU32 col = ImGui::GetColorU32(ImGuiCol_ButtonHovered);
+        const ImU32 bg = ImGui::GetColorU32(ImGuiCol_Button);
+
+        ImGui::Spinner("##spinner", 15, 6, col);
+        ImGui::SameLine(); HelpMarker("Spinner widget with radius/thickness/color.");
+        ImGui::BufferingBar("##buffer_bar", 0.7f, ImVec2(400, 6), bg, col);
+        ImGui::SameLine(); HelpMarker("BufferingBar widget with float value.");
+        ImGui::Separator();
+
+        const ImVec4 main_col = ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered);
+        const ImVec4 bg_col = ImGui::GetStyleColorVec4(ImGuiCol_Button);
+        ImGui::LoadingIndicatorCircle("##circle_indicator", 15, main_col, bg_col, 10, 5);
+        ImGui::SameLine(); HelpMarker("Indicator Circle widget. Speed depend on circle_count");
 
         ImGui::TreePop();
     }
