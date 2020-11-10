@@ -785,9 +785,6 @@ namespace ImGui
     IMGUI_API void          SetAllocatorFunctions(void* (*alloc_func)(size_t sz, void* user_data), void (*free_func)(void* ptr, void* user_data), void* user_data = NULL);
     IMGUI_API void*         MemAlloc(size_t size);
     IMGUI_API void          MemFree(void* ptr);
-
-    // Toggle Button
-    IMGUI_API void          ToggleButton(const char* str_id, bool* v);
 } // namespace ImGui
 
 //-----------------------------------------------------------------------------
