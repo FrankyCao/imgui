@@ -1171,7 +1171,7 @@ namespace igfd
 
 				float width = ImGui::GetContentRegionAvail().x;
 				if (dlg_filters) 
-					width -= FILTER_COMBO_WIDTH;
+					width -= FILTER_COMBO_WIDTH + 16;
 				ImGui::PushItemWidth(width);
 				ImGui::InputText("##FileName", FileNameBuffer, MAX_FILE_DIALOG_NAME_BUFFER);
 				ImGui::PopItemWidth();
@@ -2370,7 +2370,7 @@ namespace igfd
 			}
 			ImGui::PopID();
 			if (ImGui::IsItemHovered())
-				ImGui::SetTooltip(bookmark.path.c_str());
+				ImGui::SetTooltip("%s", bookmark.path.c_str());
 		}
 		clipper.End();
 		ImGui::EndChild();

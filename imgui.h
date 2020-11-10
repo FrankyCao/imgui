@@ -2460,4 +2460,7 @@ struct ImFont
 #include "imgui_user.h"
 #endif
 
+// Add Memory edit widget
+#include "imgui_memory_editor.h"
+
 #endif // #ifndef IMGUI_DISABLE

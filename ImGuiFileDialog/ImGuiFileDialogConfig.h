@@ -51,10 +51,10 @@
 //#define tableHeaderSizeString "Size"
 //#define tableHeaderDateString "Date"
 
-//#define USE_BOOKMARK
-//#define bookmarkPaneWith 150.0f
+#define USE_BOOKMARK
+#define bookmarkPaneWith 150.0f
 //#define IMGUI_TOGGLE_BUTTON ToggleButton
-//#define bookmarksButtonString "Bookmark"
-//#define bookmarksButtonHelpString "Bookmark"
-//#define addBookmarkButtonString "+"
-//#define removeBookmarkButtonString "-"
+#define bookmarksButtonString "Bookmark"
+#define bookmarksButtonHelpString "Bookmark"
+#define addBookmarkButtonString "+"
+#define removeBookmarkButtonString "-"
