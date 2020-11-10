@@ -786,6 +786,8 @@ namespace ImGui
     IMGUI_API void*         MemAlloc(size_t size);
     IMGUI_API void          MemFree(void* ptr);
 
+    // Toggle Button
+    IMGUI_API void          ToggleButton(const char* str_id, bool* v);
 } // namespace ImGui
 
 //-----------------------------------------------------------------------------

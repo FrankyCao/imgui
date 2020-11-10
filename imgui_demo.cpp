@@ -496,6 +496,7 @@ static void ShowDemoWindowWidgets()
 
         static bool check = true;
         ImGui::Checkbox("checkbox", &check);
+        ImGui::ToggleButton("toggle", &check);
 
         static int e = 0;
         ImGui::RadioButton("radio a", &e, 0); ImGui::SameLine();
