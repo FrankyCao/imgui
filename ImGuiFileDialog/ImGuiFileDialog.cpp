@@ -2375,30 +2375,33 @@ namespace igfd
 				ImGui::PopItemWidth();
 			}
 		}
-		ImGui::Separator();
 		int countRows = (int)m_Bookmarks.size();
-		ImGuiListClipper clipper(countRows, ImGui::GetTextLineHeightWithSpacing());
-		for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
+		if (countRows > 0)
 		{
-			const BookmarkStruct& bookmark = m_Bookmarks[i];
-			ImGui::PushID(i);
-			if (ImGui::Selectable(bookmark.name.c_str(), selectedBookmarkForEdition == i, ImGuiSelectableFlags_AllowDoubleClick) ||
-				(selectedBookmarkForEdition == -1 && bookmark.path == m_CurrentPath)) // select if path is current
+			ImGui::Separator();
+			ImGuiListClipper clipper(countRows, ImGui::GetTextLineHeightWithSpacing());
+			for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
 			{
-				selectedBookmarkForEdition = i;
-				ResetBuffer(BookmarkEditBuffer);
-				AppendToBuffer(BookmarkEditBuffer, MAX_FILE_DIALOG_NAME_BUFFER, bookmark.name);
-
-				if (ImGui::IsMouseDoubleClicked(0)) // apply path
+				const BookmarkStruct& bookmark = m_Bookmarks[i];
+				ImGui::PushID(i);
+				if (ImGui::Selectable(bookmark.name.c_str(), selectedBookmarkForEdition == i, ImGuiSelectableFlags_AllowDoubleClick) ||
+					(selectedBookmarkForEdition == -1 && bookmark.path == m_CurrentPath)) // select if path is current
 				{
-					SetPath(bookmark.path);
+					selectedBookmarkForEdition = i;
+					ResetBuffer(BookmarkEditBuffer);
+					AppendToBuffer(BookmarkEditBuffer, MAX_FILE_DIALOG_NAME_BUFFER, bookmark.name);
+	
+					if (ImGui::IsMouseDoubleClicked(0)) // apply path
+					{
+						SetPath(bookmark.path);
+					}
 				}
+				ImGui::PopID();
+				if (ImGui::IsItemHovered())
+					ImGui::SetTooltip("%s", bookmark.path.c_str());
 			}
-			ImGui::PopID();
-			if (ImGui::IsItemHovered())
-				ImGui::SetTooltip("%s", bookmark.path.c_str());
+			clipper.End();
 		}
-		clipper.End();
 		ImGui::EndChild();
 	}
 
