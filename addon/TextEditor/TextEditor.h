@@ -386,4 +386,6 @@ private:
 	uint64_t mStartTime;
 
 	float mLastClick;
+public:
+	void text_edit_demo(bool * open);
 };

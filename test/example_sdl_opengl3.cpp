@@ -7,8 +7,7 @@
 #include "imgui.h"
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_opengl3.h"
-#include "implot.h"
-#include "ImGuiFileDialog.h"
+#include "imgui_user.h"
 #include <stdio.h>
 #include <SDL.h>
 
@@ -128,11 +127,15 @@ int main(int, char**)
     size_t data_size = 0x1000;
     void* data = malloc(data_size);
 
+    // Init Text Edit
+	TextEditor editor;
+
     // Our state
     bool show_demo_window = true;
     bool show_another_window = false;
     bool show_implot_window = false;
     bool show_file_dialog_window = false;
+    bool show_text_edit_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     // Main loop
@@ -176,6 +179,7 @@ int main(int, char**)
             ImGui::Checkbox("ImPlot Window", &show_implot_window);
             ImGui::Checkbox("File Dialog Window", &show_file_dialog_window);
             ImGui::Checkbox("Memory Edit Window", &mem_edit.Open);
+            ImGui::Checkbox("Show Text Edit Window", &show_text_edit_window);
 
             ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
             ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
@@ -217,6 +221,12 @@ int main(int, char**)
             ImGui::Begin("Memory Window", &mem_edit.Open);
             mem_edit.DrawWindow("Memory Editor", data, data_size);
             ImGui::End();
+        }
+
+        // 7. Show Text Edit Window
+        if (show_text_edit_window)
+        {
+            editor.text_edit_demo(&show_text_edit_window);
         }
 
         // Rendering
