@@ -1948,8 +1948,8 @@ namespace igfd
 			if (vIter == m_CurrentPath_Decomposition.begin())
 			{
 #if defined(UNIX) // UNIX is LINUX or APPLE
-				if (m_CurrentPath[0] != PATH_SEP)
-					m_CurrentPath = PATH_SEP + m_CurrentPath;
+				if (res[0] != PATH_SEP)
+					res = PATH_SEP + res;
 #endif
 				break;
 			}
