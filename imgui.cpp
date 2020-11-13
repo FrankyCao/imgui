@@ -2774,70 +2774,27 @@ void ImGui::RenderNavHighlight(const ImRect& bb, ImGuiID id, ImGuiNavHighlightFl
 //-----------------------------------------------------------------------------
 
 // ImGuiWindow is mostly a dumb struct. It merely has a constructor and a few helper methods
-ImGuiWindow::ImGuiWindow(ImGuiContext* context, const char* name)
-    : DrawListInst(&context->DrawListSharedData)
+ImGuiWindow::ImGuiWindow(ImGuiContext* context, const char* name) : DrawListInst(NULL)
 {
+    memset(this, 0, sizeof(*this));
     Name = ImStrdup(name);
+    NameBufLen = (int)strlen(name) + 1;
     ID = ImHashStr(name);
     IDStack.push_back(ID);
-    Flags = ImGuiWindowFlags_None;
-    Pos = ImVec2(0.0f, 0.0f);
-    Size = SizeFull = ImVec2(0.0f, 0.0f);
-    ContentSize = ContentSizeExplicit = ImVec2(0.0f, 0.0f);
-    WindowPadding = ImVec2(0.0f, 0.0f);
-    WindowRounding = 0.0f;
-    WindowBorderSize = 0.0f;
-    NameBufLen = (int)strlen(name) + 1;
     MoveId = GetID("#MOVE");
-    ChildId = 0;
-    Scroll = ImVec2(0.0f, 0.0f);
     ScrollTarget = ImVec2(FLT_MAX, FLT_MAX);
     ScrollTargetCenterRatio = ImVec2(0.5f, 0.5f);
-    ScrollbarSizes = ImVec2(0.0f, 0.0f);
-    ScrollbarX = ScrollbarY = false;
-    Active = WasActive = false;
-    WriteAccessed = false;
-    Collapsed = false;
-    WantCollapseToggle = false;
-    SkipItems = false;
-    Appearing = false;
-    Hidden = false;
-    IsFallbackWindow = false;
-    HasCloseButton = false;
-    ResizeBorderHeld = -1;
-    BeginCount = 0;
-    BeginOrderWithinParent = -1;
-    BeginOrderWithinContext = -1;
-    PopupId = 0;
     AutoFitFramesX = AutoFitFramesY = -1;
-    AutoFitChildAxises = 0x00;
-    AutoFitOnlyGrows = false;
     AutoPosLastDirection = ImGuiDir_None;
-    HiddenFramesCanSkipItems = HiddenFramesCannotSkipItems = 0;
     SetWindowPosAllowFlags = SetWindowSizeAllowFlags = SetWindowCollapsedAllowFlags = ImGuiCond_Always | ImGuiCond_Once | ImGuiCond_FirstUseEver | ImGuiCond_Appearing;
     SetWindowPosVal = SetWindowPosPivot = ImVec2(FLT_MAX, FLT_MAX);
-
-    InnerRect = ImRect(0.0f, 0.0f, 0.0f, 0.0f); // Clear so the InnerRect.GetSize() code in Begin() doesn't lead to overflow even if the result isn't used.
-
     LastFrameActive = -1;
     LastTimeActive = -1.0f;
-    ItemWidthDefault = 0.0f;
     FontWindowScale = 1.0f;
     SettingsOffset = -1;
-
     DrawList = &DrawListInst;
+    DrawList->_Data = &context->DrawListSharedData;
     DrawList->_OwnerName = Name;
-    ParentWindow = NULL;
-    RootWindow = NULL;
-    RootWindowForTitleBarHighlight = NULL;
-    RootWindowForNav = NULL;
-
-    NavLastIds[0] = NavLastIds[1] = 0;
-    NavRectRel[0] = NavRectRel[1] = ImRect();
-    NavLastChildNavWindow = NULL;
-
-    MemoryCompacted = false;
-    MemoryDrawListIdxCapacity = MemoryDrawListVtxCapacity = 0;
 }
 
 ImGuiWindow::~ImGuiWindow()
@@ -3888,7 +3845,7 @@ void ImGui::NewFrame()
 
     // Mark all windows as not visible and compact unused memory.
     IM_ASSERT(g.WindowsFocusOrder.Size == g.Windows.Size);
-    const float memory_compact_start_time = (g.IO.ConfigMemoryCompactTimer >= 0.0f) ? (float)g.Time - g.IO.ConfigMemoryCompactTimer : FLT_MAX;
+    const float memory_compact_start_time = (g.GcCompactAll || g.IO.ConfigMemoryCompactTimer < 0.0f) ? FLT_MAX : (float)g.Time - g.IO.ConfigMemoryCompactTimer;
     for (int i = 0; i != g.Windows.Size; i++)
     {
         ImGuiWindow* window = g.Windows[i];
@@ -3901,6 +3858,7 @@ void ImGui::NewFrame()
         if (!window->WasActive && !window->MemoryCompacted && window->LastTimeActive < memory_compact_start_time)
             GcCompactTransientWindowBuffers(window);
     }
+    g.GcCompactAll = false;
 
     // Closing the focused window restore focus to the first active root window in descending z-order
     if (g.NavWindow && !g.NavWindow->WasActive)
@@ -6693,12 +6651,14 @@ void ImGui::ActivateItem(ImGuiID id)
     g.NavNextActivateId = id;
 }
 
-// Note: this is storing in same stack as IDStack, so Push/Pop mismatch will be reported there.
+// FIXME: this is storing in same stack as IDStack, so Push/Pop mismatch will be reported there. Maybe play nice and a separate in-context stack.
 void ImGui::PushFocusScope(ImGuiID id)
 {
     ImGuiContext& g = *GImGui;
     ImGuiWindow* window = g.CurrentWindow;
+    ImGuiID top_most_id = window->IDStack.back();
     window->IDStack.push_back(window->DC.NavFocusScopeIdCurrent);
+    window->IDStack.push_back(top_most_id);
     window->DC.NavFocusScopeIdCurrent = id;
 }
 
@@ -6707,6 +6667,8 @@ void ImGui::PopFocusScope()
     ImGuiContext& g = *GImGui;
     ImGuiWindow* window = g.CurrentWindow;
     window->DC.NavFocusScopeIdCurrent = window->IDStack.back();
+    window->IDStack.pop_back();
+    IM_ASSERT(window->IDStack.Size > 1); // Too many PopID or PopFocusScope (or could be popping in a wrong/different window?)
     window->IDStack.pop_back();
 }
 
@@ -6806,6 +6768,7 @@ ImGuiID ImGui::GetIDWithSeed(const char* str, const char* str_end, ImGuiID seed)
 void ImGui::PopID()
 {
     ImGuiWindow* window = GImGui->CurrentWindow;
+    IM_ASSERT(window->IDStack.Size > 1); // Too many PopID or PopFocusScope (or could be popping in a wrong/different window?)
     window->IDStack.pop_back();
 }
 
@@ -10366,12 +10329,14 @@ void ImGui::ShowMetricsWindow(bool* p_open)
     ImGuiMetricsConfig* cfg = &g.DebugMetricsConfig;
 
     // Basic info
-    ImGui::Text("Dear ImGui %s", ImGui::GetVersion());
-    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-    ImGui::Text("%d vertices, %d indices (%d triangles)", io.MetricsRenderVertices, io.MetricsRenderIndices, io.MetricsRenderIndices / 3);
-    ImGui::Text("%d active windows (%d visible)", io.MetricsActiveWindows, io.MetricsRenderWindows);
-    ImGui::Text("%d active allocations", io.MetricsActiveAllocations);
-    ImGui::Separator();
+    Text("Dear ImGui %s", ImGui::GetVersion());
+    Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+    Text("%d vertices, %d indices (%d triangles)", io.MetricsRenderVertices, io.MetricsRenderIndices, io.MetricsRenderIndices / 3);
+    Text("%d active windows (%d visible)", io.MetricsActiveWindows, io.MetricsRenderWindows);
+    Text("%d active allocations", io.MetricsActiveAllocations);
+    //SameLine(); if (SmallButton("GC")) { g.GcCompactAll = true; }
+
+    Separator();
 
     // Debugging enums
     enum { WRT_OuterRect, WRT_OuterRectClipped, WRT_InnerRect, WRT_InnerClipRect, WRT_WorkRect, WRT_Content, WRT_ContentRegionRect, WRT_Count }; // Windows Rect Type

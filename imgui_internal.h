@@ -453,15 +453,15 @@ struct IMGUI_API ImRect
 };
 
 // Helper: ImBitArray
-inline bool          ImBitArrayTestBit(const ImU32* arr, int n)         { ImU32 mask = (ImU32)1 << (n & 31); return (arr[n >> 5] & mask) != 0; }
-inline void          ImBitArrayClearBit(ImU32* arr, int n)              { ImU32 mask = (ImU32)1 << (n & 31); arr[n >> 5] &= ~mask; }
-inline void          ImBitArraySetBit(ImU32* arr, int n)                { ImU32 mask = (ImU32)1 << (n & 31); arr[n >> 5] |= mask; }
-inline void          ImBitArraySetBitRange(ImU32* arr, int n, int n2)
+inline bool     ImBitArrayTestBit(const ImU32* arr, int n)      { ImU32 mask = (ImU32)1 << (n & 31); return (arr[n >> 5] & mask) != 0; }
+inline void     ImBitArrayClearBit(ImU32* arr, int n)           { ImU32 mask = (ImU32)1 << (n & 31); arr[n >> 5] &= ~mask; }
+inline void     ImBitArraySetBit(ImU32* arr, int n)             { ImU32 mask = (ImU32)1 << (n & 31); arr[n >> 5] |= mask; }
+inline void     ImBitArraySetBitRange(ImU32* arr, int n, int n2)
 {
     while (n <= n2)
     {
         int a_mod = (n & 31);
-        int b_mod = ((n2 >= n + 31) ? 31 : (n2 & 31)) + 1;
+        int b_mod = (n2 > (n | 31) ? 31 : (n2 & 31)) + 1;
         ImU32 mask = (ImU32)(((ImU64)1 << b_mod) - 1) & ~(ImU32)(((ImU64)1 << a_mod) - 1);
         arr[n >> 5] |= mask;
         n = (n + 32) & ~31;
@@ -1148,6 +1148,7 @@ struct ImGuiContext
     bool                    WithinFrameScope;                   // Set by NewFrame(), cleared by EndFrame()
     bool                    WithinFrameScopeWithImplicitWindow; // Set by NewFrame(), cleared by EndFrame() when the implicit debug window has been pushed
     bool                    WithinEndChild;                     // Set within EndChild()
+    bool                    GcCompactAll;                       // Request full GC
     bool                    TestEngineHookItems;                // Will call test engine hooks: ImGuiTestEngineHook_ItemAdd(), ImGuiTestEngineHook_ItemInfo(), ImGuiTestEngineHook_Log()
     ImGuiID                 TestEngineHookIdInfo;               // Will call test engine hooks: ImGuiTestEngineHook_IdInfo() from GetID()
     void*                   TestEngine;                         // Test engine user data
@@ -1503,7 +1504,8 @@ struct ImGuiContext
 //-----------------------------------------------------------------------------
 
 // Transient per-window data, reset at the beginning of the frame. This used to be called ImGuiDrawContext, hence the DC variable name in ImGuiWindow.
-// FIXME: That's theory, in practice the delimitation between ImGuiWindow and ImGuiWindowTempData is quite tenuous and could be reconsidered.
+// (That's theory, in practice the delimitation between ImGuiWindow and ImGuiWindowTempData is quite tenuous and could be reconsidered..)
+// (This doesn't need a constructor because we zero-clear it as part of ImGuiWindow and all frame-temporary data are setup on Begin)
 struct IMGUI_API ImGuiWindowTempData
 {
     // Layout
@@ -1557,40 +1559,6 @@ struct IMGUI_API ImGuiWindowTempData
     ImVector<float>         TextWrapPosStack;
     ImVector<ImGuiGroupData>GroupStack;
     short                   StackSizesBackup[6];    // Store size of various stacks for asserting
-
-    ImGuiWindowTempData()
-    {
-        CursorPos = CursorPosPrevLine = CursorStartPos = CursorMaxPos = ImVec2(0.0f, 0.0f);
-        CurrLineSize = PrevLineSize = ImVec2(0.0f, 0.0f);
-        CurrLineTextBaseOffset = PrevLineTextBaseOffset = 0.0f;
-        Indent = ImVec1(0.0f);
-        ColumnsOffset = ImVec1(0.0f);
-        GroupOffset = ImVec1(0.0f);
-
-        LastItemId = 0;
-        LastItemStatusFlags = ImGuiItemStatusFlags_None;
-        LastItemRect = LastItemDisplayRect = ImRect();
-
-        NavLayerActiveMask = NavLayerActiveMaskNext = 0x00;
-        NavLayerCurrent = ImGuiNavLayer_Main;
-        NavFocusScopeIdCurrent = 0;
-        NavHideHighlightOneFrame = false;
-        NavHasScroll = false;
-
-        MenuBarAppending = false;
-        MenuBarOffset = ImVec2(0.0f, 0.0f);
-        TreeDepth = 0;
-        TreeJumpToParentOnPopMask = 0x00;
-        StateStorage = NULL;
-        CurrentColumns = NULL;
-        LayoutType = ParentLayoutType = ImGuiLayoutType_Vertical;
-        FocusCounterRegular = FocusCounterTabStop = -1;
-
-        ItemFlags = ImGuiItemFlags_Default_;
-        ItemWidth = 0.0f;
-        TextWrapPos = -1.0f;
-        memset(StackSizesBackup, 0, sizeof(StackSizesBackup));
-    }
 };
 
 // Storage for one window
