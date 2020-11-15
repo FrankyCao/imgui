@@ -216,16 +216,13 @@ target_link_libraries(
 )
 
 find_package(OpenCV REQUIRED)
-
 include_directories(
     ${OpenCV_INCLUDE_DIRS}
 )
-
 add_executable(
     example_sdl_video
     test/example_sdl_video.cpp
 )
-
 target_link_libraries(
     example_sdl_video
     imgui
