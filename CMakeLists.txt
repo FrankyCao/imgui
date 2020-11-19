@@ -1,15 +1,32 @@
 #
 # Cmake for building imgui
 #
-option(IMGUI_FONTS "Internal Fonts build in library" OFF)
+cmake_minimum_required(VERSION 3.5.1)
+project(IMGUI)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_SKIP_RPATH ON)
+set(CMAKE_MACOSX_RPATH 0)
+if (POLICY CMP0054)
+    cmake_policy(SET CMP0054 NEW)
+endif()
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-# build misc
-find_package(Freetype REQUIRED)
+option(IMGUI_FONTS "Internal Fonts build in library" ON)
+
+find_package(PkgConfig REQUIRED)
+if(PKG_CONFIG_FOUND)
+pkg_search_module(GLEW REQUIRED glew)
+endif()
+find_package(OpenGL REQUIRED)
 find_package(SDL2 REQUIRED sdl2)
 find_package(SDL2_image REQUIRED SDL2_image>=2.0.0)
+find_package(Freetype REQUIRED)
 
 set(IMGUI_INC_DIRS
     ${SDL2_INCLUDE_DIR}
+    ${GLEW_INCLUDE_DIRS}
+    ${OPENGL_INCLUDE_DIR}
     ${FREETYPE_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
@@ -197,7 +214,7 @@ target_link_libraries(
     imgui
     ${SDL2_IMAGE_LIBRARY}
     ${SDL2_LIBRARY}
-    GLEW::glew
+    ${GLEW_STATIC_LDFLAGS}
     ${OPENGL_LIBRARIES}
 )
 
@@ -211,7 +228,8 @@ target_link_libraries(
     imgui
     ${SDL2_IMAGE_LIBRARY}
     ${SDL2_LIBRARY}
-    GLEW::glew
+    ${GLEW_STATIC_LDFLAGS}
+    ${OPENGL_LIBRARIES}
 )
 
 add_executable(
@@ -224,7 +242,8 @@ target_link_libraries(
     imgui
     ${SDL2_IMAGE_LIBRARY}
     ${SDL2_LIBRARY}
-    GLEW::glew
+    ${GLEW_STATIC_LDFLAGS}
+    ${OPENGL_LIBRARIES}
 )
 
 find_package(OpenCV REQUIRED)
@@ -241,7 +260,8 @@ target_link_libraries(
     ${OpenCV_LIBS}
     ${SDL2_IMAGE_LIBRARY}
     ${SDL2_LIBRARY}
-    GLEW::glew
+    ${GLEW_STATIC_LDFLAGS}
+    ${OPENGL_LIBRARIES}
 )
 
 set(IMGUI_LIBRARYS imgui ${LINK_LIBS} PARENT_SCOPE )
