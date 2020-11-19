@@ -5,6 +5,7 @@
 // Read online: https://github.com/ocornut/imgui/tree/master/docs
 
 #include "imgui.h"
+#include "imgui_internal.h"
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_opengl3.h"
 #include "imgui_user.h"
@@ -106,9 +107,31 @@ int main(int, char**)
     ImPlot::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.IniFilename = "sdl_opengl3.ini";
+
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-
+    //io.Fonts->AddFontFromFileTTF("test.ttf", 20.0f);
+    io.Fonts->AddFontDefault();
+    /*
+    ImFontConfig font_cfg = ImFontConfig();
+    font_cfg.OversampleH = 2;
+    font_cfg.OversampleV = 2;
+    font_cfg.PixelSnapH = true;
+    font_cfg.EllipsisChar = (ImWchar)0x0085;
+    font_cfg.GlyphOffset.y = 1.0f * IM_FLOOR(font_cfg.SizePixels / 16.0f);
+    static ImFontGlyphRangesBuilder range;
+    range.Clear();
+    static ImVector<ImWchar> gr;
+    gr.clear();
+    //range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesChineseSimplifiedCommon());
+    range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesChineseFull());
+    range.BuildRanges(&gr);
+    io.Fonts->AddFontFromFileTTF("/Users/dicky/开发/Dicky/DickyGIT/AppleIIemu/imgui/misc/fonts/等宽黑.ttf", 16.0f, &font_cfg, gr.Data);
+    io.Fonts->AddFontFromFileTTF("/Users/dicky/开发/Dicky/DickyGIT/AppleIIemu/imgui/misc/fonts/等宽线.ttf", 16.0f, &font_cfg, gr.Data);
+    io.Fonts->AddFontFromFileTTF("/Users/dicky/开发/Dicky/DickyGIT/AppleIIemu/imgui/misc/fonts/等宽宋.ttf", 16.0f, &font_cfg, gr.Data);
+    io.Fonts->AddFontFromFileTTF("/Users/dicky/开发/Dicky/DickyGIT/AppleIIemu/imgui/misc/fonts/等宽楷.ttf", 16.0f, &font_cfg, gr.Data);
+    io.Fonts->AddFontFromFileTTF("/Users/dicky/开发/Dicky/DickyGIT/AppleIIemu/imgui/misc/fonts/等宽圆.ttf", 16.0f, &font_cfg, gr.Data);
+    */
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
     //ImGui::StyleColorsClassic();

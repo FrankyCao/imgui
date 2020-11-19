@@ -2520,7 +2520,6 @@ inline bool RadioButtonLabeled(const char* label, bool active, bool disabled)
 void prepare_file_dialog_demo_window()
 {
 	// load icon font file (CustomFont.cpp)
-	ImGui::GetIO().Fonts->AddFontDefault();
 	static const ImWchar icons_ranges[] = { ICON_MIN_IGFD, ICON_MAX_IGFD, 0 };
 	ImFontConfig icons_config; icons_config.MergeMode = true; icons_config.PixelSnapH = true;
 	ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(FONT_ICON_BUFFER_NAME_IGFD, 15.0f, &icons_config, icons_ranges);

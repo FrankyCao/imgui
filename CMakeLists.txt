@@ -1,6 +1,7 @@
 #
 # Cmake for building imgui
 #
+option(IMGUI_FONTS "Internal Fonts build in library" OFF)
 
 # build misc
 find_package(Freetype REQUIRED)
@@ -18,7 +19,7 @@ set(IMGUI_SRC
     imgui_demo.cpp 
     imgui_draw.cpp
     imgui_widgets.cpp 
-    monohei.cpp
+    mono_hei.cpp
     backends/imgui_impl_sdl.cpp
     backends/imgui_impl_opengl2.cpp
     backends/imgui_impl_opengl3.cpp
@@ -39,6 +40,17 @@ set(IMGUI_INCS
     misc/cpp/imgui_stdlib.h
     misc/freetype/imgui_freetype.h
 )
+
+if (IMGUI_FONTS)
+add_definitions(-DIMGUI_INTERNAL_FONTS)
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    mono_kai.cpp
+    mono_mid.cpp
+    mono_song.cpp
+    mono_yuan.cpp
+)
+endif()
 
 set(IMGUI_INC_DIRS
     ${IMGUI_INC_DIRS}
