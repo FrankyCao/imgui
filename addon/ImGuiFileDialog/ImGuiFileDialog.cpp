@@ -2494,16 +2494,19 @@ inline bool RadioButtonLabeled(const char* label, bool active, bool disabled)
 
 void prepare_file_dialog_demo_window()
 {
-	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".cpp", ImVec4(1.0f, 1.0f, 0.0f, 0.9f));
-	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".h", ImVec4(0.0f, 1.0f, 0.0f, 0.9f));
-	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".hpp", ImVec4(0.0f, 0.0f, 1.0f, 0.9f));
-	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".md", ImVec4(1.0f, 0.0f, 1.0f, 0.9f));
+	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".txt", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_TEXT_O);
+	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".cpp", ImVec4(1.0f, 1.0f, 0.0f, 0.9f), ICON_FA5_FILE_CODE);
+	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".h", ImVec4(0.0f, 1.0f, 0.0f, 0.9f), ICON_FA5_FILE_CODE);
+	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".hpp", ImVec4(0.0f, 0.0f, 1.0f, 0.9f), ICON_FA5_FILE_CODE);
+	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".md", ImVec4(1.0f, 0.0f, 1.0f, 0.9f), ICON_FK_MARKDOWN);
 	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".png", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
 	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".bmp", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
 	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".jpg", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
 	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".jpeg", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
 	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".gif", ImVec4(0.0f, 1.0f, 0.5f, 0.9f), "[GIF]"); // add an text for a filter type
-
+	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".mp4", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
+	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".mkv", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
+	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".webm", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
 
 #ifdef USE_BOOKMARK
 	// load bookmarks

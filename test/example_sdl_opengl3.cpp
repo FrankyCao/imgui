@@ -271,7 +271,7 @@ This one has two.
             //mdConfig.linkCallback =         LinkCallback;
             mdConfig.tooltipCallback =      NULL;
             //mdConfig.imageCallback =        ImageCallback;
-            //mdConfig.linkIcon =             ICON_FA_LINK;
+            mdConfig.linkIcon =             ICON_FA4_LINK;
             //mdConfig.headingFormats[0] =    { H1, true };
             //mdConfig.headingFormats[1] =    { H2, true };
             //mdConfig.headingFormats[2] =    { H3, false };

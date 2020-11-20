@@ -79,6 +79,13 @@ set(IMGUI_SRC
     ${IMGUI_SRC}
     icons/icons.cpp
     icons/folder.cpp
+    icons/fontaudio.cpp
+    icons/fa_brands.cpp
+    icons/fa_regular.cpp
+    icons/fa_solid.cpp
+    icons/webfont.cpp
+    icons/fork_webfont.cpp
+    icons/material_icons.cpp
 )
 endif()
 
