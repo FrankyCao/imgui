@@ -264,7 +264,8 @@ target_link_libraries(
     ${OPENGL_LIBRARIES}
 )
 
-if (PARENT_SCOPE)
+get_directory_property(hasParent PARENT_DIRECTORY)
+if(hasParent)
 set(IMGUI_LIBRARYS imgui ${LINK_LIBS} PARENT_SCOPE )
 set(IMGUI_INCLUDES ${IMGUI_INCS} PARENT_SCOPE )
 set(IMGUI_INCLUDE_DIRS ${IMGUI_INC_DIRS} PARENT_SCOPE )
