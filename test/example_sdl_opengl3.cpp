@@ -110,7 +110,7 @@ int main(int, char**)
 
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-    //io.Fonts->AddFontFromFileTTF("test.ttf", 20.0f);
+
     io.Fonts->AddFontDefault();
     /*
     ImFontConfig font_cfg = ImFontConfig();
@@ -126,12 +126,9 @@ int main(int, char**)
     //range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesChineseSimplifiedCommon());
     range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesChineseFull());
     range.BuildRanges(&gr);
-    io.Fonts->AddFontFromFileTTF("/Users/dicky/开发/Dicky/DickyGIT/AppleIIemu/imgui/misc/fonts/等宽黑.ttf", 16.0f, &font_cfg, gr.Data);
-    io.Fonts->AddFontFromFileTTF("/Users/dicky/开发/Dicky/DickyGIT/AppleIIemu/imgui/misc/fonts/等宽线.ttf", 16.0f, &font_cfg, gr.Data);
-    io.Fonts->AddFontFromFileTTF("/Users/dicky/开发/Dicky/DickyGIT/AppleIIemu/imgui/misc/fonts/等宽宋.ttf", 16.0f, &font_cfg, gr.Data);
-    io.Fonts->AddFontFromFileTTF("/Users/dicky/开发/Dicky/DickyGIT/AppleIIemu/imgui/misc/fonts/等宽楷.ttf", 16.0f, &font_cfg, gr.Data);
-    io.Fonts->AddFontFromFileTTF("/Users/dicky/开发/Dicky/DickyGIT/AppleIIemu/imgui/misc/fonts/等宽圆.ttf", 16.0f, &font_cfg, gr.Data);
+    io.Fonts->AddFontFromFileTTF("../misc/fonts/test.ttf", 16.0f, &font_cfg, gr.Data);
     */
+    
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
     //ImGui::StyleColorsClassic();

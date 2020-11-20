@@ -66,6 +66,8 @@ set(IMGUI_SRC
     mono_mid.cpp
     mono_song.cpp
     mono_yuan.cpp
+    mono_sarasa.cpp
+    mono_yahei.cpp
 )
 endif()
 

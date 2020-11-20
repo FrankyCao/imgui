@@ -177,6 +177,8 @@ extern const char mono_kai_compressed_data_base85[];
 extern const char mono_mid_compressed_data_base85[];
 extern const char mono_song_compressed_data_base85[];
 extern const char mono_yuan_compressed_data_base85[];
+extern const char mono_sarasa_compressed_data_base85[];
+extern const char mono_yahei_compressed_data_base85[];
 #endif
 
 //-----------------------------------------------------------------------------
@@ -1901,6 +1903,10 @@ ImFont* ImFontAtlas::AddFontDefault(const ImFontConfig* font_cfg_template)
     ImFont* font = AddFontFromMemoryCompressedBase85TTF(ttf_compressed_base85, font_cfg.SizePixels, &font_cfg, glyph_ranges);
 #ifdef IMGUI_INTERNAL_FONTS
     {
+        ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "等宽粗黑, %dpx", (int)font_cfg.SizePixels);
+        AddFontFromMemoryCompressedBase85TTF(mono_sarasa_compressed_data_base85, font_cfg.SizePixels, &font_cfg, glyph_ranges);
+        ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "等宽雅黑, %dpx", (int)font_cfg.SizePixels);
+        AddFontFromMemoryCompressedBase85TTF(mono_yahei_compressed_data_base85, font_cfg.SizePixels, &font_cfg, glyph_ranges);
         ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "等宽宋体, %dpx", (int)font_cfg.SizePixels);
         AddFontFromMemoryCompressedBase85TTF(mono_song_compressed_data_base85, font_cfg.SizePixels, &font_cfg, glyph_ranges);
         ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "等宽楷体, %dpx", (int)font_cfg.SizePixels);
