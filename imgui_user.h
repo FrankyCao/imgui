@@ -8,3 +8,5 @@
 #include "Splitter.h"
 #include "TextEditor.h"
 #include "ToggleButton.h"
+#include "imgui_markdown.h"
+#include "icons/icons.h"

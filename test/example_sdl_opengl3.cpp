@@ -150,12 +150,16 @@ int main(int, char**)
     // Init Text Edit
 	TextEditor editor;
 
+    // Init MarkDown
+    ImGui::MarkdownConfig mdConfig; 
+
     // Our state
     bool show_demo_window = true;
     bool show_another_window = false;
     bool show_implot_window = false;
     bool show_file_dialog_window = false;
     bool show_text_edit_window = false;
+    bool show_markdown_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     // Main loop
@@ -200,6 +204,7 @@ int main(int, char**)
             ImGui::Checkbox("File Dialog Window", &show_file_dialog_window);
             ImGui::Checkbox("Memory Edit Window", &mem_edit.Open);
             ImGui::Checkbox("Show Text Edit Window", &show_text_edit_window);
+            ImGui::Checkbox("Show Markdown Window", &show_markdown_window);
 
             ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
             ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
@@ -247,6 +252,32 @@ int main(int, char**)
         if (show_text_edit_window)
         {
             editor.text_edit_demo(&show_text_edit_window);
+        }
+
+        // 8. Show Markdown Window
+        if (show_markdown_window)
+        {
+            const std::string markdownText = u8R"(
+# H1 Header: Text and Links
+You can add [links like this one to enkisoftware](https://www.enkisoftware.com/) and lines will wrap well.
+## H2 Header: indented text.
+This text has an indent (two leading spaces).
+This one has two.
+### H3 Header: Lists
+* Unordered lists
+* Lists can be indented with two extra spaces.
+* Lists can have [links like this one to Avoyd](https://www.avoyd.com/)
+)";
+            //mdConfig.linkCallback =         LinkCallback;
+            mdConfig.tooltipCallback =      NULL;
+            //mdConfig.imageCallback =        ImageCallback;
+            //mdConfig.linkIcon =             ICON_FA_LINK;
+            //mdConfig.headingFormats[0] =    { H1, true };
+            //mdConfig.headingFormats[1] =    { H2, true };
+            //mdConfig.headingFormats[2] =    { H3, false };
+            mdConfig.userData =             NULL;
+            //mdConfig.formatCallback =       ExampleMarkdownFormatCallback;
+            ImGui::Markdown( markdownText.c_str(), markdownText.length(), mdConfig );
         }
 
         // Rendering

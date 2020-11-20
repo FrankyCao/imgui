@@ -13,6 +13,8 @@ endif()
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 option(IMGUI_FONTS "Internal Fonts build in library" ON)
+option(IMGUI_ICONS "Internal Icons build in library" ON)
+option(IMGUI_APPS  "build apps base on imgui" ON)
 
 find_package(PkgConfig REQUIRED)
 if(PKG_CONFIG_FOUND)
@@ -36,7 +38,7 @@ set(IMGUI_SRC
     imgui_demo.cpp 
     imgui_draw.cpp
     imgui_widgets.cpp 
-    mono_hei.cpp
+    fonts/mono_hei.cpp
     backends/imgui_impl_sdl.cpp
     backends/imgui_impl_opengl2.cpp
     backends/imgui_impl_opengl3.cpp
@@ -62,12 +64,21 @@ if (IMGUI_FONTS)
 add_definitions(-DIMGUI_INTERNAL_FONTS)
 set(IMGUI_SRC
     ${IMGUI_SRC}
-    mono_kai.cpp
-    mono_mid.cpp
-    mono_song.cpp
-    mono_yuan.cpp
-    mono_sarasa.cpp
-    mono_yahei.cpp
+    fonts/mono_kai.cpp
+    fonts/mono_mid.cpp
+    fonts/mono_song.cpp
+    fonts/mono_yuan.cpp
+    fonts/mono_sarasa.cpp
+    fonts/mono_yahei.cpp
+)
+endif()
+
+if (IMGUI_ICONS)
+add_definitions(-DIMGUI_INTERNAL_ICONS)
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    icons/icons.cpp
+    icons/folder.cpp
 )
 endif()
 
@@ -181,6 +192,11 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/addon/MemoryEditor
 )
 
+set(IMGUI_INC_DIRS
+    ${IMGUI_INC_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/markdown
+)
+
 include_directories(${IMGUI_INC_DIRS})
 add_library(imgui ${IMGUI_SRC} ${IMGUI_INCS})
 set_property(TARGET imgui PROPERTY POSITION_INDEPENDENT_CODE ON)
@@ -265,6 +281,9 @@ target_link_libraries(
     ${GLEW_STATIC_LDFLAGS}
     ${OPENGL_LIBRARIES}
 )
+
+if (IMGUI_APPS)
+endif()
 
 get_directory_property(hasParent PARENT_DIRECTORY)
 if(hasParent)

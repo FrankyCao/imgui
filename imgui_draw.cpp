@@ -1901,20 +1901,41 @@ ImFont* ImFontAtlas::AddFontDefault(const ImFontConfig* font_cfg_template)
     const char* ttf_compressed_base85 = GetDefaultCompressedFontDataTTFBase85();
     const ImWchar* glyph_ranges = font_cfg.GlyphRanges != NULL ? font_cfg.GlyphRanges : GetGlyphRangesChineseFull();
     ImFont* font = AddFontFromMemoryCompressedBase85TTF(ttf_compressed_base85, font_cfg.SizePixels, &font_cfg, glyph_ranges);
+#ifdef IMGUI_INTERNAL_ICONS
+    ImGui::LoadInternalIcons(this);
+#endif
 #ifdef IMGUI_INTERNAL_FONTS
     {
         ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "等宽粗黑, %dpx", (int)font_cfg.SizePixels);
         AddFontFromMemoryCompressedBase85TTF(mono_sarasa_compressed_data_base85, font_cfg.SizePixels, &font_cfg, glyph_ranges);
+#ifdef IMGUI_INTERNAL_ICONS
+    ImGui::LoadInternalIcons(this);
+#endif
         ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "等宽雅黑, %dpx", (int)font_cfg.SizePixels);
         AddFontFromMemoryCompressedBase85TTF(mono_yahei_compressed_data_base85, font_cfg.SizePixels, &font_cfg, glyph_ranges);
+#ifdef IMGUI_INTERNAL_ICONS
+    ImGui::LoadInternalIcons(this);
+#endif
         ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "等宽宋体, %dpx", (int)font_cfg.SizePixels);
         AddFontFromMemoryCompressedBase85TTF(mono_song_compressed_data_base85, font_cfg.SizePixels, &font_cfg, glyph_ranges);
+#ifdef IMGUI_INTERNAL_ICONS
+    ImGui::LoadInternalIcons(this);
+#endif        
         ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "等宽楷体, %dpx", (int)font_cfg.SizePixels);
         AddFontFromMemoryCompressedBase85TTF(mono_kai_compressed_data_base85, font_cfg.SizePixels, &font_cfg, glyph_ranges);
+#ifdef IMGUI_INTERNAL_ICONS
+    ImGui::LoadInternalIcons(this);
+#endif        
         ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "等宽中圆, %dpx", (int)font_cfg.SizePixels);
         AddFontFromMemoryCompressedBase85TTF(mono_yuan_compressed_data_base85, font_cfg.SizePixels, &font_cfg, glyph_ranges);
+#ifdef IMGUI_INTERNAL_ICONS
+    ImGui::LoadInternalIcons(this);
+#endif        
         ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "等宽中线, %dpx", (int)font_cfg.SizePixels);
         AddFontFromMemoryCompressedBase85TTF(mono_mid_compressed_data_base85, font_cfg.SizePixels, &font_cfg, glyph_ranges);
+#ifdef IMGUI_INTERNAL_ICONS
+    ImGui::LoadInternalIcons(this);
+#endif        
     }
 #endif
     return font;
