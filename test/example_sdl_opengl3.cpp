@@ -126,7 +126,7 @@ int main(int, char**)
     //range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesChineseSimplifiedCommon());
     range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesChineseFull());
     range.BuildRanges(&gr);
-    io.Fonts->AddFontFromFileTTF("/Users/dicky/Desktop/dkk.ttf", 16.0f, &font_cfg, gr.Data);
+    io.Fonts->AddFontFromFileTTF("/Users/dicky/Desktop/dks.ttf", 16.0f, &font_cfg, gr.Data);
     */
     
     // Setup Dear ImGui style
