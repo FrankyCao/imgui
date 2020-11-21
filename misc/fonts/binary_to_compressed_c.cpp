@@ -93,7 +93,7 @@ bool binary_to_compressed_c(const char* filename, const char* symbol, bool use_b
     const char* compressed_str = use_compression ? "compressed_" : "";
     if (use_base85_encoding)
     {
-        fprintf(out, "static const char %s_%sdata_base85[%d+1] =\n    \"", symbol, compressed_str, (int)((compressed_sz + 3) / 4)*5);
+        fprintf(out, "extern const char %s_%sdata_base85[%d+1] =\n    \"", symbol, compressed_str, (int)((compressed_sz + 3) / 4)*5);
         char prev_c = 0;
         for (int src_i = 0; src_i < compressed_sz; src_i += 4)
         {

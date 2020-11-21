@@ -178,6 +178,7 @@ namespace igfd
 		std::vector<FileInfoStruct> m_FileList;
         std::vector<FileInfoStruct> m_FilteredFileList;
         std::unordered_map<std::string, FileExtentionInfosStruct> m_FileExtentionInfos;
+		std::unordered_map<std::string, FileExtentionInfosStruct> m_FileTypeInfos;
 		std::set<std::string> m_SelectedFileNames;
 		std::string m_CurrentPath;
 		std::vector<std::string> m_CurrentPath_Decomposition;
@@ -293,6 +294,11 @@ namespace igfd
 		void SetExtentionInfos(const std::string& vFilter, const ImVec4& vColor, const std::string& vIcon = "");
 		bool GetExtentionInfos(const std::string& vFilter, ImVec4 *vColor, std::string *vIcon = 0);
 		void ClearExtentionInfos();
+
+		void SetTypeInfos(const std::string& vType, const FileExtentionInfosStruct& vInfos);
+		void SetTypeInfos(const std::string& vType, const ImVec4& vColor, const std::string& vIcon = "");
+		bool GetTypeInfos(const std::string& vType, ImVec4 *vColor, std::string *vIcon = 0);
+		void ClearTypeInfos();
 
 	private:
 		void SetDefaultFileName(const std::string& vFileName);

@@ -64,12 +64,10 @@ if (IMGUI_FONTS)
 add_definitions(-DIMGUI_INTERNAL_FONTS)
 set(IMGUI_SRC
     ${IMGUI_SRC}
+    fonts/mono_sarasa.cpp
     fonts/mono_kai.cpp
-    fonts/mono_mid.cpp
     fonts/mono_song.cpp
     fonts/mono_yuan.cpp
-    fonts/mono_sarasa.cpp
-    fonts/mono_yahei.cpp
 )
 endif()
 

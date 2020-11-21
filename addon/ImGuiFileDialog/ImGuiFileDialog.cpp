@@ -1028,16 +1028,32 @@ namespace igfd
 
                         ImVec4 c;
                         std::string icon;
+						bool showTypeColor = GetTypeInfos(std::to_string(infos.type), &c, &icon);
+						if (showTypeColor)
+                            ImGui::PushStyleColor(ImGuiCol_Text, c);
+
                         bool showColor = GetExtentionInfos(infos.ext, &c, &icon);
                         if (showColor)
                             ImGui::PushStyleColor(ImGuiCol_Text, c);
 
                         std::string str = " " + infos.fileName;
-                        if (infos.type == 'd') str = dirEntryString + str;
-                        if (infos.type == 'l') str = linkEntryString + str;
+                        if (infos.type == 'd')
+						{
+							if ((showTypeColor || showColor) && !icon.empty())
+                                str = icon + str;
+                            else
+								str = dirEntryString + str;
+						}
+                        if (infos.type == 'l')
+						{
+							if ((showTypeColor || showColor) && !icon.empty())
+                                str = icon + str;
+                            else
+								str = linkEntryString + str;
+						}
                         if (infos.type == 'f')
                         {
-                            if (showColor && !icon.empty())
+                            if ((showTypeColor || showColor) && !icon.empty())
                                 str = icon + str;
                             else
                                 str = fileEntryString + str;
@@ -1079,6 +1095,9 @@ namespace igfd
                                 if (showColor)
                                     ImGui::PopStyleColor();
 
+								if (showTypeColor)
+									ImGui::PopStyleColor();
+
                                 break;
                             }
                             else
@@ -1101,6 +1120,9 @@ namespace igfd
 					}
     #endif
 					if (showColor)
+						ImGui::PopStyleColor();
+					
+					if (showTypeColor)
 						ImGui::PopStyleColor();
 
                     }
@@ -1355,6 +1377,39 @@ namespace igfd
 	{
 		m_FileExtentionInfos.clear();
 	}
+
+	void ImGuiFileDialog::SetTypeInfos(const std::string& vType, const FileExtentionInfosStruct& vInfos)
+	{
+		m_FileTypeInfos[vType] = vInfos;
+	}
+
+	void ImGuiFileDialog::SetTypeInfos(const std::string& vType, const ImVec4& vColor, const std::string& vIcon)
+	{
+		m_FileTypeInfos[vType] = FileExtentionInfosStruct(vColor, vIcon);
+	}
+
+	bool ImGuiFileDialog::GetTypeInfos(const std::string& vType, ImVec4 *vColor, std::string *vIcon)
+	{
+		if (vColor)
+		{
+			if (m_FileTypeInfos.find(vType) != m_FileTypeInfos.end()) // found
+			{
+				*vColor = m_FileTypeInfos[vType].color;
+				if (vIcon)
+				{
+					*vIcon = m_FileTypeInfos[vType].icon;
+				}
+				return true;
+			}
+		}
+		return false;
+	}
+
+	void ImGuiFileDialog::ClearTypeInfos()
+	{
+		m_FileTypeInfos.clear();
+	}
+
 
 	void ImGuiFileDialog::SetDefaultFileName(const std::string& vFileName)
 	{
@@ -2494,6 +2549,9 @@ inline bool RadioButtonLabeled(const char* label, bool active, bool disabled)
 
 void prepare_file_dialog_demo_window()
 {
+	igfd::ImGuiFileDialog::Instance()->SetTypeInfos(std::to_string('f'), ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FK_FILE_O);
+	igfd::ImGuiFileDialog::Instance()->SetTypeInfos(std::to_string('d'), ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FK_FOLDER);
+	igfd::ImGuiFileDialog::Instance()->SetTypeInfos(std::to_string('l'), ImVec4(0.5f, 0.5f, 1.0f, 0.9f), ICON_FK_EXTERNAL_LINK);
 	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".txt", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_TEXT_O);
 	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".cpp", ImVec4(1.0f, 1.0f, 0.0f, 0.9f), ICON_FA5_FILE_CODE);
 	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".h", ImVec4(0.0f, 1.0f, 0.0f, 0.9f), ICON_FA5_FILE_CODE);
@@ -2507,6 +2565,14 @@ void prepare_file_dialog_demo_window()
 	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".mp4", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
 	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".mkv", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
 	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".webm", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
+	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".ttf", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FK_FONT);
+	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".doc", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_WORD);
+	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".docx", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_WORD);
+	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".ppt", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_POWERPOINT);
+	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".pptx", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_POWERPOINT);
+	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".xls", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_EXCEL);
+	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".xlsx", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_EXCEL);
+	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".pdf", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_PDF);
 
 #ifdef USE_BOOKMARK
 	// load bookmarks
