@@ -202,6 +202,19 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/addon/markdown
 )
 
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    addon/imguiDock/imgui_dock.cpp
+)
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    addon/imguiDock/imgui_dock.h
+)
+set(IMGUI_INC_DIRS
+    ${IMGUI_INC_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/imguiDock
+)
+
 include_directories(${IMGUI_INC_DIRS})
 add_library(imgui ${IMGUI_SRC} ${IMGUI_INCS})
 set_property(TARGET imgui PROPERTY POSITION_INDEPENDENT_CODE ON)

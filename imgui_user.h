@@ -9,4 +9,5 @@
 #include "TextEditor.h"
 #include "ToggleButton.h"
 #include "imgui_markdown.h"
+#include "imgui_dock.h"
 #include "icons/icons.h"

@@ -11,6 +11,89 @@
 #include "imgui_user.h"
 #include <stdio.h>
 #include <SDL.h>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <cerrno>
+
+const std::string markdownText = u8R"(
+# H1 Header: 文本与链接
+You can add [links like this one to bing](https://www.bing.com/) and lines will wrap well.
+## H2 Header: 对齐文本.
+This text has an indent (two leading spaces).
+This one has two.
+### H3 Header: 列表
+* Unordered lists
+* Lists can be indented with two extra spaces.
+* Lists can have [links like this one to github](https://github.com)
+)";
+
+static std::string get_file_contents(const char *filename)
+{
+    std::ifstream infile(filename, std::ios::in | std::ios::binary);
+    if (infile.is_open())
+    {
+        std::ostringstream contents;
+        contents << infile.rdbuf();
+        infile.close();
+        return(contents.str());
+    }
+    throw(errno);
+}
+
+inline ImGui::MarkdownImageData ImageCallback( ImGui::MarkdownLinkCallbackData data_ )
+{
+    // In your application you would load an image based on data_ input. Here we just use the imgui font texture.
+    ImTextureID image = ImGui::GetIO().Fonts->TexID;
+    // > C++14 can use ImGui::MarkdownImageData imageData{ true, false, image, ImVec2( 40.0f, 20.0f ) };
+    ImGui::MarkdownImageData imageData;
+    imageData.isValid =         true;
+    imageData.useLinkCallback = false;
+    imageData.user_texture_id = image;
+    imageData.size =            ImVec2( 40.0f, 20.0f );
+    return imageData;
+}
+
+static void LinkCallback( ImGui::MarkdownLinkCallbackData data_ )
+{
+    std::string url( data_.link, data_.linkLength );
+    std::string command = "open " + url;
+    if( !data_.isImage )
+    {
+        system(command.c_str());
+    }
+}
+
+static void ExampleMarkdownFormatCallback( const ImGui::MarkdownFormatInfo& markdownFormatInfo_, bool start_ )
+{
+    // Call the default first so any settings can be overwritten by our implementation.
+    // Alternatively could be called or not called in a switch statement on a case by case basis.
+    // See defaultMarkdownFormatCallback definition for furhter examples of how to use it.
+    ImGui::defaultMarkdownFormatCallback( markdownFormatInfo_, start_ );        
+    switch( markdownFormatInfo_.type )
+    {
+        // example: change the colour of heading level 2
+        case ImGui::MarkdownFormatType::HEADING:
+        {
+            if( markdownFormatInfo_.level == 2 )
+            {
+                if( start_ )
+                {
+                    ImGui::PushStyleColor( ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled] );
+                }
+                else
+                {
+                    ImGui::PopStyleColor();
+                }
+            }
+            break;
+        }
+        default:
+        {
+            break;
+        }
+    }
+}
 
 // About Desktop OpenGL function loaders:
 //  Modern desktop OpenGL doesn't have a standard portable header file to load OpenGL function pointers.
@@ -160,6 +243,7 @@ int main(int, char**)
     bool show_file_dialog_window = false;
     bool show_text_edit_window = false;
     bool show_markdown_window = false;
+    bool show_dock_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     // Main loop
@@ -205,6 +289,7 @@ int main(int, char**)
             ImGui::Checkbox("Memory Edit Window", &mem_edit.Open);
             ImGui::Checkbox("Show Text Edit Window", &show_text_edit_window);
             ImGui::Checkbox("Show Markdown Window", &show_markdown_window);
+            ImGui::Checkbox("Show Dock Window", &show_dock_window);
 
             ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
             ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
@@ -257,27 +342,56 @@ int main(int, char**)
         // 8. Show Markdown Window
         if (show_markdown_window)
         {
-            const std::string markdownText = u8R"(
-# H1 Header: Text and Links
-You can add [links like this one to enkisoftware](https://www.enkisoftware.com/) and lines will wrap well.
-## H2 Header: indented text.
-This text has an indent (two leading spaces).
-This one has two.
-### H3 Header: Lists
-* Unordered lists
-* Lists can be indented with two extra spaces.
-* Lists can have [links like this one to Avoyd](https://www.avoyd.com/)
-)";
-            //mdConfig.linkCallback =         LinkCallback;
+            std::string help_doc = get_file_contents("docs/README.md");
+            mdConfig.linkCallback =         LinkCallback;
             mdConfig.tooltipCallback =      NULL;
-            //mdConfig.imageCallback =        ImageCallback;
-            mdConfig.linkIcon =             ICON_FA4_LINK;
-            //mdConfig.headingFormats[0] =    { H1, true };
-            //mdConfig.headingFormats[1] =    { H2, true };
-            //mdConfig.headingFormats[2] =    { H3, false };
+            mdConfig.imageCallback =        ImageCallback;
+            mdConfig.linkIcon =             ICON_FA5_LINK;
+            mdConfig.headingFormats[0] =    { io.Fonts->Fonts[0], true };
+            mdConfig.headingFormats[1] =    { io.Fonts->Fonts[1], true };
+            mdConfig.headingFormats[2] =    { io.Fonts->Fonts[2], false };
             mdConfig.userData =             NULL;
-            //mdConfig.formatCallback =       ExampleMarkdownFormatCallback;
-            ImGui::Markdown( markdownText.c_str(), markdownText.length(), mdConfig );
+            mdConfig.formatCallback =       ExampleMarkdownFormatCallback;
+            ImGui::Markdown( help_doc.c_str(), help_doc.length(), mdConfig );
+        }
+
+        // 9. Show Dock Window
+        if (show_dock_window)
+        {
+            if(ImGui::Begin("Dock Demo"))
+            {
+		        // dock layout by hard-coded or .ini file
+                ImGui::BeginDockspace();
+                if(ImGui::BeginDock("Dock 1"))
+                {
+                    ImGui::Text("I'm Wubugui!");
+                }
+                ImGui::EndDock();
+                if(ImGui::BeginDock("Dock 2"))
+                {
+                    ImGui::Text("I'm BentleyBlanks!");
+                }
+                ImGui::EndDock();
+                if(ImGui::BeginDock("Dock 3"))
+                {
+                    ImGui::Text("I'm LonelyWaiting!");
+                }
+                ImGui::EndDock();
+                ImGui::EndDockspace();
+            }
+            ImGui::End();
+            // multiple dockspace supported
+            if(ImGui::Begin("Dock Demo2"))
+            {
+                ImGui::BeginDockspace();
+                if(ImGui::BeginDock("Dock 2"))
+                {
+                    ImGui::Text("Who's your daddy?");
+                }
+                ImGui::EndDock();
+                ImGui::EndDockspace();
+            }
+            ImGui::End();
         }
 
         // Rendering
