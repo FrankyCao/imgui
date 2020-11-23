@@ -215,6 +215,20 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/addon/imguiDock
 )
 
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    addon/imnodes/imnodes.cpp
+    addon/imnodes/imnodes_demo.cpp
+)
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    addon/imnodes/imnodes.h
+)
+set(IMGUI_INC_DIRS
+    ${IMGUI_INC_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/imnodes
+)
+
 include_directories(${IMGUI_INC_DIRS})
 add_library(imgui ${IMGUI_SRC} ${IMGUI_INCS})
 set_property(TARGET imgui PROPERTY POSITION_INDEPENDENT_CODE ON)

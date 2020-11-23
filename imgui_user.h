@@ -10,4 +10,5 @@
 #include "ToggleButton.h"
 #include "imgui_markdown.h"
 #include "imgui_dock.h"
+#include "imnodes.h"
 #include "icons/icons.h"

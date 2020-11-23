@@ -236,6 +236,10 @@ int main(int, char**)
     // Init MarkDown
     ImGui::MarkdownConfig mdConfig; 
 
+    // Init imnodes
+    imnodes::Initialize();
+    imnodes_sample::NodeEditorInitialize();
+
     // Our state
     bool show_demo_window = true;
     bool show_another_window = false;
@@ -244,6 +248,7 @@ int main(int, char**)
     bool show_text_edit_window = false;
     bool show_markdown_window = false;
     bool show_dock_window = false;
+    bool show_node_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     // Main loop
@@ -290,6 +295,7 @@ int main(int, char**)
             ImGui::Checkbox("Show Text Edit Window", &show_text_edit_window);
             ImGui::Checkbox("Show Markdown Window", &show_markdown_window);
             ImGui::Checkbox("Show Dock Window", &show_dock_window);
+            ImGui::Checkbox("Show Node Window", &show_node_window);
 
             ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
             ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
@@ -394,6 +400,12 @@ int main(int, char**)
             ImGui::End();
         }
 
+        // 10. Show Node  Window
+        if (show_node_window)
+        {
+            imnodes_sample::NodeEditorShow();
+        }
+
         // Rendering
         ImGui::Render();
         glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
@@ -408,6 +420,10 @@ int main(int, char**)
 
     // Store file dialog bookmark
     igfd::end_file_dialog_demo_window();
+
+    // Clean Node Window
+    imnodes_sample::NodeEditorShutdown();
+    imnodes::Shutdown();
 
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();
