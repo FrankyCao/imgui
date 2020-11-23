@@ -11,4 +11,5 @@
 #include "imgui_markdown.h"
 #include "imgui_dock.h"
 #include "imnodes.h"
+#include "Timeline.h"
 #include "icons/icons.h"
