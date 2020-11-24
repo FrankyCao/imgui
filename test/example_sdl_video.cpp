@@ -56,8 +56,6 @@ using namespace gl;
 #define GL_LOAD_FORMAT_RGB GL_BGR
 #define GL_LOAD_FORMAT_RGBA GL_BGRA
 
-#define ICON_IGFD_FOLDER_OPEN u8"\uf07c"
-
 #define WINDOW_WIDTH    1280
 #define WINDOW_HEIGHT   720
 

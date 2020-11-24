@@ -47,7 +47,6 @@ using namespace gl;
 
 #define GL_LOAD_FORMAT_RGB GL_RGB
 #define GL_LOAD_FORMAT_RGBA GL_RGBA
-#define ICON_IGFD_FOLDER_OPEN u8"\uf07c"
 
 #define WINDOW_WIDTH    1280
 #define WINDOW_HEIGHT   720
@@ -147,7 +146,7 @@ int main(int, char**)
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.IniFilename = "sdl_test.ini";
+    io.IniFilename = "sdl_rendering.ini";
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 

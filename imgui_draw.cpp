@@ -171,12 +171,14 @@ namespace IMGUI_STB_NAMESPACE
 using namespace IMGUI_STB_NAMESPACE;
 #endif
 
-extern const char mono_kai_compressed_data_base85[];
+#ifdef IMGUI_FREETYPE
+extern const char mono_sarasa_compressed_data_base85[];
 #ifdef IMGUI_INTERNAL_FONTS
 extern const char mono_hei_compressed_data_base85[];
 extern const char mono_song_compressed_data_base85[];
 extern const char mono_yuan_compressed_data_base85[];
-extern const char mono_sarasa_compressed_data_base85[];
+extern const char mono_kai_compressed_data_base85[];
+#endif
 #endif
 
 //-----------------------------------------------------------------------------
@@ -1882,6 +1884,7 @@ static void         Decode85(const unsigned char* src, unsigned char* dst)
 // Load embedded monohei.ttf at size 16, disable oversampling
 ImFont* ImFontAtlas::AddFontDefault(const ImFontConfig* font_cfg_template)
 {
+#ifdef IMGUI_FREETYPE
     float font_size = 16.0f;
     ImFontConfig font_cfg = font_cfg_template ? *font_cfg_template : ImFontConfig();
     if (!font_cfg_template)
@@ -1893,7 +1896,7 @@ ImFont* ImFontAtlas::AddFontDefault(const ImFontConfig* font_cfg_template)
     if (font_cfg.SizePixels <= 0.0f)
         font_cfg.SizePixels = font_size * 1.0f;
     if (font_cfg.Name[0] == '\0')
-        ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "等宽粗楷, %dpx", (int)font_cfg.SizePixels);
+        ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "等宽粗黑, %dpx", (int)font_cfg.SizePixels);
     font_cfg.EllipsisChar = (ImWchar)0x0085;
     font_cfg.GlyphOffset.y = 1.0f * IM_FLOOR(font_cfg.SizePixels / font_size);  // Add +1 offset per 16 units
     const char* ttf_compressed_base85 = GetDefaultCompressedFontDataTTFBase85();
@@ -1904,8 +1907,8 @@ ImFont* ImFontAtlas::AddFontDefault(const ImFontConfig* font_cfg_template)
 #endif
 #ifdef IMGUI_INTERNAL_FONTS
     {
-        ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "等宽粗黑, %dpx", (int)font_cfg.SizePixels);
-        AddFontFromMemoryCompressedBase85TTF(mono_sarasa_compressed_data_base85, font_cfg.SizePixels, &font_cfg, glyph_ranges);
+        ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "等宽粗楷, %dpx", (int)font_cfg.SizePixels);
+        AddFontFromMemoryCompressedBase85TTF(mono_kai_compressed_data_base85, font_cfg.SizePixels, &font_cfg, glyph_ranges);
 #ifdef IMGUI_INTERNAL_ICONS
     ImGui::LoadInternalIcons(this);
 #endif
@@ -1927,6 +1930,9 @@ ImFont* ImFontAtlas::AddFontDefault(const ImFontConfig* font_cfg_template)
     }
 #endif
     return font;
+#else
+    return nullptr;
+#endif
 }
 
 ImFont* ImFontAtlas::AddFontFromFileTTF(const char* filename, float size_pixels, const ImFontConfig* font_cfg_template, const ImWchar* glyph_ranges)
@@ -3728,7 +3734,11 @@ static unsigned int stb_decompress(unsigned char *output, const unsigned char *i
 
 static const char* GetDefaultCompressedFontDataTTFBase85()
 {
-    return mono_kai_compressed_data_base85;
+#ifdef IMGUI_FREETYPE
+    return mono_sarasa_compressed_data_base85;
+#else
+    return nullptr;
+#endif
 }
 
 #endif // #ifndef IMGUI_DISABLE

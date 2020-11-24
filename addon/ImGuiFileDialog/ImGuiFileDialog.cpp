@@ -108,13 +108,13 @@ namespace igfd
 	#define searchString "Search :"
 	#endif
 	#ifndef dirEntryString
-	#define dirEntryString "[Dir]"
+	#define dirEntryString "[D]"
 	#endif
 	#ifndef linkEntryString
-	#define linkEntryString "[Link]"
+	#define linkEntryString "[L]"
 	#endif
 	#ifndef fileEntryString
-	#define fileEntryString "[File]"
+	#define fileEntryString "[F]"
 	#endif
 	#ifndef fileNameString
 	#define fileNameString "File Name :"
@@ -2549,6 +2549,7 @@ inline bool RadioButtonLabeled(const char* label, bool active, bool disabled)
 
 void prepare_file_dialog_demo_window()
 {
+#ifdef IMGUI_INTERNAL_ICONS
 	igfd::ImGuiFileDialog::Instance()->SetTypeInfos(std::to_string('f'), ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FK_FILE_O);
 	igfd::ImGuiFileDialog::Instance()->SetTypeInfos(std::to_string('d'), ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FK_FOLDER);
 	igfd::ImGuiFileDialog::Instance()->SetTypeInfos(std::to_string('l'), ImVec4(0.5f, 0.5f, 1.0f, 0.9f), ICON_FK_EXTERNAL_LINK);
@@ -2561,7 +2562,6 @@ void prepare_file_dialog_demo_window()
 	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".bmp", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
 	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".jpg", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
 	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".jpeg", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
-	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".gif", ImVec4(0.0f, 1.0f, 0.5f, 0.9f), "[GIF]"); // add an text for a filter type
 	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".mp4", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
 	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".mkv", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
 	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".webm", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
@@ -2573,6 +2573,8 @@ void prepare_file_dialog_demo_window()
 	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".xls", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_EXCEL);
 	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".xlsx", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_EXCEL);
 	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".pdf", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_PDF);
+#endif
+	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".gif", ImVec4(0.0f, 1.0f, 0.5f, 0.9f), "[GIF]"); // add an text for a filter type
 
 #ifdef USE_BOOKMARK
 	// load bookmarks

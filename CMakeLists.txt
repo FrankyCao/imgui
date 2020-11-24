@@ -11,41 +11,89 @@ if (POLICY CMP0054)
     cmake_policy(SET CMP0054 NEW)
 endif()
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
-
-option(IMGUI_FONTS "Internal Fonts build in library" ON)
-option(IMGUI_ICONS "Internal Icons build in library" ON)
-option(IMGUI_APPS  "build apps base on imgui" ON)
-
 find_package(PkgConfig REQUIRED)
-if(PKG_CONFIG_FOUND)
-pkg_search_module(GLEW REQUIRED glew)
-endif()
-find_package(OpenGL REQUIRED)
-find_package(SDL2 REQUIRED sdl2)
-find_package(SDL2_image REQUIRED SDL2_image>=2.0.0)
-find_package(Freetype REQUIRED)
 
+option(IMGUI_GL2        "Build ImGui OpenGL2 backends" ON)
+option(IMGUI_GL3        "Build ImGui OpenGL3 backends" ON)
+option(IMGUI_SDL2       "Build ImGui SDL2 backends" ON)
+option(IMGUI_GLFW       "Build ImGui GLFW backends" ON)
+option(IMGUI_GLUT       "Build ImGui GLUT backends" ON)
+option(IMGUI_GLEW       "Build ImGui GLEW backends" ON)
+option(IMGUI_MATAL      "Build ImGui Apple Metal backends" ON)
+option(IMGUI_VULKAN     "Build ImGui Vulkan backends" ON)
+option(IMGUI_FREETYPE   "Build ImGui with FreeType support" ON)
+option(IMGUI_FONTS      "Internal Fonts build in library" ON)
+option(IMGUI_ICONS      "Internal Icons build in library" ON)
+option(IMGUI_APPS       "build apps base on imgui" ON)
+
+if (IMGUI_GL2 OR IMGUI_GL3)
+find_package(OpenGL REQUIRED)
+endif()
+
+if (IMGUI_VULKAN)
+find_package(Vulkan REQUIRED)
+endif(IMGUI_VULKAN)
+
+if (IMGUI_FREETYPE)
+find_package(Freetype REQUIRED)
+endif(IMGUI_FREETYPE)
+
+if(PKG_CONFIG_FOUND)
+if(IMGUI_GLEW)
+pkg_search_module(GLEW REQUIRED glew)
+endif(IMGUI_GLEW)
+if(IMGUI_GLFW)
+pkg_search_module(GLFW REQUIRED glfw3)
+endif(IMGUI_GLFW)
+if(IMGUI_GLUT)
+pkg_search_module(GLUT REQUIRED glut)
+endif(IMGUI_GLUT)
+if(IMGUI_SDL2)
+pkg_search_module(SDL2 REQUIRED sdl2)
+pkg_search_module(SDL2_IMAGE REQUIRED SDL2_image>=2.0.0)
+endif(IMGUI_SDL2)
+endif(PKG_CONFIG_FOUND)
+
+# base include
 set(IMGUI_INC_DIRS
-    ${SDL2_INCLUDE_DIR}
-    ${GLEW_INCLUDE_DIRS}
-    ${OPENGL_INCLUDE_DIR}
-    ${FREETYPE_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
+# base library
+set(LINK_LIBS)
+
+if(OPENGL_FOUND)
+set(IMGUI_INC_DIRS
+    ${IMGUI_INC_DIRS}
+    ${OPENGL_INCLUDE_DIR}
+)
+set(LINK_LIBS
+    ${LINK_LIBS}
+    ${OPENGL_LIBRARIES}
+)
+endif(OPENGL_FOUND)
+
+if(FREETYPE_FOUND)
+set(IMGUI_INC_DIRS
+    ${IMGUI_INC_DIRS}
+    ${FREETYPE_INCLUDE_DIRS}
+)
+set(LINK_LIBS
+    ${LINK_LIBS}
+    ${FREETYPE_LIBRARIES}
+)
+endif(FREETYPE_FOUND)
+
+# base sources
 set(IMGUI_SRC
     imgui.cpp 
     imgui_demo.cpp 
     imgui_draw.cpp
     imgui_widgets.cpp 
-    fonts/mono_hei.cpp
-    backends/imgui_impl_sdl.cpp
-    backends/imgui_impl_opengl2.cpp
-    backends/imgui_impl_opengl3.cpp
     misc/cpp/imgui_stdlib.cpp
-    misc/freetype/imgui_freetype.cpp
 )
 
+# base headers
 set(IMGUI_INCS
     imgui.h
     imgui_internal.h
@@ -53,18 +101,150 @@ set(IMGUI_INCS
     imstb_textedit.h
     imstb_truetype.h
     imgui_user.h
-    backends/imgui_impl_sdl.h
-    backends/imgui_impl_opengl2.h
-    backends/imgui_impl_opengl3.h
     misc/cpp/imgui_stdlib.h
+)
+
+if(FREETYPE_FOUND)
+add_definitions(-DIMGUI_FREETYPE)
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    fonts/mono_sarasa.cpp
+    misc/freetype/imgui_freetype.cpp
+)
+set(IMGUI_INCS
+    ${IMGUI_INCS}
     misc/freetype/imgui_freetype.h
 )
+else(FREETYPE_FOUND)
+set(IMGUI_FONTS OFF)
+endif(FREETYPE_FOUND)
+
+# SDL2 support
+if (SDL2_FOUND)
+set(IMGUI_INC_DIRS
+    ${IMGUI_INC_DIRS}
+    ${SDL2_INCLUDE_DIRS}
+)
+set(LINK_LIBS
+    ${LINK_LIBS}
+    ${SDL2_STATIC_LDFLAGS}
+    ${SDL2_IMAGE_STATIC_LDFLAGS}
+)
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    backends/imgui_impl_sdl.cpp
+)
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    backends/imgui_impl_sdl.h
+)
+endif(SDL2_FOUND)
+
+# GLEW support
+if (GLEW_FOUND)
+set(IMGUI_INC_DIRS
+    ${IMGUI_INC_DIRS}
+    ${GLEW_INCLUDE_DIRS}
+)
+set(LINK_LIBS
+    ${LINK_LIBS}
+    ${GLEW_LDFLAGS}
+)
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    backends/imgui_impl_opengl2.cpp
+    backends/imgui_impl_opengl3.cpp
+)
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    backends/imgui_impl_opengl2.h
+    backends/imgui_impl_opengl3.h
+)
+endif(GLEW_FOUND)
+
+# GLFW support
+if (GLFW_FOUND)
+set(IMGUI_INC_DIRS
+    ${IMGUI_INC_DIRS}
+    ${GLFW_INCLUDE_DIRS}
+)
+set(LINK_LIBS
+    ${LINK_LIBS}
+    ${GLFW_LDFLAGS}
+)
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    backends/imgui_impl_glfw.cpp
+)
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    backends/imgui_impl_glfw.h
+)
+endif(GLFW_FOUND)
+
+# GLUT support
+if (GLUT_FOUND)
+set(IMGUI_INC_DIRS
+    ${IMGUI_INC_DIRS}
+    ${GLUT_INCLUDE_DIRS}
+)
+set(LINK_LIBS
+    ${LINK_LIBS}
+    ${GLUT_LDFLAGS}
+)
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    backends/imgui_impl_glut.cpp
+)
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    backends/imgui_impl_glut.h
+)
+# disable apple GL deprecated warring
+if (APPLE)
+set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-Wno-error=deprecated-declarations -Wno-deprecated-declarations ")
+endif(APPLE)
+endif(GLUT_FOUND)
+
+# Vilkan support
+if (VULKAN_FOUND)
+set(IMGUI_INC_DIRS
+    ${IMGUI_INC_DIRS}
+    ${Vulkan_INCLUDE_DIR}
+)
+set(LINK_LIBS
+    ${LINK_LIBS}
+    ${Vulkan_LIBRARY}
+)
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    backends/imgui_impl_vulkan.cpp
+)
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    backends/imgui_impl_vulkan.h
+)
+endif(VULKAN_FOUND)
+
+# Apple metal support
+if (APPLE AND IMGUI_MATAL)
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    backends/imgui_impl_metal.mm
+    backends/imgui_impl_osx.mm
+)
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    backends/imgui_impl_metal.h
+    backends/imgui_impl_osx.h
+)
+endif()
 
 if (IMGUI_FONTS)
 add_definitions(-DIMGUI_INTERNAL_FONTS)
 set(IMGUI_SRC
     ${IMGUI_SRC}
-    fonts/mono_sarasa.cpp
+    fonts/mono_hei.cpp
     fonts/mono_kai.cpp
     fonts/mono_song.cpp
     fonts/mono_yuan.cpp
@@ -246,6 +426,13 @@ include_directories(${IMGUI_INC_DIRS})
 add_library(imgui ${IMGUI_SRC} ${IMGUI_INCS})
 set_property(TARGET imgui PROPERTY POSITION_INDEPENDENT_CODE ON)
 
+if (APPLE AND IMGUI_MATAL)
+target_compile_options(
+    imgui 
+    PUBLIC "-fobjc-arc"
+)
+endif()
+
 add_executable(
     binary_to_compressed
     misc/fonts/binary_to_compressed_c.cpp
@@ -263,52 +450,37 @@ add_executable(
 
 target_link_libraries(
     img2c
-    ${SDL2_IMAGE_LIBRARY}
-    ${SDL2_LIBRARY}
+    ${LINK_LIBS}
 )
 
+if (SDL2_FOUND AND IMGUI_SDL2)
 add_executable(
     example_sdl_opengl2
     test/example_sdl_opengl2.cpp
 )
-
 target_link_libraries(
     example_sdl_opengl2
     imgui
-    ${SDL2_IMAGE_LIBRARY}
-    ${SDL2_LIBRARY}
-    ${GLEW_STATIC_LDFLAGS}
-    ${OPENGL_LIBRARIES}
+    ${LINK_LIBS}
 )
-
 add_executable(
     example_sdl_opengl3
     test/example_sdl_opengl3.cpp
 )
-
 target_link_libraries(
     example_sdl_opengl3
     imgui
-    ${SDL2_IMAGE_LIBRARY}
-    ${SDL2_LIBRARY}
-    ${GLEW_STATIC_LDFLAGS}
-    ${OPENGL_LIBRARIES}
+    ${LINK_LIBS}
 )
-
 add_executable(
     example_sdl_rendering
     test/example_sdl_rendering.cpp
 )
-
 target_link_libraries(
     example_sdl_rendering
     imgui
-    ${SDL2_IMAGE_LIBRARY}
-    ${SDL2_LIBRARY}
-    ${GLEW_STATIC_LDFLAGS}
-    ${OPENGL_LIBRARIES}
+    ${LINK_LIBS}
 )
-
 find_package(OpenCV REQUIRED)
 include_directories(
     ${OpenCV_INCLUDE_DIRS}
@@ -321,11 +493,103 @@ target_link_libraries(
     example_sdl_video
     imgui
     ${OpenCV_LIBS}
-    ${SDL2_IMAGE_LIBRARY}
-    ${SDL2_LIBRARY}
-    ${GLEW_STATIC_LDFLAGS}
-    ${OPENGL_LIBRARIES}
+    ${LINK_LIBS}
 )
+if (VULKAN_FOUND)
+add_executable(
+    example_sdl_vulkan
+    test/example_sdl_vulkan.cpp
+)
+target_link_libraries(
+    example_sdl_vulkan
+    imgui
+    ${LINK_LIBS}
+)
+endif(VULKAN_FOUND)
+endif()
+
+if (GLUT_FOUND)
+add_executable(
+    example_glut_opengl2
+    test/example_glut_opengl2.cpp
+)
+target_link_libraries(
+    example_glut_opengl2
+    imgui
+    ${LINK_LIBS}
+)
+endif(GLUT_FOUND)
+
+if (GLFW_FOUND)
+add_executable(
+    example_glfw_opengl3
+    test/example_glfw_opengl3.cpp
+)
+target_link_libraries(
+    example_glfw_opengl3
+    imgui
+    ${LINK_LIBS}
+)
+endif(GLFW_FOUND)
+
+if (APPLE AND IMGUI_MATAL)
+add_executable(
+    example_apple_metal
+    MACOSX_BUNDLE
+    test/example_apple_metal.mm
+    test/metal.icns
+)
+set_target_properties(
+    example_apple_metal
+    PROPERTIES
+    OUTPUT_NAME "example_apple_metal"
+    MACOSX_BUNDLE_EXECUTABLE_NAME "example_apple_metal"
+    MACOSX_BUNDLE_BUNDLE_NAME "example_apple_metal"
+    FOLDER "example_apple_metal"
+    MACOSX_BUNDLE_ICON_FILE "metal"
+    MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0"
+    MACOSX_BUNDLE_LONG_VERSION_STRING "sample 1.0"
+    MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/test/Info-macOS.plist.in"
+)
+target_link_libraries(
+    example_apple_metal
+    imgui
+    "-framework Metal"
+    "-framework MetalKit"
+    "-framework Cocoa"
+)
+set_source_files_properties(${CMAKE_SOURCE_DIR}/test/metal.icns PROPERTIES
+        MACOSX_PACKAGE_LOCATION "Resources"
+)
+# Handle the Storyboard ourselves
+if(NOT ${CMAKE_GENERATOR} MATCHES "^Xcode.*")
+# Compile the storyboard file with the ibtool.
+add_custom_command(TARGET example_apple_metal POST_BUILD
+    COMMAND ibtool --errors --warnings --notices --output-format human-readable-text
+        --compile ${CMAKE_CURRENT_BINARY_DIR}/example_apple_metal.app/Contents/Resources/MainMenu.storyboardc
+        ${CMAKE_CURRENT_SOURCE_DIR}/test/MainMenu.storyboard
+        COMMENT "Compiling storyboard"
+)
+# Fix up the library search path in the executable to find (loader) libraries in the bundle.
+install(CODE "
+    include(BundleUtilities)
+    fixup_bundle(${CMAKE_INSTALL_PREFIX}/example_apple_metal.app \"\" \"\")
+    " COMPONENT Runtime
+)
+endif()
+
+if (GLFW_FOUND)
+add_executable(
+    example_glfw_metal
+    test/example_glfw_metal.mm
+)
+target_link_libraries(
+    example_glfw_metal
+    imgui
+    ${LINK_LIBS}
+)
+endif(GLFW_FOUND)
+endif()
 
 if (IMGUI_APPS)
 endif()
