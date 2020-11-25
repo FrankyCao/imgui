@@ -11,7 +11,12 @@ if (POLICY CMP0054)
     cmake_policy(SET CMP0054 NEW)
 endif()
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
-find_package(PkgConfig REQUIRED)
+
+if(WIN32) 
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS) 
+endif() 
+
+find_package(PkgConfig)
 
 option(IMGUI_GL2        "Build ImGui OpenGL2 backends" ON)
 option(IMGUI_GL3        "Build ImGui OpenGL3 backends" ON)
@@ -21,21 +26,25 @@ option(IMGUI_GLUT       "Build ImGui GLUT backends" ON)
 option(IMGUI_GLEW       "Build ImGui GLEW backends" ON)
 option(IMGUI_MATAL      "Build ImGui Apple Metal backends" ON)
 option(IMGUI_VULKAN     "Build ImGui Vulkan backends" ON)
+option(IMGUI_DX9        "Build ImGui Direct9 backends(Windows only)" ON)
+option(IMGUI_DX10       "Build ImGui Direct10 backends(Windows only)" ON)
+option(IMGUI_DX11       "Build ImGui Direct11 backends(Windows only)" ON)
+option(IMGUI_DX12       "Build ImGui Direct12 backends(Windows only)" ON)
 option(IMGUI_FREETYPE   "Build ImGui with FreeType support" ON)
 option(IMGUI_FONTS      "Internal Fonts build in library" ON)
 option(IMGUI_ICONS      "Internal Icons build in library" ON)
 option(IMGUI_APPS       "build apps base on imgui" ON)
 
 if (IMGUI_GL2 OR IMGUI_GL3)
-find_package(OpenGL REQUIRED)
+find_package(OpenGL)
 endif()
 
 if (IMGUI_VULKAN)
-find_package(Vulkan REQUIRED)
+find_package(Vulkan)
 endif(IMGUI_VULKAN)
 
 if (IMGUI_FREETYPE)
-find_package(Freetype REQUIRED)
+find_package(Freetype)
 endif(IMGUI_FREETYPE)
 
 if(PKG_CONFIG_FOUND)
@@ -89,7 +98,8 @@ set(IMGUI_SRC
     imgui.cpp 
     imgui_demo.cpp 
     imgui_draw.cpp
-    imgui_widgets.cpp 
+    imgui_widgets.cpp
+    fonts/mono_sarasa.cpp
     misc/cpp/imgui_stdlib.cpp
 )
 
@@ -105,22 +115,19 @@ set(IMGUI_INCS
 )
 
 if(FREETYPE_FOUND)
-add_definitions(-DIMGUI_FREETYPE)
 set(IMGUI_SRC
     ${IMGUI_SRC}
-    fonts/mono_sarasa.cpp
     misc/freetype/imgui_freetype.cpp
 )
 set(IMGUI_INCS
     ${IMGUI_INCS}
     misc/freetype/imgui_freetype.h
 )
-else(FREETYPE_FOUND)
-set(IMGUI_FONTS OFF)
 endif(FREETYPE_FOUND)
 
 # SDL2 support
 if (SDL2_FOUND)
+add_definitions(-DIMGUI_SDL2)
 set(IMGUI_INC_DIRS
     ${IMGUI_INC_DIRS}
     ${SDL2_INCLUDE_DIRS}
@@ -202,7 +209,7 @@ set(IMGUI_INCS
 )
 # disable apple GL deprecated warring
 if (APPLE)
-set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-Wno-error=deprecated-declarations -Wno-deprecated-declarations ")
+set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-Wno-error=deprecated-declarations -Wno-deprecated-declarations -Wmicrosoft-enum-forward-reference")
 endif(APPLE)
 endif(GLUT_FOUND)
 
@@ -239,6 +246,78 @@ set(IMGUI_INCS
     backends/imgui_impl_osx.h
 )
 endif()
+
+if(WIN32)
+if(IMGUI_DX9)
+set(LINK_LIBS
+    ${LINK_LIBS}
+    d3d9
+)
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    backends/imgui_impl_dx9.cpp
+)
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    backends/imgui_impl_dx9.h
+)
+endif(IMGUI_DX9)
+if(IMGUI_DX10)
+set(LINK_LIBS
+    ${LINK_LIBS}
+    d3d10
+)
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    backends/imgui_impl_dx10.cpp
+)
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    backends/imgui_impl_dx10.h
+)
+endif(IMGUI_DX10)
+if(IMGUI_DX11)
+set(LINK_LIBS
+    ${LINK_LIBS}
+    d3d11
+)
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    backends/imgui_impl_dx11.cpp
+)
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    backends/imgui_impl_dx11.h
+)
+endif(IMGUI_DX11)
+if(IMGUI_DX12)
+set(LINK_LIBS
+    ${LINK_LIBS}
+    d3d12
+)
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    backends/imgui_impl_dx12.cpp
+)
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    backends/imgui_impl_dx12.h
+)
+endif(IMGUI_DX12)
+set(LINK_LIBS
+    ${LINK_LIBS}
+    d3dcompiler
+    dxgi
+)
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    backends/imgui_impl_win32.cpp
+)
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    backends/imgui_impl_win32.h
+)
+endif(WIN32)
 
 if (IMGUI_FONTS)
 add_definitions(-DIMGUI_INTERNAL_FONTS)
@@ -433,27 +512,23 @@ target_compile_options(
 )
 endif()
 
+if (SDL2_FOUND AND IMGUI_SDL2)
 add_executable(
     binary_to_compressed
     misc/fonts/binary_to_compressed_c.cpp
 )
-
 target_link_libraries(
     binary_to_compressed
     imgui
 )
-
 add_executable(
     img2c
     misc/tools/img2c.cpp
 )
-
 target_link_libraries(
     img2c
     ${LINK_LIBS}
 )
-
-if (SDL2_FOUND AND IMGUI_SDL2)
 add_executable(
     example_sdl_opengl2
     test/example_sdl_opengl2.cpp
@@ -590,6 +665,53 @@ target_link_libraries(
 )
 endif(GLFW_FOUND)
 endif()
+
+if(WIN32)
+if(IMGUI_DX9)
+add_executable(
+    example_win32_directx9
+    test/example_win32_directx9.cpp
+)
+target_link_libraries(
+    example_win32_directx9
+    imgui
+    ${LINK_LIBS}
+)
+endif(IMGUI_DX9)
+if(IMGUI_DX10)
+add_executable(
+    example_win32_directx10
+    test/example_win32_directx10.cpp
+)
+target_link_libraries(
+    example_win32_directx10
+    imgui
+    ${LINK_LIBS}
+)
+endif(IMGUI_DX10)
+if(IMGUI_DX11)
+add_executable(
+    example_win32_directx11
+    test/example_win32_directx11.cpp
+)
+target_link_libraries(
+    example_win32_directx11
+    imgui
+    ${LINK_LIBS}
+)
+endif(IMGUI_DX11)
+if(IMGUI_DX12)
+add_executable(
+    example_win32_directx12
+    test/example_win32_directx12.cpp
+)
+target_link_libraries(
+    example_win32_directx12
+    imgui
+    ${LINK_LIBS}
+)
+endif(IMGUI_DX12)
+endif(WIN32)
 
 if (IMGUI_APPS)
 endif()

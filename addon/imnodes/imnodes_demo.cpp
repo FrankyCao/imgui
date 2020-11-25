@@ -3,8 +3,13 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
 
+#ifdef IMGUI_SDL2
 #include <SDL_keycode.h>
 #include <SDL_timer.h>
+#endif
+#if defined(__WIN32__) || defined(_WIN32)
+#include <windows.h>
+#endif
 #include <algorithm>
 #include <stack>
 #include <cassert>
@@ -503,7 +508,11 @@ struct Node
 template<class T>
 T clamp(T x, T a, T b)
 {
+#if defined(__WIN32__) || defined(_WIN32)
+    return min(b, max(x, a));
+#else
     return std::min(b, std::max(x, a));
+#endif
 }
 
 static float current_time_seconds = 0.f;
@@ -591,8 +600,13 @@ public:
     void show()
     {
         // Update timer context
+#if defined(__WIN32__) || defined(_WIN32)
+#define SDL_SCANCODE_A 'A'
+#define SDL_SCANCODE_X 'X'
+        current_time_seconds = 0.001f * GetTickCount();
+#else
         current_time_seconds = 0.001f * SDL_GetTicks();
-
+#endif
         // The node editor window
         ImGui::Begin("color node editor");
         ImGui::TextUnformatted("Edit the color of the output color window using nodes.");

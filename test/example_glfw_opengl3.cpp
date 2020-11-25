@@ -7,6 +7,77 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include <stdio.h>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <cerrno>
+
+static std::string get_file_contents(const char *filename)
+{
+    std::ifstream infile(filename, std::ios::in | std::ios::binary);
+    if (infile.is_open())
+    {
+        std::ostringstream contents;
+        contents << infile.rdbuf();
+        infile.close();
+        return(contents.str());
+    }
+    throw(errno);
+}
+
+inline ImGui::MarkdownImageData ImageCallback( ImGui::MarkdownLinkCallbackData data_ )
+{
+    // In your application you would load an image based on data_ input. Here we just use the imgui font texture.
+    ImTextureID image = ImGui::GetIO().Fonts->TexID;
+    // > C++14 can use ImGui::MarkdownImageData imageData{ true, false, image, ImVec2( 40.0f, 20.0f ) };
+    ImGui::MarkdownImageData imageData;
+    imageData.isValid =         true;
+    imageData.useLinkCallback = false;
+    imageData.user_texture_id = image;
+    imageData.size =            ImVec2( 40.0f, 20.0f );
+    return imageData;
+}
+
+static void LinkCallback( ImGui::MarkdownLinkCallbackData data_ )
+{
+    std::string url( data_.link, data_.linkLength );
+    std::string command = "open " + url;
+    if( !data_.isImage )
+    {
+        system(command.c_str());
+    }
+}
+
+static void ExampleMarkdownFormatCallback( const ImGui::MarkdownFormatInfo& markdownFormatInfo_, bool start_ )
+{
+    // Call the default first so any settings can be overwritten by our implementation.
+    // Alternatively could be called or not called in a switch statement on a case by case basis.
+    // See defaultMarkdownFormatCallback definition for furhter examples of how to use it.
+    ImGui::defaultMarkdownFormatCallback( markdownFormatInfo_, start_ );        
+    switch( markdownFormatInfo_.type )
+    {
+        // example: change the colour of heading level 2
+        case ImGui::MarkdownFormatType::HEADING:
+        {
+            if( markdownFormatInfo_.level == 2 )
+            {
+                if( start_ )
+                {
+                    ImGui::PushStyleColor( ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled] );
+                }
+                else
+                {
+                    ImGui::PopStyleColor();
+                }
+            }
+            break;
+        }
+        default:
+        {
+            break;
+        }
+    }
+}
 
 // About Desktop OpenGL function loaders:
 //  Modern desktop OpenGL doesn't have a standard portable header file to load OpenGL function pointers.
@@ -107,6 +178,7 @@ int main(int, char**)
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
+    ImPlot::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.IniFilename = "glfw_opengl3.ini";
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
@@ -135,9 +207,36 @@ int main(int, char**)
     //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
     //IM_ASSERT(font != NULL);
 
+    // load file dialog resource
+    igfd::prepare_file_dialog_demo_window();
+
+    // init memory edit
+    MemoryEditor mem_edit;
+    mem_edit.Open = false;
+    mem_edit.OptShowDataPreview = true;
+    size_t data_size = 0x1000;
+    void* data = malloc(data_size);
+
+    // Init Text Edit
+	TextEditor editor;
+
+    // Init MarkDown
+    ImGui::MarkdownConfig mdConfig; 
+
+    // Init imnodes
+    imnodes::Initialize();
+    imnodes_sample::NodeEditorInitialize();
+
     // Our state
     bool show_demo_window = true;
     bool show_another_window = false;
+    bool show_implot_window = false;
+    bool show_file_dialog_window = false;
+    bool show_text_edit_window = false;
+    bool show_markdown_window = false;
+    bool show_dock_window = false;
+    bool show_node_window = false;
+
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     // Main loop
@@ -169,6 +268,13 @@ int main(int, char**)
             ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
             ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
             ImGui::Checkbox("Another Window", &show_another_window);
+            ImGui::Checkbox("ImPlot Window", &show_implot_window);
+            ImGui::Checkbox("File Dialog Window", &show_file_dialog_window);
+            ImGui::Checkbox("Memory Edit Window", &mem_edit.Open);
+            ImGui::Checkbox("Show Text Edit Window", &show_text_edit_window);
+            ImGui::Checkbox("Show Markdown Window", &show_markdown_window);
+            ImGui::Checkbox("Show Dock Window", &show_dock_window);
+            ImGui::Checkbox("Show Node Window", &show_node_window);
 
             ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
             ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
@@ -192,6 +298,93 @@ int main(int, char**)
             ImGui::End();
         }
 
+        // 4. Show ImPlot simple window
+        if (show_implot_window)
+        {
+            ImPlot::ShowDemoWindow(&show_implot_window);
+        }
+
+        // 5. Show FileDialog demo window
+        if (show_file_dialog_window)
+        {
+            igfd::show_file_dialog_demo_window(&show_file_dialog_window);
+        }
+
+        // 6. Show Memory Edit window
+        if (mem_edit.Open)
+        {
+            ImGui::Begin("Memory Window", &mem_edit.Open);
+            mem_edit.DrawWindow("Memory Editor", data, data_size);
+            ImGui::End();
+        }
+
+        // 7. Show Text Edit Window
+        if (show_text_edit_window)
+        {
+            editor.text_edit_demo(&show_text_edit_window);
+        }
+
+        // 8. Show Markdown Window
+        if (show_markdown_window)
+        {
+            std::string help_doc = get_file_contents("docs/README.md");
+            mdConfig.linkCallback =         LinkCallback;
+            mdConfig.tooltipCallback =      NULL;
+            mdConfig.imageCallback =        ImageCallback;
+            mdConfig.linkIcon =             ICON_FA5_LINK;
+            mdConfig.headingFormats[0] =    { io.Fonts->Fonts[0], true };
+            mdConfig.headingFormats[1] =    { io.Fonts->Fonts[1], true };
+            mdConfig.headingFormats[2] =    { io.Fonts->Fonts[2], false };
+            mdConfig.userData =             NULL;
+            mdConfig.formatCallback =       ExampleMarkdownFormatCallback;
+            ImGui::Markdown( help_doc.c_str(), help_doc.length(), mdConfig );
+        }
+
+        // 9. Show Dock Window
+        if (show_dock_window)
+        {
+            if(ImGui::Begin("Dock Demo"))
+            {
+		        // dock layout by hard-coded or .ini file
+                ImGui::BeginDockspace();
+                if(ImGui::BeginDock("Dock 1"))
+                {
+                    ImGui::Text("I'm Wubugui!");
+                }
+                ImGui::EndDock();
+                if(ImGui::BeginDock("Dock 2"))
+                {
+                    ImGui::Text("I'm BentleyBlanks!");
+                }
+                ImGui::EndDock();
+                if(ImGui::BeginDock("Dock 3"))
+                {
+                    ImGui::Text("I'm LonelyWaiting!");
+                }
+                ImGui::EndDock();
+                ImGui::EndDockspace();
+            }
+            ImGui::End();
+            // multiple dockspace supported
+            if(ImGui::Begin("Dock Demo2"))
+            {
+                ImGui::BeginDockspace();
+                if(ImGui::BeginDock("Dock 2"))
+                {
+                    ImGui::Text("Who's your daddy?");
+                }
+                ImGui::EndDock();
+                ImGui::EndDockspace();
+            }
+            ImGui::End();
+        }
+
+        // 10. Show Node  Window
+        if (show_node_window)
+        {
+            imnodes_sample::NodeEditorShow();
+        }
+
         // Rendering
         ImGui::Render();
         int display_w, display_h;
@@ -203,10 +396,21 @@ int main(int, char**)
 
         glfwSwapBuffers(window);
     }
+    // Cleanup memory edit resource
+    if (data)
+        free(data);
+
+    // Store file dialog bookmark
+    igfd::end_file_dialog_demo_window();
+
+    // Clean Node Window
+    imnodes_sample::NodeEditorShutdown();
+    imnodes::Shutdown();
 
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
+    ImPlot::DestroyContext();
     ImGui::DestroyContext();
 
     glfwDestroyWindow(window);
