@@ -120,7 +120,24 @@ int main(int, char**)
         printf("Error: %s\n", SDL_GetError());
         return -1;
     }
-
+    int window_width = 1440;
+    int window_height = 960;
+    float window_scale = 1.0;
+#ifdef __linux__
+    // Query default monitor resolution
+    SDL_Rect display_bounds;
+    if (SDL_GetDisplayBounds(0, &display_bounds) != 0)
+    {
+        fprintf(stderr, "Failed to obtain bounds of display 0: %s\n", SDL_GetError());
+        return -1;
+    }
+    if (display_bounds.w > 1920)
+    {
+        window_width *= 2;
+        window_height *= 2;
+        window_scale *= 2;
+    }
+#endif
     // Decide GL+GLSL versions
 #ifdef __APPLE__
     // GL 3.2 Core + GLSL 150
@@ -143,7 +160,7 @@ int main(int, char**)
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
     SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-    SDL_Window* window = SDL_CreateWindow("Dear ImGui SDL2+OpenGL3 example", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1440, 1024, window_flags);
+    SDL_Window* window = SDL_CreateWindow("Dear ImGui SDL2+OpenGL3 example", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, window_width, window_height, window_flags);
     SDL_GLContext gl_context = SDL_GL_CreateContext(window);
     SDL_GL_MakeCurrent(window, gl_context);
     SDL_GL_SetSwapInterval(1); // Enable vsync
@@ -177,6 +194,7 @@ int main(int, char**)
     ImGui::CreateContext();
     ImPlot::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.FontGlobalScale = window_scale;
     io.IniFilename = "sdl_opengl3.ini";
 
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls

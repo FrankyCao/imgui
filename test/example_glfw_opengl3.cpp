@@ -143,11 +143,26 @@ int main(int, char**)
     //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
     //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
 #endif
+    int window_width = 1440;
+    int window_height = 960;
+    float window_scale = 1;
+#ifdef __linux__
+    GLFWmonitor * main_monitor = glfwGetPrimaryMonitor();
+    float xscale = 0, yscale = 0;
+    glfwGetMonitorContentScale(main_monitor, &xscale, &yscale);
+    if (xscale != 0 && yscale != 0)
+    {
+        window_width *= xscale;
+        window_height *= yscale;
+        window_scale = xscale;
+    }
+#endif
 
     // Create window with graphics context
-    GLFWwindow* window = glfwCreateWindow(1440, 1024, "Dear ImGui GLFW+OpenGL3 example", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(window_width, window_height, "Dear ImGui GLFW+OpenGL3 example", NULL, NULL);
     if (window == NULL)
         return 1;
+    
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1); // Enable vsync
 
@@ -181,6 +196,7 @@ int main(int, char**)
     ImPlot::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.IniFilename = "glfw_opengl3.ini";
+    io.FontGlobalScale = window_scale;
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
