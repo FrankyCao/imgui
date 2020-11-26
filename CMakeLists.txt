@@ -36,7 +36,7 @@ option(IMGUI_DX12       "Build ImGui Direct12 backends(Windows only)" ON)
 option(IMGUI_FREETYPE   "Build ImGui with FreeType support" ON)
 option(IMGUI_FONTS      "Internal Fonts build in library" ON)
 option(IMGUI_ICONS      "Internal Icons build in library" ON)
-option(IMGUI_APPS       "build apps base on imgui" ON)
+option(IMGUI_APPS       "build apps base on imgui" OFF)
 
 if (IMGUI_GL2 OR IMGUI_GL3)
 find_package(OpenGL)
@@ -504,6 +504,19 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/addon/Timeline
 )
 
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    addon/imgui_knob/imgui_knob.cpp
+)
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    addon/imgui_knob/imgui_knob.h
+)
+set(IMGUI_INC_DIRS
+    ${IMGUI_INC_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/imgui_knob
+)
+
 include_directories(${IMGUI_INC_DIRS})
 add_library(imgui ${IMGUI_SRC} ${IMGUI_INCS})
 set_property(TARGET imgui PROPERTY POSITION_INDEPENDENT_CODE ON)
@@ -610,7 +623,7 @@ target_link_libraries(
 )
 endif(GLFW_FOUND)
 
-if (APPLE AND IMGUI_MATAL)
+if (APPLE AND IMGUI_MATAL AND IMGUI_APPS)
 add_executable(
     example_apple_metal
     MACOSX_BUNDLE

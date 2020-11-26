@@ -1441,6 +1441,29 @@ static void ShowDemoWindowWidgets()
         ImGui::TreePop();
     }
 
+    if (ImGui::TreeNode("Knob Widgets"))
+    {
+        static float freq = 0.5;
+        static int lfo_type_count = 7;
+        static unsigned char LFOtype = 0;
+        static char const *lfo_types[] = { "SINE", "TRI", "SQR", "R.up", "R.dn", "E1dn", "E2dn"};
+        static unsigned char intensity = 0;
+        ImGui::PushItemWidth(100);
+        ImGui::DropDown("##lfotype", LFOtype, lfo_types, lfo_type_count, "LFO Type"); ImGui::ShowTooltipOnHover("new drop down widget.");
+        ImGui::Knob("Float.", &freq, 0.0f, 1.0f, ImVec2(40, 40), "float value knob");
+        ImGui::SameLine();
+        ImGui::KnobUchar("UCHar", &intensity, 0, 127, ImVec2(40, 40), "uchar value knob");
+        int idb = freq * 80;
+        ImGui::UvMeter("##uvr", ImVec2(10, 80), &idb, 0, 80); ImGui::ShowTooltipOnHover("Uv meters.");
+        ImGui::SameLine();
+        ImGui::Fader("##mastervol", ImVec2(20, 80), &idb, 0, 80, "%d", 1.0f); ImGui::ShowTooltipOnHover("Slide.");
+        static bool instrument = false;
+        static bool checked = false;
+        ImGui::ToggleButton("Check", &checked, ImVec2(96, 20)); ImGui::ShowTooltipOnHover("Toggle Button.");
+        ImGui::ToggleButtonWithCheckbox("Add", &instrument, &checked, ImVec2(96, 32)); ImGui::ShowTooltipOnHover("Toggle Button With Left Checkbox.");
+        ImGui::TreePop();
+    }
+
     if (ImGui::TreeNode("Color/Picker Widgets"))
     {
         static ImVec4 color = ImVec4(114.0f / 255.0f, 144.0f / 255.0f, 154.0f / 255.0f, 200.0f / 255.0f);

@@ -12,4 +12,5 @@
 #include "imgui_dock.h"
 #include "imnodes.h"
 #include "Timeline.h"
+#include "imgui_knob.h"
 #include "icons/icons.h"
