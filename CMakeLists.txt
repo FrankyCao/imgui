@@ -662,7 +662,7 @@ set_target_properties(
     MACOSX_BUNDLE_ICON_FILE "metal"
     MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0"
     MACOSX_BUNDLE_LONG_VERSION_STRING "sample 1.0"
-    MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/test/Info-macOS.plist.in"
+    MACOSX_BUNDLE_INFO_PLIST "{CMAKE_CURRENT_SOURCE_DIR}/test/Info-macOS.plist.in"
 )
 target_link_libraries(
     example_apple_metal
@@ -671,7 +671,7 @@ target_link_libraries(
     "-framework MetalKit"
     "-framework Cocoa"
 )
-set_source_files_properties(${CMAKE_SOURCE_DIR}/test/metal.icns PROPERTIES
+set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/test/metal.icns PROPERTIES
         MACOSX_PACKAGE_LOCATION "Resources"
 )
 # Handle the Storyboard ourselves
