@@ -256,7 +256,6 @@ int main(int, char**)
         {"SetKey", "Make a new animation key with the current parameters values at the current time", 0xFFFFFF1F}
     };
 
-
     // Our state
     bool show_demo_window = true;
     bool show_another_window = false;

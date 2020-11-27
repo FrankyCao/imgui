@@ -511,11 +511,7 @@ struct Node
 template<class T>
 T clamp(T x, T a, T b)
 {
-#if defined(__WIN32__) || defined(_WIN32)
-    return min(b, max(x, a));
-#else
     return std::min(b, std::max(x, a));
-#endif
 }
 
 static float current_time_seconds = 0.f;

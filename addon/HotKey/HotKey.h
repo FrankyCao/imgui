@@ -60,6 +60,10 @@ static void GetHotKeyLib(unsigned int functionKeys, char* buffer, size_t bufferS
 #ifdef IMGUI_SDL2
 #include <SDL.h>
 #endif
+#ifdef _WIN32
+#define NOMINMAX
+#include <windows.h>
+#endif
 
 namespace ImHotKey
 {
@@ -72,7 +76,7 @@ namespace ImHotKey
 
     struct Key
     {
-        Key(const char* _lib = nullptr, unsigned int _order = 0, unsigned int _scanCodePage1 = 0, unsigned int _scanCodePage7 = 0, float _offset = 0, float _width = 0) 
+        Key(const char* _lib = nullptr, unsigned int _order = 0, unsigned int _scanCodePage1 = 0, unsigned int _scanCodePage7 = 0, float _offset = 0, float _width = 40) 
         {
             lib = _lib; order = _order; scanCodePage1 = _scanCodePage1; scanCodePage7 = _scanCodePage7; offset = _offset; width = _width;
         }
@@ -103,7 +107,7 @@ namespace ImHotKey
             {
 #ifdef SDL_h_
                 if (Keys[y][x].scanCodePage7 == scancode)
-#elif WIN32
+#elif defined(_WIN32)
                 if (Keys[y][x].scanCodePage1 == scancode)
 #endif
                     return Keys[y][x];
@@ -211,7 +215,7 @@ namespace ImHotKey
                 int imKey;
 #ifdef SDL_h_
                 imKey = i;
-#elif WIN32
+#elif defined(_WIN32)
                 imKey = MapVirtualKeyA(i, MAPVK_VK_TO_VSC);
 #else
                 imKey = i;
@@ -242,7 +246,7 @@ namespace ImHotKey
                 }
 #ifdef SDL_h_
                 bool& butSwtch = keyDown[key.scanCodePage7];
-#elif WIN32
+#elif defined(_WIN32)
                 bool& butSwtch = keyDown[key.scanCodePage1];
 #else
                 bool butSwtch = false;
@@ -256,10 +260,10 @@ namespace ImHotKey
                                         Keys[y][x].lib, 
 #ifdef SDL_h_
                                         Keys[y][x].scanCodePage7
-#elif WIN32
+#elif defined(_WIN32)
                                         Keys[y][x].scanCodePage1
 #else
-                                        "unknown"
+                                        0
 #endif
                                         );
                 ImGui::PopStyleColor();
@@ -329,7 +333,7 @@ namespace ImHotKey
                 int imKey;
 #ifdef SDL_h_
                 imKey = i;
-#elif WIN32
+#elif defined(_WIN32)
                 imKey = MapVirtualKeyA(i, MAPVK_VK_TO_VSC);
 #else
                 imKey = i;

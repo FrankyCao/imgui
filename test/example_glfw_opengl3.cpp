@@ -243,6 +243,16 @@ int main(int, char**)
     imnodes::Initialize();
     imnodes_sample::NodeEditorInitialize();
 
+    // Init HotKey
+    static std::vector<ImHotKey::HotKey> hotkeys = 
+    { 
+        {"Layout", "Reorder nodes in a simpler layout", 0xFFFF26E0},
+        {"Save", "Save the current graph", 0xFFFF1FE0},
+        {"Load", "Load an existing graph file", 0xFFFF18E0},
+        {"Play/Stop", "Play or stop the animation from the current graph", 0xFFFFFF3F},
+        {"SetKey", "Make a new animation key with the current parameters values at the current time", 0xFFFFFF1F}
+    };
+
     // Our state
     bool show_demo_window = true;
     bool show_another_window = false;
@@ -292,13 +302,19 @@ int main(int, char**)
             ImGui::Checkbox("Show Dock Window", &show_dock_window);
             ImGui::Checkbox("Show Node Window", &show_node_window);
 
-            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-            ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+            // show hotkey window
+            if (ImGui::Button("Edit Hotkeys"))
+            {
+                ImGui::OpenPopup("HotKeys Editor");
+            }
 
-            if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-                counter++;
-            ImGui::SameLine();
-            ImGui::Text("counter = %d", counter);
+            // Handle hotkey popup
+            ImHotKey::Edit(hotkeys.data(), hotkeys.size(), "HotKeys Editor");
+            int hotkey = ImHotKey::GetHotKey(hotkeys.data(), hotkeys.size());
+            if (hotkey != -1)
+            {
+                // handle the hotkey index!
+            }
 
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
             ImGui::End();
