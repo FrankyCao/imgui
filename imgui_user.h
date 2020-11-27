@@ -13,4 +13,5 @@
 #include "imnodes.h"
 #include "Timeline.h"
 #include "imgui_knob.h"
+#include "Bezier.h"
 #include "icons/icons.h"

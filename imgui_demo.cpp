@@ -1339,6 +1339,7 @@ static void ShowDemoWindowWidgets()
         ImGui::LoadingIndicatorCircle("##circle_indicator", 15, main_col, bg_col, 10, 5);
         ImGui::SameLine(); HelpMarker("Indicator Circle widget. Speed depend on circle_count");
 
+        ImGui::ShowBezierDemo(); ImGui::SameLine(); HelpMarker("ImGui Bezier widget.");
         ImGui::TreePop();
     }
 
