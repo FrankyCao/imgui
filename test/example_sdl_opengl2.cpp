@@ -76,6 +76,7 @@ int main(int, char**)
 
     // Main loop
     bool done = false;
+    bool show = true;
     while (!done)
     {
         // Poll and handle events (inputs, window resize, etc.)
@@ -91,8 +92,19 @@ int main(int, char**)
                 done = true;
             if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(window))
                 done = true;
+            if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_SHOWN)
+            {
+                show = true;
+            }
+            if (event.type == SDL_WINDOWEVENT && (event.window.event == SDL_WINDOWEVENT_HIDDEN || event.window.event == SDL_WINDOWEVENT_MINIMIZED))
+            {
+                show = false;
+            }
         }
-
+        if (!show)
+        {
+            continue;
+        }
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL2_NewFrame();
         ImGui_ImplSDL2_NewFrame(window);

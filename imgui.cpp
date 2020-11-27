@@ -7752,6 +7752,25 @@ void ImGui::SetTooltip(const char* fmt, ...)
     va_end(args);
 }
 
+void ImGui::ShowTooltipOnHoverV(const char* fmt, va_list args)
+{
+    if (ImGui::IsItemHovered())
+    {
+        ImGui::BeginTooltip();
+        ImGui::TextV(fmt, args);
+        ImGui::EndTooltip();
+    }
+}
+
+void ImGui::ShowTooltipOnHover(const char* fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    ShowTooltipOnHoverV(fmt, args);
+    va_end(args);
+}
+
+
 //-----------------------------------------------------------------------------
 // [SECTION] POPUPS
 //-----------------------------------------------------------------------------

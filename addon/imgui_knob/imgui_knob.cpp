@@ -450,7 +450,7 @@ bool ImGui::KnobUchar(char const *label, unsigned char *p_value, unsigned char v
     }
     else if (ImGui::IsItemHovered() && tooltip != nullptr)
     {
-        ImGui::ShowTooltipOnHover(tooltip);
+        ImGui::ShowTooltipOnHover("%s", tooltip);
     }
 
     return value_changed;
@@ -476,7 +476,7 @@ bool ImGui::DropDown(char const *label, unsigned char &value, char const *const 
 
         ImGui::EndCombo();
     }
-    ImGui::ShowTooltipOnHover(tooltip == nullptr ? label : tooltip);
+    ImGui::ShowTooltipOnHover("%s", tooltip == nullptr ? label : tooltip);
 
     return value_changed;
 }
@@ -593,16 +593,6 @@ bool ImGui::ToggleButton(const char *str_id, bool *v, const ImVec2 &size)
     draw_list->AddText(ImVec2(pos.x + (size.x - textSize.x) / 2, pos.y), col_tint, str_id);
 
     return valueChange;
-}
-
-void ImGui::ShowTooltipOnHover(char const *tooltip)
-{
-    if (ImGui::IsItemHovered())
-    {
-        ImGui::BeginTooltip();
-        ImGui::Text("%s", tooltip);
-        ImGui::EndTooltip();
-    }
 }
 
 bool ImGui::Fader(const char *label, const ImVec2 &size, int *v, const int v_min, const int v_max, const char *format, float power)

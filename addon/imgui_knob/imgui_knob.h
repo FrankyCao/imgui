@@ -30,8 +30,6 @@ IMGUI_API bool ToggleButtonWithCheckbox(const char *str_id, bool *on, bool *chec
 
 IMGUI_API bool ToggleButton(const char *str_id, bool *v, const ImVec2 &size);
 
-IMGUI_API void ShowTooltipOnHover(char const *tooltip);
-
 IMGUI_API bool Fader(const char* label, const ImVec2& size, int* v, const int v_min, const int v_max, const char* format = nullptr, float power = 1.0f);
 
 } // namespace ImGui

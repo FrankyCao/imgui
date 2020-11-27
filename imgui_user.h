@@ -14,4 +14,5 @@
 #include "Timeline.h"
 #include "imgui_knob.h"
 #include "Bezier.h"
+#include "HotKey.h"
 #include "icons/icons.h"
