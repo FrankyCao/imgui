@@ -1458,8 +1458,8 @@ static void ShowDemoWindowWidgets()
         ImGui::UvMeter("##uvr", ImVec2(10, 80), &idb, 0, 80); ImGui::ShowTooltipOnHover("Uv meters.");
         ImGui::SameLine();
         ImGui::Fader("##mastervol", ImVec2(20, 80), &idb, 0, 80, "%d", 1.0f); ImGui::ShowTooltipOnHover("Slide.");
-        static bool instrument = false;
-        static bool checked = false;
+        static bool instrument = true;
+        static bool checked = true;
         ImGui::ToggleButton("Check", &checked, ImVec2(96, 20)); ImGui::ShowTooltipOnHover("Toggle Button.");
         ImGui::ToggleButtonWithCheckbox("Add", &instrument, &checked, ImVec2(96, 32)); ImGui::ShowTooltipOnHover("Toggle Button With Left Checkbox.");
         ImGui::TreePop();
