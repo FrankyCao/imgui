@@ -2384,6 +2384,7 @@ namespace igfd
 				m_Bookmarks.push_back(bookmark);
 			}
 		}
+
 		static int selectedBookmarkForEdition = -1;
 		if (selectedBookmarkForEdition >= 0 &&
 			selectedBookmarkForEdition < (int)m_Bookmarks.size())
@@ -2397,6 +2398,7 @@ namespace igfd
 			}
 			if (selectedBookmarkForEdition >= 0)
 			{
+				ImGui::SameLine();
 				ImGui::PushItemWidth(bookmarkPaneWith);
 				if (ImGui::InputText("##ImGuiFileDialogBookmarkEdit", BookmarkEditBuffer, MAX_FILE_DIALOG_NAME_BUFFER))
 				{
