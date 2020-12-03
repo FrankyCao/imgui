@@ -2584,7 +2584,7 @@ void prepare_file_dialog_demo_window()
 
 #ifdef USE_BOOKMARK
 	// load bookmarks
-	std::ifstream docFile("bookmarks.conf", std::ios::in);
+	std::ifstream docFile("bookmarks.cfg", std::ios::in);
 	if (docFile.is_open())
 	{
 		std::stringstream strStream;
@@ -2762,7 +2762,7 @@ void end_file_dialog_demo_window()
 {
 #ifdef USE_BOOKMARK
 	// save bookmarks
-	std::ofstream configFileWriter("bookmarks.conf", std::ios::out);
+	std::ofstream configFileWriter("bookmarks.cfg", std::ios::out);
 	if (!configFileWriter.bad())
 	{
 		configFileWriter << igfd::ImGuiFileDialog::Instance()->SerializeBookmarks();
