@@ -15,4 +15,5 @@
 #include "imgui_knob.h"
 #include "Bezier.h"
 #include "HotKey.h"
+#include "imgui_node_editor.h"
 #include "icons/icons.h"

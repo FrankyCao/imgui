@@ -36,6 +36,13 @@
 #pragma comment(lib, "d3dcompiler") // Automatically link with d3dcompiler.lib as we are using D3DCompile() below.
 #endif
 
+#define STB_IMAGE_IMPLEMENTATION
+extern "C" {
+#include "stb_image.h"
+}
+
+struct TEXTURE;
+
 // DirectX data
 static ID3D11Device*            g_pd3dDevice = NULL;
 static ID3D11DeviceContext*     g_pd3dDeviceContext = NULL;
@@ -53,9 +60,26 @@ static ID3D11BlendState*        g_pBlendState = NULL;
 static ID3D11DepthStencilState* g_pDepthStencilState = NULL;
 static int                      g_VertexBufferSize = 5000, g_IndexBufferSize = 10000;
 
+static ImVector<TEXTURE*>       g_Textures;
+
 struct VERTEX_CONSTANT_BUFFER
 {
     float   mvp[4][4];
+};
+
+struct TEXTURE
+{
+    TEXTURE()
+    {
+        View = NULL;
+        Width = 0;
+        Height = 0;
+    }
+
+    ID3D11ShaderResourceView*   View;
+    int                         Width;
+    int                         Height;
+    ImVector<unsigned char>     Data;
 };
 
 static void ImGui_ImplDX11_SetupRenderState(ImDrawData* draw_data, ID3D11DeviceContext* ctx)
@@ -547,4 +571,133 @@ void ImGui_ImplDX11_NewFrame()
 {
     if (!g_pFontSampler)
         ImGui_ImplDX11_CreateDeviceObjects();
+}
+
+// Texture Functions
+// Forward Declarations
+static bool ImGui_UploadTexture(TEXTURE* texture);
+static void ImGui_ReleaseTexture(TEXTURE* texture);
+
+ImTextureID ImGui_LoadTexture(const char* path)
+{
+    int width = 0, height = 0, component = 0;
+    if (auto data = stbi_load(path, &width, &height, &component, 4))
+    {
+        auto texture = ImGui_CreateTexture(data, width, height);
+        stbi_image_free(data);
+        return texture;
+    }
+    else
+        return nullptr;
+}
+
+ImTextureID ImGui_CreateTexture(const void* data, int width, int height)
+{
+    auto texture = IM_NEW(TEXTURE);
+    texture->Width = width;
+    texture->Height = height;
+    texture->Data.resize(width * height * 4);
+    memcpy(texture->Data.Data, data, texture->Data.Size);
+
+    if (!ImGui_UploadTexture(texture))
+    {
+        IM_DELETE(texture);
+        return nullptr;
+    }
+
+    g_Textures.push_back(texture);
+
+    return (ImTextureID)texture;
+}
+
+void ImGui_DestroyTexture(ImTextureID texture)
+{
+    if (!texture)
+        return;
+
+    TEXTURE* texture_object = (TEXTURE*)(texture);
+
+    ImGui_ReleaseTexture(texture_object);
+
+    for (TEXTURE** it = g_Textures.begin(), **itEnd = g_Textures.end(); it != itEnd; ++it)
+    {
+        if (*it == texture_object)
+        {
+            g_Textures.erase(it);
+            break;
+        }
+    }
+
+    IM_DELETE(texture_object);
+}
+
+static bool ImGui_UploadTexture(TEXTURE* texture)
+{
+    if (!g_pd3dDevice || !texture)
+        return false;
+
+    if (texture->View)
+        return true;
+
+    D3D11_TEXTURE2D_DESC desc = {};
+    desc.Width              = texture->Width;
+    desc.Height             = texture->Height;
+    desc.MipLevels          = 1;
+    desc.ArraySize          = 1;
+    desc.Format             = DXGI_FORMAT_R8G8B8A8_UNORM;
+    desc.SampleDesc.Count   = 1;
+    desc.Usage              = D3D11_USAGE_DEFAULT;
+    desc.BindFlags          = D3D11_BIND_SHADER_RESOURCE;
+    desc.CPUAccessFlags     = 0;
+
+    D3D11_SUBRESOURCE_DATA subResource = {};
+    subResource.pSysMem          = texture->Data.Data;
+    subResource.SysMemPitch      = desc.Width * 4;
+    subResource.SysMemSlicePitch = 0;
+
+    ID3D11Texture2D *pTexture = nullptr;
+    g_pd3dDevice->CreateTexture2D(&desc, &subResource, &pTexture);
+
+    if (!pTexture)
+        return false;
+
+    // Create texture view
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.Format                    = DXGI_FORMAT_R8G8B8A8_UNORM;
+    srvDesc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
+    srvDesc.Texture2D.MipLevels       = desc.MipLevels;
+    srvDesc.Texture2D.MostDetailedMip = 0;
+
+    g_pd3dDevice->CreateShaderResourceView(pTexture, &srvDesc, &texture->View);
+    pTexture->Release();
+
+    return true;
+}
+
+static void ImGui_ReleaseTexture(TEXTURE* texture)
+{
+    if (texture)
+    {
+        if (texture->View)
+        {
+            texture->View->Release();
+            texture->View = nullptr;
+        }
+    }
+}
+
+int ImGui_GetTextureWidth(ImTextureID texture)
+{
+    if (TEXTURE* tex = (TEXTURE*)(texture))
+        return tex->Width;
+    else
+        return 0;
+}
+
+int ImGui_GetTextureHeight(ImTextureID texture)
+{
+    if (TEXTURE* tex = (TEXTURE*)(texture))
+        return tex->Height;
+    else
+        return 0;
 }

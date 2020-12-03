@@ -3,7 +3,7 @@
 #
 cmake_minimum_required(VERSION 3.5.1)
 project(IMGUI)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_SKIP_RPATH ON)
 set(CMAKE_MACOSX_RPATH 0)
@@ -36,7 +36,8 @@ option(IMGUI_DX12       "Build ImGui Direct12 backends(Windows only)" ON)
 option(IMGUI_FREETYPE   "Build ImGui with FreeType support" ON)
 option(IMGUI_FONTS      "Internal Fonts build in library" ON)
 option(IMGUI_ICONS      "Internal Icons build in library" ON)
-option(IMGUI_APPS       "build apps base on imgui" OFF)
+option(IMGUI_APPS       "build apps base on imgui" ON)
+option(IMGUI_APPLE_APP  "build apple app base on imgui" OFF)
 
 if (IMGUI_GL2 OR IMGUI_GL3)
 find_package(OpenGL)
@@ -539,6 +540,57 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/addon/HotKey
 )
 
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    addon/imgui_node_editor/crude_json.cpp
+    addon/imgui_node_editor/imgui_canvas.cpp
+    addon/imgui_node_editor/imgui_node_editor_api.cpp
+    addon/imgui_node_editor/imgui_node_editor.cpp
+)
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    addon/imgui_node_editor/crude_json.h
+    addon/imgui_node_editor/imgui_bezier_math.h
+    addon/imgui_node_editor/imgui_bezier_math.inl
+    addon/imgui_node_editor/imgui_canvas.h
+    addon/imgui_node_editor/imgui_extra_math.h
+    addon/imgui_node_editor/imgui_extra_math.inl
+    addon/imgui_node_editor/imgui_node_editor_internal.h
+    addon/imgui_node_editor/imgui_node_editor_internal.inl
+    addon/imgui_node_editor/imgui_node_editor.h
+)
+set(IMGUI_INC_DIRS
+    ${IMGUI_INC_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/imgui_node_editor
+)
+
+if (IMGUI_APPS)
+if (WIN32 AND IMGUI_DX11)
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    apps/application/source/dx11/entry.cpp
+)
+elseif(SDL2_FOUND)
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    apps/application/source/sdl/entry.cpp
+)
+elseif(GLFW_FOUND)
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    apps/application/source/glfw/entry.cpp
+)
+endif()
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    apps/application/include/application.h
+)
+set(IMGUI_INC_DIRS
+    ${IMGUI_INC_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/apps/application/include
+)
+endif()
+
 include_directories(${IMGUI_INC_DIRS})
 add_library(imgui ${IMGUI_SRC} ${IMGUI_INCS})
 set_property(TARGET imgui PROPERTY POSITION_INDEPENDENT_CODE ON)
@@ -645,7 +697,7 @@ target_link_libraries(
 )
 endif(GLFW_FOUND)
 
-if (APPLE AND IMGUI_MATAL AND IMGUI_APPS)
+if (APPLE AND IMGUI_MATAL AND IMGUI_APPLE_APP)
 add_executable(
     example_apple_metal
     MACOSX_BUNDLE
@@ -662,7 +714,7 @@ set_target_properties(
     MACOSX_BUNDLE_ICON_FILE "metal"
     MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0"
     MACOSX_BUNDLE_LONG_VERSION_STRING "sample 1.0"
-    MACOSX_BUNDLE_INFO_PLIST "{CMAKE_CURRENT_SOURCE_DIR}/test/Info-macOS.plist.in"
+    MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/test/Info-macOS.plist.in
 )
 target_link_libraries(
     example_apple_metal
@@ -751,8 +803,35 @@ target_link_libraries(
 endif(IMGUI_DX12)
 endif(WIN32)
 
-if (IMGUI_APPS)
-endif()
+add_executable(
+    example_node_edit_simple
+    test/example_node_edit_simple.cpp
+)
+target_link_libraries(
+    example_node_edit_simple
+    imgui
+    ${LINK_LIBS}
+)
+
+add_executable(
+    example_node_edit_basic_interaction
+    test/example_node_edit_basic_interaction.cpp
+)
+target_link_libraries(
+    example_node_edit_basic_interaction
+    imgui
+    ${LINK_LIBS}
+)
+
+add_executable(
+    example_node_edit_canvas
+    test/example_node_edit_canvas.cpp
+)
+target_link_libraries(
+    example_node_edit_canvas
+    imgui
+    ${LINK_LIBS}
+)
 
 get_directory_property(hasParent PARENT_DIRECTORY)
 if(hasParent)
