@@ -824,6 +824,7 @@ target_link_libraries(
 endif(IMGUI_DX12)
 endif(WIN32)
 
+if (IMGUI_APPS)
 add_executable(
     example_node_edit_simple
     test/example_node_edit_simple.cpp
@@ -853,6 +854,7 @@ target_link_libraries(
     imgui
     ${LINK_LIBS}
 )
+endif(IMGUI_APPS)
 
 get_directory_property(hasParent PARENT_DIRECTORY)
 if(hasParent)
