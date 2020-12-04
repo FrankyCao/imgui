@@ -357,6 +357,7 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/misc/freetype
 )
 
+# ImGuiFileDialog
 set(IMGUI_SRC
     ${IMGUI_SRC}
     addon/ImGuiFileDialog/ImGuiFileDialog.cpp
@@ -370,6 +371,7 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiFileDialog
 )
 
+# implot
 set(IMGUI_SRC
     ${IMGUI_SRC}
     addon/implot/implot.cpp
@@ -386,6 +388,7 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/addon/implot
 )
 
+# Spin 
 set(IMGUI_SRC
     ${IMGUI_SRC}
     addon/Spin/Spin.cpp
@@ -399,6 +402,7 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/addon/Spin
 )
 
+# Progress Indicators
 set(IMGUI_SRC
     ${IMGUI_SRC}
     addon/ProgressIndicators/ProgressIndicators.cpp
@@ -412,6 +416,7 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/addon/ProgressIndicators
 )
 
+# Splitter Window
 set(IMGUI_SRC
     ${IMGUI_SRC}
     addon/Splitter/Splitter.cpp
@@ -425,6 +430,7 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/addon/Splitter
 )
 
+# Colorful Text Edit
 set(IMGUI_SRC
     ${IMGUI_SRC}
     addon/TextEditor/TextEditor.cpp
@@ -438,6 +444,7 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/addon/TextEditor
 )
 
+# Toggle Button
 set(IMGUI_SRC
     ${IMGUI_SRC}
     addon/ToggleButton/ToggleButton.cpp
@@ -451,6 +458,7 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/addon/ToggleButton
 )
 
+# Memory Editor
 set(IMGUI_INCS
     ${IMGUI_INCS}
     addon/MemoryEditor/imgui_memory_editor.h
@@ -460,11 +468,13 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/addon/MemoryEditor
 )
 
+# Simple Markdown
 set(IMGUI_INC_DIRS
     ${IMGUI_INC_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/addon/markdown
 )
 
+# Simple dock window
 set(IMGUI_SRC
     ${IMGUI_SRC}
     addon/imguiDock/imgui_dock.cpp
@@ -478,6 +488,7 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/addon/imguiDock
 )
 
+# Simple nodes
 set(IMGUI_SRC
     ${IMGUI_SRC}
     addon/imnodes/imnodes.cpp
@@ -492,6 +503,7 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/addon/imnodes
 )
 
+# Simple TimeLine
 set(IMGUI_SRC
     ${IMGUI_SRC}
     addon/Timeline/Timeline.cpp
@@ -505,6 +517,7 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/addon/Timeline
 )
 
+# KNob
 set(IMGUI_SRC
     ${IMGUI_SRC}
     addon/imgui_knob/imgui_knob.cpp
@@ -518,6 +531,7 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/addon/imgui_knob
 )
 
+# Bezier
 set(IMGUI_SRC
     ${IMGUI_SRC}
     addon/Bezier/Bezier.cpp
@@ -531,6 +545,7 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/addon/Bezier
 )
 
+# HotKeys
 set(IMGUI_INCS
     ${IMGUI_INCS}
     addon/HotKey/HotKey.h
@@ -540,6 +555,7 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/addon/HotKey
 )
 
+# Node Editor
 set(IMGUI_SRC
     ${IMGUI_SRC}
     addon/imgui_node_editor/crude_json.cpp
@@ -564,6 +580,7 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/addon/imgui_node_editor
 )
 
+# Application Framework
 if (IMGUI_APPS)
 if (WIN32 AND IMGUI_DX11)
 set(IMGUI_SRC
@@ -591,10 +608,12 @@ set(IMGUI_INC_DIRS
 )
 endif()
 
+# Build library
 include_directories(${IMGUI_INC_DIRS})
 add_library(imgui ${IMGUI_SRC} ${IMGUI_INCS})
 set_property(TARGET imgui PROPERTY POSITION_INDEPENDENT_CODE ON)
 
+# Build Tools
 if (APPLE AND IMGUI_MATAL)
 target_compile_options(
     imgui 
@@ -619,6 +638,8 @@ target_link_libraries(
     img2c
     ${LINK_LIBS}
 )
+
+# Build examples
 add_executable(
     example_sdl_opengl2
     test/example_sdl_opengl2.cpp

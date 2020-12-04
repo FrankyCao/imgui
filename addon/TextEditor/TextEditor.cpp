@@ -3229,7 +3229,6 @@ void TextEditor::text_edit_demo(bool * open)
 			if (ImGui::MenuItem("Quit", "Alt-F4"))
 			{
 				*open = false;
-				return;
 			}
 			ImGui::EndMenu();
 		}
