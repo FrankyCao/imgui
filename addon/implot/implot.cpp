@@ -2085,15 +2085,15 @@ void ShowPlotContextMenu(ImPlotPlot& plot) {
                 plot.LegendOrientation = ImPlotOrientation_Vertical;
             ImGui::Checkbox("Outside", &plot.LegendOutside);
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(1,1));
-            if (ImGui::Button("##NW",ImVec2(1.5f*s,s))) plot.LegendLocation = ImPlotLocation_NorthWest; ImGui::SameLine();
-            if (ImGui::Button("##N", ImVec2(1.5f*s,s))) plot.LegendLocation = ImPlotLocation_North;     ImGui::SameLine();
-            if (ImGui::Button("##NE",ImVec2(1.5f*s,s))) plot.LegendLocation = ImPlotLocation_NorthEast;
-            if (ImGui::Button("##W", ImVec2(1.5f*s,s))) plot.LegendLocation = ImPlotLocation_West;      ImGui::SameLine();
-            if (ImGui::Button("##C", ImVec2(1.5f*s,s))) plot.LegendLocation = ImPlotLocation_Center;    ImGui::SameLine();
-            if (ImGui::Button("##E", ImVec2(1.5f*s,s))) plot.LegendLocation = ImPlotLocation_East;
-            if (ImGui::Button("##SW",ImVec2(1.5f*s,s))) plot.LegendLocation = ImPlotLocation_SouthWest; ImGui::SameLine();
-            if (ImGui::Button("##S", ImVec2(1.5f*s,s))) plot.LegendLocation = ImPlotLocation_South;      ImGui::SameLine();
-            if (ImGui::Button("##SE",ImVec2(1.5f*s,s))) plot.LegendLocation = ImPlotLocation_SouthEast;
+            if (ImGui::Button("##NW",ImVec2(1.5f*s,s))) { plot.LegendLocation = ImPlotLocation_NorthWest; } ImGui::SameLine();
+            if (ImGui::Button("##N", ImVec2(1.5f*s,s))) { plot.LegendLocation = ImPlotLocation_North;     } ImGui::SameLine();
+            if (ImGui::Button("##NE",ImVec2(1.5f*s,s))) { plot.LegendLocation = ImPlotLocation_NorthEast; }
+            if (ImGui::Button("##W", ImVec2(1.5f*s,s))) { plot.LegendLocation = ImPlotLocation_West;      } ImGui::SameLine();
+            if (ImGui::Button("##C", ImVec2(1.5f*s,s))) { plot.LegendLocation = ImPlotLocation_Center;    } ImGui::SameLine();
+            if (ImGui::Button("##E", ImVec2(1.5f*s,s))) { plot.LegendLocation = ImPlotLocation_East;      }
+            if (ImGui::Button("##SW",ImVec2(1.5f*s,s))) { plot.LegendLocation = ImPlotLocation_SouthWest; } ImGui::SameLine();
+            if (ImGui::Button("##S", ImVec2(1.5f*s,s))) { plot.LegendLocation = ImPlotLocation_South;     } ImGui::SameLine();
+            if (ImGui::Button("##SE",ImVec2(1.5f*s,s))) { plot.LegendLocation = ImPlotLocation_SouthEast; }
             ImGui::PopStyleVar();
             ImGui::EndMenu();
         }
@@ -2393,8 +2393,8 @@ void EndPlot() {
             if (!ImHasFlag(plot.XAxis.Flags, ImPlotAxisFlags_LockMax) && !ImNanOrInf(gp.ExtentsX.Max))
                 plot.XAxis.Range.Max = (gp.ExtentsX.Max);
             if (ImAlmostEqual(plot.XAxis.Range.Max, plot.XAxis.Range.Min))  {
-                plot.XAxis.Range.Max += plot.XAxis.Range.Max * 1.01;
-                plot.XAxis.Range.Min -= plot.XAxis.Range.Max * 1.01;
+                plot.XAxis.Range.Max += 0.5;
+                plot.XAxis.Range.Min -= 0.5;
             }
             plot.XAxis.Constrain();
             if (axis_equal && !gp.FitY[0])
@@ -2410,8 +2410,8 @@ void EndPlot() {
                 if (!ImHasFlag(plot.YAxis[i].Flags, ImPlotAxisFlags_LockMax) && !ImNanOrInf(gp.ExtentsY[i].Max))
                     plot.YAxis[i].Range.Max = (gp.ExtentsY[i].Max);
                 if (ImAlmostEqual(plot.YAxis[i].Range.Max, plot.YAxis[i].Range.Min)) {
-                    plot.YAxis[i].Range.Max += plot.YAxis[i].Range.Max * 1.01;
-                    plot.YAxis[i].Range.Min -= plot.YAxis[i].Range.Max * 1.01;
+                    plot.YAxis[i].Range.Max += 0.5;
+                    plot.YAxis[i].Range.Min -= 0.5;
                 }
                 plot.YAxis[i].Constrain();
                 if (i == 0 && axis_equal && !gp.FitX)

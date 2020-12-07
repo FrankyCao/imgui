@@ -103,6 +103,7 @@ set(IMGUI_SRC
     imgui_demo.cpp 
     imgui_draw.cpp
     imgui_widgets.cpp
+    imgui_tables.cpp
     fonts/mono_sarasa.cpp
     misc/cpp/imgui_stdlib.cpp
 )
