@@ -456,31 +456,6 @@ bool ImGui::KnobUchar(char const *label, unsigned char *p_value, unsigned char v
     return value_changed;
 }
 
-bool ImGui::DropDown(char const *label, unsigned char &value, char const *const names[], unsigned int nameCount, char const *tooltip)
-{
-    bool value_changed = false;
-
-    auto current_effect_item = names[value];
-    if (ImGui::BeginCombo(label, current_effect_item, ImGuiComboFlags_HeightLarge))
-    {
-        for (unsigned char n = 0; n < nameCount; n++)
-        {
-            bool is_selected = (current_effect_item == names[n]);
-            if (ImGui::Selectable(names[n], is_selected))
-            {
-                current_effect_item = names[n];
-                value = n;
-                value_changed = true;
-            }
-        }
-
-        ImGui::EndCombo();
-    }
-    ImGui::ShowTooltipOnHover("%s", tooltip == nullptr ? label : tooltip);
-
-    return value_changed;
-}
-
 bool ImGui::ImageToggleButton(const char *str_id, bool *v, ImTextureID user_texture_id, const ImVec2 &size)
 {
     bool valueChange = false;

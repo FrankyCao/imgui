@@ -1491,12 +1491,7 @@ static void ShowDemoWindowWidgets()
     if (ImGui::TreeNode("Knob Widgets"))
     {
         static float freq = 0.5;
-        static int lfo_type_count = 7;
-        static unsigned char LFOtype = 0;
-        static char const *lfo_types[] = { "SINE", "TRI", "SQR", "R.up", "R.dn", "E1dn", "E2dn"};
         static unsigned char intensity = 0;
-        ImGui::PushItemWidth(100);
-        ImGui::DropDown("##lfotype", LFOtype, lfo_types, lfo_type_count, "LFO Type"); ImGui::ShowTooltipOnHover("new drop down widget.");
         ImGui::Knob("Float.", &freq, 0.0f, 1.0f, ImVec2(40, 40), "float value knob");
         ImGui::SameLine();
         ImGui::KnobUchar("UCHar", &intensity, 0, 127, ImVec2(40, 40), "uchar value knob");
