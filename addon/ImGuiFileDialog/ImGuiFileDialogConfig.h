@@ -5,7 +5,7 @@
 //#define MAX_FILE_DIALOG_NAME_BUFFER 1024
 //#define MAX_PATH_BUFFER_SIZE 1024
 
-//#define USE_IMGUI_TABLES
+#define USE_IMGUI_TABLES
 
 //#define USE_EXPLORATION_BY_KEYS
 // this mapping by default is for GLFW but you can use another
@@ -28,33 +28,32 @@
 //#define IMGUI_BUTTON ImGui::Button
 
 // locales string
-//#define createDirButtonString "+"
-//#define okButtonString " OK"
-//#define cancelButtonString " Cancel"
-//#define resetButtonString "R"
-//#define drivesButtonString "Drives"
-//#define searchString "Search"
-//#define dirEntryString "[DIR] "
-//#define linkEntryString "[LINK] "
-//#define fileEntryString "[FILE] "
-//#define fileNameString "File Name : "
+#define createDirButtonString ICON_IGFD_ADD
+#define okButtonString ICON_IGFD_OK " OK"
+#define cancelButtonString ICON_IGFD_CANCEL " Cancel"
+#define resetButtonString ICON_IGFD_RESET
+#define drivesButtonString ICON_IGFD_DRIVES
+//#define searchString ICON_IGFD_SEARCH
+#define dirEntryString ICON_IGFD_FOLDER
+#define linkEntryString ICON_IGFD_LINK
+#define fileEntryString ICON_IGFD_FILE
 //#define buttonResetSearchString "Reset search"
 //#define buttonDriveString "Drives"
 //#define buttonResetPathString "Reset to current directory"
 //#define buttonCreateDirString "Create Directory"
 
 // theses icons will appear in table headers
-//#define USE_CUSTOM_SORTING_ICON
-//#define AscendingIcon "A|"
-//#define DescendingIcon "D|"
-//#define tableHeaderFilenameString "File name"
-//#define tableHeaderSizeString "Size"
-//#define tableHeaderDateString "Date"
+#define USE_CUSTOM_SORTING_ICON
+#define tableHeaderAscendingIcon ICON_IGFD_CHEVRON_UP
+#define tableHeaderDescendingIcon ICON_IGFD_CHEVRON_DOWN
+#define tableHeaderFileNameString " File name"
+#define tableHeaderFileSizeString " Size"
+#define tableHeaderFileDateString " Date"
 
 #define USE_BOOKMARK
-#define bookmarkPaneWith 150.0f
+//#define bookmarkPaneWith 150.0f
 //#define IMGUI_TOGGLE_BUTTON ToggleButton
-#define bookmarksButtonString "Bookmark"
-#define bookmarksButtonHelpString "Bookmark"
-#define addBookmarkButtonString "+"
-#define removeBookmarkButtonString "-"
+#define bookmarksButtonString ICON_IGFD_BOOKMARK
+//#define bookmarksButtonHelpString "Bookmark"
+#define addBookmarkButtonString ICON_IGFD_ADD
+#define removeBookmarkButtonString ICON_IGFD_REMOVE
