@@ -969,7 +969,7 @@ namespace igfd
 				ImGui::BeginChild("##FileDialog_FileList", size);
 #else
 				static ImGuiTableFlags flags = ImGuiTableFlags_ColumnsWidthFixed | ImGuiTableFlags_RowBg |
-					ImGuiTableFlags_Hideable | ImGuiTableFlags_ScrollY | 
+					ImGuiTableFlags_Hideable | ImGuiTableFlags_ScrollY |
 					ImGuiTableFlags_NoHostExtendY 
 	#ifndef USE_CUSTOM_SORTING_ICON
 					| ImGuiTableFlags_Sortable
@@ -977,15 +977,16 @@ namespace igfd
 					;
 				if (ImGui::BeginTable("##fileTable", 3, flags, size))
 				{
+					ImGui::TableSetupScrollFreeze(0, 1); // Make header always visible
 					ImGui::TableSetupColumn(m_HeaderFileName.c_str(), ImGuiTableColumnFlags_WidthStretch, -1, 0);
-					ImGui::TableSetupColumn(m_HeaderFileSize.c_str(), ImGuiTableColumnFlags_WidthAutoResize, -1, 1);
-					ImGui::TableSetupColumn(m_HeaderFileDate.c_str(), ImGuiTableColumnFlags_WidthAutoResize, -1, 2);
+					ImGui::TableSetupColumn(m_HeaderFileSize.c_str(), ImGuiTableColumnFlags_WidthAuto, -1, 1);
+					ImGui::TableSetupColumn(m_HeaderFileDate.c_str(), ImGuiTableColumnFlags_WidthAuto, -1, 2);
 
 	#ifndef USE_CUSTOM_SORTING_ICON
 					// Sort our data if sort specs have been changed!
-					if (const ImGuiTableSortSpecs* sorts_specs = ImGui::TableGetSortSpecs())
+					if (ImGuiTableSortSpecs* sorts_specs = ImGui::TableGetSortSpecs())
 					{
-						if (sorts_specs->SpecsChanged && !m_FileList.empty())
+						if (sorts_specs->SpecsDirty && !m_FileList.empty())
 						{
 							if (sorts_specs->Specs->ColumnUserID == 0)
 								SortFields(SortingFieldEnum::FIELD_FILENAME, true);
@@ -1233,7 +1234,6 @@ namespace igfd
 
 				if (_CanWeContinue)
 				{
-					ImGui::Indent(10);
 					if (IMGUI_BUTTON(okButtonString))
 					{
 						if ('\0' != FileNameBuffer[0])
@@ -1251,7 +1251,6 @@ namespace igfd
 					IsOk = false;
 					res = true;
 				}
-				ImGui::Unindent();
 
 				lastBarHeight = ImGui::GetCursorPosY() - posY;
 
@@ -1623,17 +1622,20 @@ namespace igfd
 			static double lo = 1024;
 			static double ko = 1024 * 1024;
 			static double mo = 1024 * 1024 * 1024;
+			static double go = (double)1024 * (double)1024 * (double)1024 * (double)1024;
 
 			double v = (double)vByteSize;
 			
 			if (v < lo) 
-				*vFormat = round_n(v, 0) + " o"; // octet
+				*vFormat = round_n(v, 0) + " B"; // octet
 			else if (v < ko) 
-				*vFormat = round_n(v / lo, 2) + " Ko"; // ko
+				*vFormat = round_n(v / lo, 2) + " KB"; // ko
 			else  if (v < mo) 
-				*vFormat = round_n(v / ko, 2) + " Mo"; // Mo 
-			else 
-				*vFormat = round_n(v / mo, 2) + " Go"; // Go 
+				*vFormat = round_n(v / ko, 2) + " MB"; // Mo 
+			else if (v < go)
+				*vFormat = round_n(v / mo, 2) + " GB"; // Go 
+			else
+				*vFormat = round_n(v / go, 2) + " TB"; // To 
 		}
 	}
 
@@ -2668,6 +2670,15 @@ void show_file_dialog_demo_window(bool * open)
 				igfd::ImGuiFileDialog::Instance()->OpenModal("ChooseFileDlgKey",
 					ICON_IGFD_FOLDER_OPEN " Choose a File", filters, ".", 0);
 		}
+		if (ImGui::Button(ICON_IGFD_FOLDER_OPEN " Open All file types with filter .*"))
+		{
+			if (standardDialogMode)
+				igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey",
+					ICON_IGFD_FOLDER_OPEN " Choose a File", ".*", ".", 5);
+			else
+				igfd::ImGuiFileDialog::Instance()->OpenModal("ChooseFileDlgKey",
+					ICON_IGFD_FOLDER_OPEN " Choose a File", ".*", ".", 5);
+		}
 		if (ImGui::Button(ICON_IGFD_SAVE " Save File Dialog with a custom pane"))
 		{
 			const char *filters = "C++ File (*.cpp){.cpp}";
@@ -2718,20 +2729,28 @@ void show_file_dialog_demo_window(bool * open)
 		// minSize => 0,0
 		// maxSize => FLT_MAX, FLT_MAX (defined is float.h)
 
+		static std::string filePathName = "";
+		static std::string filePath = "";
+		static std::string filter = "";
+		static std::string userDatas = "";
+		static std::vector<std::pair<std::string, std::string>> selection = {};
+
 		if (igfd::ImGuiFileDialog::Instance()->FileDialog("ChooseFileDlgKey",
 			ImGuiWindowFlags_NoCollapse, minSize, maxSize))
 		{
 			if (igfd::ImGuiFileDialog::Instance()->IsOk)
 			{
-				std::string filePathName = igfd::ImGuiFileDialog::Instance()->GetFilePathName();
-				std::string filePath = igfd::ImGuiFileDialog::Instance()->GetCurrentPath();
-				std::string filter = igfd::ImGuiFileDialog::Instance()->GetCurrentFilter();
+				filePathName = igfd::ImGuiFileDialog::Instance()->GetFilePathName();
+				filePath = igfd::ImGuiFileDialog::Instance()->GetCurrentPath();
+				filter = igfd::ImGuiFileDialog::Instance()->GetCurrentFilter();
 				// here convert from string because a string was passed as a userDatas, but it can be what you want
-                std::string userDatas;
 				if (igfd::ImGuiFileDialog::Instance()->GetUserDatas())
                     userDatas = std::string((const char*)igfd::ImGuiFileDialog::Instance()->GetUserDatas());
-				auto selection = igfd::ImGuiFileDialog::Instance()->GetSelection(); // multiselection
-
+				auto sel = igfd::ImGuiFileDialog::Instance()->GetSelection(); // multiselection
+				for (auto s : sel)
+				{
+					selection.emplace_back(s.first, s.second);
+				}
 				// action
 			}
 			igfd::ImGuiFileDialog::Instance()->CloseDialog("ChooseFileDlgKey");
@@ -2742,19 +2761,72 @@ void show_file_dialog_demo_window(bool * open)
         {
             if (igfd::ImGuiFileDialog::Instance()->IsOk)
             {
-                std::string filePathName = igfd::ImGuiFileDialog::Instance()->GetFilePathName();
-                std::string filePath = igfd::ImGuiFileDialog::Instance()->GetCurrentPath();
-                std::string filter = igfd::ImGuiFileDialog::Instance()->GetCurrentFilter();
+                filePathName = igfd::ImGuiFileDialog::Instance()->GetFilePathName();
+                filePath = igfd::ImGuiFileDialog::Instance()->GetCurrentPath();
+                filter = igfd::ImGuiFileDialog::Instance()->GetCurrentFilter();
                 // here convert from string because a string was passed as a userDatas, but it can be what you want
-                std::string userDatas;
                 if (igfd::ImGuiFileDialog::Instance()->GetUserDatas())
                     userDatas = std::string((const char*)igfd::ImGuiFileDialog::Instance()->GetUserDatas());
-                auto selection = igfd::ImGuiFileDialog::Instance()->GetSelection(); // multiselection
-
+				auto sel = igfd::ImGuiFileDialog::Instance()->GetSelection(); // multiselection
+				for (auto s : sel)
+				{
+					selection.emplace_back(s.first, s.second);
+				}
                 // action
             }
             igfd::ImGuiFileDialog::Instance()->CloseDialog("ChooseDirDlgKey");
         }
+
+		ImGui::Separator();
+
+		ImGui::Text("ImGuiFileDialog Return's :\n");
+		ImGui::Indent();
+		{
+			ImGui::Text("GetFilePathName() : %s", filePathName.c_str());
+			ImGui::Text("GetFilePath() : %s", filePath.c_str());
+			ImGui::Text("GetCurrentFilter() : %s", filter.c_str());
+			ImGui::Text("GetUserDatas() (was a std::string in this sample) : %s", userDatas.c_str());
+			ImGui::Text("GetSelection() : ");
+			ImGui::Indent();
+			{
+				static int selected = false;
+				if (ImGui::BeginTable("##GetSelection", 2, 
+					ImGuiTableFlags_ColumnsWidthFixed | ImGuiTableFlags_RowBg |
+					ImGuiTableFlags_ScrollY))
+				{
+					ImGui::TableSetupScrollFreeze(0, 1); // Make top row always visible
+					ImGui::TableSetupColumn("File Name", ImGuiTableColumnFlags_WidthStretch, -1, 0);
+					ImGui::TableSetupColumn("File Path name", ImGuiTableColumnFlags_WidthAuto, -1, 1);
+					ImGui::TableHeadersRow(); 
+					
+					ImGuiListClipper clipper;
+					clipper.Begin((int)selection.size(), ImGui::GetTextLineHeightWithSpacing());
+					while (clipper.Step())
+					{
+						for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
+						{
+							const auto& sel = selection[i];
+							ImGui::TableNextRow();
+							if (ImGui::TableSetColumnIndex(0)) // first column
+							{
+								ImGuiSelectableFlags selectableFlags = ImGuiSelectableFlags_AllowDoubleClick;
+								selectableFlags |= ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowItemOverlap;
+								if (ImGui::Selectable(sel.first.c_str(), i == selected, selectableFlags)) selected = i;
+							}
+							if (ImGui::TableSetColumnIndex(1)) // second column
+							{
+								ImGui::Text("%s", sel.second.c_str());
+							}
+						}
+					}
+					clipper.End();
+
+					ImGui::EndTable();
+				}
+			}
+			ImGui::Unindent();
+		}
+		ImGui::Unindent();
 	}
 	ImGui::Unindent();
 	ImGui::End();
