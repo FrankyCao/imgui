@@ -1124,7 +1124,9 @@ namespace igfd
 #endif
                             if (showColor)
                                 ImGui::PopStyleColor();
-
+							
+							if (showTypeColor)
+								ImGui::PopStyleColor();
                         }
                     }
                     m_FileListClipper.End();
