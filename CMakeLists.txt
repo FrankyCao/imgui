@@ -855,6 +855,16 @@ target_link_libraries(
     imgui
     ${LINK_LIBS}
 )
+
+add_executable(
+    example_application
+    test/example_application.cpp
+)
+target_link_libraries(
+    example_application
+    imgui
+    ${LINK_LIBS}
+)
 endif(IMGUI_APPS)
 
 get_directory_property(hasParent PARENT_DIRECTORY)

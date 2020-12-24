@@ -113,33 +113,6 @@ LRESULT WINAPI ImGui_WinProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
-static ImFont* ImGui_LoadFont(ImFontAtlas& atlas, const char* name, float size, const ImVec2& displayOffset = ImVec2(0, 0))
-{
-	char* windir = nullptr;
-    if (_dupenv_s(&windir, nullptr, "WINDIR") || windir == nullptr)
-        return nullptr;
-
-    static const ImWchar ranges[] =
-    {
-        0x0020, 0x00FF, // Basic Latin + Latin Supplement
-        0x0104, 0x017C, // Polish characters and more
-        0,
-    };
-
-    ImFontConfig config;
-    config.OversampleH = 4;
-    config.OversampleV = 4;
-    config.PixelSnapH = false;
-    config.GlyphOffset = displayOffset;
-
-    auto path = std::string(windir) + "\\Fonts\\" + name;
-    auto font = atlas.AddFontFromFileTTF(path.c_str(), size, &config, ranges);
-
-	free(windir);
-
-    return font;
-}
-
 ImTextureID Application_LoadTexture(const char* path)
 {
     return ImGui_LoadTexture(path);
@@ -199,19 +172,15 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     if (CreateDeviceD3D(hwnd) < 0)
         return 1;
 
-    ImFontAtlas fontAtlas;
-    auto defaultFont = ImGui_LoadFont(fontAtlas, "segoeui.ttf", 22.0f);//16.0f * 96.0f / 72.0f);
-    fontAtlas.Build();
-    //ImGuiFreeType::BuildFontAtlas(&fontAtlas);
-
     // Setup ImGui binding
-    ImGui::CreateContext(&fontAtlas);
-    AX_SCOPE_EXIT{ ImGui::DestroyContext(); };
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    AX_SCOPE_EXIT{ ImPlot::DestroyContext(); ImGui::DestroyContext(); };
+    ImPlot::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
-    io.IniFilename = nullptr;
+    std::string ini_file = std::string(Application_GetName()) + ".ini";
+    io.IniFilename = ini_file.c_str();
     io.LogFilename = nullptr;
-
 
     // Setup ImGui binding
     ImGui_ImplWin32_Init(hwnd);
@@ -224,11 +193,6 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
     ImGui::StyleColorsDark();
 
-    //ImGuiStyle& style = ImGui::GetStyle();
-    //style.FrameRounding     = 2.0f;
-    //style.WindowRounding    = 0.0f;
-    //style.ScrollbarRounding = 0.0f;
-
     ImVec4 backgroundColor = ImColor(32, 32, 32, 255);//style.Colors[ImGuiCol_TitleBg];
 
     Application_Initialize();
@@ -236,8 +200,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
     auto frame = [&]()
     {
-        ImGui_ImplWin32_NewFrame();
         ImGui_ImplDX11_NewFrame();
+        ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
 
         ImGui::SetNextWindowPos(ImVec2(0, 0));
@@ -261,7 +225,6 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     frame();
 
     ShowWindow(hwnd, SW_SHOWMAXIMIZED);
-    //ShowWindow(hwnd, SW_SHOW);
     UpdateWindow(hwnd);
 
     // Main loop
