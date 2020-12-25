@@ -21,19 +21,19 @@ static bool                 g_FirstFrame = true;    // Flag set for first frame 
 static ImVector<LinkInfo>   g_Links;                // List of live links. It is dynamic unless you want to create read-only view over nodes.
 static int                  g_NextLinkId = 100;     // Counter to help generate link ids. In real application this will probably based on pointer to user data structure.
 
-const char* Application_GetName()
+const char* Application_GetName(void* handle)
 {
     return "Basic Interaction";
 }
 
-void Application_Initialize()
+void Application_Initialize(void** handle)
 {
     ed::Config config;
     config.SettingsFile = "BasicInteraction.json";
     g_Context = ed::CreateEditor(&config);
 }
 
-void Application_Finalize()
+void Application_Finalize(void** handle)
 {
     ed::DestroyEditor(g_Context);
 }
@@ -55,7 +55,7 @@ void ImGuiEx_EndColumn()
     ImGui::EndGroup();
 }
 
-void Application_Frame()
+void Application_Frame(void* handle)
 {
     auto& io = ImGui::GetIO();
 

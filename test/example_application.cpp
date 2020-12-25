@@ -6,13 +6,7 @@
 #include <sstream>
 #include <string>
 #include <cerrno>
-// init memory edit
-MemoryEditor mem_edit;
-size_t data_size = 0x1000;
-void* data = nullptr;
-// Init Text Edit
-TextEditor editor;
-ImGui::MarkdownConfig mdConfig; 
+
 // Init HotKey
 static std::vector<ImHotKey::HotKey> hotkeys = 
 { 
@@ -23,16 +17,62 @@ static std::vector<ImHotKey::HotKey> hotkeys =
     {"SetKey", "Make a new animation key with the current parameters values at the current time", 0xFFFFFF1F}
 };
 
-bool show_demo_window = true;
-bool show_another_window = false;
-bool show_implot_window = false;
-bool show_file_dialog_window = false;
-bool show_text_edit_window = false;
-bool show_markdown_window = false;
-bool show_dock_window = false;
-bool show_node_window = false;
+class Example
+{
+public:
+    Example() 
+    {
+        // load file dialog resource
+        igfd::prepare_file_dialog_demo_window();
 
-static std::string get_file_contents(const char *filename)
+        // init memory edit
+        mem_edit.Open = false;
+        mem_edit.OptShowDataPreview = true;
+        data = malloc(0x1000);
+
+        // Init imnodes
+        imnodes::Initialize();
+        imnodes_sample::NodeEditorInitialize();
+    };
+    ~Example() 
+    { 
+        if (data)
+            free(data); 
+        // Store file dialog bookmark
+        igfd::end_file_dialog_demo_window();
+
+        // Clean Node Window
+        imnodes_sample::NodeEditorShutdown();
+        imnodes::Shutdown();
+    }
+
+public:
+    // init memory edit
+    MemoryEditor mem_edit;
+    void* data = nullptr;
+    // Init Text Edit
+    TextEditor editor;
+    // Init MarkDown
+    ImGui::MarkdownConfig mdConfig;
+
+public:
+    bool show_demo_window = true;
+    bool show_another_window = false;
+    bool show_implot_window = false;
+    bool show_file_dialog_window = false;
+    bool show_text_edit_window = false;
+    bool show_markdown_window = false;
+    bool show_dock_window = false;
+    bool show_node_window = false;
+
+public:
+    std::string get_file_contents(const char *filename);
+    static ImGui::MarkdownImageData ImageCallback( ImGui::MarkdownLinkCallbackData data_ );
+    static void LinkCallback( ImGui::MarkdownLinkCallbackData data_ );
+    static void ExampleMarkdownFormatCallback( const ImGui::MarkdownFormatInfo& markdownFormatInfo_, bool start_ );
+};
+
+std::string Example::get_file_contents(const char *filename)
 {
     std::ifstream infile(filename, std::ios::in | std::ios::binary);
     if (infile.is_open())
@@ -45,7 +85,7 @@ static std::string get_file_contents(const char *filename)
     throw(errno);
 }
 
-inline ImGui::MarkdownImageData ImageCallback( ImGui::MarkdownLinkCallbackData data_ )
+ImGui::MarkdownImageData Example::ImageCallback( ImGui::MarkdownLinkCallbackData data_ )
 {
     // In your application you would load an image based on data_ input. Here we just use the imgui font texture.
     ImTextureID image = ImGui::GetIO().Fonts->TexID;
@@ -58,7 +98,7 @@ inline ImGui::MarkdownImageData ImageCallback( ImGui::MarkdownLinkCallbackData d
     return imageData;
 }
 
-static void LinkCallback( ImGui::MarkdownLinkCallbackData data_ )
+void Example::LinkCallback( ImGui::MarkdownLinkCallbackData data_ )
 {
     std::string url( data_.link, data_.linkLength );
     std::string command = "open " + url;
@@ -68,7 +108,7 @@ static void LinkCallback( ImGui::MarkdownLinkCallbackData data_ )
     }
 }
 
-static void ExampleMarkdownFormatCallback( const ImGui::MarkdownFormatInfo& markdownFormatInfo_, bool start_ )
+void Example::ExampleMarkdownFormatCallback( const ImGui::MarkdownFormatInfo& markdownFormatInfo_, bool start_ )
 {
     // Call the default first so any settings can be overwritten by our implementation.
     // Alternatively could be called or not called in a switch statement on a case by case basis.
@@ -99,48 +139,36 @@ static void ExampleMarkdownFormatCallback( const ImGui::MarkdownFormatInfo& mark
     }
 }
 
-const char* Application_GetName()
+const char* Application_GetName(void* handle)
 {
     return "Application Example";
 }
 
-void Application_Initialize()
+void Application_Initialize(void** handle)
 {
-    auto& io = ImGui::GetIO();
-
-    // load file dialog resource
-    igfd::prepare_file_dialog_demo_window();
-
-    // init memory edit
-    mem_edit.Open = false;
-    mem_edit.OptShowDataPreview = true;
-    data = malloc(data_size);
-
-    // Init imnodes
-    imnodes::Initialize();
-    imnodes_sample::NodeEditorInitialize();
+    *handle = new Example();
+    Example * example = (Example *)*handle;
 }
 
-void Application_Finalize()
+void Application_Finalize(void** handle)
 {
-    // Cleanup memory edit resource
-    if (data)
-        free(data);
-
-    // Store file dialog bookmark
-    igfd::end_file_dialog_demo_window();
-
-    // Clean Node Window
-    imnodes_sample::NodeEditorShutdown();
-    imnodes::Shutdown();
+    if (handle && *handle)
+    {
+        Example * example = (Example *)*handle;
+        delete example;
+        *handle = nullptr;
+    }
 }
 
-void Application_Frame()
+void Application_Frame(void* handle)
 {
     auto& io = ImGui::GetIO();
+    Example * example = (Example *)handle;
+    if (!example)
+        return;
     // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-    if (show_demo_window)
-        ImGui::ShowDemoWindow(&show_demo_window);
+    if (example->show_demo_window)
+        ImGui::ShowDemoWindow(&example->show_demo_window);
 
     // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
     {
@@ -150,15 +178,15 @@ void Application_Frame()
         ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
 
         ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-        ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-        ImGui::Checkbox("Another Window", &show_another_window);
-        ImGui::Checkbox("ImPlot Window", &show_implot_window);
-        ImGui::Checkbox("File Dialog Window", &show_file_dialog_window);
-        ImGui::Checkbox("Memory Edit Window", &mem_edit.Open);
-        ImGui::Checkbox("Show Text Edit Window", &show_text_edit_window);
-        ImGui::Checkbox("Show Markdown Window", &show_markdown_window);
-        ImGui::Checkbox("Show Dock Window", &show_dock_window);
-        ImGui::Checkbox("Show Node Window", &show_node_window);
+        ImGui::Checkbox("Demo Window", &example->show_demo_window);      // Edit bools storing our window open/close state
+        ImGui::Checkbox("Another Window", &example->show_another_window);
+        ImGui::Checkbox("ImPlot Window", &example->show_implot_window);
+        ImGui::Checkbox("File Dialog Window", &example->show_file_dialog_window);
+        ImGui::Checkbox("Memory Edit Window", &example->mem_edit.Open);
+        ImGui::Checkbox("Show Text Edit Window", &example->show_text_edit_window);
+        ImGui::Checkbox("Show Markdown Window", &example->show_markdown_window);
+        ImGui::Checkbox("Show Dock Window", &example->show_dock_window);
+        ImGui::Checkbox("Show Node Window", &example->show_node_window);
 
         // show hotkey window
         if (ImGui::Button("Edit Hotkeys"))
@@ -178,59 +206,59 @@ void Application_Frame()
     }
 
     // 3. Show another simple window.
-    if (show_another_window)
+    if (example->show_another_window)
     {
-        ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+        ImGui::Begin("Another Window", &example->show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
         ImGui::Text("Hello from another window!");
         if (ImGui::Button("Close Me"))
-            show_another_window = false;
+            example->show_another_window = false;
         ImGui::End();
     }
 
     // 4. Show ImPlot simple window
-    if (show_implot_window)
+    if (example->show_implot_window)
     {
-        ImPlot::ShowDemoWindow(&show_implot_window);
+        ImPlot::ShowDemoWindow(&example->show_implot_window);
     }
 
     // 5. Show FileDialog demo window
-    if (show_file_dialog_window)
+    if (example->show_file_dialog_window)
     {
-        igfd::show_file_dialog_demo_window(&show_file_dialog_window);
+        igfd::show_file_dialog_demo_window(&example->show_file_dialog_window);
     }
 
     // 6. Show Memory Edit window
-    if (mem_edit.Open)
+    if (example->mem_edit.Open)
     {
-        ImGui::Begin("Memory Window", &mem_edit.Open);
-        mem_edit.DrawWindow("Memory Editor", data, data_size);
+        ImGui::Begin("Memory Window", &example->mem_edit.Open);
+        example->mem_edit.DrawWindow("Memory Editor", example->data, 0x1000);
         ImGui::End();
     }
 
     // 7. Show Text Edit Window
-    if (show_text_edit_window)
+    if (example->show_text_edit_window)
     {
-        editor.text_edit_demo(&show_text_edit_window);
+        example->editor.text_edit_demo(&example->show_text_edit_window);
     }
 
     // 8. Show Markdown Window
-    if (show_markdown_window)
+    if (example->show_markdown_window)
     {
-        std::string help_doc = get_file_contents("docs/README.md");
-        mdConfig.linkCallback =         LinkCallback;
-        mdConfig.tooltipCallback =      NULL;
-        mdConfig.imageCallback =        ImageCallback;
-        mdConfig.linkIcon =             ICON_FA5_LINK;
-        mdConfig.headingFormats[0] =    { io.Fonts->Fonts[0], true };
-        mdConfig.headingFormats[1] =    { io.Fonts->Fonts[1], true };
-        mdConfig.headingFormats[2] =    { io.Fonts->Fonts[2], false };
-        mdConfig.userData =             NULL;
-        mdConfig.formatCallback =       ExampleMarkdownFormatCallback;
-        ImGui::Markdown( help_doc.c_str(), help_doc.length(), mdConfig );
+        std::string help_doc =                   example->get_file_contents("docs/README.md");
+        example->mdConfig.linkCallback =         example->LinkCallback;
+        example->mdConfig.tooltipCallback =      NULL;
+        example->mdConfig.imageCallback =        example->ImageCallback;
+        example->mdConfig.linkIcon =             ICON_FA5_LINK;
+        example->mdConfig.headingFormats[0] =    { io.Fonts->Fonts[0], true };
+        example->mdConfig.headingFormats[1] =    { io.Fonts->Fonts[1], true };
+        example->mdConfig.headingFormats[2] =    { io.Fonts->Fonts[2], false };
+        example->mdConfig.userData =             NULL;
+        example->mdConfig.formatCallback =       example->ExampleMarkdownFormatCallback;
+        ImGui::Markdown( help_doc.c_str(), help_doc.length(), example->mdConfig );
     }
 
     // 9. Show Dock Window
-    if (show_dock_window)
+    if (example->show_dock_window)
     {
         if(ImGui::Begin("Dock Demo"))
         {
@@ -269,7 +297,7 @@ void Application_Frame()
     }
 
     // 10. Show Node Window
-    if (show_node_window)
+    if (example->show_node_window)
     {
         imnodes_sample::NodeEditorShow();
     }

@@ -58,20 +58,20 @@ static bool Splitter(bool split_vertically, float thickness, float* size1, float
     return SplitterBehavior(bb, id, split_vertically ? ImGuiAxis_X : ImGuiAxis_Y, size1, size2, min_size1, min_size2, 0.0f);
 }
 
-const char* Application_GetName()
+const char* Application_GetName(void* handle)
 {
     return "Canvas";
 }
 
-void Application_Initialize()
+void Application_Initialize(void** handle)
 {
 }
 
-void Application_Finalize()
+void Application_Finalize(void** handle)
 {
 }
 
-void Application_Frame()
+void Application_Frame(void* handle)
 {
     auto& io = ImGui::GetIO();
 

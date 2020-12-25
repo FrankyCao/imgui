@@ -76,6 +76,7 @@ struct ImTexture
 };
 
 static std::vector<ImTexture> g_Textures;
+static void * user_handle = nullptr;
 
 ImTextureID Application_CreateTexture(const void* data, int width, int height)
 {
@@ -172,7 +173,7 @@ int main(int, char**)
     }
 #endif
 
-    GLFWwindow* window = glfwCreateWindow(window_width, window_height, Application_GetName(), NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(window_width, window_height, Application_GetName(user_handle), NULL, NULL);
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1); // Enable vsync
     // Initialize OpenGL loader
@@ -216,7 +217,7 @@ int main(int, char**)
 
     ImVec4 clear_color = ImVec4(0.125f, 0.125f, 0.125f, 1.00f);
 
-    Application_Initialize();
+    Application_Initialize(&user_handle);
 
     // Main loop
     while (!glfwWindowShouldClose(window))
@@ -237,7 +238,7 @@ int main(int, char**)
             ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoSavedSettings |
             ImGuiWindowFlags_NoBringToFrontOnFocus);
 
-        Application_Frame();
+        Application_Frame(user_handle);
 
         ImGui::End();
 
@@ -252,7 +253,7 @@ int main(int, char**)
         glfwSwapBuffers(window);
     }
 
-    Application_Finalize();
+    Application_Finalize(&user_handle);
 
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();

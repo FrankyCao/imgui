@@ -20,6 +20,8 @@ static ID3D11DeviceContext*     g_pd3dDeviceContext = nullptr;
 static IDXGISwapChain*          g_pSwapChain = nullptr;
 static ID3D11RenderTargetView*  g_mainRenderTargetView = nullptr;
 
+static void * user_handle = nullptr;
+
 static void CreateRenderTarget()
 {
     DXGI_SWAP_CHAIN_DESC sd;
@@ -152,9 +154,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 {
     const auto c_ClassName  = _T("Node Editor Class");
 # if defined(_UNICODE)
-    const std::wstring c_WindowName = widen(Application_GetName());
+    const std::wstring c_WindowName = widen(Application_GetName(user_handle));
 # else
-    const std::string c_WindowName = Application_GetName();
+    const std::string c_WindowName = Application_GetName(user_handle);
 # endif
 
 # if defined(_DEBUG)
@@ -195,8 +197,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
     ImVec4 backgroundColor = ImColor(32, 32, 32, 255);//style.Colors[ImGuiCol_TitleBg];
 
-    Application_Initialize();
-    AX_SCOPE_EXIT { Application_Finalize(); };
+    Application_Initialize(&user_handle);
+    AX_SCOPE_EXIT { Application_Finalize(&user_handle); };
 
     auto frame = [&]()
     {
@@ -211,7 +213,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
             ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoSavedSettings |
             ImGuiWindowFlags_NoBringToFrontOnFocus);
 
-        Application_Frame();
+        Application_Frame(user_handle);
 
         ImGui::End();
 

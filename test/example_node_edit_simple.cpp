@@ -8,24 +8,24 @@ namespace ed = ax::NodeEditor;
 
 static ed::EditorContext* g_Context = nullptr;
 
-const char* Application_GetName()
+const char* Application_GetName(void* handle)
 {
     return "Simple";
 }
 
-void Application_Initialize()
+void Application_Initialize(void** handle)
 {
     ed::Config config;
     config.SettingsFile = "Simple.json";
     g_Context = ed::CreateEditor(&config);
 }
 
-void Application_Finalize()
+void Application_Finalize(void** handle)
 {
     ed::DestroyEditor(g_Context);
 }
 
-void Application_Frame()
+void Application_Frame(void* handle)
 {
     auto& io = ImGui::GetIO();
 
