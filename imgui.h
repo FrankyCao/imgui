@@ -59,7 +59,7 @@ Index of this file:
 // Version
 // (Integer encoded as XYYZZ for use in #if preprocessor conditionals. Work in progress versions typically starts at XYY99 then bounce up to XYY00, XYY01 etc. when release tagging happens)
 #define IMGUI_VERSION               "1.80 WIP"
-#define IMGUI_VERSION_NUM           17908
+#define IMGUI_VERSION_NUM           17909
 #define IMGUI_CHECKVERSION()        ImGui::DebugCheckVersionAndDataLayout(IMGUI_VERSION, sizeof(ImGuiIO), sizeof(ImGuiStyle), sizeof(ImVec2), sizeof(ImVec4), sizeof(ImDrawVert), sizeof(ImDrawIdx))
 #define IMGUI_HAS_TABLE
 
@@ -665,7 +665,7 @@ namespace ImGui
     // - 1. Call BeginTable()
     // - 2. Optionally call TableSetupColumn() to submit column name/flags/defaults
     // - 3. Optionally call TableSetupScrollFreeze() to request scroll freezing of columns/rows
-    // - 4. Optionally call TableHeadersRow() to submit a header row (names will be pulled from data submitted to TableSetupColumns)
+    // - 4. Optionally call TableHeadersRow() to submit a header row. Names will be pulled from data provided TableSetupColumn() calls)
     // - 5. Populate contents
     //    - In most situations you can use TableNextRow() + TableSetColumnIndex(N) to start appending into a column.
     //    - If you are using tables as a sort of grid, where every columns is holding the same type of contents,
