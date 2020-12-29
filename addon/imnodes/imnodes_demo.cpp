@@ -6,6 +6,17 @@
 #ifdef IMGUI_SDL2
 #include <SDL_keycode.h>
 #include <SDL_timer.h>
+#elif !defined(__WIN32__) && !defined(_WIN32)
+#include <sys/time.h>
+inline int64_t GetTickCount(void) {
+	int ret = 0;
+	struct timeval tv;
+	ret = gettimeofday(&tv, NULL);
+	if (0 != ret) {
+		return -1;
+	}
+	return (int64_t)tv.tv_usec + (int64_t)tv.tv_sec * 1000000;
+}
 #endif
 #if defined(__WIN32__) || defined(_WIN32)
 #include <windows.h>
@@ -17,6 +28,7 @@
 #include <cmath>
 #include <vector>
 #include <fstream>
+
 
 // for example
 namespace imnodes_sample
@@ -625,7 +637,7 @@ public:
     void show()
     {
         // Update timer context
-#if defined(__WIN32__) || defined(_WIN32)
+#if defined(__WIN32__) || defined(_WIN32) || !defined(IMGUI_SDL2)
 #define SDL_SCANCODE_A 'A'
 #define SDL_SCANCODE_X 'X'
         current_time_seconds = 0.001f * GetTickCount();

@@ -119,6 +119,20 @@ set(IMGUI_INCS
     misc/cpp/imgui_stdlib.h
 )
 
+# OpenGL
+if(OPENGL_FOUND)
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    backends/imgui_impl_opengl2.cpp
+    backends/imgui_impl_opengl3.cpp
+)
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    backends/imgui_impl_opengl2.h
+    backends/imgui_impl_opengl3.h
+)
+endif(OPENGL_FOUND)
+
 if(FREETYPE_FOUND)
 set(IMGUI_SRC
     ${IMGUI_SRC}
@@ -131,7 +145,7 @@ set(IMGUI_INCS
 endif(FREETYPE_FOUND)
 
 # SDL2 support
-if (SDL2_FOUND)
+if (IMGUI_SDL2 AND SDL2_FOUND)
 add_definitions(-DIMGUI_SDL2)
 set(IMGUI_INC_DIRS
     ${IMGUI_INC_DIRS}
@@ -150,10 +164,11 @@ set(IMGUI_INCS
     ${IMGUI_INCS}
     backends/imgui_impl_sdl.h
 )
-endif(SDL2_FOUND)
+endif()
 
 # GLEW support
 if (GLEW_FOUND)
+add_definitions(-DIMGUI_IMPL_OPENGL_LOADER_GLEW)
 set(IMGUI_INC_DIRS
     ${IMGUI_INC_DIRS}
     ${GLEW_INCLUDE_DIRS}
@@ -161,16 +176,6 @@ set(IMGUI_INC_DIRS
 set(LINK_LIBS
     ${LINK_LIBS}
     ${GLEW_LDFLAGS}
-)
-set(IMGUI_SRC
-    ${IMGUI_SRC}
-    backends/imgui_impl_opengl2.cpp
-    backends/imgui_impl_opengl3.cpp
-)
-set(IMGUI_INCS
-    ${IMGUI_INCS}
-    backends/imgui_impl_opengl2.h
-    backends/imgui_impl_opengl3.h
 )
 endif(GLEW_FOUND)
 
@@ -204,6 +209,13 @@ set(LINK_LIBS
     ${LINK_LIBS}
     ${GLUT_LDFLAGS}
 )
+if (NOT APPLE AND NOT LINUX)
+set(LINK_LIBS
+    ${LINK_LIBS}
+    -lGL
+)
+endif()
+
 set(IMGUI_SRC
     ${IMGUI_SRC}
     backends/imgui_impl_glut.cpp
@@ -588,15 +600,20 @@ set(IMGUI_SRC
     ${IMGUI_SRC}
     apps/application/source/dx11/entry.cpp
 )
-elseif(SDL2_FOUND)
+elseif(SDL2_FOUND AND IMGUI_SDL2)
 set(IMGUI_SRC
     ${IMGUI_SRC}
     apps/application/source/sdl/entry.cpp
 )
-elseif(GLFW_FOUND)
+elseif(GLFW_FOUND AND IMGUI_GLFW)
 set(IMGUI_SRC
     ${IMGUI_SRC}
     apps/application/source/glfw/entry.cpp
+)
+elseif(GLUT_FOUND AND IMGUI_GLUT)
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    apps/application/source/glut/entry.cpp
 )
 endif()
 set(IMGUI_INCS

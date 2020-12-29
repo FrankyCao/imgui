@@ -156,7 +156,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 # if defined(_UNICODE)
     const std::wstring c_WindowName = widen(Application_GetName(user_handle));
 # else
-    const std::string c_WindowName = Application_GetName(user_handle);
+    const std::string c_WindowName = Application_GetName(user_handle) + std::string(" DX11");
 # endif
 
 # if defined(_DEBUG)
