@@ -227,6 +227,7 @@ namespace igfd
 		UserDatas dlg_userDatas{};
 		size_t dlg_countSelectionMax = 1; // 0 for infinite
 		bool dlg_modal = false;
+		int m_LastImGuiFrameCount = 0; // to be sure than only one dialog displayed per frame
 
 	private: // detail view
 		std::string m_HeaderFileName;
@@ -284,6 +285,8 @@ namespace igfd
 		bool FileDialog(const std::string& vKey, ImGuiWindowFlags vFlags = ImGuiWindowFlags_NoCollapse,
 			ImVec2 vMinSize = ImVec2(0, 0), ImVec2 vMaxSize = ImVec2(FLT_MAX, FLT_MAX));
 		void CloseDialog(const std::string& vKey);
+
+		bool WasOpenedThisFrame(const std::string& vKey);
 
 		std::map<std::string, std::string> GetSelection(); // Open File behavior : will return selection via a map<FileName, FilePathName>
 		std::string GetFilePathName();                     // Create File behavior : will always return the content of the field with current filter extention and current path
