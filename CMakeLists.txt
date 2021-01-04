@@ -27,6 +27,7 @@ option(IMGUI_SDL2       "Build ImGui SDL2 backends" ON)
 option(IMGUI_GLFW       "Build ImGui GLFW backends" ON)
 option(IMGUI_GLUT       "Build ImGui GLUT backends" OFF)
 option(IMGUI_GLEW       "Build ImGui GLEW backends" ON)
+option(IMGUI_GLES       "Build ImGui GLES backends" ON)
 option(IMGUI_MATAL      "Build ImGui Apple Metal backends" ON)
 option(IMGUI_VULKAN     "Build ImGui Vulkan backends" ON)
 option(IMGUI_DX9        "Build ImGui Direct9 backends(Windows only)" ON)
@@ -119,6 +120,18 @@ set(IMGUI_INCS
     misc/cpp/imgui_stdlib.h
 )
 
+# Android
+if(ANDROID AND IMGUI_GLES)
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    backends/imgui_impl_sdl_es2.cpp
+)
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    backends/imgui_impl_sdl_es2.h
+)
+endif()
+
 # OpenGL
 if(OPENGL_FOUND)
 set(IMGUI_SRC
@@ -200,7 +213,7 @@ set(IMGUI_INCS
 endif(GLFW_FOUND)
 
 # GLUT support
-if (GLUT_FOUND)
+if (IMGUI_GLUT AND GLUT_FOUND)
 set(IMGUI_INC_DIRS
     ${IMGUI_INC_DIRS}
     ${GLUT_INCLUDE_DIRS}
@@ -228,7 +241,7 @@ set(IMGUI_INCS
 if (APPLE)
 set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-Wno-error=deprecated-declarations -Wno-deprecated-declarations -Wmicrosoft-enum-forward-reference")
 endif(APPLE)
-endif(GLUT_FOUND)
+endif()
 
 # Vilkan support
 if (VULKAN_FOUND)
@@ -600,6 +613,11 @@ set(IMGUI_SRC
     ${IMGUI_SRC}
     apps/application/source/dx11/entry.cpp
 )
+elseif(ANDROID AND GLUT_FOUND AND IMGUI_GLUT)
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    apps/application/source/glut/entry.cpp
+)
 elseif(SDL2_FOUND AND IMGUI_SDL2)
 set(IMGUI_SRC
     ${IMGUI_SRC}
@@ -609,11 +627,6 @@ elseif(GLFW_FOUND AND IMGUI_GLFW)
 set(IMGUI_SRC
     ${IMGUI_SRC}
     apps/application/source/glfw/entry.cpp
-)
-elseif(GLUT_FOUND AND IMGUI_GLUT)
-set(IMGUI_SRC
-    ${IMGUI_SRC}
-    apps/application/source/glut/entry.cpp
 )
 endif()
 set(IMGUI_INCS
@@ -699,6 +712,19 @@ target_link_libraries(
     ${OpenCV_LIBS}
     ${LINK_LIBS}
 )
+
+if(ANDROID AND IMGUI_GLES)
+add_executable(
+    example_sdl_opengles2
+    test/example_sdl_opengles2.cpp
+)
+target_link_libraries(
+    example_sdl_opengles2
+    imgui
+    ${LINK_LIBS}
+)
+endif()
+
 if (VULKAN_FOUND)
 add_executable(
     example_sdl_vulkan
@@ -712,7 +738,7 @@ target_link_libraries(
 endif(VULKAN_FOUND)
 endif()
 
-if (GLUT_FOUND)
+if (IMGUI_GLUT AND GLUT_FOUND)
 add_executable(
     example_glut_opengl2
     test/example_glut_opengl2.cpp
@@ -722,7 +748,7 @@ target_link_libraries(
     imgui
     ${LINK_LIBS}
 )
-endif(GLUT_FOUND)
+endif()
 
 if (GLFW_FOUND)
 add_executable(

@@ -141,7 +141,7 @@ void Example::ExampleMarkdownFormatCallback( const ImGui::MarkdownFormatInfo& ma
 
 const char* Application_GetName(void* handle)
 {
-    return "Application Example";
+    return "Application_Example";
 }
 
 void Application_Initialize(void** handle)
