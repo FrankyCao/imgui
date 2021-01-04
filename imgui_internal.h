@@ -2080,7 +2080,7 @@ struct ImGuiTable
     bool                        IsDefaultDisplayOrder;      // Set when display order is unchanged from default (DisplayOrder contains 0...Count-1)
     bool                        IsResetAllRequest;
     bool                        IsResetDisplayOrderRequest;
-    bool                        IsUnfrozen;                 // Set when we got past the frozen row.
+    bool                        IsUnfrozenRows;             // Set when we got past the frozen row.
     bool                        IsOuterRectAutoFitX;        // Set when outer_size.x == 0.0f in BeginTable(), scrolling is disabled, and there are stretch columns.
     bool                        MemoryCompacted;
     bool                        HostSkipItems;              // Backup of InnerWindow->SkipItem at the end of BeginTable(), because we will overwrite InnerWindow->SkipItem on a per-column basis
@@ -2403,6 +2403,8 @@ namespace ImGui
     IMGUI_API ImGuiID       GetWindowScrollbarID(ImGuiWindow* window, ImGuiAxis axis);
     IMGUI_API ImGuiID       GetWindowResizeID(ImGuiWindow* window, int n); // 0..3: corners, 4..7: borders
     IMGUI_API void          SeparatorEx(ImGuiSeparatorFlags flags);
+    IMGUI_API bool          CheckboxFlags(const char* label, ImS64* flags, ImS64 flags_value);
+    IMGUI_API bool          CheckboxFlags(const char* label, ImU64* flags, ImU64 flags_value);
 
     // Widgets low-level behaviors
     IMGUI_API bool          ButtonBehavior(const ImRect& bb, ImGuiID id, bool* out_hovered, bool* out_held, ImGuiButtonFlags flags = 0);

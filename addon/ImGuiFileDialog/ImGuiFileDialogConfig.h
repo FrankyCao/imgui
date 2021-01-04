@@ -7,9 +7,9 @@
 
 #define USE_IMGUI_TABLES
 
+//#include <GLFW/glfw3.h>
+
 //#define USE_EXPLORATION_BY_KEYS
-// this mapping by default is for GLFW but you can use another
-//#include <GLFW/glfw3.h> 
 // Up key for explore to the top
 //#define IGFD_KEY_UP GLFW_KEY_UP
 // Down key for explore to the bottom
@@ -41,6 +41,10 @@
 //#define buttonDriveString "Drives"
 //#define buttonResetPathString "Reset to current directory"
 //#define buttonCreateDirString "Create Directory"
+//#define OverWriteDialogTitleString "The file Already Exist !"
+//#define OverWriteDialogMessageString "Would you like to OverWrite it ?"
+#define OverWriteDialogConfirmButtonString ICON_IGFD_OK " Confirm"
+#define OverWriteDialogCancelButtonString ICON_IGFD_CANCEL " Cancel"
 
 // theses icons will appear in table headers
 #define USE_CUSTOM_SORTING_ICON
@@ -54,6 +58,6 @@
 //#define bookmarkPaneWith 150.0f
 //#define IMGUI_TOGGLE_BUTTON ToggleButton
 #define bookmarksButtonString ICON_IGFD_BOOKMARK
-//#define bookmarksButtonHelpString "Bookmark"
+//#define bookmarksButtonHelpString "bookmark"
 #define addBookmarkButtonString ICON_IGFD_ADD
 #define removeBookmarkButtonString ICON_IGFD_REMOVE
