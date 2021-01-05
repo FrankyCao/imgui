@@ -525,7 +525,14 @@ namespace igfd
         ImGuiListClipper m_FileListClipper;
 		ImVec2 m_DialogCenterPos = ImVec2(0, 0); // center pos for display the confirm overwrite dialog
 		int m_LastImGuiFrameCount = 0; // to be sure than only one dialog displayed per frame
+		float m_FooterHeight = 0.0f;
 
+	private: // events
+		bool m_DrivesClicked = false;
+		bool m_PathClicked = false;
+		bool m_CanWeContinue = true;
+
+	private:
 #ifdef USE_BOOKMARK
         ImGuiListClipper m_BookmarkClipper;
 		std::vector<BookmarkStruct> m_Bookmarks;
@@ -643,7 +650,22 @@ namespace igfd
 		bool GetTypeInfos(const std::string& vType, ImVec4 *vColor, std::string *vIcon = 0);
 		void ClearTypeInfos();
 
+	private: // dialog parts
+		void DrawHeader();
+		void DrawContent();
+		bool DrawFooter();
+
+	private: // widgets components
+		void DrawBookMark();
+		void DrawDirectoryCreation();
+		void DrawPathComposer();
+		void DrawSearchBar();
+		void DrawFileListView(ImVec2 vSize);
+		void DrawSidePane(ImVec2 vSize);
+
+
 	private:
+		void ResetEvents();
 		void SetDefaultFileName(const std::string& vFileName);
 		bool SelectDirectory(const FileInfoStruct& vInfos);
 		void SelectFileName(const FileInfoStruct& vInfos);
