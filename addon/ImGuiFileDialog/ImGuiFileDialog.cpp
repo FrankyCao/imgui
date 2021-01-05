@@ -1310,6 +1310,12 @@ namespace igfd
 		}
 	}
 
+	void ImGuiFileDialog::CloseDialog()
+	{
+		dlg_key.clear();
+		m_ShowDialog = false;
+	}
+
 	bool ImGuiFileDialog::WasOpenedThisFrame(const std::string& vKey)
 	{
 		bool res = m_ShowDialog && dlg_key == vKey;
@@ -1319,6 +1325,13 @@ namespace igfd
 			res &= m_LastImGuiFrameCount == g.FrameCount; // return true if a dialog was displayed in this frame
 		}
 		return res;
+	}
+	
+	bool ImGuiFileDialog::IsOpened(std::string *vCurrentOpenedKey)
+	{
+		if (vCurrentOpenedKey)
+			*vCurrentOpenedKey = dlg_key;
+		return m_ShowDialog;
 	}
 
 	std::string ImGuiFileDialog::GetFilePathName()
@@ -1664,10 +1677,10 @@ namespace igfd
 	{
 		if (vFormat && vByteSize != 0)
 		{
-			static double lo = 1024;
-			static double ko = 1024 * 1024;
-			static double mo = 1024 * 1024 * 1024;
-			static double go = (double)1024 * (double)1024 * (double)1024 * (double)1024;
+			static double lo = 1024.0;
+			static double ko = 1024.0 * 1024.0;
+			static double mo = 1024.0 * 1024.0 * 1024.0;
+			static double go = 1024.0 * 1024.0 * 1024.0 * 1024.0;
 
 			double v = (double)vByteSize;
 			
