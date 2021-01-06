@@ -96,6 +96,9 @@ static void ExampleMarkdownFormatCallback( const ImGui::MarkdownFormatInfo& mark
 // Main code
 int main(int, char**)
 {
+# if defined(_DEBUG)
+    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+# endif
     // Create application window
     //ImGui_ImplWin32_EnableDpiAwareness();
     WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, _T("ImGui Example"), NULL };
@@ -147,7 +150,8 @@ int main(int, char**)
     //IM_ASSERT(font != NULL);
 
     // load file dialog resource
-    igfd::prepare_file_dialog_demo_window();
+    igfd::ImGuiFileDialog filedialog;
+    igfd::prepare_file_dialog_demo_window(&filedialog);
 
     // init memory edit
     MemoryEditor mem_edit;
@@ -268,7 +272,7 @@ int main(int, char**)
         // 5. Show FileDialog demo window
         if (show_file_dialog_window)
         {
-            igfd::show_file_dialog_demo_window(&show_file_dialog_window);
+            igfd::show_file_dialog_demo_window(&filedialog, &show_file_dialog_window);
         }
 
         // 6. Show Memory Edit window
@@ -355,12 +359,13 @@ int main(int, char**)
         g_pSwapChain->Present(1, 0); // Present with vsync
         //g_pSwapChain->Present(0, 0); // Present without vsync
     }
+
+    // Store file dialog bookmark
+    igfd::end_file_dialog_demo_window(&filedialog);
+
     // Cleanup memory edit resource
     if (data)
         free(data);
-
-    // Store file dialog bookmark
-    igfd::end_file_dialog_demo_window();
 
     // Clean Node Window
     imnodes_sample::NodeEditorShutdown();

@@ -230,6 +230,9 @@ int main(int, char**)
     // init input
     cv::VideoCapture mVideoCapture;
 
+    // init File Dialog
+    igfd::ImGuiFileDialog filedialog;
+
     // Setup Platform/Renderer backends
     ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
     ImGui_ImplOpenGL3_Init();
@@ -294,7 +297,7 @@ int main(int, char**)
                 if (ImGui::Button("打开文件"))
                 {
                     const char *filters = "视频文件(*.mp4 *.mov *.mkv *.avi){.mp4,.mov,.mkv,.avi},.*";
-					igfd::ImGuiFileDialog::Instance()->OpenModal("ChooseFileDlgKey",
+					filedialog.OpenModal("ChooseFileDlgKey",
 							ICON_IGFD_FOLDER_OPEN " 打开视频文件", filters, ".");
                 }
                 ImGui::Separator();
@@ -310,12 +313,12 @@ int main(int, char**)
 
         ImVec2 maxSize = ImVec2((float)io.DisplaySize.x, (float)io.DisplaySize.y);
 		ImVec2 minSize = maxSize * 0.5f;
-        if (igfd::ImGuiFileDialog::Instance()->FileDialog("ChooseFileDlgKey",
+        if (filedialog.FileDialog("ChooseFileDlgKey",
                     ImGuiWindowFlags_NoCollapse, minSize, maxSize))
 		{
-            if (igfd::ImGuiFileDialog::Instance()->IsOk)
+            if (filedialog.IsOk)
 			{
-                std::string filePathName = igfd::ImGuiFileDialog::Instance()->GetFilePathName();
+                std::string filePathName = filedialog.GetFilePathName();
                 mVideoCapture = cv::VideoCapture(filePathName);
                 if (mVideoCapture.isOpened())
                 {
@@ -329,7 +332,7 @@ int main(int, char**)
                     is_playing = true;
                 }
             }
-            igfd::ImGuiFileDialog::Instance()->CloseDialog("ChooseFileDlgKey");
+            filedialog.CloseDialog("ChooseFileDlgKey");
         }
 
         if (is_playing && mVideoCapture.isOpened())

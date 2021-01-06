@@ -150,6 +150,9 @@ int main(int, char**)
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
+    // init File Dialog
+    igfd::ImGuiFileDialog filedialog;
+    
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
     //ImGui::StyleColorsClassic();
@@ -215,7 +218,7 @@ int main(int, char**)
                 if (ImGui::Button("打开..."))
                 {
                     const char *filters = "Image files (*.png *.gif *.jpg *.jpeg){.png,.gif,.jpg,.jpeg},.md";
-					igfd::ImGuiFileDialog::Instance()->OpenModal("ChooseFileDlgKey",
+					filedialog.OpenModal("ChooseFileDlgKey",
 							ICON_IGFD_FOLDER_OPEN " Choose a File", filters, ".");
                 }
                 ImGui::Separator();
@@ -231,15 +234,15 @@ int main(int, char**)
 
         ImVec2 maxSize = ImVec2((float)io.DisplaySize.x, (float)io.DisplaySize.y);
 		ImVec2 minSize = maxSize * 0.5f;
-        if (igfd::ImGuiFileDialog::Instance()->FileDialog("ChooseFileDlgKey",
+        if (filedialog.FileDialog("ChooseFileDlgKey",
                     ImGuiWindowFlags_NoCollapse, minSize, maxSize))
 		{
-            if (igfd::ImGuiFileDialog::Instance()->IsOk)
+            if (filedialog.IsOk)
 			{
-                std::string filePathName = igfd::ImGuiFileDialog::Instance()->GetFilePathName();
+                std::string filePathName = filedialog.GetFilePathName();
                 load_image(filePathName, framebuffer_texture);
             }
-            igfd::ImGuiFileDialog::Instance()->CloseDialog("ChooseFileDlgKey");
+            filedialog.CloseDialog("ChooseFileDlgKey");
         }
 
         int window_width = 0;

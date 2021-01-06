@@ -2781,34 +2781,34 @@ inline bool RadioButtonLabeled(const char* label, bool active, bool disabled)
 	return pressed;
 }
 
-void prepare_file_dialog_demo_window()
+void prepare_file_dialog_demo_window(ImGuiFileDialog * dlg)
 {
 #ifdef IMGUI_INTERNAL_ICONS
-	igfd::ImGuiFileDialog::Instance()->SetTypeInfos(std::to_string('f'), ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FK_FILE_O);
-	igfd::ImGuiFileDialog::Instance()->SetTypeInfos(std::to_string('d'), ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FK_FOLDER);
-	igfd::ImGuiFileDialog::Instance()->SetTypeInfos(std::to_string('l'), ImVec4(0.5f, 0.5f, 1.0f, 0.9f), ICON_FK_EXTERNAL_LINK);
-	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".txt", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_TEXT_O);
-	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".cpp", ImVec4(1.0f, 1.0f, 0.0f, 0.9f), ICON_FA5_FILE_CODE);
-	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".h", ImVec4(0.0f, 1.0f, 0.0f, 0.9f), ICON_FA5_FILE_CODE);
-	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".hpp", ImVec4(0.0f, 0.0f, 1.0f, 0.9f), ICON_FA5_FILE_CODE);
-	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".md", ImVec4(1.0f, 0.0f, 1.0f, 0.9f), ICON_FK_MARKDOWN);
-	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".png", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
-	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".bmp", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
-	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".jpg", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
-	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".jpeg", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
-	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".mp4", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
-	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".mkv", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
-	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".webm", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
-	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".ttf", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FK_FONT);
-	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".doc", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_WORD);
-	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".docx", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_WORD);
-	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".ppt", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_POWERPOINT);
-	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".pptx", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_POWERPOINT);
-	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".xls", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_EXCEL);
-	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".xlsx", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_EXCEL);
-	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".pdf", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_PDF);
+	dlg->SetTypeInfos(std::to_string('f'), ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FK_FILE_O);
+	dlg->SetTypeInfos(std::to_string('d'), ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FK_FOLDER);
+	dlg->SetTypeInfos(std::to_string('l'), ImVec4(0.5f, 0.5f, 1.0f, 0.9f), ICON_FK_EXTERNAL_LINK);
+	dlg->SetExtentionInfos(".txt", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_TEXT_O);
+	dlg->SetExtentionInfos(".cpp", ImVec4(1.0f, 1.0f, 0.0f, 0.9f), ICON_FA5_FILE_CODE);
+	dlg->SetExtentionInfos(".h", ImVec4(0.0f, 1.0f, 0.0f, 0.9f), ICON_FA5_FILE_CODE);
+	dlg->SetExtentionInfos(".hpp", ImVec4(0.0f, 0.0f, 1.0f, 0.9f), ICON_FA5_FILE_CODE);
+	dlg->SetExtentionInfos(".md", ImVec4(1.0f, 0.0f, 1.0f, 0.9f), ICON_FK_MARKDOWN);
+	dlg->SetExtentionInfos(".png", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
+	dlg->SetExtentionInfos(".bmp", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
+	dlg->SetExtentionInfos(".jpg", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
+	dlg->SetExtentionInfos(".jpeg", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
+	dlg->SetExtentionInfos(".mp4", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
+	dlg->SetExtentionInfos(".mkv", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
+	dlg->SetExtentionInfos(".webm", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
+	dlg->SetExtentionInfos(".ttf", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FK_FONT);
+	dlg->SetExtentionInfos(".doc", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_WORD);
+	dlg->SetExtentionInfos(".docx", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_WORD);
+	dlg->SetExtentionInfos(".ppt", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_POWERPOINT);
+	dlg->SetExtentionInfos(".pptx", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_POWERPOINT);
+	dlg->SetExtentionInfos(".xls", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_EXCEL);
+	dlg->SetExtentionInfos(".xlsx", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_EXCEL);
+	dlg->SetExtentionInfos(".pdf", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_PDF);
 #endif
-	igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".gif", ImVec4(0.0f, 1.0f, 0.5f, 0.9f), "[GIF]"); // add an text for a filter type
+	dlg->SetExtentionInfos(".gif", ImVec4(0.0f, 1.0f, 0.5f, 0.9f), "[GIF]"); // add an text for a filter type
 
 #ifdef USE_BOOKMARK
 	// load bookmarks
@@ -2817,13 +2817,26 @@ void prepare_file_dialog_demo_window()
 	{
 		std::stringstream strStream;
 		strStream << docFile.rdbuf();//read the file
-		igfd::ImGuiFileDialog::Instance()->DeserializeBookmarks(strStream.str());
+		dlg->DeserializeBookmarks(strStream.str());
 		docFile.close();
 	}
 #endif
 }
 
-void show_file_dialog_demo_window(bool * open)
+void end_file_dialog_demo_window(ImGuiFileDialog * dlg)
+{
+#ifdef USE_BOOKMARK
+	// save bookmarks
+	std::ofstream configFileWriter("bookmarks.cfg", std::ios::out);
+	if (!configFileWriter.bad())
+	{
+		configFileWriter << dlg->SerializeBookmarks();
+		configFileWriter.close();
+	}
+#endif
+}
+
+void show_file_dialog_demo_window(ImGuiFileDialog * dlg, bool * open)
 {
 	ImGui::Begin("imGuiFileDialog Demo", open); 
 	ImGui::Text("imGuiFileDialog Version : %s", IMGUIFILEDIALOG_VERSION);
@@ -2834,12 +2847,12 @@ void show_file_dialog_demo_window(bool * open)
 		if (ImGui::Button("R##resetflashlifetime"))
 		{
 			flashingAttenuationInSeconds = 1.0f;
-			igfd::ImGuiFileDialog::Instance()->SetFlashingAttenuationInSeconds(flashingAttenuationInSeconds);
+			dlg->SetFlashingAttenuationInSeconds(flashingAttenuationInSeconds);
 		}
 		ImGui::SameLine();
 		ImGui::PushItemWidth(200);
 		if (ImGui::SliderFloat("Flash lifetime (s)", &flashingAttenuationInSeconds, 0.01f, 5.0f))
-			igfd::ImGuiFileDialog::Instance()->SetFlashingAttenuationInSeconds(flashingAttenuationInSeconds);
+			dlg->SetFlashingAttenuationInSeconds(flashingAttenuationInSeconds);
 		ImGui::PopItemWidth();
 #endif
 		static bool _UseWindowContraints = true;
@@ -2858,61 +2871,61 @@ void show_file_dialog_demo_window(bool * open)
 		{
 			const char *filters = ".*,.cpp,.h,.hpp";
 			if (standardDialogMode)
-				igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", 
+				dlg->OpenDialog("ChooseFileDlgKey", 
 					ICON_IGFD_FOLDER_OPEN " Choose a File", filters, ".");
 			else
-				igfd::ImGuiFileDialog::Instance()->OpenModal("ChooseFileDlgKey", 
+				dlg->OpenModal("ChooseFileDlgKey", 
 					ICON_IGFD_FOLDER_OPEN " Choose a File", filters, ".");
 		}
 		if (ImGui::Button(ICON_IGFD_FOLDER_OPEN " Open File Dialog with collections of filters"))
 		{
 			const char *filters = "Source files (*.cpp *.h *.hpp){.cpp,.h,.hpp},Image files (*.png *.gif *.jpg *.jpeg){.png,.gif,.jpg,.jpeg},.md";
 			if (standardDialogMode)
-				igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey",
+				dlg->OpenDialog("ChooseFileDlgKey",
 					ICON_IGFD_FOLDER_OPEN " Choose a File", filters, ".");
 			else
-				igfd::ImGuiFileDialog::Instance()->OpenModal("ChooseFileDlgKey",
+				dlg->OpenModal("ChooseFileDlgKey",
 					ICON_IGFD_FOLDER_OPEN " Choose a File", filters, ".");
 		}
 		if (ImGui::Button(ICON_IGFD_FOLDER_OPEN " Open File Dialog with selection of 5 items"))
 		{
 			const char *filters = ".*,.cpp,.h,.hpp";
 			if (standardDialogMode)
-				igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey",
+				dlg->OpenDialog("ChooseFileDlgKey",
 					ICON_IGFD_FOLDER_OPEN " Choose a File", filters, ".", 5);
 			else
-				igfd::ImGuiFileDialog::Instance()->OpenModal("ChooseFileDlgKey",
+				dlg->OpenModal("ChooseFileDlgKey",
 					ICON_IGFD_FOLDER_OPEN " Choose a File", filters, ".", 5);
 		}
 		if (ImGui::Button(ICON_IGFD_FOLDER_OPEN " Open File Dialog with infinite selection"))
 		{
 			const char *filters = ".*,.cpp,.h,.hpp";
 			if (standardDialogMode)
-				igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey",
+				dlg->OpenDialog("ChooseFileDlgKey",
 					ICON_IGFD_FOLDER_OPEN " Choose a File", filters, ".", 0);
 			else
-				igfd::ImGuiFileDialog::Instance()->OpenModal("ChooseFileDlgKey",
+				dlg->OpenModal("ChooseFileDlgKey",
 					ICON_IGFD_FOLDER_OPEN " Choose a File", filters, ".", 0);
 		}
 		if (ImGui::Button(ICON_IGFD_FOLDER_OPEN " Open All file types with filter .*"))
 		{
 			if (standardDialogMode)
-				igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey",
+				dlg->OpenDialog("ChooseFileDlgKey",
 					ICON_IGFD_FOLDER_OPEN " Choose a File", ".*", ".", 5);
 			else
-				igfd::ImGuiFileDialog::Instance()->OpenModal("ChooseFileDlgKey",
+				dlg->OpenModal("ChooseFileDlgKey",
 					ICON_IGFD_FOLDER_OPEN " Choose a File", ".*", ".", 5);
 		}
 		if (ImGui::Button(ICON_IGFD_SAVE " Save File Dialog with a custom pane"))
 		{
 			const char *filters = "C++ File (*.cpp){.cpp}";
 			if (standardDialogMode)
-				igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey",
+				dlg->OpenDialog("ChooseFileDlgKey",
 					ICON_IGFD_SAVE " Choose a File", filters,
 					".", "", std::bind(&InfosPane, std::placeholders::_1, std::placeholders::_2, 
 					std::placeholders::_3), 350, 1, igfd::UserDatas("SaveFile"));
 			else
-				igfd::ImGuiFileDialog::Instance()->OpenModal("ChooseFileDlgKey",
+				dlg->OpenModal("ChooseFileDlgKey",
 					ICON_IGFD_SAVE " Choose a File", filters,
 					".", "", std::bind(&InfosPane, std::placeholders::_1, std::placeholders::_2,
 						std::placeholders::_3), 350, 1, igfd::UserDatas("SaveFile"));
@@ -2921,11 +2934,11 @@ void show_file_dialog_demo_window(bool * open)
 		{
 			const char* filters = "C++ File (*.cpp){.cpp}";
 			if (standardDialogMode)
-				igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey",
+				dlg->OpenDialog("ChooseFileDlgKey",
 					ICON_IGFD_SAVE " Choose a File", filters,
 					".", "", 1, igfd::UserDatas("SaveFile"), ImGuiFileDialogFlags_ConfirmOverwrite);
 			else
-				igfd::ImGuiFileDialog::Instance()->OpenModal("ChooseFileDlgKey",
+				dlg->OpenModal("ChooseFileDlgKey",
 					ICON_IGFD_SAVE " Choose a File", filters,
 					".", 1, igfd::UserDatas("SaveFile"), ImGuiFileDialogFlags_ConfirmOverwrite);
 		}
@@ -2933,20 +2946,20 @@ void show_file_dialog_demo_window(bool * open)
         {
 			// set filters to 0 for open directory chooser
 			if (standardDialogMode)
-				igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseDirDlgKey",
+				dlg->OpenDialog("ChooseDirDlgKey",
 				ICON_IGFD_FOLDER_OPEN " Choose a Directory", 0, ".");
 			else
-				igfd::ImGuiFileDialog::Instance()->OpenModal("ChooseDirDlgKey",
+				dlg->OpenModal("ChooseDirDlgKey",
 					ICON_IGFD_FOLDER_OPEN " Choose a Directory", 0, ".");
         }
         if (ImGui::Button(ICON_IGFD_FOLDER_OPEN " Open Directory Dialog with selection of 5 items"))
         {
 			// set filters to 0 for open directory chooser
 			if (standardDialogMode)
-				igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseDirDlgKey",
+				dlg->OpenDialog("ChooseDirDlgKey",
 					ICON_IGFD_FOLDER_OPEN " Choose a Directory", 0, ".", 5);
 			else
-				igfd::ImGuiFileDialog::Instance()->OpenModal("ChooseDirDlgKey",
+				dlg->OpenModal("ChooseDirDlgKey",
 					ICON_IGFD_FOLDER_OPEN " Choose a Directory", 0, ".", 5);
         }
 
@@ -2971,18 +2984,18 @@ void show_file_dialog_demo_window(bool * open)
 		static std::string userDatas = "";
 		static std::vector<std::pair<std::string, std::string>> selection = {};
 
-		if (igfd::ImGuiFileDialog::Instance()->FileDialog("ChooseFileDlgKey",
+		if (dlg->FileDialog("ChooseFileDlgKey",
 			ImGuiWindowFlags_NoCollapse, minSize, maxSize))
 		{
-			if (igfd::ImGuiFileDialog::Instance()->IsOk)
+			if (dlg->IsOk)
 			{
-				filePathName = igfd::ImGuiFileDialog::Instance()->GetFilePathName();
-				filePath = igfd::ImGuiFileDialog::Instance()->GetCurrentPath();
-				filter = igfd::ImGuiFileDialog::Instance()->GetCurrentFilter();
+				filePathName = dlg->GetFilePathName();
+				filePath = dlg->GetCurrentPath();
+				filter = dlg->GetCurrentFilter();
 				// here convert from string because a string was passed as a userDatas, but it can be what you want
-				if (igfd::ImGuiFileDialog::Instance()->GetUserDatas())
-                    userDatas = std::string((const char*)igfd::ImGuiFileDialog::Instance()->GetUserDatas());
-				auto sel = igfd::ImGuiFileDialog::Instance()->GetSelection(); // multiselection
+				if (dlg->GetUserDatas())
+                    userDatas = std::string((const char*)dlg->GetUserDatas());
+				auto sel = dlg->GetSelection(); // multiselection
 				selection.clear();
 				for (auto s : sel)
 				{
@@ -2990,21 +3003,21 @@ void show_file_dialog_demo_window(bool * open)
 				}
 				// action
 			}
-			igfd::ImGuiFileDialog::Instance()->CloseDialog("ChooseFileDlgKey");
+			dlg->CloseDialog("ChooseFileDlgKey");
 		}
 
-		if (igfd::ImGuiFileDialog::Instance()->FileDialog("ChooseDirDlgKey",
+		if (dlg->FileDialog("ChooseDirDlgKey",
 			ImGuiWindowFlags_NoCollapse, minSize, maxSize))
         {
-            if (igfd::ImGuiFileDialog::Instance()->IsOk)
+            if (dlg->IsOk)
             {
-                filePathName = igfd::ImGuiFileDialog::Instance()->GetFilePathName();
-                filePath = igfd::ImGuiFileDialog::Instance()->GetCurrentPath();
-                filter = igfd::ImGuiFileDialog::Instance()->GetCurrentFilter();
+                filePathName = dlg->GetFilePathName();
+                filePath = dlg->GetCurrentPath();
+                filter = dlg->GetCurrentFilter();
                 // here convert from string because a string was passed as a userDatas, but it can be what you want
-                if (igfd::ImGuiFileDialog::Instance()->GetUserDatas())
-                    userDatas = std::string((const char*)igfd::ImGuiFileDialog::Instance()->GetUserDatas());
-				auto sel = igfd::ImGuiFileDialog::Instance()->GetSelection(); // multiselection
+                if (dlg->GetUserDatas())
+                    userDatas = std::string((const char*)dlg->GetUserDatas());
+				auto sel = dlg->GetSelection(); // multiselection
 				selection.clear();
 				for (auto s : sel)
 				{
@@ -3012,7 +3025,7 @@ void show_file_dialog_demo_window(bool * open)
 				}
                 // action
             }
-            igfd::ImGuiFileDialog::Instance()->CloseDialog("ChooseDirDlgKey");
+            dlg->CloseDialog("ChooseDirDlgKey");
         }
 
 		ImGui::Separator();
@@ -3068,19 +3081,6 @@ void show_file_dialog_demo_window(bool * open)
 	}
 	ImGui::Unindent();
 	ImGui::End();
-}
-
-void end_file_dialog_demo_window()
-{
-#ifdef USE_BOOKMARK
-	// save bookmarks
-	std::ofstream configFileWriter("bookmarks.cfg", std::ios::out);
-	if (!configFileWriter.bad())
-	{
-		configFileWriter << igfd::ImGuiFileDialog::Instance()->SerializeBookmarks();
-		configFileWriter.close();
-	}
-#endif
 }
 } //namespace igfd
 

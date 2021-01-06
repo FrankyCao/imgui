@@ -170,14 +170,16 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     auto hwnd = CreateWindow(c_ClassName, c_WindowName.c_str(), WS_OVERLAPPEDWINDOW, 1920 + 100, 100, 1440, 800, nullptr, nullptr, wc.hInstance, nullptr);
 
     // Initialize Direct3D
-    AX_SCOPE_EXIT{ CleanupDeviceD3D(); };
     if (CreateDeviceD3D(hwnd) < 0)
+    {
+         CleanupDeviceD3D();
+        ::UnregisterClass(wc.lpszClassName, wc.hInstance);
         return 1;
+    }
 
     // Setup ImGui binding
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    AX_SCOPE_EXIT{ ImPlot::DestroyContext(); ImGui::DestroyContext(); };
     ImPlot::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     std::string ini_file = std::string(Application_GetName()) + ".ini";
@@ -187,18 +189,12 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     // Setup ImGui binding
     ImGui_ImplWin32_Init(hwnd);
     ImGui_ImplDX11_Init(g_pd3dDevice, g_pd3dDeviceContext);
-    AX_SCOPE_EXIT
-    {
-        ImGui_ImplDX11_Shutdown();
-        ImGui_ImplWin32_Shutdown();
-    };
 
     ImGui::StyleColorsDark();
 
     ImVec4 backgroundColor = ImColor(32, 32, 32, 255);//style.Colors[ImGuiCol_TitleBg];
 
     Application_Initialize(&user_handle);
-    AX_SCOPE_EXIT { Application_Finalize(&user_handle); };
 
     auto frame = [&]()
     {
@@ -246,6 +242,18 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
         if (!IsIconic(hwnd))
             frame();
     }
+
+    Application_Finalize(&user_handle);
+    
+    // Cleanup
+    ImGui_ImplDX11_Shutdown();
+    ImGui_ImplWin32_Shutdown();
+    ImPlot::DestroyContext();
+    ImGui::DestroyContext();
+        
+    CleanupDeviceD3D();
+    ::DestroyWindow(hwnd);
+    ::UnregisterClass(wc.lpszClassName, wc.hInstance);
 
     return 0;
 }

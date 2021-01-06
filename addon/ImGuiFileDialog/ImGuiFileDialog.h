@@ -494,8 +494,8 @@ namespace igfd
 	enum class SortingFieldEnum
     {
 		FIELD_NONE = 0,
-	    FIELD_FILENAME,
-	    FIELD_SIZE,
+		FIELD_FILENAME,
+		FIELD_SIZE,
 		FIELD_DATE
     };
 
@@ -580,17 +580,18 @@ namespace igfd
 		SortingFieldEnum m_SortingField = SortingFieldEnum::FIELD_FILENAME;
 
 	public:
+		ImGuiFileDialog();
+		ImGuiFileDialog(const ImGuiFileDialog&) {};
+		ImGuiFileDialog& operator =(const ImGuiFileDialog&) { return *this; };
+		~ImGuiFileDialog();
+
+	public:
+		// TODO::will cause memory leak, should remove later?
 		static ImGuiFileDialog* Instance()
 		{
 			static auto *_instance = new ImGuiFileDialog();
 			return _instance;
 		}
-
-	protected:
-		ImGuiFileDialog(); // Prevent construction
-		ImGuiFileDialog(const ImGuiFileDialog&) {}; // Prevent construction by copying
-		ImGuiFileDialog& operator =(const ImGuiFileDialog&) { return *this; }; // Prevent assignment
-		~ImGuiFileDialog(); // Prevent unwanted destruction
 
 	public: // standard dialog
 		void OpenDialog(const std::string& vKey, const char* vName, const char* vFilters,
@@ -712,7 +713,7 @@ namespace igfd
 	};
 
 	// file dialog demo window
-	void prepare_file_dialog_demo_window();
-	void show_file_dialog_demo_window(bool * open);
-	void end_file_dialog_demo_window();
+	void prepare_file_dialog_demo_window(ImGuiFileDialog * dlg);
+	void show_file_dialog_demo_window(ImGuiFileDialog * dlg, bool * open);
+	void end_file_dialog_demo_window(ImGuiFileDialog * dlg);
 }
