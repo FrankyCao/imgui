@@ -1,10 +1,18 @@
-[<img src="https://github.com/aiekick/ImGuiFileDialog/workflows/Win/badge.svg" width="150"/>](https://github.com/aiekick/ImGuiFileDialog/actions?query=workflow%3AWin) [<img src="https://github.com/aiekick/ImGuiFileDialog/workflows/Linux/badge.svg" width="165"/>](https://github.com/aiekick/ImGuiFileDialog/actions?query=workflow%3ALinux)
+[<img src="https://github.com/aiekick/ImGuiFileDialog/workflows/Win/badge.svg" width="150"/>](https://github.com/aiekick/ImGuiFileDialog/actions?query=workflow%3AWin) 
+[<img src="https://github.com/aiekick/ImGuiFileDialog/workflows/Linux/badge.svg" width="165"/>](https://github.com/aiekick/ImGuiFileDialog/actions?query=workflow%3ALinux)
+[<img src="https://github.com/aiekick/ImGuiFileDialog/workflows/Osx/badge.svg" width="150"/>](https://github.com/aiekick/ImGuiFileDialog/actions?query=workflow%3AOsx)
 
 # ImGuiFileDialog
 
+this File Dialog is build on top of [Dear ImGui](https://github.com/ocornut/imgui)
+
+this filedialog was created principally for have custom pane with widgets according to file extention.
+it was not possible with native filedialog
+
 An example of the File Dialog integrated within the ImGui Demo App
 
-- Separate system for call and display
+- Separate system for call and display 
+  - can be many func calls with different params for one display func by ex
 - Can use custom pane via function binding
   - this pane can block the validation of the dialog
   - can also display different things according to current filter and User Datas
@@ -22,8 +30,14 @@ An example of the File Dialog integrated within the ImGui Demo App
 - Support files Exploring by input char (case insensitive)
 - Support bookmark creation/edition/call for directory (can have custom name corresponding to a path)
 - Support input path edition by right click on a path button
-
+- Support of a 'Confirm to Overwrite" dialog if File Exist
+ 
 Use the Namespace igfd (for avoid conflict with variables, struct and class names)
+
+## NameSpace / SingleTon
+
+you can display only one dialog at a time, this class is a simgleton and must be called like that :
+igfd::ImGuiFileDialog::Instance()->method_of_your_choice()
 
 ## Simple Dialog :
 ```cpp
@@ -48,6 +62,7 @@ void drawGui()
   }
 }
 ```
+![alt text](doc/dlg_simple.gif)
 
 ## Directory Chooser :
 
@@ -58,6 +73,7 @@ igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseDirDlgKey", "Choose a Direc
 
 In this mode you can select any directory with one click, and open directory with double click
 
+![directoryChooser](doc/directoryChooser.gif)
 
 ## Dialog with Custom Pane :
 ```cpp
@@ -101,6 +117,7 @@ void drawGui()
   }
 }
 ```
+![alt text](doc/dlg_with_pane.gif)
 
 ## Filter Infos
 
@@ -112,6 +129,8 @@ igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".hpp", ImVec4(0,0,1, 0.9))
 igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".md", ImVec4(1,0,1, 0.9));
 ```
 
+![alt text](doc/color_filter.png)
+
 and also specific icons (with icon font files) or file type names :
 
 ```cpp
@@ -120,6 +139,8 @@ igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".png", ImVec4(0,1,1,0.9), 
 // add a text for gif files (the default value is [File] 
 igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".gif", ImVec4(0, 1, 0.5, 0.9), "[GIF]");
 ```
+
+![alt text](doc/filter_Icon.png)
 
 ## Filter Collections 
 
@@ -134,6 +155,8 @@ this code :
 const char *filters = "Source files (*.cpp *.h *.hpp){.cpp,.h,.hpp},Image files (*.png *.gif *.jpg *.jpeg){.png,.gif,.jpg,.jpeg},.md";
 igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", ICON_IMFDLG_FOLDER_OPEN " Choose a File", filters, ".");
 ```
+will produce :
+![alt text](doc/collectionFilters.gif)
 
 ## Multi Selection
 
@@ -153,6 +176,8 @@ igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File",
    ".", "", std::bind(&InfosPane, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), 350, 1, "SaveFile"); // 1 file
 ```
 
+![alt text](doc/multiSelection.gif)
+
 ## File Dialog Constraints
 
 you can define min/max size of the dialog when you display It 
@@ -168,6 +193,8 @@ ImVec2 minSize = maxSize * 0.5f;
 igfd::ImGuiFileDialog::Instance()->FileDialog("ChooseFileDlgKey", ImGuiWindowFlags_NoCollapse, minSize, maxSize);
 ```
 
+![alt text](doc/dialog_constraints.gif)
+
 ## Detail View Mode
 
 You can have tables display like that.
@@ -175,6 +202,7 @@ You can have tables display like that.
 - you need to use [imgui tables branch](https://github.com/ocornut/imgui/tree/tables) (not merged in master at this moment)
 - uncomment "#define USE_IMGUI_TABLES" in you custom config file (CustomImGuiFileDialogConfig.h in this example)
 
+![alt text](doc/imgui_tables_branch.gif)
 
 ## Exploring by keys
 
@@ -190,6 +218,7 @@ you can also uncomment the next lines for define your keys :
 
 you can also explore a file list by use the current key char.
 
+![alt text](doc/explore_ny_keys.gif)
 
 as you see the current item is flashed (by default for 1 sec)
 you can define the flashing life time by yourself with the function
@@ -217,6 +246,8 @@ you can also uncomment the next lines for customize it :
 * you can select each bookmark for edit the displayed name corresponding to a path
 * you must double click on the label for apply the bookmark 
 
+![bookmarks.gif](doc/bookmarks.gif)
+
 you can also serialize/deserialize bookmarks by ex for load/save from/to file : (check the app sample by ex)
 ```cpp
 Load => igfd::ImGuiFileDialog::Instance()->DeserializeBookmarks(bookmarString);
@@ -233,6 +264,71 @@ see in this gif :
 1) button edition with mouse button right and escape key for quit the edition
 2) focus the input and press validation for set path
 
+![inputPathEdition.gif](doc/inputPathEdition.gif)
+
+## Confirm to OverWrite Dialog :
+
+If you want avoid OverWrite your files after confirmation, 
+you can show a Dialog for confirm or cancel the OverWrite operation.
+
+You just need to define the flag ImGuiFileDialogFlags_ConfirmOverwrite 
+in your call to OpenDialog/OpenModal
+
+By default this flag is not set, since there is no pre-defined way to 
+define if a dialog will be for Open or Save behavior. (and its wanted :) )
+
+Example code For Standard Dialog :
+```cpp
+igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey",
+	ICON_IGFD_SAVE " Choose a File", filters,
+	".", "", 1, nullptr, ImGuiFileDialogFlags_ConfirmOverwrite);
+```
+
+Example code For Modal Dialog :
+```cpp
+igfd::ImGuiFileDialog::Instance()->OpenModal("ChooseFileDlgKey",
+	ICON_IGFD_SAVE " Choose a File", filters,
+	".", "", 1, nullptr, ImGuiFileDialogFlags_ConfirmOverwrite);
+```
+
+This dialog will only verify the file in the file field.
+So Not to be used with GetSelection()
+ 
+The Confirm dialog will be a forced Modal Dialog, not moveable, displayed
+in the center of the current FileDialog.
+
+As usual you can customize the dialog,
+in you custom config file (CustomImGuiFileDialogConfig.h in this example)
+
+you can  uncomment the next lines for customize it :
+```cpp
+//#define OverWriteDialogTitleString "The file Already Exist !"
+//#define OverWriteDialogMessageString "Would you like to OverWrite it ?"
+//#define OverWriteDialogConfirmButtonString "Confirm"
+//#define OverWriteDialogCancelButtonString "Cancel"
+```
+
+See the result :
+
+![ConfirmToOverWrite.gif](doc/ConfirmToOverWrite.gif)
+
+## Open / Save dialog Behavior :
+
+There is no way to distinguish the "open dialog" behavior than "save dialog" behavior.
+So you msut adapt the return according to your need :
+
+if you want open file(s) or directory(s), you must use : GetSelection() method. you will obtain a std::map<FileName, FilePathName> of the selection
+if you want create a file, you must use : GetFilePathName()/GetCurrentFileName()
+
+the return method's and comments :
+```cpp
+std::map<std::string, std::string> GetSelection(); // Open File behavior : will return selection via a map<FileName, FilePathName>
+std::string GetFilePathName();                     // Create File behavior : will always return the content of the field with current filter extention and current path
+std::string GetCurrentFileName();                  // Create File behavior : will always return the content of the field with current filter extention
+std::string GetCurrentPath();                      // will return current path
+std::string GetCurrentFilter();                    // get selected filter
+UserDatas GetUserDatas();                          // get user datas send with Open Dialog
+```
 
 ## How to Integrate ImGuiFileDialog in your project
 

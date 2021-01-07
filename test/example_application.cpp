@@ -248,7 +248,7 @@ void Application_Frame(void* handle)
     // 8. Show Markdown Window
     if (example->show_markdown_window)
     {
-        std::string help_doc =                   example->get_file_contents("docs/README.md");
+        std::string help_doc =                   example->get_file_contents("docs/imgui.md");
         example->mdConfig.linkCallback =         example->LinkCallback;
         example->mdConfig.tooltipCallback =      NULL;
         example->mdConfig.imageCallback =        example->ImageCallback;
