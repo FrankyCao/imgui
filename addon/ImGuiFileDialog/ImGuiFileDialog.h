@@ -657,7 +657,9 @@ namespace igfd
 		bool DrawFooter();
 
 	private: // widgets components
+#ifdef USE_BOOKMARK
 		void DrawBookMark();
+#endif
 		void DrawDirectoryCreation();
 		void DrawPathComposer();
 		void DrawSearchBar();
