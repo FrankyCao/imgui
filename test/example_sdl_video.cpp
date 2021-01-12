@@ -178,10 +178,8 @@ int main(int, char**)
 
     // Setup window
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
     SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE);
     SDL_Window* window = SDL_CreateWindow("Dear ImGui SDL Video", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, window_flags);
     SDL_GLContext gl_context = SDL_GL_CreateContext(window);
@@ -332,7 +330,7 @@ int main(int, char**)
                     is_playing = true;
                 }
             }
-            filedialog.CloseDialog("ChooseFileDlgKey");
+            filedialog.CloseDialog();
         }
 
         if (is_playing && mVideoCapture.isOpened())

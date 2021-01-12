@@ -165,8 +165,8 @@ namespace igfd
 	#define OverWriteDialogCancelButtonString "Cancel"
 	#endif
 #ifdef USE_BOOKMARK
-	#ifndef bookmarkPaneWith
-	#define bookmarkPaneWith 150.0f
+	#ifndef defaultBookmarkPaneWith
+	#define defaultBookmarkPaneWith 150.0f
 	#endif
 	#ifndef bookmarksButtonString
 	#define bookmarksButtonString "Bookmark"
@@ -433,6 +433,7 @@ namespace igfd
         dlg_userDatas = 0;
 #ifdef USE_BOOKMARK
 		m_BookmarkPaneShown = false;
+		m_BookmarkWidth = defaultBookmarkPaneWith;
 #endif
 	}
 
@@ -899,21 +900,29 @@ namespace igfd
 
 	void ImGuiFileDialog::DrawContent()
 	{
+		ImVec2 size = ImGui::GetContentRegionAvail() - ImVec2(0.0f, m_FooterHeight);
+
 #ifdef USE_BOOKMARK
 		if (m_BookmarkPaneShown)
 		{
-			ImVec2 size = ImVec2(bookmarkPaneWith, ImGui::GetContentRegionAvail().y - m_FooterHeight);
+			//size.x -= m_BookmarkWidth;
+			ImGui::PushID("##splitterbookmark");
+			float otherWidth = size.x - m_BookmarkWidth;
+			Splitter(true, 4.0f, &m_BookmarkWidth, &otherWidth, 10.0f, 10.0f + dlg_optionsPaneWidth, size.y);
+			ImGui::PopID();
+			size.x -= otherWidth;
 			DrawBookmarkPane(size);
 			ImGui::SameLine();
 		}
 #endif
 
-		ImVec2 size = ImGui::GetContentRegionAvail() - ImVec2(0.0f, m_FooterHeight);
+		size.x = ImGui::GetContentRegionAvail().x - dlg_optionsPaneWidth;
 
 		if (dlg_optionsPane)
 		{
-			size.x -= dlg_optionsPaneWidth;
+			ImGui::PushID("##splittersidepane");
 			Splitter(true, 4.0f, &size.x, &dlg_optionsPaneWidth, 10.0f, 10.0f, size.y);
+			ImGui::PopID();
 		}
 
 		DrawFileListView(size);
@@ -938,7 +947,7 @@ namespace igfd
 		// Input file fields
 		float width = ImGui::GetContentRegionAvail().x;
 		if (dlg_filters)
-			width -= FILTER_COMBO_WIDTH + 16;
+			width -= FILTER_COMBO_WIDTH + 16; //Dicky ?
 		ImGui::PushItemWidth(width);
 		ImGui::InputText("##FileName", FileNameBuffer, MAX_FILE_DIALOG_NAME_BUFFER);
 		ImGui::PopItemWidth();
@@ -1153,7 +1162,7 @@ namespace igfd
 #ifndef USE_IMGUI_TABLES
 		ImGui::BeginChild("##FileDialog_FileList", vSize);
 #else
-		static ImGuiTableFlags flags = ImGuiTableFlags_SizingPolicyFixed | ImGuiTableFlags_RowBg |
+		static ImGuiTableFlags flags = ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg |
 			ImGuiTableFlags_Hideable | ImGuiTableFlags_ScrollY |
 			ImGuiTableFlags_NoHostExtendY
 #ifndef USE_CUSTOM_SORTING_ICON
@@ -1373,15 +1382,6 @@ namespace igfd
 		ImGui::EndChild();
 	}
 
-	void ImGuiFileDialog::CloseDialog(const std::string& vKey)
-	{
-		if (dlg_key == vKey)
-		{
-			dlg_key.clear();
-			m_ShowDialog = false;
-		}
-	}
-
 	void ImGuiFileDialog::CloseDialog()
 	{
 		dlg_key.clear();
@@ -1398,12 +1398,22 @@ namespace igfd
 		}
 		return res;
 	}
-	
-	bool ImGuiFileDialog::IsOpened(std::string *vCurrentOpenedKey)
+
+	bool ImGuiFileDialog::IsOpened(const std::string& vKey)
 	{
-		if (vCurrentOpenedKey)
-			*vCurrentOpenedKey = dlg_key;
+		return (m_ShowDialog && dlg_key == vKey);
+	}
+
+	bool ImGuiFileDialog::IsOpened()
+	{
 		return m_ShowDialog;
+	}
+
+	std::string ImGuiFileDialog::GetOpenedKey()
+	{
+		if (m_ShowDialog)
+			return dlg_key;
+		return "";
 	}
 
 	std::string ImGuiFileDialog::GetFilePathName()
@@ -2391,12 +2401,12 @@ namespace igfd
                 if (locateFileByInputChar_lastFileIdx < m_FilteredFileList.size() - 1)
                     locateFileByInputChar_lastFileIdx++;
             }
-            else if (ImGui::IsKeyReleased(IGFD_KEY_ENTER))
+            else if (ImGui::IsKeyReleased(IGFD_KEY_ENTER) && ImGui::IsWindowHovered())
             {
                 exploreByKey = true;
                 enterInDirectory = true;
             }
-            else if (ImGui::IsKeyReleased(IGFD_KEY_BACKSPACE))
+            else if (ImGui::IsKeyReleased(IGFD_KEY_BACKSPACE) && ImGui::IsWindowHovered())
             {
                 exploreByKey = true;
                 exitDirectory = true;
@@ -2512,6 +2522,9 @@ namespace igfd
 	void ImGuiFileDialog::DrawBookmarkPane(ImVec2 vSize)
 	{
 		ImGui::BeginChild("##bookmarkpane", vSize);
+		
+		static int selectedBookmarkForEdition = -1;
+		
 		if (IMGUI_BUTTON(addBookmarkButtonString "##ImGuiFileDialogAddBookmark"))
 		{
 			if (!m_CurrentPath_Decomposition.empty())
@@ -2522,7 +2535,6 @@ namespace igfd
 				m_Bookmarks.push_back(bookmark);
 			}
 		}
-		static int selectedBookmarkForEdition = -1;
 		if (selectedBookmarkForEdition >= 0 &&
 			selectedBookmarkForEdition < (int)m_Bookmarks.size())
 		{
@@ -2533,10 +2545,13 @@ namespace igfd
 				if (selectedBookmarkForEdition == (int)m_Bookmarks.size())
 					selectedBookmarkForEdition--;
 			}
-			if (selectedBookmarkForEdition >= 0)
+
+			if (selectedBookmarkForEdition >= 0 &&
+				selectedBookmarkForEdition < (int)m_Bookmarks.size())
 			{
 				ImGui::SameLine();
-				ImGui::PushItemWidth(bookmarkPaneWith);
+
+				ImGui::PushItemWidth(vSize.x - ImGui::GetCursorPosX());
 				if (ImGui::InputText("##ImGuiFileDialogBookmarkEdit", BookmarkEditBuffer, MAX_FILE_DIALOG_NAME_BUFFER))
 				{
 					m_Bookmarks[selectedBookmarkForEdition].name = std::string(BookmarkEditBuffer);
@@ -2578,6 +2593,7 @@ namespace igfd
             }
             m_BookmarkClipper.End();
         }
+
 		ImGui::EndChild();
 	}
 
@@ -2623,7 +2639,7 @@ namespace igfd
 
 	bool ImGuiFileDialog::Confirm_Or_OpenOverWriteFileDialog_IfNeeded(bool vLastAction, ImGuiWindowFlags vFlags)
 	{
-		// if confirmation => return true for confimr the overwrite et quit the dialog
+		// if confirmation => return true for confirm the overwrite et quit the dialog
 		// if cancel => return false && set IsOk to false for keep inside the dialog
 
 		// if IsOk == false => return false for quit the dialog
@@ -3004,7 +3020,7 @@ void show_file_dialog_demo_window(ImGuiFileDialog * dlg, bool * open)
 				}
 				// action
 			}
-			dlg->CloseDialog("ChooseFileDlgKey");
+			dlg->CloseDialog();
 		}
 
 		if (dlg->FileDialog("ChooseDirDlgKey",
@@ -3026,7 +3042,7 @@ void show_file_dialog_demo_window(ImGuiFileDialog * dlg, bool * open)
 				}
                 // action
             }
-            dlg->CloseDialog("ChooseDirDlgKey");
+            dlg->CloseDialog();
         }
 
 		ImGui::Separator();
@@ -3043,7 +3059,7 @@ void show_file_dialog_demo_window(ImGuiFileDialog * dlg, bool * open)
 			{
 				static int selected = false;
 				if (ImGui::BeginTable("##GetSelection", 2, 
-					ImGuiTableFlags_SizingPolicyFixed | ImGuiTableFlags_RowBg |
+					ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg |
 					ImGuiTableFlags_ScrollY))
 				{
 					ImGui::TableSetupScrollFreeze(0, 1); // Make top row always visible

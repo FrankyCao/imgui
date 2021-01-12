@@ -176,6 +176,11 @@ int main(int, char**)
     std::string title = Application_GetName(user_handle);
     title += " SDL";
     SDL_Window* window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, window_width, window_height, window_flags);
+    if (!window)
+    {
+        fprintf(stderr, "Failed to Create Window: %s\n", SDL_GetError());
+        return -1;
+    }
     SDL_GLContext gl_context = SDL_GL_CreateContext(window);
     SDL_GL_MakeCurrent(window, gl_context);
     SDL_GL_SetSwapInterval(1); // Enable vsync
@@ -200,7 +205,7 @@ int main(int, char**)
 #endif
     if (err)
     {
-        fprintf(stderr, "Failed to initialize OpenGL loader!\n");
+        fprintf(stderr, "Failed to initialize OpenGL loader! %s (%d)\n", title.c_str(), err);
         return 1;
     }
 

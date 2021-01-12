@@ -242,7 +242,7 @@ int main(int, char**)
                 std::string filePathName = filedialog.GetFilePathName();
                 load_image(filePathName, framebuffer_texture);
             }
-            filedialog.CloseDialog("ChooseFileDlgKey");
+            filedialog.CloseDialog();
         }
 
         int window_width = 0;
