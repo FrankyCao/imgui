@@ -227,8 +227,8 @@ int main(int, char**)
     ImGui_ImplOpenGL3_Init(glsl_version);
 
     // load file dialog resource
-    igfd::ImGuiFileDialog filedialog;
-    igfd::prepare_file_dialog_demo_window(&filedialog);
+    ImGuiFileDialog filedialog;
+    prepare_file_dialog_demo_window(&filedialog);
 
     // init memory edit
     MemoryEditor mem_edit;
@@ -363,7 +363,7 @@ int main(int, char**)
         // 5. Show FileDialog demo window
         if (show_file_dialog_window)
         {
-            igfd::show_file_dialog_demo_window(&filedialog, &show_file_dialog_window);
+            show_file_dialog_demo_window(&filedialog, &show_file_dialog_window);
         }
 
         // 6. Show Memory Edit window
@@ -454,7 +454,7 @@ int main(int, char**)
         free(data);
 
     // Store file dialog bookmark
-    igfd::end_file_dialog_demo_window(&filedialog);
+    end_file_dialog_demo_window(&filedialog);
 
     // Clean Node Window
     imnodes_sample::NodeEditorShutdown();

@@ -150,8 +150,8 @@ int main(int, char**)
     //IM_ASSERT(font != NULL);
 
     // load file dialog resource
-    igfd::ImGuiFileDialog filedialog;
-    igfd::prepare_file_dialog_demo_window(&filedialog);
+    ImGuiFileDialog filedialog;
+    prepare_file_dialog_demo_window(&filedialog);
 
     // init memory edit
     MemoryEditor mem_edit;
@@ -272,7 +272,7 @@ int main(int, char**)
         // 5. Show FileDialog demo window
         if (show_file_dialog_window)
         {
-            igfd::show_file_dialog_demo_window(&filedialog, &show_file_dialog_window);
+            show_file_dialog_demo_window(&filedialog, &show_file_dialog_window);
         }
 
         // 6. Show Memory Edit window
@@ -361,7 +361,7 @@ int main(int, char**)
     }
 
     // Store file dialog bookmark
-    igfd::end_file_dialog_demo_window(&filedialog);
+    end_file_dialog_demo_window(&filedialog);
 
     // Cleanup memory edit resource
     if (data)

@@ -26,6 +26,9 @@ SOFTWARE.
 */
 
 #include "ImGuiFileDialog.h"
+
+#ifdef __cplusplus
+
 #include "imgui.h"
 
 #include <float.h>
@@ -67,122 +70,122 @@ SOFTWARE.
 #include <algorithm>
 #include <iostream>
 
-namespace igfd
+namespace IGFD
 {
 	// float comparisons
-	#ifndef IS_FLOAT_DIFFERENT
-	#define IS_FLOAT_DIFFERENT(a,b) (fabs((a) - (b)) > FLT_EPSILON)
-	#endif
-	#ifndef IS_FLOAT_EQUAL
-	#define IS_FLOAT_EQUAL(a,b) (fabs((a) - (b)) < FLT_EPSILON)
-	#endif
+#ifndef IS_FLOAT_DIFFERENT
+#define IS_FLOAT_DIFFERENT(a,b) (fabs((a) - (b)) > FLT_EPSILON)
+#endif
+#ifndef IS_FLOAT_EQUAL
+#define IS_FLOAT_EQUAL(a,b) (fabs((a) - (b)) < FLT_EPSILON)
+#endif
 
-	// width of filter combobox
-	#ifndef FILTER_COMBO_WIDTH
-	#define FILTER_COMBO_WIDTH 150.0f
-	#endif
-	
-	// for lets you define your button widget
-	// if you have like me a special bi-color button
-	#ifndef IMGUI_PATH_BUTTON
-	#define IMGUI_PATH_BUTTON ImGui::Button
-    #endif
-	#ifndef IMGUI_BUTTON
-	#define IMGUI_BUTTON ImGui::Button
-	#endif
+// width of filter combobox
+#ifndef FILTER_COMBO_WIDTH
+#define FILTER_COMBO_WIDTH 150.0f
+#endif
 
-	// locales
-	#ifndef createDirButtonString
-	#define createDirButtonString "+"
-	#endif
-	#ifndef okButtonString
-	#define okButtonString "OK"
-	#endif
-	#ifndef cancelButtonString
-	#define cancelButtonString "Cancel"
-	#endif
-	#ifndef resetButtonString
-	#define resetButtonString "R"
-	#endif
-	#ifndef drivesButtonString
-	#define drivesButtonString "Drives"
-	#endif
-	#ifndef searchString
-	#define searchString "Search :"
-	#endif
-	#ifndef dirEntryString
-	#define dirEntryString "[D]"
-	#endif
-	#ifndef linkEntryString
-	#define linkEntryString "[L]"
-	#endif
-	#ifndef fileEntryString
-	#define fileEntryString "[F]"
-	#endif
-	#ifndef fileNameString
-	#define fileNameString "File Name :"
-	#endif
-	#ifndef dirNameString
-	#define dirNameString "Directory Name :"
-	#endif
-	#ifndef buttonResetSearchString
-	#define buttonResetSearchString "Reset search"
-	#endif
-	#ifndef buttonDriveString
-	#define buttonDriveString "Drives"
-	#endif
-	#ifndef buttonResetPathString
-	#define buttonResetPathString "Reset to current directory"
-	#endif
-	#ifndef buttonCreateDirString
-	#define buttonCreateDirString "Create Directory"
-	#endif
-	#ifndef tableHeaderAscendingIcon
-	#define tableHeaderAscendingIcon "A|"
-	#endif
-	#ifndef tableHeaderDescendingIcon
-	#define tableHeaderDescendingIcon "D|"
-	#endif
-	#ifndef tableHeaderFileNameString
-	#define tableHeaderFileNameString "File name"
-	#endif
-	#ifndef tableHeaderFileSizeString
-	#define tableHeaderFileSizeString "Size"
-	#endif
-	#ifndef tableHeaderFileDateString
-	#define tableHeaderFileDateString "Date"
-	#endif
-	#ifndef OverWriteDialogTitleString
-	#define OverWriteDialogTitleString "The file Already Exist !"
-	#endif
-	#ifndef OverWriteDialogMessageString
-	#define OverWriteDialogMessageString "Would you like to OverWrite it ?"
-	#endif
-	#ifndef OverWriteDialogConfirmButtonString
-	#define OverWriteDialogConfirmButtonString "Confirm"
-	#endif
-	#ifndef OverWriteDialogCancelButtonString
-	#define OverWriteDialogCancelButtonString "Cancel"
-	#endif
+// for lets you define your button widget
+// if you have like me a special bi-color button
+#ifndef IMGUI_PATH_BUTTON
+#define IMGUI_PATH_BUTTON ImGui::Button
+#endif
+#ifndef IMGUI_BUTTON
+#define IMGUI_BUTTON ImGui::Button
+#endif
+
+// locales
+#ifndef createDirButtonString
+#define createDirButtonString "+"
+#endif
+#ifndef okButtonString
+#define okButtonString "OK"
+#endif
+#ifndef cancelButtonString
+#define cancelButtonString "Cancel"
+#endif
+#ifndef resetButtonString
+#define resetButtonString "R"
+#endif
+#ifndef drivesButtonString
+#define drivesButtonString "Drives"
+#endif
+#ifndef searchString
+#define searchString "Search :"
+#endif
+#ifndef dirEntryString
+#define dirEntryString "[Dir]"
+#endif
+#ifndef linkEntryString
+#define linkEntryString "[Link]"
+#endif
+#ifndef fileEntryString
+#define fileEntryString "[File]"
+#endif
+#ifndef fileNameString
+#define fileNameString "File Name :"
+#endif
+#ifndef dirNameString
+#define dirNameString "Directory Name :"
+#endif
+#ifndef buttonResetSearchString
+#define buttonResetSearchString "Reset search"
+#endif
+#ifndef buttonDriveString
+#define buttonDriveString "Drives"
+#endif
+#ifndef buttonResetPathString
+#define buttonResetPathString "Reset to current directory"
+#endif
+#ifndef buttonCreateDirString
+#define buttonCreateDirString "Create Directory"
+#endif
+#ifndef tableHeaderAscendingIcon
+#define tableHeaderAscendingIcon "A|"
+#endif
+#ifndef tableHeaderDescendingIcon
+#define tableHeaderDescendingIcon "D|"
+#endif
+#ifndef tableHeaderFileNameString
+#define tableHeaderFileNameString "File name"
+#endif
+#ifndef tableHeaderFileSizeString
+#define tableHeaderFileSizeString "Size"
+#endif
+#ifndef tableHeaderFileDateString
+#define tableHeaderFileDateString "Date"
+#endif
+#ifndef OverWriteDialogTitleString
+#define OverWriteDialogTitleString "The file Already Exist !"
+#endif
+#ifndef OverWriteDialogMessageString
+#define OverWriteDialogMessageString "Would you like to OverWrite it ?"
+#endif
+#ifndef OverWriteDialogConfirmButtonString
+#define OverWriteDialogConfirmButtonString "Confirm"
+#endif
+#ifndef OverWriteDialogCancelButtonString
+#define OverWriteDialogCancelButtonString "Cancel"
+#endif
 #ifdef USE_BOOKMARK
-	#ifndef defaultBookmarkPaneWith
-	#define defaultBookmarkPaneWith 150.0f
-	#endif
-	#ifndef bookmarksButtonString
-	#define bookmarksButtonString "Bookmark"
-	#endif
-	#ifndef bookmarksButtonHelpString
-	#define bookmarksButtonHelpString "Bookmark"
-	#endif
-	#ifndef addBookmarkButtonString
-	#define addBookmarkButtonString "+"
-	#endif
-	#ifndef removeBookmarkButtonString
-	#define removeBookmarkButtonString "-"
-	#endif
+#ifndef defaultBookmarkPaneWith
+#define defaultBookmarkPaneWith 150.0f
+#endif
+#ifndef bookmarksButtonString
+#define bookmarksButtonString "Bookmark"
+#endif
+#ifndef bookmarksButtonHelpString
+#define bookmarksButtonHelpString "Bookmark"
+#endif
+#ifndef addBookmarkButtonString
+#define addBookmarkButtonString "+"
+#endif
+#ifndef removeBookmarkButtonString
+#define removeBookmarkButtonString "-"
+#endif
 
-	#ifndef IMGUI_TOGGLE_BUTTON
-	inline bool ToggleButton(const char *vLabel, bool *vToggled)
+#ifndef IMGUI_TOGGLE_BUTTON
+	inline bool ToggleButton(const char* vLabel, bool* vToggled)
 	{
 		bool pressed = false;
 
@@ -210,8 +213,8 @@ namespace igfd
 
 		return pressed;
 	}
-	#define IMGUI_TOGGLE_BUTTON ToggleButton
-	#endif
+#define IMGUI_TOGGLE_BUTTON ToggleButton
+#endif
 #endif
 
 	// https://github.com/ocornut/imgui/issues/1720
@@ -229,7 +232,7 @@ namespace igfd
 
 	static std::string s_fs_root = std::string(1u, PATH_SEP);
 
-	inline int alphaSort(const struct dirent **a, const struct dirent **b)
+	inline int alphaSort(const struct dirent** a, const struct dirent** b)
 	{
 		return strcoll((*a)->d_name, (*b)->d_name);
 	}
@@ -296,7 +299,7 @@ namespace igfd
 
 		if (!name.empty())
 		{
-			DIR *pDir = nullptr;
+			DIR* pDir = nullptr;
 			pDir = opendir(name.c_str());
 			if (pDir != nullptr)
 			{
@@ -419,32 +422,32 @@ namespace igfd
 		ResetBuffer(vBuffer);
 		AppendToBuffer(vBuffer, vBufferLen, vStr);
 	}
-	
-	ImGuiFileDialog::ImGuiFileDialog()
+
+	IGFD::FileDialog::FileDialog()
 	{
 		m_AnyWindowsHovered = false;
-		IsOk = false;
+		m_IsOk = false;
 		m_ShowDialog = false;
 		m_ShowDrives = false;
 		m_CreateDirectoryMode = false;
 		dlg_optionsPane = nullptr;
 		dlg_optionsPaneWidth = 250;
 		dlg_filters = "";
-        dlg_userDatas = 0;
+		dlg_userDatas = 0;
 #ifdef USE_BOOKMARK
 		m_BookmarkPaneShown = false;
 		m_BookmarkWidth = defaultBookmarkPaneWith;
 #endif
 	}
 
-	ImGuiFileDialog::~ImGuiFileDialog() = default;
+	IGFD::FileDialog::~FileDialog() = default;
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////
 	///// CUSTOM SELECTABLE (Flashing Support) ///////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////////////////////////////
 
 #ifdef USE_EXPLORATION_BY_KEYS
-	bool ImGuiFileDialog::FlashableSelectable(const char* label, bool selected, 
+	bool IGFD::FileDialog::FlashableSelectable(const char* label, bool selected,
 		ImGuiSelectableFlags flags, bool vFlashing, const ImVec2& size_arg)
 	{
 		using namespace ImGui;
@@ -463,7 +466,7 @@ namespace igfd
 		ImGuiID id = window->GetID(label);
 		ImVec2 label_size = CalcTextSize(label, NULL, true);
 		ImVec2 size(
-			IS_FLOAT_DIFFERENT(size_arg.x, 0.0f) ? size_arg.x : label_size.x, 
+			IS_FLOAT_DIFFERENT(size_arg.x, 0.0f) ? size_arg.x : label_size.x,
 			IS_FLOAT_DIFFERENT(size_arg.y, 0.0f) ? size_arg.y : label_size.y
 		);
 		ImVec2 pos = window->DC.CursorPos;
@@ -577,91 +580,57 @@ namespace igfd
 	///// STANDARD DIALOG ////////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void ImGuiFileDialog::OpenDialog(const std::string& vKey, const char* vName, const char* vFilters,
-		const std::string& vPath, const std::string& vDefaultFileName,
-		const std::function<void(std::string, UserDatas, bool*)>& vOptionsPane, const float& vOptionsPaneWidth,
-		const int& vCountSelectionMax, UserDatas vUserDatas, ImGuiFileDialogFlags vFlags)
+	// path and fileName can be specified
+	void IGFD::FileDialog::OpenDialog(
+		const std::string& vKey,			
+		const std::string& vTitle,			
+		const char *vFilters,				
+		const std::string& vPath,			
+		const std::string& vFileName,
+		const int& vCountSelectionMax,		
+		UserDatas vUserDatas,				
+		ImGuiFileDialogFlags vFlags)
 	{
 		if (m_ShowDialog) // if already opened, quit
 			return;
 
 		dlg_key = vKey;
-		dlg_name = std::string(vName);
-		dlg_filters = vFilters;
-		ParseFilters(dlg_filters);
+		dlg_title = vTitle;
 		dlg_path = vPath;
-		SetDefaultFileName(vDefaultFileName);
-		dlg_optionsPane = vOptionsPane;
 		dlg_userDatas = vUserDatas;
 		dlg_flags = vFlags;
-		dlg_optionsPaneWidth = vOptionsPaneWidth;
-		dlg_countSelectionMax = vCountSelectionMax; //-V101
+		dlg_optionsPane = nullptr;
+		dlg_optionsPaneWidth = 0.0f;
+		dlg_countSelectionMax = vCountSelectionMax;
 		dlg_modal = false;
 		dlg_defaultExt.clear();
 
+		ParseFilters(vFilters);
+		SetDefaultFileName(vFileName);
 		SetPath(m_CurrentPath);
 
-		m_ShowDialog = true;
+		m_ShowDialog = true;					// open dialog
 #ifdef USE_BOOKMARK
 		m_BookmarkPaneShown = false;
 #endif
 	}
 
-	void ImGuiFileDialog::OpenDialog(const std::string& vKey, const char* vName, const char* vFilters,
-		const std::string& vFilePathName,
-		const std::function<void(std::string, UserDatas, bool*)>& vOptionsPane, const float& vOptionsPaneWidth,
-		const int& vCountSelectionMax, UserDatas vUserDatas, ImGuiFileDialogFlags vFlags)
+	// path and filename are obtained from filePathName
+	void IGFD::FileDialog::OpenDialog(
+		const std::string& vKey,	
+		const std::string& vTitle,	
+		const char *vFilters,			
+		const std::string& vFilePathName,	
+		const int& vCountSelectionMax,		
+		UserDatas vUserDatas,					
+		ImGuiFileDialogFlags vFlags)
 	{
 		if (m_ShowDialog) // if already opened, quit
 			return;
 
 		dlg_key = vKey;
-		dlg_name = std::string(vName);
-		dlg_filters = vFilters;
-		ParseFilters(dlg_filters);
-
-		auto ps = ParsePathFileName(vFilePathName);
-		if (ps.isOk)
-		{
-			dlg_path = ps.path;
-			SetDefaultFileName(vFilePathName);
-			dlg_defaultExt = "." + ps.ext;
-		}
-		else
-		{
-			dlg_path = "."; 
-			SetDefaultFileName("");
-			dlg_defaultExt.clear();
-		}
-
-		dlg_optionsPane = vOptionsPane;
-		dlg_userDatas = vUserDatas;
-		dlg_flags = vFlags;
-		dlg_optionsPaneWidth = vOptionsPaneWidth;
-		dlg_countSelectionMax = vCountSelectionMax; //-V101
-		dlg_modal = false;
+		dlg_title = vTitle;
 		
-		SetSelectedFilterWithExt(dlg_defaultExt);
-		SetPath(m_CurrentPath);
-
-		m_ShowDialog = true;
-#ifdef USE_BOOKMARK
-		m_BookmarkPaneShown = false;
-#endif
-	}
-
-	void ImGuiFileDialog::OpenDialog(const std::string& vKey, const char* vName, const char* vFilters,
-		const std::string& vFilePathName, const int& vCountSelectionMax, 
-		UserDatas vUserDatas, ImGuiFileDialogFlags vFlags)
-	{
-		if (m_ShowDialog) // if already opened, quit
-			return;
-
-		dlg_key = vKey;
-		dlg_name = std::string(vName);
-		dlg_filters = vFilters;
-		ParseFilters(dlg_filters);
-
 		auto ps = ParsePathFileName(vFilePathName);
 		if (ps.isOk)
 		{
@@ -677,12 +646,101 @@ namespace igfd
 		}
 
 		dlg_optionsPane = nullptr;
+		dlg_optionsPaneWidth = 0.0f;
 		dlg_userDatas = vUserDatas;
 		dlg_flags = vFlags;
-		dlg_optionsPaneWidth = 0;
 		dlg_countSelectionMax = vCountSelectionMax; //-V101
 		dlg_modal = false;
-		
+
+		ParseFilters(vFilters);
+		SetSelectedFilterWithExt(dlg_defaultExt);
+		SetPath(m_CurrentPath);
+
+		m_ShowDialog = true;
+#ifdef USE_BOOKMARK
+		m_BookmarkPaneShown = false;
+#endif
+	}
+	
+	// with pane
+	// path and fileName can be specified
+	void IGFD::FileDialog::OpenDialog(
+		const std::string& vKey,
+		const std::string& vTitle,
+		const char* vFilters,
+		const std::string& vPath,
+		const std::string& vFileName,
+		const PaneFun& vSidePane,
+		const float& vSidePaneWidth,
+		const int& vCountSelectionMax,
+		UserDatas vUserDatas,
+		ImGuiFileDialogFlags vFlags)
+	{
+		if (m_ShowDialog) // if already opened, quit
+			return;
+
+		dlg_key = vKey;
+		dlg_title = vTitle;
+		dlg_path = vPath;
+		dlg_userDatas = vUserDatas;
+		dlg_flags = vFlags;
+		dlg_optionsPane = vSidePane;
+		dlg_optionsPaneWidth = vSidePaneWidth;
+		dlg_countSelectionMax = vCountSelectionMax;
+		dlg_modal = false;
+		dlg_defaultExt.clear();
+
+		ParseFilters(vFilters);
+		SetDefaultFileName(vFileName);
+		SetPath(m_CurrentPath);
+
+		m_ShowDialog = true;					// open dialog
+#ifdef USE_BOOKMARK
+		m_BookmarkPaneShown = false;
+#endif
+	}
+
+	// with pane
+	// path and filename are obtained from filePathName
+	void IGFD::FileDialog::OpenDialog(
+		const std::string& vKey,
+		const std::string& vTitle,
+		const char* vFilters,
+		const std::string& vFilePathName,
+		const PaneFun& vSidePane,
+		const float& vSidePaneWidth,
+		const int& vCountSelectionMax,
+		UserDatas vUserDatas,
+		ImGuiFileDialogFlags vFlags)
+	{
+		if (m_ShowDialog) // if already opened, quit
+			return;
+
+		dlg_key = vKey;
+		dlg_title = vTitle;
+
+		auto ps = ParsePathFileName(vFilePathName);
+		if (ps.isOk)
+		{
+			dlg_path = ps.path;
+			SetDefaultFileName(vFilePathName);
+			dlg_defaultExt = "." + ps.ext;
+		}
+		else
+		{
+			dlg_path = ".";
+			SetDefaultFileName("");
+			dlg_defaultExt.clear();
+		}
+
+		dlg_optionsPane = vSidePane;
+		dlg_optionsPaneWidth = vSidePaneWidth;
+		dlg_userDatas = vUserDatas;
+		dlg_flags = vFlags;
+		dlg_countSelectionMax = vCountSelectionMax; //-V101
+		dlg_modal = false;
+
+		ParseFilters(vFilters);
 		SetSelectedFilterWithExt(dlg_defaultExt);
 		SetPath(m_CurrentPath);
 
@@ -692,100 +750,99 @@ namespace igfd
 #endif
 	}
 
-	void ImGuiFileDialog::OpenDialog(const std::string& vKey, const char* vName, const char* vFilters,
-		const std::string& vPath, const std::string& vDefaultFileName, const int& vCountSelectionMax, 
-		UserDatas vUserDatas, ImGuiFileDialogFlags vFlags)
-	{
-		if (m_ShowDialog) // if already opened, quit
-			return;
-
-		dlg_key = vKey;
-		dlg_name = std::string(vName);
-		dlg_filters = vFilters;
-		ParseFilters(dlg_filters);
-		dlg_path = vPath;
-		SetDefaultFileName(vDefaultFileName);
-		dlg_optionsPane = nullptr;
-		dlg_userDatas = vUserDatas;
-		dlg_flags = vFlags;
-		dlg_optionsPaneWidth = 0;
-		dlg_countSelectionMax = vCountSelectionMax; //-V101
-		dlg_modal = false;
-		dlg_defaultExt.clear();
-
-		SetPath(m_CurrentPath);
-
-		m_ShowDialog = true;
-#ifdef USE_BOOKMARK
-		m_BookmarkPaneShown = false;
-#endif
-	}
-
 	//////////////////////////////////////////////////////////////////////////////////////////////////
-	///// STANDARD DIALOG ////////////////////////////////////////////////////////////////////////////
+	///// MODAL DIALOG ///////////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void ImGuiFileDialog::OpenModal(
-		const std::string& vKey, const char* vName, const char* vFilters,
-		const std::string& vPath, const std::string& vDefaultFileName,
-		const std::function<void(std::string, UserDatas, bool*)>& vOptionsPane, const float& vOptionsPaneWidth,
-		const int& vCountSelectionMax, UserDatas vUserDatas, ImGuiFileDialogFlags vFlags)
+	void IGFD::FileDialog::OpenModal(
+		const std::string& vKey, 
+		const std::string& vTitle, 
+		const char* vFilters,
+		const std::string& vPath, 
+		const std::string& vFileName,
+		const int& vCountSelectionMax, 
+		UserDatas vUserDatas, 
+		ImGuiFileDialogFlags vFlags)
 	{
 		if (m_ShowDialog) // if already opened, quit
 			return;
 
 		OpenDialog(
-			vKey, vName, vFilters,
-			vPath, vDefaultFileName,
-			vOptionsPane, vOptionsPaneWidth,
+			vKey, vTitle, vFilters,
+			vPath, vFileName,
 			vCountSelectionMax, vUserDatas, vFlags);
+
 		dlg_modal = true;
 	}
 
-	void ImGuiFileDialog::OpenModal(
-		const std::string& vKey, const char* vName, const char* vFilters,
+	void IGFD::FileDialog::OpenModal(
+		const std::string& vKey, 
+		const std::string& vTitle, 
+		const char *vFilters,
 		const std::string& vFilePathName,
-		const std::function<void(std::string, UserDatas, bool*)>& vOptionsPane, const float& vOptionsPaneWidth,
-		const int& vCountSelectionMax, UserDatas vUserDatas, ImGuiFileDialogFlags vFlags)
+		const int& vCountSelectionMax, 
+		UserDatas vUserDatas, 
+		ImGuiFileDialogFlags vFlags)
 	{
 		if (m_ShowDialog) // if already opened, quit
 			return;
 
 		OpenDialog(
-			vKey, vName, vFilters,
+			vKey, vTitle, vFilters,
 			vFilePathName,
-			vOptionsPane, vOptionsPaneWidth,
 			vCountSelectionMax, vUserDatas, vFlags);
+
 		dlg_modal = true;
 	}
 
-	void ImGuiFileDialog::OpenModal(
-		const std::string& vKey, const char* vName, const char* vFilters,
-		const std::string& vFilePathName, const int& vCountSelectionMax, 
-		UserDatas vUserDatas, ImGuiFileDialogFlags vFlags)
+	// with pane
+	// path and fileName can be specified
+	void IGFD::FileDialog::OpenModal(
+		const std::string& vKey,
+		const std::string& vTitle,
+		const char* vFilters,
+		const std::string& vPath,
+		const std::string& vFileName,
+		const PaneFun& vSidePane,
+		const float& vSidePaneWidth,
+		const int& vCountSelectionMax,
+		UserDatas vUserDatas,
+		ImGuiFileDialogFlags vFlags)
 	{
 		if (m_ShowDialog) // if already opened, quit
 			return;
 
 		OpenDialog(
-			vKey, vName, vFilters,
-			vFilePathName, vCountSelectionMax, 
-			vUserDatas, vFlags);
+			vKey, vTitle, vFilters,
+			vPath, vFileName, 
+			vSidePane, vSidePaneWidth,
+			vCountSelectionMax, vUserDatas, vFlags);
+
 		dlg_modal = true;
 	}
 
-	void ImGuiFileDialog::OpenModal(
-		const std::string& vKey, const char* vName, const char* vFilters,
-		const std::string& vPath, const std::string& vDefaultFileName, const int& vCountSelectionMax, 
-		UserDatas vUserDatas, ImGuiFileDialogFlags vFlags)
+	// with pane
+	// path and filename are obtained from filePathName
+	void IGFD::FileDialog::OpenModal(
+		const std::string& vKey,
+		const std::string& vTitle,
+		const char* vFilters,
+		const std::string& vFilePathName,
+		const PaneFun& vSidePane,
+		const float& vSidePaneWidth,
+		const int& vCountSelectionMax,
+		UserDatas vUserDatas,
+		ImGuiFileDialogFlags vFlags)
 	{
 		if (m_ShowDialog) // if already opened, quit
 			return;
 
 		OpenDialog(
-			vKey, vName, vFilters,
-			vPath, vDefaultFileName, vCountSelectionMax, 
-			vUserDatas, vFlags);
+			vKey, vTitle, vFilters,
+			vFilePathName,
+			vSidePane, vSidePaneWidth,
+			vCountSelectionMax, vUserDatas, vFlags);
+
 		dlg_modal = true;
 	}
 
@@ -793,33 +850,33 @@ namespace igfd
 	///// MAIN FUNCTION //////////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool ImGuiFileDialog::FileDialog(const std::string& vKey, ImGuiWindowFlags vFlags, ImVec2 vMinSize, ImVec2 vMaxSize)
+	bool IGFD::FileDialog::Display(const std::string& vKey, ImGuiWindowFlags vFlags, ImVec2 vMinSize, ImVec2 vMaxSize)
 	{
 		if (m_ShowDialog && dlg_key == vKey)
 		{
-			// to be sure than only one dialog displayed per frame
-			ImGuiContext& g = *GImGui;
-			if (g.FrameCount == m_LastImGuiFrameCount) // one instance was displayed this frame for this key +> quit
-				return false;
-			m_LastImGuiFrameCount = g.FrameCount; // mark this instance as used this frame
-
 			bool res = false;
 
-			std::string name = dlg_name + "##" + dlg_key;
+			// to be sure than only one dialog is displayed per frame
+			ImGuiContext& g = *GImGui;
+			if (g.FrameCount == m_LastImGuiFrameCount) // one instance was displayed this frame before for this key +> quit
+				return res;
+			m_LastImGuiFrameCount = g.FrameCount; // mark this instance as used this frame
+
+			std::string name = dlg_title + "##" + dlg_key;
 			if (m_Name != name)
 			{
 				m_FileList.clear();
 				m_CurrentPath_Decomposition.clear();
 			}
 
-			IsOk = false;
+			m_IsOk = false;	 // reset dialog result
 
 			ResetEvents();
 
 			ImGui::SetNextWindowSizeConstraints(vMinSize, vMaxSize);
 
 			bool beg = false;
-			if (dlg_modal && 
+			if (dlg_modal &&
 				!m_OkResultToConfirm) // disable modal because the confirm dialog for overwrite is a new modal
 			{
 				ImGui::OpenPopup(name.c_str());
@@ -838,9 +895,9 @@ namespace igfd
 				if (dlg_path.empty()) dlg_path = "."; // defaut path is '.'
 				if (m_SelectedFilter.empty() && // no filter selected
 					!m_Filters.empty()) // filter exist
-						m_SelectedFilter = *m_Filters.begin(); // we take the first filter
+					m_SelectedFilter = *m_Filters.begin(); // we take the first filter
 
-				// init list of files
+			// init list of files
 				if (m_FileList.empty() && !m_ShowDrives)
 				{
 					replaceString(dlg_defaultFileName, dlg_path, ""); // local path
@@ -858,13 +915,13 @@ namespace igfd
 				res = DrawFooter(); // file field, filter combobox, ok/cancel buttons
 
 				// for display in dialog center, the confirm to overwrite dlg
-				m_DialogCenterPos = ImGui::GetCurrentWindowRead()->ContentRegionRect.GetCenter(); 
+				m_DialogCenterPos = ImGui::GetCurrentWindowRead()->ContentRegionRect.GetCenter();
 
 				// when the confirm to overwrite dialog will appear we need to 
 				// disable the modal mode of the main file dialog
 				// see m_OkResultToConfirm under
 				if (dlg_modal &&
-					!m_OkResultToConfirm) 
+					!m_OkResultToConfirm)
 					ImGui::EndPopup();
 			}
 
@@ -879,7 +936,7 @@ namespace igfd
 		return false;
 	}
 
-	void ImGuiFileDialog::ResetEvents()
+	void IGFD::FileDialog::ResetEvents()
 	{
 		// reset events
 		m_DrivesClicked = false;
@@ -887,7 +944,7 @@ namespace igfd
 		m_CanWeContinue = true;
 	}
 
-	void ImGuiFileDialog::DrawHeader()
+	void IGFD::FileDialog::DrawHeader()
 	{
 #ifdef USE_BOOKMARK
 		DrawBookMark();
@@ -898,7 +955,7 @@ namespace igfd
 		DrawSearchBar();
 	}
 
-	void ImGuiFileDialog::DrawContent()
+	void IGFD::FileDialog::DrawContent()
 	{
 		ImVec2 size = ImGui::GetContentRegionAvail() - ImVec2(0.0f, m_FooterHeight);
 
@@ -933,11 +990,11 @@ namespace igfd
 		}
 	}
 
-	bool ImGuiFileDialog::DrawFooter()
+	bool IGFD::FileDialog::DrawFooter()
 	{
 		float posY = ImGui::GetCursorPos().y; // height of last bar calc
 
-		if (dlg_filters)
+		if (!dlg_filters.empty())
 			ImGui::Text(fileNameString);
 		else // directory chooser
 			ImGui::Text(dirNameString);
@@ -946,14 +1003,14 @@ namespace igfd
 
 		// Input file fields
 		float width = ImGui::GetContentRegionAvail().x;
-		if (dlg_filters)
+		if (!dlg_filters.empty())
 			width -= FILTER_COMBO_WIDTH + 16; //Dicky ?
 		ImGui::PushItemWidth(width);
 		ImGui::InputText("##FileName", FileNameBuffer, MAX_FILE_DIALOG_NAME_BUFFER);
 		ImGui::PopItemWidth();
 
 		// combobox of filters
-		if (dlg_filters)
+		if (!dlg_filters.empty())
 		{
 			ImGui::SameLine();
 
@@ -992,7 +1049,7 @@ namespace igfd
 		{
 			if (IMGUI_BUTTON(okButtonString))
 			{
-				IsOk = true;
+				m_IsOk = true;
 				res = true;
 			}
 
@@ -1002,7 +1059,7 @@ namespace igfd
 		// Cancel Button
 		if (IMGUI_BUTTON(cancelButtonString))
 		{
-			IsOk = false;
+			m_IsOk = false;
 			res = true;
 		}
 
@@ -1011,7 +1068,7 @@ namespace igfd
 		return res;
 	}
 #ifdef USE_BOOKMARK
-	void ImGuiFileDialog::DrawBookMark()
+	void IGFD::FileDialog::DrawBookMark()
 	{
 		IMGUI_TOGGLE_BUTTON(bookmarksButtonString, &m_BookmarkPaneShown);
 
@@ -1020,7 +1077,7 @@ namespace igfd
 	}
 #endif
 
-	void ImGuiFileDialog::DrawDirectoryCreation()
+	void IGFD::FileDialog::DrawDirectoryCreation()
 	{
 		if (IMGUI_BUTTON(createDirButtonString))
 		{
@@ -1069,7 +1126,7 @@ namespace igfd
 		ImGui::SameLine();
 	}
 
-	void ImGuiFileDialog::DrawPathComposer()
+	void IGFD::FileDialog::DrawPathComposer()
 	{
 		if (IMGUI_BUTTON(resetButtonString))
 		{
@@ -1133,7 +1190,7 @@ namespace igfd
 		}
 	}
 
-	void ImGuiFileDialog::DrawSearchBar()
+	void IGFD::FileDialog::DrawSearchBar()
 	{
 		// search field
 		if (IMGUI_BUTTON(resetButtonString "##BtnImGuiFileDialogSearchField"))
@@ -1157,7 +1214,7 @@ namespace igfd
 		}
 	}
 
-	void ImGuiFileDialog::DrawFileListView(ImVec2 vSize)
+	void IGFD::FileDialog::DrawFileListView(ImVec2 vSize)
 	{
 #ifndef USE_IMGUI_TABLES
 		ImGui::BeginChild("##FileDialog_FileList", vSize);
@@ -1173,8 +1230,8 @@ namespace igfd
 		{
 			ImGui::TableSetupScrollFreeze(0, 1); // Make header always visible
 			ImGui::TableSetupColumn(m_HeaderFileName.c_str(), ImGuiTableColumnFlags_WidthStretch, -1, 0);
-			ImGui::TableSetupColumn(m_HeaderFileSize.c_str(), ImGuiTableColumnFlags_WidthAuto, -1, 1);
-			ImGui::TableSetupColumn(m_HeaderFileDate.c_str(), ImGuiTableColumnFlags_WidthAuto, -1, 2);
+			ImGui::TableSetupColumn(m_HeaderFileSize.c_str(), ImGuiTableColumnFlags_WidthFixed, -1, 1);
+			ImGui::TableSetupColumn(m_HeaderFileDate.c_str(), ImGuiTableColumnFlags_WidthFixed, -1, 2);
 
 #ifndef USE_CUSTOM_SORTING_ICON
 			// Sort our data if sort specs have been changed!
@@ -1285,7 +1342,7 @@ namespace igfd
 							{
 								if (infos.type == 'd')
 								{
-									if (dlg_filters || ImGui::IsMouseDoubleClicked(0))
+									if (!dlg_filters.empty() || ImGui::IsMouseDoubleClicked(0))
 									{
 										m_PathClicked = SelectDirectory(infos);
 									}
@@ -1371,24 +1428,24 @@ namespace igfd
 #endif
 	}
 
-	void ImGuiFileDialog::DrawSidePane(float vHeight)
+	void IGFD::FileDialog::DrawSidePane(float vHeight)
 	{
 		ImGui::SameLine();
 
 		ImGui::BeginChild("##FileTypes", ImVec2(0, vHeight));
 
-		dlg_optionsPane(m_SelectedFilter.filter, dlg_userDatas, &m_CanWeContinue);
+		dlg_optionsPane(m_SelectedFilter.filter.c_str(), dlg_userDatas, &m_CanWeContinue);
 
 		ImGui::EndChild();
 	}
 
-	void ImGuiFileDialog::CloseDialog()
+	void IGFD::FileDialog::Close()
 	{
 		dlg_key.clear();
 		m_ShowDialog = false;
 	}
 
-	bool ImGuiFileDialog::WasOpenedThisFrame(const std::string& vKey)
+	bool IGFD::FileDialog::WasOpenedThisFrame(const std::string& vKey)
 	{
 		bool res = m_ShowDialog && dlg_key == vKey;
 		if (res)
@@ -1399,24 +1456,35 @@ namespace igfd
 		return res;
 	}
 
-	bool ImGuiFileDialog::IsOpened(const std::string& vKey)
+	bool IGFD::FileDialog::WasOpenedThisFrame()
+	{
+		bool res = m_ShowDialog;
+		if (res)
+		{
+			ImGuiContext& g = *GImGui;
+			res &= m_LastImGuiFrameCount == g.FrameCount; // return true if a dialog was displayed in this frame
+		}
+		return res;
+	}
+
+	bool IGFD::FileDialog::IsOpened(const std::string& vKey)
 	{
 		return (m_ShowDialog && dlg_key == vKey);
 	}
 
-	bool ImGuiFileDialog::IsOpened()
+	bool IGFD::FileDialog::IsOpened()
 	{
 		return m_ShowDialog;
 	}
 
-	std::string ImGuiFileDialog::GetOpenedKey()
+	std::string IGFD::FileDialog::GetOpenedKey()
 	{
 		if (m_ShowDialog)
 			return dlg_key;
 		return "";
 	}
 
-	std::string ImGuiFileDialog::GetFilePathName()
+	std::string IGFD::FileDialog::GetFilePathName()
 	{
 		std::string  result = m_CurrentPath;
 
@@ -1430,12 +1498,12 @@ namespace igfd
 		return result;
 	}
 
-	std::string ImGuiFileDialog::GetCurrentPath()
+	std::string IGFD::FileDialog::GetCurrentPath()
 	{
 		return m_CurrentPath;
 	}
 
-	std::string ImGuiFileDialog::GetCurrentFileName()
+	std::string IGFD::FileDialog::GetCurrentFileName()
 	{
 		std::string result = FileNameBuffer;
 
@@ -1454,21 +1522,26 @@ namespace igfd
 		return result;
 	}
 
-	std::string ImGuiFileDialog::GetCurrentFilter()
+	std::string IGFD::FileDialog::GetCurrentFilter()
 	{
 		return m_SelectedFilter.filter;
 	}
 
-	UserDatas ImGuiFileDialog::GetUserDatas()
+	UserDatas IGFD::FileDialog::GetUserDatas()
 	{
 		return dlg_userDatas;
 	}
 
-	std::map<std::string, std::string> ImGuiFileDialog::GetSelection()
+	bool IGFD::FileDialog::IsOk()
+	{
+		return m_IsOk;
+	}
+
+	std::map<std::string, std::string> IGFD::FileDialog::GetSelection()
 	{
 		std::map<std::string, std::string> res;
 
-		for (auto & it : m_SelectedFileNames)
+		for (auto& it : m_SelectedFileNames)
 		{
 			std::string result = m_CurrentPath;
 
@@ -1485,26 +1558,26 @@ namespace igfd
 		return res;
 	}
 
-	void ImGuiFileDialog::SetExtentionInfos(const std::string& vFilter, const FileExtentionInfosStruct& vInfos)
+	void IGFD::FileDialog::SetExtentionInfos(const std::string& vFilter, const FileExtentionInfosStruct& vInfos)
 	{
 		m_FileExtentionInfos[vFilter] = vInfos;
 	}
 
-	void ImGuiFileDialog::SetExtentionInfos(const std::string& vFilter, const ImVec4& vColor, const std::string& vIcon)
+	void IGFD::FileDialog::SetExtentionInfos(const std::string& vFilter, const ImVec4& vColor, const std::string& vIcon)
 	{
 		m_FileExtentionInfos[vFilter] = FileExtentionInfosStruct(vColor, vIcon);
 	}
 
-	bool ImGuiFileDialog::GetExtentionInfos(const std::string& vFilter, ImVec4 *vColor, std::string *vIcon)
+	bool IGFD::FileDialog::GetExtentionInfos(const std::string& vFilter, ImVec4* vOutColor, std::string* vOutIcon)
 	{
-		if (vColor)
+		if (vOutColor)
 		{
 			if (m_FileExtentionInfos.find(vFilter) != m_FileExtentionInfos.end()) // found
 			{
-				*vColor = m_FileExtentionInfos[vFilter].color;
-				if (vIcon)
+				*vOutColor = m_FileExtentionInfos[vFilter].color;
+				if (vOutIcon)
 				{
-					*vIcon = m_FileExtentionInfos[vFilter].icon;
+					*vOutIcon = m_FileExtentionInfos[vFilter].icon;
 				}
 				return true;
 			}
@@ -1512,22 +1585,22 @@ namespace igfd
 		return false;
 	}
 
-	void ImGuiFileDialog::ClearExtentionInfos()
+	void IGFD::FileDialog::ClearExtentionInfos()
 	{
 		m_FileExtentionInfos.clear();
 	}
 
-	void ImGuiFileDialog::SetTypeInfos(const std::string& vType, const FileExtentionInfosStruct& vInfos)
+	void IGFD::FileDialog::SetTypeInfos(const std::string& vType, const FileExtentionInfosStruct& vInfos)
 	{
 		m_FileTypeInfos[vType] = vInfos;
 	}
 
-	void ImGuiFileDialog::SetTypeInfos(const std::string& vType, const ImVec4& vColor, const std::string& vIcon)
+	void IGFD::FileDialog::SetTypeInfos(const std::string& vType, const ImVec4& vColor, const std::string& vIcon)
 	{
 		m_FileTypeInfos[vType] = FileExtentionInfosStruct(vColor, vIcon);
 	}
 
-	bool ImGuiFileDialog::GetTypeInfos(const std::string& vType, ImVec4 *vColor, std::string *vIcon)
+	bool IGFD::FileDialog::GetTypeInfos(const std::string& vType, ImVec4 *vColor, std::string *vIcon)
 	{
 		if (vColor)
 		{
@@ -1544,19 +1617,18 @@ namespace igfd
 		return false;
 	}
 
-	void ImGuiFileDialog::ClearTypeInfos()
+	void IGFD::FileDialog::ClearTypeInfos()
 	{
 		m_FileTypeInfos.clear();
 	}
 
-
-	void ImGuiFileDialog::SetDefaultFileName(const std::string& vFileName)
+	void IGFD::FileDialog::SetDefaultFileName(const std::string& vFileName)
 	{
 		dlg_defaultFileName = vFileName;
 		SetBuffer(FileNameBuffer, MAX_FILE_DIALOG_NAME_BUFFER, vFileName);
 	}
 
-	bool ImGuiFileDialog::SelectDirectory(const FileInfoStruct& vInfos)
+	bool IGFD::FileDialog::SelectDirectory(const FileInfoStruct& vInfos)
 	{
 		bool pathClick = false;
 
@@ -1604,7 +1676,7 @@ namespace igfd
 		return pathClick;
 	}
 
-	void ImGuiFileDialog::SelectFileName(const FileInfoStruct& vInfos)
+	void IGFD::FileDialog::SelectFileName(const FileInfoStruct& vInfos)
 	{
 		if (ImGui::GetIO().KeyCtrl)
 		{
@@ -1643,7 +1715,7 @@ namespace igfd
 				bool startMultiSelection = false;
 				std::string fileNameToSelect = vInfos.fileName;
 				std::string savedLastSelectedFileName; // for invert selection mode
-				for (auto & it : m_FileList)
+				for (auto& it : m_FileList)
 				{
 					const FileInfoStruct& infos = it;
 
@@ -1708,7 +1780,7 @@ namespace igfd
 		}
 	}
 
-	void ImGuiFileDialog::RemoveFileNameInSelection(const std::string& vFileName)
+	void IGFD::FileDialog::RemoveFileNameInSelection(const std::string& vFileName)
 	{
 		m_SelectedFileNames.erase(vFileName);
 
@@ -1722,7 +1794,7 @@ namespace igfd
 		}
 	}
 
-	void ImGuiFileDialog::AddFileNameInSelection(const std::string& vFileName, bool vSetLastSelectionFileName)
+	void IGFD::FileDialog::AddFileNameInSelection(const std::string& vFileName, bool vSetLastSelectionFileName)
 	{
 		m_SelectedFileNames.emplace(vFileName);
 
@@ -1739,11 +1811,11 @@ namespace igfd
 			m_LastSelectedFileName = vFileName;
 	}
 
-	void ImGuiFileDialog::SetPath(const std::string& vPath)
+	void IGFD::FileDialog::SetPath(const std::string& vPath)
 	{
 		m_ShowDrives = false;
 		m_CurrentPath = vPath;
-        m_FileList.clear();
+		m_FileList.clear();
 		m_CurrentPath_Decomposition.clear();
 		ScanDir(m_CurrentPath);
 	}
@@ -1755,7 +1827,7 @@ namespace igfd
 		return tmp.str();
 	}
 
-	static void FormatFileSize(size_t vByteSize, std::string *vFormat)
+	static void FormatFileSize(size_t vByteSize, std::string* vFormat)
 	{
 		if (vFormat && vByteSize != 0)
 		{
@@ -1765,12 +1837,12 @@ namespace igfd
 			static double go = 1024.0 * 1024.0 * 1024.0 * 1024.0;
 
 			double v = (double)vByteSize;
-			
-			if (v < lo) 
+
+			if (v < lo)
 				*vFormat = round_n(v, 0) + " B"; // octet
-			else if (v < ko) 
+			else if (v < ko)
 				*vFormat = round_n(v / lo, 2) + " KB"; // kB
-			else  if (v < mo) 
+			else  if (v < mo)
 				*vFormat = round_n(v / ko, 2) + " MB"; // MB
 			else if (v < go)
 				*vFormat = round_n(v / mo, 2) + " GB"; // GB
@@ -1779,7 +1851,7 @@ namespace igfd
 		}
 	}
 
-	void ImGuiFileDialog::FillInfos(FileInfoStruct *vFileInfoStruct)
+	void IGFD::FileDialog::FillInfos(FileInfoStruct* vFileInfoStruct)
 	{
 		if (vFileInfoStruct && vFileInfoStruct->fileName != "..")
 		{
@@ -1815,7 +1887,7 @@ namespace igfd
 				if (vFileInfoStruct->type != 'd')
 				{
 					vFileInfoStruct->fileSize = (size_t)statInfos.st_size;
-					FormatFileSize(vFileInfoStruct->fileSize, 
+					FormatFileSize(vFileInfoStruct->fileSize,
 						&vFileInfoStruct->formatedFileSize);
 				}
 
@@ -1825,7 +1897,7 @@ namespace igfd
 				errno_t err = localtime_s(&_tm, &statInfos.st_mtime);
 				if (!err) len = strftime(timebuf, 99, "%Y/%m/%d ", &_tm);
 #else
-				struct tm *_tm = localtime(&statInfos.st_mtime);
+				struct tm* _tm = localtime(&statInfos.st_mtime);
 				if (_tm) len = strftime(timebuf, 99, "%Y/%m/%d ", _tm);
 #endif
 				if (len)
@@ -1836,8 +1908,8 @@ namespace igfd
 		}
 	}
 
-    void ImGuiFileDialog::SortFields(SortingFieldEnum vSortingField, bool vCanChangeOrder)
-    {
+	void IGFD::FileDialog::SortFields(SortingFieldEnum vSortingField, bool vCanChangeOrder)
+	{
 		if (vSortingField != SortingFieldEnum::FIELD_NONE)
 		{
 			m_HeaderFileName = tableHeaderFileNameString;
@@ -1856,11 +1928,11 @@ namespace igfd
 				m_HeaderFileName = tableHeaderDescendingIcon + m_HeaderFileName;
 #endif
 				std::sort(m_FileList.begin(), m_FileList.end(),
-					[](const FileInfoStruct & a, const FileInfoStruct & b) -> bool
-				{
-					if (a.type != b.type) return (a.type == 'd'); // directory in first
-					return (stricmp(a.fileName.c_str(), b.fileName.c_str()) < 0); // sort in insensitive case
-				});
+					[](const FileInfoStruct& a, const FileInfoStruct& b) -> bool
+					{
+						if (a.type != b.type) return (a.type == 'd'); // directory in first
+						return (stricmp(a.fileName.c_str(), b.fileName.c_str()) < 0); // sort in insensitive case
+					});
 			}
 			else
 			{
@@ -1868,11 +1940,11 @@ namespace igfd
 				m_HeaderFileName = tableHeaderAscendingIcon + m_HeaderFileName;
 #endif
 				std::sort(m_FileList.begin(), m_FileList.end(),
-					[](const FileInfoStruct & a, const FileInfoStruct & b) -> bool
-				{
-					if (a.type != b.type) return (a.type != 'd'); // directory in last
-					return (stricmp(a.fileName.c_str(), b.fileName.c_str()) > 0); // sort in insensitive case
-				});
+					[](const FileInfoStruct& a, const FileInfoStruct& b) -> bool
+					{
+						if (a.type != b.type) return (a.type != 'd'); // directory in last
+						return (stricmp(a.fileName.c_str(), b.fileName.c_str()) > 0); // sort in insensitive case
+					});
 			}
 		}
 		else if (vSortingField == SortingFieldEnum::FIELD_SIZE)
@@ -1886,11 +1958,11 @@ namespace igfd
 				m_HeaderFileSize = tableHeaderDescendingIcon + m_HeaderFileSize;
 #endif
 				std::sort(m_FileList.begin(), m_FileList.end(),
-					[](const FileInfoStruct & a, const FileInfoStruct & b) -> bool
-				{
-					if (a.type != b.type) return (a.type == 'd'); // directory in first
-					return (a.fileSize < b.fileSize); // else
-				});
+					[](const FileInfoStruct& a, const FileInfoStruct& b) -> bool
+					{
+						if (a.type != b.type) return (a.type == 'd'); // directory in first
+						return (a.fileSize < b.fileSize); // else
+					});
 			}
 			else
 			{
@@ -1898,11 +1970,11 @@ namespace igfd
 				m_HeaderFileSize = tableHeaderAscendingIcon + m_HeaderFileSize;
 #endif
 				std::sort(m_FileList.begin(), m_FileList.end(),
-					[](const FileInfoStruct & a, const FileInfoStruct & b) -> bool
-				{
-					if (a.type != b.type) return (a.type != 'd'); // directory in last
-					return (a.fileSize > b.fileSize); // else
-				});
+					[](const FileInfoStruct& a, const FileInfoStruct& b) -> bool
+					{
+						if (a.type != b.type) return (a.type != 'd'); // directory in last
+						return (a.fileSize > b.fileSize); // else
+					});
 			}
 		}
 		else if (vSortingField == SortingFieldEnum::FIELD_DATE)
@@ -1916,11 +1988,11 @@ namespace igfd
 				m_HeaderFileDate = tableHeaderDescendingIcon + m_HeaderFileDate;
 #endif
 				std::sort(m_FileList.begin(), m_FileList.end(),
-					[](const FileInfoStruct & a, const FileInfoStruct & b) -> bool
-				{
-					if (a.type != b.type) return (a.type == 'd'); // directory in first
-					return (a.fileModifDate < b.fileModifDate); // else
-				});
+					[](const FileInfoStruct& a, const FileInfoStruct& b) -> bool
+					{
+						if (a.type != b.type) return (a.type == 'd'); // directory in first
+						return (a.fileModifDate < b.fileModifDate); // else
+					});
 			}
 			else
 			{
@@ -1928,25 +2000,25 @@ namespace igfd
 				m_HeaderFileDate = tableHeaderAscendingIcon + m_HeaderFileDate;
 #endif
 				std::sort(m_FileList.begin(), m_FileList.end(),
-					[](const FileInfoStruct & a, const FileInfoStruct & b) -> bool
-				{
-					if (a.type != b.type) return (a.type != 'd'); // directory in last
-					return (a.fileModifDate > b.fileModifDate); // else
-				});
+					[](const FileInfoStruct& a, const FileInfoStruct& b) -> bool
+					{
+						if (a.type != b.type) return (a.type != 'd'); // directory in last
+						return (a.fileModifDate > b.fileModifDate); // else
+					});
 			}
 		}
-		
+
 		if (vSortingField != SortingFieldEnum::FIELD_NONE)
 		{
 			m_SortingField = vSortingField;
 		}
 
 		ApplyFilteringOnFileList();
-    }
+	}
 
-	void ImGuiFileDialog::ScanDir(const std::string& vPath)
+	void IGFD::FileDialog::ScanDir(const std::string& vPath)
 	{
-		struct dirent **files = nullptr;
+		struct dirent** files = nullptr;
 		int          i = 0;
 		int          n = 0;
 		std::string		path = vPath;
@@ -1964,13 +2036,13 @@ namespace igfd
 #endif
 			n = scandir(path.c_str(), &files, nullptr, alphaSort);
 
-            m_FileList.clear();
+			m_FileList.clear();
 
-            if (n > 0)
+			if (n > 0)
 			{
 				for (i = 0; i < n; i++)
 				{
-					struct dirent *ent = files[i];
+					struct dirent* ent = files[i];
 
 					FileInfoStruct infos;
 
@@ -1982,15 +2054,15 @@ namespace igfd
 					{
 						switch (ent->d_type)
 						{
-						case DT_REG: 
+						case DT_REG:
 							infos.type = 'f'; break;
-						case DT_DIR: 
+						case DT_DIR:
 							infos.type = 'd'; break;
-						case DT_LNK: 
+						case DT_LNK:
 							infos.type = 'l'; break;
 						}
 
-						if (infos.type == 'f' || 
+						if (infos.type == 'f' ||
 							infos.type == 'l') // link can have the same extention of a file
 						{
 							size_t lpt = infos.fileName.find_last_of('.');
@@ -1999,7 +2071,7 @@ namespace igfd
 								infos.ext = infos.fileName.substr(lpt);
 							}
 
-							if (dlg_filters)
+							if (!dlg_filters.empty())
 							{
 								// check if current file extention is covered by current filter
 								// we do that here, for avoid doing taht during filelist display
@@ -2030,14 +2102,14 @@ namespace igfd
 		}
 	}
 
-	void ImGuiFileDialog::SetCurrentDir(const std::string& vPath)
+	void IGFD::FileDialog::SetCurrentDir(const std::string& vPath)
 	{
 		std::string path = vPath;
 #ifdef WIN32
 		if (s_fs_root == path)
 			path += PATH_SEP;
 #endif
-		DIR  *dir = opendir(path.c_str());
+		DIR* dir = opendir(path.c_str());
 		char  real_path[PATH_MAX];
 
 		if (nullptr == dir)
@@ -2051,7 +2123,7 @@ namespace igfd
 #ifdef WIN32
 			size_t numchar = GetFullPathNameA(path.c_str(), PATH_MAX - 1, real_path, nullptr);
 #elif defined(UNIX) // UNIX is LINUX or APPLE
-			char *numchar = realpath(path.c_str(), real_path);
+			char* numchar = realpath(path.c_str(), real_path);
 #endif
 			if (numchar != 0)
 			{
@@ -2061,7 +2133,7 @@ namespace igfd
 					m_CurrentPath = m_CurrentPath.substr(0, m_CurrentPath.size() - 1);
 				}
 				SetBuffer(InputPathBuffer, MAX_PATH_BUFFER_SIZE, m_CurrentPath);
-                m_CurrentPath_Decomposition = splitStringToVector(m_CurrentPath, PATH_SEP, false);
+				m_CurrentPath_Decomposition = splitStringToVector(m_CurrentPath, PATH_SEP, false);
 #if defined(UNIX) // UNIX is LINUX or APPLE
 				m_CurrentPath_Decomposition.insert(m_CurrentPath_Decomposition.begin(), std::string(1u, PATH_SEP));
 #endif
@@ -2071,13 +2143,13 @@ namespace igfd
 					s_fs_root = m_CurrentPath_Decomposition[0];
 #endif
 				}
-            }
+			}
 
 			closedir(dir);
 		}
 	}
 
-	bool ImGuiFileDialog::CreateDir(const std::string& vPath)
+	bool IGFD::FileDialog::CreateDir(const std::string& vPath)
 	{
 		bool res = false;
 
@@ -2091,7 +2163,7 @@ namespace igfd
 		return res;
 	}
 
-	std::string ImGuiFileDialog::ComposeNewPath(std::vector<std::string>::iterator vIter)
+	std::string IGFD::FileDialog::ComposeNewPath(std::vector<std::string>::iterator vIter)
 	{
 		std::string res;
 
@@ -2132,7 +2204,7 @@ namespace igfd
 		return res;
 	}
 
-	void ImGuiFileDialog::GetDrives()
+	void IGFD::FileDialog::GetDrives()
 	{
 		auto res = GetDrivesList();
 		if (!res.empty())
@@ -2140,7 +2212,7 @@ namespace igfd
 			m_CurrentPath.clear();
 			m_CurrentPath_Decomposition.clear();
 			m_FileList.clear();
-			for (auto & re : res)
+			for (auto& re : res)
 			{
 				FileInfoStruct infos;
 				infos.fileName = re;
@@ -2153,18 +2225,21 @@ namespace igfd
 				}
 			}
 			m_ShowDrives = true;
-            ApplyFilteringOnFileList();
+			ApplyFilteringOnFileList();
 		}
 	}
 
-	void ImGuiFileDialog::ParseFilters(const char *vFilters)
+	void IGFD::FileDialog::ParseFilters(const char* vFilters)
 	{
 		m_Filters.clear();
 
 		if (vFilters)
-		{
-			std::string fullStr = vFilters;
+			dlg_filters = vFilters;				// file mode
+		else
+			dlg_filters.clear();				// directtory mode
 
+		if (!dlg_filters.empty())
+		{
 			// ".*,.cpp,.h,.hpp"
 			// "Source files{.cpp,.h,.hpp},Image files{.png,.gif,.jpg,.jpeg},.md"
 
@@ -2172,18 +2247,18 @@ namespace igfd
 
 			size_t nan = std::string::npos;
 			size_t p = 0, lp = 0;
-			while ((p = fullStr.find_first_of("{,", p)) != nan)
+			while ((p = dlg_filters.find_first_of("{,", p)) != nan)
 			{
 				FilterInfosStruct infos;
 
-				if (fullStr[p] == '{') // {
+				if (dlg_filters[p] == '{') // {
 				{
-					infos.filter = fullStr.substr(lp, p - lp);
+					infos.filter = dlg_filters.substr(lp, p - lp);
 					p++;
-					lp = fullStr.find('}', p);
+					lp = dlg_filters.find('}', p);
 					if (lp != nan)
 					{
-						std::string fs = fullStr.substr(p, lp - p);
+						std::string fs = dlg_filters.substr(p, lp - p);
 						auto arr = splitStringToVector(fs, ',', false);
 						for (auto a : arr)
 						{
@@ -2194,7 +2269,7 @@ namespace igfd
 				}
 				else // ,
 				{
-					infos.filter = fullStr.substr(lp, p - lp);
+					infos.filter = dlg_filters.substr(lp, p - lp);
 					p++;
 				}
 
@@ -2209,7 +2284,7 @@ namespace igfd
 					m_Filters.emplace_back(infos);
 			}
 
-			std::string token = fullStr.substr(lp);
+			std::string token = dlg_filters.substr(lp);
 			if (!token.empty())
 			{
 				FilterInfosStruct infos;
@@ -2223,7 +2298,7 @@ namespace igfd
 		}
 	}
 
-	void ImGuiFileDialog::SetSelectedFilterWithExt(const std::string& vFilter)
+	void IGFD::FileDialog::SetSelectedFilterWithExt(const std::string& vFilter)
 	{
 		if (!m_Filters.empty())
 		{
@@ -2255,44 +2330,44 @@ namespace igfd
 				m_SelectedFilter = *m_Filters.begin();
 		}
 	}
-	
-	std::string ImGuiFileDialog::OptimizeFilenameForSearchOperations(std::string vFileName)
+
+	std::string IGFD::FileDialog::OptimizeFilenameForSearchOperations(std::string& vFileName)
 	{
 		// convert to lower case
-		for (char & c : vFileName)
+		for (char& c : vFileName)
 			c = (char)std::tolower(c);
 		return vFileName;
 	}
 
-    void ImGuiFileDialog::ApplyFilteringOnFileList()
-    {
-        m_FilteredFileList.clear();
+	void IGFD::FileDialog::ApplyFilteringOnFileList()
+	{
+		m_FilteredFileList.clear();
 
-        for (auto &it : m_FileList)
-        {
-            const FileInfoStruct &infos = it;
+		for (auto& it : m_FileList)
+		{
+			const FileInfoStruct& infos = it;
 
-            bool show = true;
+			bool show = true;
 
-            // if search tag
-            if (!searchTag.empty() &&
-                infos.fileName_optimized.find(searchTag) == std::string::npos && // first try wihtout case and accents
-                infos.fileName.find(searchTag) == std::string::npos) // second if searched with case and accents
-            {
-                show = false;
-            }
+			// if search tag
+			if (!searchTag.empty() &&
+				infos.fileName_optimized.find(searchTag) == std::string::npos && // first try wihtout case and accents
+				infos.fileName.find(searchTag) == std::string::npos) // second if searched with case and accents
+			{
+				show = false;
+			}
 
-            if (!dlg_filters && infos.type != 'd') // directory mode
-            {
-                show = false;
-            }
+			if (dlg_filters.empty() && infos.type != 'd') // directory mode
+			{
+				show = false;
+			}
 
-            if (show)
-            {
-                m_FilteredFileList.push_back(infos);
-            }
-        }
-    }
+			if (show)
+			{
+				m_FilteredFileList.push_back(infos);
+			}
+		}
+	}
 
 #ifdef USE_EXPLORATION_BY_KEYS
 
@@ -2300,16 +2375,11 @@ namespace igfd
 	//// LOCATE / EXPLORE WITH KEYS //////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////////
 
-	static size_t locateFileByInputChar_lastFileIdx = 0;
-	static ImWchar locateFileByInputChar_lastChar = 0;
-	static int locateFileByInputChar_InputQueueCharactersSize = 0;
-	static bool locateFileByInputChar_lastFound = false;
-
-	bool ImGuiFileDialog::LocateItem_Loop(ImWchar vC)
+	bool IGFD::FileDialog::LocateItem_Loop(ImWchar vC)
 	{
 		bool found = false;
 
-		for (size_t i = locateFileByInputChar_lastFileIdx; i < m_FilteredFileList.size(); i++)
+		for (size_t i =m_LocateFileByInputChar_lastFileIdx; i < m_FilteredFileList.size(); i++)
 		{
 			if (m_FilteredFileList[i].fileName_optimized[0] == vC || // lower case search
 				m_FilteredFileList[i].fileName[0] == vC) // maybe upper case search
@@ -2317,15 +2387,15 @@ namespace igfd
 				//float p = ((float)i) * ImGui::GetTextLineHeightWithSpacing();
 				float p = (float)((double)i / (double)m_FilteredFileList.size()) * ImGui::GetScrollMaxY();
 				ImGui::SetScrollY(p);
-				locateFileByInputChar_lastFound = true;
-				locateFileByInputChar_lastFileIdx = i;
-				StartFlashItem(locateFileByInputChar_lastFileIdx);
+				m_LocateFileByInputChar_lastFound = true;
+				m_LocateFileByInputChar_lastFileIdx = i;
+				StartFlashItem(m_LocateFileByInputChar_lastFileIdx);
 
-				auto infos = &m_FilteredFileList[locateFileByInputChar_lastFileIdx];
+				auto infos = &m_FilteredFileList[m_LocateFileByInputChar_lastFileIdx];
 
 				if (infos->type == 'd')
 				{
-					if (!dlg_filters) // directory chooser
+					if (dlg_filters.empty()) // directory chooser
 					{
 						SelectFileName(*infos);
 					}
@@ -2344,150 +2414,150 @@ namespace igfd
 		return found;
 	}
 
-	void ImGuiFileDialog::LocateByInputKey()
+	void IGFD::FileDialog::LocateByInputKey()
 	{
 		ImGuiContext& g = *GImGui;
 		if (!g.ActiveId && !m_FilteredFileList.empty())
 		{
-			auto &queueChar = ImGui::GetIO().InputQueueCharacters;
+			auto& queueChar = ImGui::GetIO().InputQueueCharacters;
 
 			// point by char
 			if (!queueChar.empty())
 			{
 				ImWchar c = queueChar.back();
-				if (locateFileByInputChar_InputQueueCharactersSize != queueChar.size())
+				if (m_LocateFileByInputChar_InputQueueCharactersSize != queueChar.size())
 				{
-					if (c == locateFileByInputChar_lastChar) // next file starting with same char until
+					if (c == m_LocateFileByInputChar_lastChar) // next file starting with same char until
 					{
-						if (locateFileByInputChar_lastFileIdx < m_FilteredFileList.size() - 1)
-							locateFileByInputChar_lastFileIdx++;
+						if (m_LocateFileByInputChar_lastFileIdx < m_FilteredFileList.size() - 1)
+							m_LocateFileByInputChar_lastFileIdx++;
 						else
-							locateFileByInputChar_lastFileIdx = 0;
+							m_LocateFileByInputChar_lastFileIdx = 0;
 					}
 
 					if (!LocateItem_Loop(c))
 					{
 						// not found, loop again from 0 this time
-						locateFileByInputChar_lastFileIdx = 0;
+						m_LocateFileByInputChar_lastFileIdx = 0;
 						LocateItem_Loop(c);
 					}
 
-					locateFileByInputChar_lastChar = c;
+					m_LocateFileByInputChar_lastChar = c;
 				}
 			}
 
-			locateFileByInputChar_InputQueueCharactersSize = queueChar.size();
+			m_LocateFileByInputChar_InputQueueCharactersSize = queueChar.size();
 		}
 	}
 
-	void ImGuiFileDialog::ExploreWithkeys()
+	void IGFD::FileDialog::ExploreWithkeys()
 	{
-        ImGuiContext& g = *GImGui;
-        if (!g.ActiveId && !m_FilteredFileList.empty())
-        {
-            // explore
-            bool exploreByKey = false;
-            bool enterInDirectory = false;
-            bool exitDirectory = false;
-            if (ImGui::IsKeyPressed(IGFD_KEY_UP))
-            {
-                exploreByKey = true;
-                if (locateFileByInputChar_lastFileIdx > 0)
-                    locateFileByInputChar_lastFileIdx--;
-            }
-            else if (ImGui::IsKeyPressed(IGFD_KEY_DOWN))
-            {
-                exploreByKey = true;
-                if (locateFileByInputChar_lastFileIdx < m_FilteredFileList.size() - 1)
-                    locateFileByInputChar_lastFileIdx++;
-            }
-            else if (ImGui::IsKeyReleased(IGFD_KEY_ENTER) && ImGui::IsWindowHovered())
-            {
-                exploreByKey = true;
-                enterInDirectory = true;
-            }
-            else if (ImGui::IsKeyReleased(IGFD_KEY_BACKSPACE) && ImGui::IsWindowHovered())
-            {
-                exploreByKey = true;
-                exitDirectory = true;
-            }
+		ImGuiContext& g = *GImGui;
+		if (!g.ActiveId && !m_FilteredFileList.empty())
+		{
+			// explore
+			bool exploreByKey = false;
+			bool enterInDirectory = false;
+			bool exitDirectory = false;
+			if (ImGui::IsKeyPressed(IGFD_KEY_UP))
+			{
+				exploreByKey = true;
+				if (m_LocateFileByInputChar_lastFileIdx > 0)
+					m_LocateFileByInputChar_lastFileIdx--;
+			}
+			else if (ImGui::IsKeyPressed(IGFD_KEY_DOWN))
+			{
+				exploreByKey = true;
+				if (m_LocateFileByInputChar_lastFileIdx < m_FilteredFileList.size() - 1)
+					m_LocateFileByInputChar_lastFileIdx++;
+			}
+			else if (ImGui::IsKeyReleased(IGFD_KEY_ENTER) && ImGui::IsWindowHovered())
+			{
+				exploreByKey = true;
+				enterInDirectory = true;
+			}
+			else if (ImGui::IsKeyReleased(IGFD_KEY_BACKSPACE) && ImGui::IsWindowHovered())
+			{
+				exploreByKey = true;
+				exitDirectory = true;
+			}
 
-            if (exploreByKey)
-            {
+			if (exploreByKey)
+			{
 				//float totalHeight = m_FilteredFileList.size() * ImGui::GetTextLineHeightWithSpacing();
-				float p = (float)((double)locateFileByInputChar_lastFileIdx / (double)m_FilteredFileList.size()) * ImGui::GetScrollMaxY();// seems not udpated in tables version outside tables
+				float p = (float)((double)m_LocateFileByInputChar_lastFileIdx / (double)m_FilteredFileList.size()) * ImGui::GetScrollMaxY();// seems not udpated in tables version outside tables
 				//float p = ((float)locateFileByInputChar_lastFileIdx) * ImGui::GetTextLineHeightWithSpacing();
 				ImGui::SetScrollY(p);
-                StartFlashItem(locateFileByInputChar_lastFileIdx);
-				
-                auto infos = &m_FilteredFileList[locateFileByInputChar_lastFileIdx];
+				StartFlashItem(m_LocateFileByInputChar_lastFileIdx);
 
-                if (infos->type == 'd')
-                {
-                    if (dlg_filters || enterInDirectory)
-                    {
-                        if (enterInDirectory)
-                        {
-                            if (SelectDirectory(*infos))
-                            {
-                                // changement de repertoire
-                                SetPath(m_CurrentPath);
-                                if (locateFileByInputChar_lastFileIdx > m_FilteredFileList.size() - 1)
-                                {
-                                    locateFileByInputChar_lastFileIdx = 0;
-                                }
-                            }
-                        }
-                    }
-                    else // directory chooser
-                    {
-                        SelectFileName(*infos);
-                    }
-                }
-                else
-                {
-                    SelectFileName(*infos);
-                }
+				auto infos = &m_FilteredFileList[m_LocateFileByInputChar_lastFileIdx];
 
-                if (exitDirectory)
-                {
-                    FileInfoStruct nfo;
-                    nfo.fileName = "..";
+				if (infos->type == 'd')
+				{
+					if (!dlg_filters.empty() || enterInDirectory)
+					{
+						if (enterInDirectory)
+						{
+							if (SelectDirectory(*infos))
+							{
+								// changement de repertoire
+								SetPath(m_CurrentPath);
+								if (m_LocateFileByInputChar_lastFileIdx > m_FilteredFileList.size() - 1)
+								{
+									m_LocateFileByInputChar_lastFileIdx = 0;
+								}
+							}
+						}
+					}
+					else // directory chooser
+					{
+						SelectFileName(*infos);
+					}
+				}
+				else
+				{
+					SelectFileName(*infos);
+				}
 
-                    if (SelectDirectory(nfo))
-                    {
-                        // changement de repertoire
-                        SetPath(m_CurrentPath);
-                        if (locateFileByInputChar_lastFileIdx > m_FilteredFileList.size() - 1)
-                        {
-                            locateFileByInputChar_lastFileIdx = 0;
-                        }
-                    }
+				if (exitDirectory)
+				{
+					FileInfoStruct nfo;
+					nfo.fileName = "..";
+
+					if (SelectDirectory(nfo))
+					{
+						// changement de repertoire
+						SetPath(m_CurrentPath);
+						if (m_LocateFileByInputChar_lastFileIdx > m_FilteredFileList.size() - 1)
+						{
+							m_LocateFileByInputChar_lastFileIdx = 0;
+						}
+					}
 #ifdef WIN32
-                    else
-                    {
-                        if (m_CurrentPath_Decomposition.size() == 1)
-                        {
-                            GetDrives(); // display drives
-                        }
-                    }
+					else
+					{
+						if (m_CurrentPath_Decomposition.size() == 1)
+						{
+							GetDrives(); // display drives
+						}
+					}
 #endif
-                }
-            }
-        }
+				}
+			}
+		}
 	}
 
-	void ImGuiFileDialog::StartFlashItem(size_t vIdx)
+	void IGFD::FileDialog::StartFlashItem(size_t vIdx)
 	{
 		m_FlashAlpha = 1.0f;
 		m_FlashedItem = vIdx;
 	}
 
-	bool ImGuiFileDialog::BeginFlashItem(size_t vIdx)
+	bool IGFD::FileDialog::BeginFlashItem(size_t vIdx)
 	{
 		bool res = false;
 
-		if (m_FlashedItem == vIdx && 
+		if (m_FlashedItem == vIdx &&
 			std::abs(m_FlashAlpha - 0.0f) > 0.00001f)
 		{
 			m_FlashAlpha -= m_FlashAlphaAttenInSecs * ImGui::GetIO().DeltaTime;
@@ -2502,14 +2572,14 @@ namespace igfd
 		return res;
 	}
 
-	void ImGuiFileDialog::EndFlashItem()
+	void IGFD::FileDialog::EndFlashItem()
 	{
 		ImGui::PopStyleColor();
 	}
 
-	void ImGuiFileDialog::SetFlashingAttenuationInSeconds(float vAttenValue)
+	void IGFD::FileDialog::SetFlashingAttenuationInSeconds(float vAttenValue)
 	{
-		m_FlashAlphaAttenInSecs = 1.0f / ImMax(vAttenValue,0.01f);
+		m_FlashAlphaAttenInSecs = 1.0f / ImMax(vAttenValue, 0.01f);
 	}
 #endif
 
@@ -2518,13 +2588,13 @@ namespace igfd
 	//////////////////////////////////////////////////////////////////////////////
 	//// BOOKMARK FEATURE ////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////////
-	
-	void ImGuiFileDialog::DrawBookmarkPane(ImVec2 vSize)
+
+	void IGFD::FileDialog::DrawBookmarkPane(ImVec2 vSize)
 	{
 		ImGui::BeginChild("##bookmarkpane", vSize);
-		
+
 		static int selectedBookmarkForEdition = -1;
-		
+
 		if (IMGUI_BUTTON(addBookmarkButtonString "##ImGuiFileDialogAddBookmark"))
 		{
 			if (!m_CurrentPath_Decomposition.empty())
@@ -2563,46 +2633,46 @@ namespace igfd
 		ImGui::Separator();
 
 		if (!m_Bookmarks.empty())
-        {
-            m_BookmarkClipper.Begin((int) m_Bookmarks.size(), ImGui::GetTextLineHeightWithSpacing());
-            while (m_BookmarkClipper.Step())
-            {
-                for (int i = m_BookmarkClipper.DisplayStart; i < m_BookmarkClipper.DisplayEnd; i++)
-                {
-                    if (i < 0) continue;
-                    const BookmarkStruct &bookmark = m_Bookmarks[i];
-                    ImGui::PushID(i);
-                    if (ImGui::Selectable(bookmark.name.c_str(), selectedBookmarkForEdition == i,
-                                          ImGuiSelectableFlags_AllowDoubleClick) |
-                        (selectedBookmarkForEdition == -1 &&
-                         bookmark.path == m_CurrentPath)) // select if path is current
-                    {
-                        selectedBookmarkForEdition = i;
-                        ResetBuffer(BookmarkEditBuffer);
-                        AppendToBuffer(BookmarkEditBuffer, MAX_FILE_DIALOG_NAME_BUFFER, bookmark.name);
+		{
+			m_BookmarkClipper.Begin((int)m_Bookmarks.size(), ImGui::GetTextLineHeightWithSpacing());
+			while (m_BookmarkClipper.Step())
+			{
+				for (int i = m_BookmarkClipper.DisplayStart; i < m_BookmarkClipper.DisplayEnd; i++)
+				{
+					if (i < 0) continue;
+					const BookmarkStruct& bookmark = m_Bookmarks[i];
+					ImGui::PushID(i);
+					if (ImGui::Selectable(bookmark.name.c_str(), selectedBookmarkForEdition == i,
+						ImGuiSelectableFlags_AllowDoubleClick) |
+						(selectedBookmarkForEdition == -1 &&
+							bookmark.path == m_CurrentPath)) // select if path is current
+					{
+						selectedBookmarkForEdition = i;
+						ResetBuffer(BookmarkEditBuffer);
+						AppendToBuffer(BookmarkEditBuffer, MAX_FILE_DIALOG_NAME_BUFFER, bookmark.name);
 
-                        if (ImGui::IsMouseDoubleClicked(0)) // apply path
-                        {
-                            SetPath(bookmark.path);
-                        }
-                    }
-                    ImGui::PopID();
-                    if (ImGui::IsItemHovered())
-                        ImGui::SetTooltip("%s", bookmark.path.c_str());
-                }
-            }
-            m_BookmarkClipper.End();
-        }
+						if (ImGui::IsMouseDoubleClicked(0)) // apply path
+						{
+							SetPath(bookmark.path);
+						}
+					}
+					ImGui::PopID();
+					if (ImGui::IsItemHovered())
+						ImGui::SetTooltip("%s", bookmark.path.c_str());
+				}
+			}
+			m_BookmarkClipper.End();
+		}
 
 		ImGui::EndChild();
 	}
 
-	std::string ImGuiFileDialog::SerializeBookmarks()
+	std::string IGFD::FileDialog::SerializeBookmarks()
 	{
 		std::string res;
 
 		size_t idx = 0;
-		for (auto & it : m_Bookmarks)
+		for (auto& it : m_Bookmarks)
 		{
 			if (idx++ != 0)
 				res += "##"; // ## because reserved by imgui, so an input text cant have ##
@@ -2612,7 +2682,7 @@ namespace igfd
 		return res;
 	}
 
-	void ImGuiFileDialog::DeserializeBookmarks(const std::string& vBookmarks)
+	void IGFD::FileDialog::DeserializeBookmarks(const std::string& vBookmarks)
 	{
 		if (!vBookmarks.empty())
 		{
@@ -2637,27 +2707,27 @@ namespace igfd
 	//// OVERWRITE DIALOG ////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////////
 
-	bool ImGuiFileDialog::Confirm_Or_OpenOverWriteFileDialog_IfNeeded(bool vLastAction, ImGuiWindowFlags vFlags)
+	bool IGFD::FileDialog::Confirm_Or_OpenOverWriteFileDialog_IfNeeded(bool vLastAction, ImGuiWindowFlags vFlags)
 	{
 		// if confirmation => return true for confirm the overwrite et quit the dialog
 		// if cancel => return false && set IsOk to false for keep inside the dialog
 
 		// if IsOk == false => return false for quit the dialog
-		if (!IsOk && vLastAction)
+		if (!m_IsOk && vLastAction)
 		{
 			return true;
 		}
 
 		// if IsOk == true && no check of overwrite => return true for confirm the dialog
-		if (IsOk && vLastAction && !(dlg_flags & ImGuiFileDialogFlags_ConfirmOverwrite))
+		if (m_IsOk && vLastAction && !(dlg_flags & ImGuiFileDialogFlags_ConfirmOverwrite))
 		{
 			return true;
 		}
 
 		// if IsOk == true && check of overwrite => return false and show confirm to overwrite dialog
-		if ((m_OkResultToConfirm || (IsOk && vLastAction)) && (dlg_flags & ImGuiFileDialogFlags_ConfirmOverwrite))
+		if ((m_OkResultToConfirm || (m_IsOk && vLastAction)) && (dlg_flags & ImGuiFileDialogFlags_ConfirmOverwrite))
 		{
-			if (IsOk) // catched only one time
+			if (m_IsOk) // catched only one time
 			{
 				if (!IsFileExist(GetFilePathName())) // not existing => quit dialog
 				{
@@ -2665,18 +2735,18 @@ namespace igfd
 				}
 				else // existing => confirm dialog to open
 				{
-					IsOk = false;
+					m_IsOk = false;
 					m_OkResultToConfirm = true;
 				}
 			}
 
-			std::string name = OverWriteDialogTitleString "##" + dlg_name + dlg_key + "OverWriteDialog";
+			std::string name = OverWriteDialogTitleString "##" + dlg_title + dlg_key + "OverWriteDialog";
 
 			bool res = false;
 
 			ImGui::OpenPopup(name.c_str());
 			if (ImGui::BeginPopupModal(name.c_str(), (bool*)0,
-				vFlags | ImGuiWindowFlags_AlwaysAutoResize | 
+				vFlags | ImGuiWindowFlags_AlwaysAutoResize |
 				ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
 			{
 				ImGui::SetWindowPos(m_DialogCenterPos - ImGui::GetWindowSize() * 0.5f); // next frame needed for GetWindowSize to work
@@ -2686,7 +2756,7 @@ namespace igfd
 				if (IMGUI_BUTTON(OverWriteDialogConfirmButtonString))
 				{
 					m_OkResultToConfirm = false;
-					IsOk = true;
+					m_IsOk = true;
 					res = true;
 					ImGui::CloseCurrentPopup();
 				}
@@ -2696,7 +2766,7 @@ namespace igfd
 				if (IMGUI_BUTTON(OverWriteDialogCancelButtonString))
 				{
 					m_OkResultToConfirm = false;
-					IsOk = false;
+					m_IsOk = false;
 					res = false;
 					ImGui::CloseCurrentPopup();
 				}
@@ -2711,7 +2781,7 @@ namespace igfd
 		return false;
 	}
 
-	bool ImGuiFileDialog::IsFileExist(const std::string& vFile)
+	bool IGFD::FileDialog::IsFileExist(const std::string& vFile)
 	{
 		std::ifstream docFile(vFile, std::ios::in);
 		if (docFile.is_open())
@@ -2723,381 +2793,519 @@ namespace igfd
 	}
 }
 
-namespace igfd
+#endif // __cplusplus
+
+/////////////////////////////////////////////////////////////////
+///// C Interface ///////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
+
+// Return an initialized IGFD_Selection_Pair
+IMGUIFILEDIALOG_API IGFD_Selection_Pair IGFD_Selection_Pair_Get(void)
 {
-static bool canValidateDialog = false;
-
-inline void InfosPane(std::string vFilter, igfd::UserDatas vUserDatas, bool *vCantContinue) // if vCantContinue is false, the user cant validate the dialog
-{
-	ImGui::TextColored(ImVec4(0, 1, 1, 1), "Infos Pane");
-	
-	ImGui::Text("Selected Filter : %s", vFilter.c_str());
-
-	const char* userDatas = (const char*)vUserDatas;
-	if (userDatas)
-        ImGui::Text("User Datas : %s", userDatas);
-
-	ImGui::Checkbox("if not checked you cant validate the dialog", &canValidateDialog);
-
-	if (vCantContinue)
-	    *vCantContinue = canValidateDialog;
+	IGFD_Selection_Pair res;
+	res.fileName = 0;
+	res.filePathName = 0;
+	return res;
 }
 
-inline bool RadioButtonLabeled(const char* label, bool active, bool disabled)
+// destroy only the content of vSelection_Pair
+IMGUIFILEDIALOG_API void IGFD_Selection_Pair_DestroyContent(IGFD_Selection_Pair* vSelection_Pair)
 {
-	using namespace ImGui;
-
-	ImGuiWindow* window = GetCurrentWindow();
-	if (window->SkipItems)
-		return false;
-
-	ImGuiContext& g = *GImGui;
-	const ImGuiStyle& style = g.Style;
-	float w = CalcItemWidth();
-	if (w == window->ItemWidthDefault)	w = 0.0f; // no push item width
-	const ImGuiID id = window->GetID(label);
-	const ImVec2 label_size = CalcTextSize(label, nullptr, true);
-	ImVec2 bb_size = ImVec2(style.FramePadding.x * 2 - 1, style.FramePadding.y * 2 - 1) + label_size;
-	bb_size.x = ImMax(w, bb_size.x);
-
-	const ImRect check_bb(
-		window->DC.CursorPos,
-		window->DC.CursorPos + bb_size);
-	ItemSize(check_bb, style.FramePadding.y);
-
-	if (!ItemAdd(check_bb, id))
-		return false;
-
-	// check
-	bool pressed = false;
-	if (!disabled)
+	if (vSelection_Pair)
 	{
-		bool hovered, held;
-		pressed = ButtonBehavior(check_bb, id, &hovered, &held);
+		if (vSelection_Pair->fileName)
+			delete[] vSelection_Pair->fileName;
+		if (vSelection_Pair->filePathName)
+			delete[] vSelection_Pair->filePathName;
+	}
+}
 
-		window->DrawList->AddRectFilled(check_bb.Min, check_bb.Max, GetColorU32((held && hovered) ? ImGuiCol_FrameBgActive : hovered ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg), style.FrameRounding);
-		if (active)
+// Return an initialized IGFD_Selection
+IMGUIFILEDIALOG_API IGFD_Selection IGFD_Selection_Get(void)
+{
+	return { 0, 0U };
+}
+
+// destroy only the content of vSelection
+IMGUIFILEDIALOG_API void IGFD_Selection_DestroyContent(IGFD_Selection* vSelection)
+{
+	if (vSelection)
+	{
+		if (vSelection->table)
 		{
-			const ImU32 col = GetColorU32((hovered && held) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
-			window->DrawList->AddRectFilled(check_bb.Min, check_bb.Max, col, style.FrameRounding);
+			for (size_t i = 0U; i < vSelection->count; i++)
+			{
+				IGFD_Selection_Pair_DestroyContent(&vSelection->table[i]);
+			}
+			delete[] vSelection->table;
+		}
+		vSelection->count = 0U;
+	}
+}
+
+// create an instance of ImGuiFileDialog
+IMGUIFILEDIALOG_API ImGuiFileDialog* IGFD_Create(void)
+{
+	return new ImGuiFileDialog();
+}
+
+// destroy the instance of ImGuiFileDialog
+IMGUIFILEDIALOG_API void IGFD_Destroy(ImGuiFileDialog* vContext)
+{
+	if (vContext)
+	{
+		delete vContext;
+		vContext = nullptr;
+	}
+}
+
+// standard dialog
+IMGUIFILEDIALOG_API void IGFD_OpenDialog(
+	ImGuiFileDialog* vContext,
+	const char* vKey, 
+	const char* vTitle, 
+	const char* vFilters, 
+	const char* vPath,
+	const char* vFileName, 
+	const int vCountSelectionMax, 
+	void* vUserDatas, 
+	ImGuiFileDialogFlags flags)
+{
+	if (vContext)
+	{
+		vContext->OpenDialog(
+			vKey, vTitle, vFilters, vPath, vFileName,
+			vCountSelectionMax, vUserDatas, flags);
+	}
+}
+
+IMGUIFILEDIALOG_API void IGFD_OpenDialog2(
+	ImGuiFileDialog* vContext,
+	const char* vKey, 
+	const char* vTitle, 
+	const char* vFilters, 
+	const char* vFilePathName,
+	const int vCountSelectionMax, 
+	void* vUserDatas, 
+	ImGuiFileDialogFlags flags)
+{
+	if (vContext)
+	{
+		vContext->OpenDialog(
+			vKey, vTitle, vFilters, vFilePathName,
+			vCountSelectionMax, vUserDatas, flags);
+	}
+}
+
+IMGUIFILEDIALOG_API void IGFD_OpenPaneDialog(
+	ImGuiFileDialog* vContext,
+	const char* vKey, 
+	const char* vTitle, 
+	const char* vFilters, 
+	const char* vPath,
+	const char* vFileName, 
+	IGFD_PaneFun vSidePane, 
+	const float vSidePaneWidth,
+	const int vCountSelectionMax, 
+	void* vUserDatas, 
+	ImGuiFileDialogFlags flags)
+{
+	if (vContext)
+	{
+		vContext->OpenDialog(
+			vKey, vTitle, vFilters, 
+			vPath, vFileName,
+			vSidePane, vSidePaneWidth,
+			vCountSelectionMax, vUserDatas, flags);
+	}
+}
+
+IMGUIFILEDIALOG_API void IGFD_OpenPaneDialog2(
+	ImGuiFileDialog* vContext,
+	const char* vKey, 
+	const char* vTitle, 
+	const char* vFilters, 
+	const char* vFilePathName, 
+	IGFD_PaneFun vSidePane, 
+	const float vSidePaneWidth,
+	const int vCountSelectionMax, 
+	void* vUserDatas, 
+	ImGuiFileDialogFlags flags)
+{
+	if (vContext)
+	{
+		vContext->OpenDialog(
+			vKey, vTitle, vFilters, 
+			vFilePathName,
+			vSidePane, vSidePaneWidth,
+			vCountSelectionMax, vUserDatas, flags);
+	}
+}
+
+// modal dialog
+IMGUIFILEDIALOG_API void IGFD_OpenModal(
+	ImGuiFileDialog* vContext,
+	const char* vKey,
+	const char* vTitle,
+	const char* vFilters,
+	const char* vPath,
+	const char* vFileName,
+	const int vCountSelectionMax,
+	void* vUserDatas,
+	ImGuiFileDialogFlags flags)
+{
+	if (vContext)
+	{
+		vContext->OpenModal(
+			vKey, vTitle, vFilters, vPath, vFileName,
+			vCountSelectionMax, vUserDatas, flags);
+	}
+}
+
+IMGUIFILEDIALOG_API void IGFD_OpenModal2(
+	ImGuiFileDialog* vContext,
+	const char* vKey,
+	const char* vTitle,
+	const char* vFilters,
+	const char* vFilePathName,
+	const int vCountSelectionMax,
+	void* vUserDatas,
+	ImGuiFileDialogFlags flags)
+{
+	if (vContext)
+	{
+		vContext->OpenModal(
+			vKey, vTitle, vFilters, vFilePathName,
+			vCountSelectionMax, vUserDatas, flags);
+	}
+}
+
+IMGUIFILEDIALOG_API void IGFD_OpenPaneModal(
+	ImGuiFileDialog* vContext,
+	const char* vKey,
+	const char* vTitle,
+	const char* vFilters,
+	const char* vPath,
+	const char* vFileName,
+	IGFD_PaneFun vSidePane,
+	const float vSidePaneWidth,
+	const int vCountSelectionMax,
+	void* vUserDatas,
+	ImGuiFileDialogFlags flags)
+{
+	if (vContext)
+	{
+		vContext->OpenModal(
+			vKey, vTitle, vFilters,
+			vPath, vFileName,
+			vSidePane, vSidePaneWidth,
+			vCountSelectionMax, vUserDatas, flags);
+	}
+}
+
+IMGUIFILEDIALOG_API void IGFD_OpenPaneModal2(
+	ImGuiFileDialog* vContext,
+	const char* vKey,
+	const char* vTitle,
+	const char* vFilters,
+	const char* vFilePathName,
+	IGFD_PaneFun vSidePane,
+	const float vSidePaneWidth,
+	const int vCountSelectionMax,
+	void* vUserDatas,
+	ImGuiFileDialogFlags flags)
+{
+	if (vContext)
+	{
+		vContext->OpenDialog(
+			vKey, vTitle, vFilters,
+			vFilePathName,
+			vSidePane, vSidePaneWidth,
+			vCountSelectionMax, vUserDatas, flags);
+	}
+}
+
+IMGUIFILEDIALOG_API bool IGFD_DisplayDialog(ImGuiFileDialog* vContext, 
+	const char* vKey, ImGuiWindowFlags vFlags, ImVec2 vMinSize, ImVec2 vMaxSize)
+{
+	if (vContext)
+	{
+		return vContext->Display(vKey, vFlags, vMinSize, vMaxSize);
+	}
+
+	return false;
+}
+
+IMGUIFILEDIALOG_API void IGFD_CloseDialog(ImGuiFileDialog* vContext)
+{
+	if (vContext)
+	{
+		vContext->Close();
+	}
+}
+
+IMGUIFILEDIALOG_API bool IGFD_IsOk(ImGuiFileDialog* vContext)
+{
+	if (vContext)
+	{
+		return vContext->IsOk();
+	}
+
+	return false;
+}
+
+IMGUIFILEDIALOG_API bool IGFD_WasKeyOpenedThisFrame(ImGuiFileDialog* vContext, 
+	const char* vKey)
+{
+	if (vContext)
+	{
+		vContext->WasOpenedThisFrame(vKey);
+	}
+
+	return false;
+}
+
+IMGUIFILEDIALOG_API bool IGFD_WasOpenedThisFrame(ImGuiFileDialog* vContext)
+{
+	if (vContext)
+	{
+		vContext->WasOpenedThisFrame();
+	}
+
+	return false;
+}
+
+IMGUIFILEDIALOG_API bool IGFD_IsKeyOpened(ImGuiFileDialog* vContext, 
+	const char* vCurrentOpenedKey)
+{
+	if (vContext)
+	{
+		vContext->IsOpened(vCurrentOpenedKey);
+	}
+
+	return false;
+}
+
+IMGUIFILEDIALOG_API bool IGFD_IsOpened(ImGuiFileDialog* vContext)
+{
+	if (vContext)
+	{
+		vContext->IsOpened();
+	}
+
+	return false;
+}
+
+IMGUIFILEDIALOG_API IGFD_Selection IGFD_GetSelection(ImGuiFileDialog* vContext)
+{
+	IGFD_Selection res = IGFD_Selection_Get();
+
+	if (vContext)
+	{
+		auto sel = vContext->GetSelection();
+		if (!sel.empty())
+		{
+			res.count = sel.size();
+			res.table = new IGFD_Selection_Pair[res.count];
+
+			size_t idx = 0U;
+			for (auto s : sel)
+			{
+				IGFD_Selection_Pair* pair = res.table + idx++;
+
+				// fileName
+				if (!s.first.empty())
+				{
+					size_t siz = s.first.size() + 1U;
+					pair->fileName = new char[siz];
+					strncpy(pair->fileName, s.first.c_str(), siz); // no need to use strncpy_s for MSVC here
+					pair->fileName[siz - 1U] = '\0';
+				}
+
+				// filePathName
+				if (!s.second.empty())
+				{
+					size_t siz = s.first.size() + 1U;
+					pair->filePathName = new char[siz];
+					strncpy(pair->filePathName, s.first.c_str(), siz); // no need to use strncpy_s for MSVC here
+					pair->filePathName[siz - 1U] = '\0';
+				}
+			}
+
+			return res;
 		}
 	}
 
-	// circle shadow + bg
-	if (style.FrameBorderSize > 0.0f)
-	{
-		window->DrawList->AddRect(check_bb.Min + ImVec2(1, 1), check_bb.Max, GetColorU32(ImGuiCol_BorderShadow), style.FrameRounding);
-		window->DrawList->AddRect(check_bb.Min, check_bb.Max, GetColorU32(ImGuiCol_Border), style.FrameRounding);
-	}
-
-	if (label_size.x > 0.0f)
-	{
-		RenderText(check_bb.GetCenter() - label_size * 0.5f, label);
-	}
-
-	return pressed;
+	return res;
 }
 
-void prepare_file_dialog_demo_window(ImGuiFileDialog * dlg)
+IMGUIFILEDIALOG_API char* IGFD_GetFilePathName(ImGuiFileDialog* vContext)
 {
-#ifdef IMGUI_INTERNAL_ICONS
-	dlg->SetTypeInfos(std::to_string('f'), ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FK_FILE_O);
-	dlg->SetTypeInfos(std::to_string('d'), ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FK_FOLDER);
-	dlg->SetTypeInfos(std::to_string('l'), ImVec4(0.5f, 0.5f, 1.0f, 0.9f), ICON_FK_EXTERNAL_LINK);
-	dlg->SetExtentionInfos(".txt", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_TEXT_O);
-	dlg->SetExtentionInfos(".cpp", ImVec4(1.0f, 1.0f, 0.0f, 0.9f), ICON_FA5_FILE_CODE);
-	dlg->SetExtentionInfos(".h", ImVec4(0.0f, 1.0f, 0.0f, 0.9f), ICON_FA5_FILE_CODE);
-	dlg->SetExtentionInfos(".hpp", ImVec4(0.0f, 0.0f, 1.0f, 0.9f), ICON_FA5_FILE_CODE);
-	dlg->SetExtentionInfos(".md", ImVec4(1.0f, 0.0f, 1.0f, 0.9f), ICON_FK_MARKDOWN);
-	dlg->SetExtentionInfos(".png", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
-	dlg->SetExtentionInfos(".bmp", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
-	dlg->SetExtentionInfos(".jpg", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
-	dlg->SetExtentionInfos(".jpeg", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
-	dlg->SetExtentionInfos(".mp4", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
-	dlg->SetExtentionInfos(".mkv", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
-	dlg->SetExtentionInfos(".webm", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
-	dlg->SetExtentionInfos(".ttf", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FK_FONT);
-	dlg->SetExtentionInfos(".doc", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_WORD);
-	dlg->SetExtentionInfos(".docx", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_WORD);
-	dlg->SetExtentionInfos(".ppt", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_POWERPOINT);
-	dlg->SetExtentionInfos(".pptx", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_POWERPOINT);
-	dlg->SetExtentionInfos(".xls", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_EXCEL);
-	dlg->SetExtentionInfos(".xlsx", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_EXCEL);
-	dlg->SetExtentionInfos(".pdf", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_PDF);
-#endif
-	dlg->SetExtentionInfos(".gif", ImVec4(0.0f, 1.0f, 0.5f, 0.9f), "[GIF]"); // add an text for a filter type
+	char* res = 0;
 
-#ifdef USE_BOOKMARK
-	// load bookmarks
-	std::ifstream docFile("bookmarks.cfg", std::ios::in);
-	if (docFile.is_open())
+	if (vContext)
 	{
-		std::stringstream strStream;
-		strStream << docFile.rdbuf();//read the file
-		dlg->DeserializeBookmarks(strStream.str());
-		docFile.close();
+		auto s = vContext->GetFilePathName();
+		if (!s.empty())
+		{
+			size_t siz = s.size() + 1U;
+			res = new char[siz];
+			strncpy(res, s.c_str(), siz); // no need to use strncpy_s for MSVC here
+			res[siz - 1U] = '\0';
+		}
 	}
-#endif
+
+	return res;
 }
 
-void end_file_dialog_demo_window(ImGuiFileDialog * dlg)
+IMGUIFILEDIALOG_API char* IGFD_GetCurrentFileName(ImGuiFileDialog* vContext)
 {
-#ifdef USE_BOOKMARK
-	// save bookmarks
-	std::ofstream configFileWriter("bookmarks.cfg", std::ios::out);
-	if (!configFileWriter.bad())
+	char* res = 0;
+
+	if (vContext)
 	{
-		configFileWriter << dlg->SerializeBookmarks();
-		configFileWriter.close();
+		auto s = vContext->GetCurrentFileName();
+		if (!s.empty())
+		{
+			size_t siz = s.size() + 1U;
+			res = new char[siz];
+			strncpy(res, s.c_str(), siz); // no need to use strncpy_s for MSVC here
+			res[siz - 1U] = '\0';
+		}
 	}
-#endif
+
+	return res;
 }
 
-void show_file_dialog_demo_window(ImGuiFileDialog * dlg, bool * open)
+IMGUIFILEDIALOG_API char* IGFD_GetCurrentPath(ImGuiFileDialog* vContext)
 {
-	ImGui::Begin("imGuiFileDialog Demo", open); 
-	ImGui::Text("imGuiFileDialog Version : %s", IMGUIFILEDIALOG_VERSION);
-	ImGui::Indent();
+	char* res = 0;
+
+	if (vContext)
 	{
+		auto s = vContext->GetCurrentPath();
+		if (!s.empty())
+		{
+			size_t siz = s.size() + 1U;
+			res = new char[siz];
+			strncpy(res, s.c_str(), siz); // no need to use strncpy_s for MSVC here
+			res[siz - 1U] = '\0';
+		}
+	}
+
+	return res;
+}
+
+IMGUIFILEDIALOG_API char* IGFD_GetCurrentFilter(ImGuiFileDialog* vContext)
+{
+	char* res = 0;
+
+	if (vContext)
+	{
+		auto s = vContext->GetCurrentFilter();
+		if (!s.empty())
+		{
+			size_t siz = s.size() + 1U;
+			res = new char[siz];
+			strncpy(res, s.c_str(), siz); // no need to use strncpy_s for MSVC here
+			res[siz - 1U] = '\0';
+		}
+	}
+
+	return res;
+}
+
+IMGUIFILEDIALOG_API void* IGFD_GetUserDatas(ImGuiFileDialog* vContext)
+{
+	if (vContext)
+	{
+		return vContext->GetUserDatas();
+	}
+
+	return nullptr;
+}
+
+IMGUIFILEDIALOG_API void IGFD_SetExtentionInfos(ImGuiFileDialog* vContext,
+	const char* vFilter, ImVec4 vColor, const char* vIcon)
+{
+	if (vContext)
+	{
+		vContext->SetExtentionInfos(vFilter, vColor, vIcon);
+	}
+}
+
+IMGUIFILEDIALOG_API void IGFD_SetExtentionInfos2(ImGuiFileDialog* vContext,
+	const char* vFilter, float vR, float vG, float vB, float vA, const char* vIcon)
+{
+	if (vContext)
+	{
+		vContext->SetExtentionInfos(vFilter, ImVec4(vR, vG, vB, vA), vIcon);
+	}
+}
+
+IMGUIFILEDIALOG_API bool IGFD_GetExtentionInfos(ImGuiFileDialog* vContext,
+	const char* vFilter, ImVec4* vOutColor, char** vOutIcon)
+{
+	if (vContext)
+	{
+		std::string icon;
+		bool res = vContext->GetExtentionInfos(vFilter, vOutColor, &icon);
+		if (!icon.empty() && vOutIcon)
+		{
+			size_t siz = icon.size() + 1U;
+			*vOutIcon = new char[siz];
+			strncpy(*vOutIcon, icon.c_str(), siz); // no need to use strncpy_s for MSVC here
+			*vOutIcon[siz - 1U] = '\0';
+		}
+		return res;
+	}
+
+	return false;
+}
+
+IMGUIFILEDIALOG_API void IGFD_ClearExtentionInfos(ImGuiFileDialog* vContext)
+{
+	if (vContext)
+	{
+		vContext->ClearExtentionInfos();
+	}
+}
+
 #ifdef USE_EXPLORATION_BY_KEYS
-		static float flashingAttenuationInSeconds = 1.0f;
-		if (ImGui::Button("R##resetflashlifetime"))
-		{
-			flashingAttenuationInSeconds = 1.0f;
-			dlg->SetFlashingAttenuationInSeconds(flashingAttenuationInSeconds);
-		}
-		ImGui::SameLine();
-		ImGui::PushItemWidth(200);
-		if (ImGui::SliderFloat("Flash lifetime (s)", &flashingAttenuationInSeconds, 0.01f, 5.0f))
-			dlg->SetFlashingAttenuationInSeconds(flashingAttenuationInSeconds);
-		ImGui::PopItemWidth();
-#endif
-		static bool _UseWindowContraints = true;
-		ImGui::Separator();
-		ImGui::Checkbox("Use file dialog constraint", &_UseWindowContraints);
-		ImGui::Text("Constraints is used here for define min/max file dialog size");
-		ImGui::Separator();
-		static bool standardDialogMode = false;
-		ImGui::Text("Open Mode : ");
-		ImGui::SameLine();
-		if (RadioButtonLabeled("Standard", standardDialogMode, false)) standardDialogMode = true;
-		ImGui::SameLine();
-		if (RadioButtonLabeled("Modal", !standardDialogMode, false)) standardDialogMode = false;
-
-		if (ImGui::Button(ICON_IGFD_FOLDER_OPEN " Open File Dialog"))
-		{
-			const char *filters = ".*,.cpp,.h,.hpp";
-			if (standardDialogMode)
-				dlg->OpenDialog("ChooseFileDlgKey", 
-					ICON_IGFD_FOLDER_OPEN " Choose a File", filters, ".");
-			else
-				dlg->OpenModal("ChooseFileDlgKey", 
-					ICON_IGFD_FOLDER_OPEN " Choose a File", filters, ".");
-		}
-		if (ImGui::Button(ICON_IGFD_FOLDER_OPEN " Open File Dialog with collections of filters"))
-		{
-			const char *filters = "Source files (*.cpp *.h *.hpp){.cpp,.h,.hpp},Image files (*.png *.gif *.jpg *.jpeg){.png,.gif,.jpg,.jpeg},.md";
-			if (standardDialogMode)
-				dlg->OpenDialog("ChooseFileDlgKey",
-					ICON_IGFD_FOLDER_OPEN " Choose a File", filters, ".");
-			else
-				dlg->OpenModal("ChooseFileDlgKey",
-					ICON_IGFD_FOLDER_OPEN " Choose a File", filters, ".");
-		}
-		if (ImGui::Button(ICON_IGFD_FOLDER_OPEN " Open File Dialog with selection of 5 items"))
-		{
-			const char *filters = ".*,.cpp,.h,.hpp";
-			if (standardDialogMode)
-				dlg->OpenDialog("ChooseFileDlgKey",
-					ICON_IGFD_FOLDER_OPEN " Choose a File", filters, ".", 5);
-			else
-				dlg->OpenModal("ChooseFileDlgKey",
-					ICON_IGFD_FOLDER_OPEN " Choose a File", filters, ".", 5);
-		}
-		if (ImGui::Button(ICON_IGFD_FOLDER_OPEN " Open File Dialog with infinite selection"))
-		{
-			const char *filters = ".*,.cpp,.h,.hpp";
-			if (standardDialogMode)
-				dlg->OpenDialog("ChooseFileDlgKey",
-					ICON_IGFD_FOLDER_OPEN " Choose a File", filters, ".", 0);
-			else
-				dlg->OpenModal("ChooseFileDlgKey",
-					ICON_IGFD_FOLDER_OPEN " Choose a File", filters, ".", 0);
-		}
-		if (ImGui::Button(ICON_IGFD_FOLDER_OPEN " Open All file types with filter .*"))
-		{
-			if (standardDialogMode)
-				dlg->OpenDialog("ChooseFileDlgKey",
-					ICON_IGFD_FOLDER_OPEN " Choose a File", ".*", ".", 5);
-			else
-				dlg->OpenModal("ChooseFileDlgKey",
-					ICON_IGFD_FOLDER_OPEN " Choose a File", ".*", ".", 5);
-		}
-		if (ImGui::Button(ICON_IGFD_SAVE " Save File Dialog with a custom pane"))
-		{
-			const char *filters = "C++ File (*.cpp){.cpp}";
-			if (standardDialogMode)
-				dlg->OpenDialog("ChooseFileDlgKey",
-					ICON_IGFD_SAVE " Choose a File", filters,
-					".", "", std::bind(&InfosPane, std::placeholders::_1, std::placeholders::_2, 
-					std::placeholders::_3), 350, 1, igfd::UserDatas("SaveFile"));
-			else
-				dlg->OpenModal("ChooseFileDlgKey",
-					ICON_IGFD_SAVE " Choose a File", filters,
-					".", "", std::bind(&InfosPane, std::placeholders::_1, std::placeholders::_2,
-						std::placeholders::_3), 350, 1, igfd::UserDatas("SaveFile"));
-		}
-		if (ImGui::Button(ICON_IGFD_SAVE " Save File Dialog with Confirm Dialog For Overwrite File if exist"))
-		{
-			const char* filters = "C++ File (*.cpp){.cpp}";
-			if (standardDialogMode)
-				dlg->OpenDialog("ChooseFileDlgKey",
-					ICON_IGFD_SAVE " Choose a File", filters,
-					".", "", 1, igfd::UserDatas("SaveFile"), ImGuiFileDialogFlags_ConfirmOverwrite);
-			else
-				dlg->OpenModal("ChooseFileDlgKey",
-					ICON_IGFD_SAVE " Choose a File", filters,
-					".", 1, igfd::UserDatas("SaveFile"), ImGuiFileDialogFlags_ConfirmOverwrite);
-		}
-        if (ImGui::Button(ICON_IGFD_FOLDER_OPEN " Open Directory Dialog"))
-        {
-			// set filters to 0 for open directory chooser
-			if (standardDialogMode)
-				dlg->OpenDialog("ChooseDirDlgKey",
-				ICON_IGFD_FOLDER_OPEN " Choose a Directory", 0, ".");
-			else
-				dlg->OpenModal("ChooseDirDlgKey",
-					ICON_IGFD_FOLDER_OPEN " Choose a Directory", 0, ".");
-        }
-        if (ImGui::Button(ICON_IGFD_FOLDER_OPEN " Open Directory Dialog with selection of 5 items"))
-        {
-			// set filters to 0 for open directory chooser
-			if (standardDialogMode)
-				dlg->OpenDialog("ChooseDirDlgKey",
-					ICON_IGFD_FOLDER_OPEN " Choose a Directory", 0, ".", 5);
-			else
-				dlg->OpenModal("ChooseDirDlgKey",
-					ICON_IGFD_FOLDER_OPEN " Choose a Directory", 0, ".", 5);
-        }
-
-        ImVec2 minSize = ImVec2(0, 0);
-		ImVec2 maxSize = ImVec2(FLT_MAX, FLT_MAX);
-
-		if (_UseWindowContraints)
-		{
-			ImGuiIO& io = ImGui::GetIO(); (void)io;
-			maxSize = ImVec2((float)io.DisplaySize.x, (float)io.DisplaySize.y);
-			minSize = maxSize * 0.5f;
-		}
-
-		// you can define your flags and min/max window size (theses three settings ae defined by default :
-		// flags => ImGuiWindowFlags_NoCollapse
-		// minSize => 0,0
-		// maxSize => FLT_MAX, FLT_MAX (defined is float.h)
-
-		static std::string filePathName = "";
-		static std::string filePath = "";
-		static std::string filter = "";
-		static std::string userDatas = "";
-		static std::vector<std::pair<std::string, std::string>> selection = {};
-
-		if (dlg->FileDialog("ChooseFileDlgKey",
-			ImGuiWindowFlags_NoCollapse, minSize, maxSize))
-		{
-			if (dlg->IsOk)
-			{
-				filePathName = dlg->GetFilePathName();
-				filePath = dlg->GetCurrentPath();
-				filter = dlg->GetCurrentFilter();
-				// here convert from string because a string was passed as a userDatas, but it can be what you want
-				if (dlg->GetUserDatas())
-                    userDatas = std::string((const char*)dlg->GetUserDatas());
-				auto sel = dlg->GetSelection(); // multiselection
-				selection.clear();
-				for (auto s : sel)
-				{
-					selection.emplace_back(s.first, s.second);
-				}
-				// action
-			}
-			dlg->CloseDialog();
-		}
-
-		if (dlg->FileDialog("ChooseDirDlgKey",
-			ImGuiWindowFlags_NoCollapse, minSize, maxSize))
-        {
-            if (dlg->IsOk)
-            {
-                filePathName = dlg->GetFilePathName();
-                filePath = dlg->GetCurrentPath();
-                filter = dlg->GetCurrentFilter();
-                // here convert from string because a string was passed as a userDatas, but it can be what you want
-                if (dlg->GetUserDatas())
-                    userDatas = std::string((const char*)dlg->GetUserDatas());
-				auto sel = dlg->GetSelection(); // multiselection
-				selection.clear();
-				for (auto s : sel)
-				{
-					selection.emplace_back(s.first, s.second);
-				}
-                // action
-            }
-            dlg->CloseDialog();
-        }
-
-		ImGui::Separator();
-
-		ImGui::Text("ImGuiFileDialog Return's :\n");
-		ImGui::Indent();
-		{
-			ImGui::Text("GetFilePathName() : %s", filePathName.c_str());
-			ImGui::Text("GetFilePath() : %s", filePath.c_str());
-			ImGui::Text("GetCurrentFilter() : %s", filter.c_str());
-			ImGui::Text("GetUserDatas() (was a std::string in this sample) : %s", userDatas.c_str());
-			ImGui::Text("GetSelection() : ");
-			ImGui::Indent();
-			{
-				static int selected = false;
-				if (ImGui::BeginTable("##GetSelection", 2, 
-					ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg |
-					ImGuiTableFlags_ScrollY))
-				{
-					ImGui::TableSetupScrollFreeze(0, 1); // Make top row always visible
-					ImGui::TableSetupColumn("File Name", ImGuiTableColumnFlags_WidthStretch, -1, 0);
-					ImGui::TableSetupColumn("File Path name", ImGuiTableColumnFlags_WidthAuto, -1, 1);
-					ImGui::TableHeadersRow(); 
-					
-					ImGuiListClipper clipper;
-					clipper.Begin((int)selection.size(), ImGui::GetTextLineHeightWithSpacing());
-					while (clipper.Step())
-					{
-						for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
-						{
-							const auto& sel = selection[i];
-							ImGui::TableNextRow();
-							if (ImGui::TableSetColumnIndex(0)) // first column
-							{
-								ImGuiSelectableFlags selectableFlags = ImGuiSelectableFlags_AllowDoubleClick;
-								selectableFlags |= ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowItemOverlap;
-								if (ImGui::Selectable(sel.first.c_str(), i == selected, selectableFlags)) selected = i;
-							}
-							if (ImGui::TableSetColumnIndex(1)) // second column
-							{
-								ImGui::Text("%s", sel.second.c_str());
-							}
-						}
-					}
-					clipper.End();
-
-					ImGui::EndTable();
-				}
-			}
-			ImGui::Unindent();
-		}
-		ImGui::Unindent();
+IMGUIFILEDIALOG_API void IGFD_SetFlashingAttenuationInSeconds(ImGuiFileDialog* vContext, float vAttenValue)
+{
+	if (vContext)
+	{
+		vContext->SetFlashingAttenuationInSeconds(vAttenValue);
 	}
-	ImGui::Unindent();
-	ImGui::End();
 }
-} //namespace igfd
+#endif
 
+#ifdef USE_BOOKMARK
+IMGUIFILEDIALOG_API char* IGFD_SerializeBookmarks(ImGuiFileDialog* vContext)
+{
+	char *res = 0;
+	
+	if (vContext)
+	{
+		auto s = vContext->SerializeBookmarks();
+		if (!s.empty())
+		{
+			size_t siz = s.size() + 1U;
+			res = new char[siz];
+			strncpy(res, s.c_str(), siz); // no need to use strncpy_s for MSVC here
+			res[siz - 1U] = '\0';
+		}
+	}
+
+	return res;
+}
+
+IMGUIFILEDIALOG_API void IGFD_DeserializeBookmarks(ImGuiFileDialog* vContext, const char* vBookmarks)
+{
+	if (vContext)
+	{
+		vContext->DeserializeBookmarks(vBookmarks);
+	}
+}
+#endif

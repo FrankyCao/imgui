@@ -229,7 +229,7 @@ int main(int, char**)
     cv::VideoCapture mVideoCapture;
 
     // init File Dialog
-    igfd::ImGuiFileDialog filedialog;
+    ImGuiFileDialog filedialog;
 
     // Setup Platform/Renderer backends
     ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
@@ -311,10 +311,9 @@ int main(int, char**)
 
         ImVec2 maxSize = ImVec2((float)io.DisplaySize.x, (float)io.DisplaySize.y);
 		ImVec2 minSize = maxSize * 0.5f;
-        if (filedialog.FileDialog("ChooseFileDlgKey",
-                    ImGuiWindowFlags_NoCollapse, minSize, maxSize))
+        if (filedialog.Display("ChooseFileDlgKey", ImGuiWindowFlags_NoCollapse, minSize, maxSize))
 		{
-            if (filedialog.IsOk)
+            if (filedialog.IsOk())
 			{
                 std::string filePathName = filedialog.GetFilePathName();
                 mVideoCapture = cv::VideoCapture(filePathName);
@@ -330,7 +329,7 @@ int main(int, char**)
                     is_playing = true;
                 }
             }
-            filedialog.CloseDialog();
+            filedialog.Close();
         }
 
         if (is_playing && mVideoCapture.isOpened())

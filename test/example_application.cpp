@@ -23,7 +23,7 @@ public:
     Example() 
     {
         // load file dialog resource
-        igfd::prepare_file_dialog_demo_window(&filedialog);
+        prepare_file_dialog_demo_window(&filedialog);
 
         // init memory edit
         mem_edit.Open = false;
@@ -40,7 +40,7 @@ public:
             free(data); 
 
         // Store file dialog bookmark
-        igfd::end_file_dialog_demo_window(&filedialog);
+        end_file_dialog_demo_window(&filedialog);
 
         // Clean Node Window
         imnodes_sample::NodeEditorShutdown();
@@ -49,7 +49,7 @@ public:
 
 public:
     // init file dialog
-    igfd::ImGuiFileDialog filedialog;
+    ImGuiFileDialog filedialog;
 
     // init memory edit
     MemoryEditor mem_edit;
@@ -228,7 +228,7 @@ void Application_Frame(void* handle)
     // 5. Show FileDialog demo window
     if (example->show_file_dialog_window)
     {
-        igfd::show_file_dialog_demo_window(&example->filedialog, &example->show_file_dialog_window);
+        show_file_dialog_demo_window(&example->filedialog, &example->show_file_dialog_window);
     }
 
     // 6. Show Memory Edit window

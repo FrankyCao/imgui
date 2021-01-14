@@ -387,6 +387,7 @@ set(IMGUI_INC_DIRS
 set(IMGUI_SRC
     ${IMGUI_SRC}
     addon/ImGuiFileDialog/ImGuiFileDialog.cpp
+    addon/ImGuiFileDialog/ImGuiFileDialogDemo.cpp
 )
 set(IMGUI_INCS
     ${IMGUI_INCS}
