@@ -68,6 +68,7 @@ public:
     bool show_markdown_window = false;
     bool show_dock_window = false;
     bool show_node_window = false;
+    bool show_addon_widget = false;
 
 public:
     std::string get_file_contents(const char *filename);
@@ -191,6 +192,7 @@ void Application_Frame(void* handle)
         ImGui::Checkbox("Show Markdown Window", &example->show_markdown_window);
         ImGui::Checkbox("Show Dock Window", &example->show_dock_window);
         ImGui::Checkbox("Show Node Window", &example->show_node_window);
+        ImGui::Checkbox("Show Addon Widgets", &example->show_addon_widget);
 
         // show hotkey window
         if (ImGui::Button("Edit Hotkeys"))
@@ -264,6 +266,7 @@ void Application_Frame(void* handle)
     // 9. Show Dock Window
     if (example->show_dock_window)
     {
+        ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
         if(ImGui::Begin("Dock Demo"))
         {
 	        // dock layout by hard-coded or .ini file
@@ -287,6 +290,7 @@ void Application_Frame(void* handle)
         }
         ImGui::End();
         // multiple dockspace supported
+        ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
         if(ImGui::Begin("Dock Demo2"))
         {
             ImGui::BeginDockspace();
@@ -304,5 +308,14 @@ void Application_Frame(void* handle)
     if (example->show_node_window)
     {
         imnodes_sample::NodeEditorShow();
+    }
+
+    // 11. Show Addon Widget.
+    if (example->show_addon_widget)
+    {
+        ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
+        ImGui::Begin("Addon Widget", &example->show_addon_widget);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+        ImGui::ShowAddonsDemoWindowWidgets();
+        ImGui::End();
     }
 }

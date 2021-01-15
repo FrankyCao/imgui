@@ -607,6 +607,16 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/addon/imgui_node_editor
 )
 
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    addon/addons_demo.cpp
+)
+
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    addon/addons_demo.h
+)
+
 # Application Framework
 if (IMGUI_APPS)
 if (WIN32 AND IMGUI_DX11)

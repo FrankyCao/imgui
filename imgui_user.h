@@ -17,3 +17,5 @@
 #include "HotKey.h"
 #include "imgui_node_editor.h"
 #include "icons/icons.h"
+
+#include "addon/addons_demo.h"
