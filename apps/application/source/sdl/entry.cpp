@@ -2,7 +2,6 @@
 #include "imgui_internal.h"
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_opengl3.h"
-#include "imgui_user.h"
 #include <stdio.h>
 #include <SDL.h>
 #include <fstream>
@@ -36,11 +35,6 @@ using namespace gl;
 #else
 #include IMGUI_IMPL_OPENGL_LOADER_CUSTOM
 #endif
-
-#define STB_IMAGE_IMPLEMENTATION
-extern "C" {
-#include "stb_image.h"
-}
 
 ImTextureID Application_LoadTexture(const char* path)
 {

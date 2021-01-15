@@ -383,6 +383,42 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/misc/freetype
 )
 
+# ImGuiHelper
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    addon/ImGuiHelper/ImGuiHelper.cpp
+)
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    addon/ImGuiHelper/ImGuiHelper.h
+)
+set(IMGUI_INC_DIRS
+    ${IMGUI_INC_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiHelper
+)
+
+# ImGuiFileSystem
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    addon/ImGuiFileSystem/ImGuiFileSystem.cpp
+    addon/ImGuiFileSystem/minizip/zip.c
+    addon/ImGuiFileSystem/minizip/unzip.c
+    addon/ImGuiFileSystem/minizip/ioapi.c
+)
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    addon/ImGuiFileSystem/ImGuiFileSystem.h
+    addon/ImGuiFileSystem/dirent_portable.h
+    addon/ImGuiFileSystem/minizip/zip.h
+    addon/ImGuiFileSystem/minizip/unzip.h
+    addon/ImGuiFileSystem/minizip/ioapi.h
+    addon/ImGuiFileSystem/minizip/crypt.h
+)
+set(IMGUI_INC_DIRS
+    ${IMGUI_INC_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiFileSystem
+)
+
 # ImGuiFileDialog
 set(IMGUI_SRC
     ${IMGUI_SRC}
@@ -528,6 +564,20 @@ set(IMGUI_INCS
 set(IMGUI_INC_DIRS
     ${IMGUI_INC_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/addon/imnodes
+)
+
+# Node Graph Edit
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    addon/ImGuiNodeGraphEditor/ImGuiNodeGraphEditor.cpp
+)
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    addon/ImGuiNodeGraphEditor/ImGuiNodeGraphEditor.h
+)
+set(IMGUI_INC_DIRS
+    ${IMGUI_INC_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiNodeGraphEditor
 )
 
 # Simple TimeLine

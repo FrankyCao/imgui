@@ -8,7 +8,6 @@
 #include "imgui_internal.h"
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_opengl3.h"
-#include "imgui_user.h"
 #include <stdio.h>
 #include <SDL.h>
 #include <fstream>

@@ -12,11 +12,6 @@
 #pragma warning (disable: 4505) // unreferenced local function has been removed
 #endif
 
-#define STB_IMAGE_IMPLEMENTATION
-extern "C" {
-#include "stb_image.h"
-}
-
 ImTextureID Application_LoadTexture(const char* path)
 {
     int width = 0, height = 0, component = 0;

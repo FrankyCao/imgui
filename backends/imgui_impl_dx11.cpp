@@ -36,11 +36,6 @@
 #pragma comment(lib, "d3dcompiler") // Automatically link with d3dcompiler.lib as we are using D3DCompile() below.
 #endif
 
-#define STB_IMAGE_IMPLEMENTATION
-extern "C" {
-#include "stb_image.h"
-}
-
 struct TEXTURE;
 
 // DirectX data

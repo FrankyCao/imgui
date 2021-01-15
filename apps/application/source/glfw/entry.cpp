@@ -40,11 +40,6 @@ using namespace gl;
 #pragma comment(lib, "legacy_stdio_definitions")
 #endif
 
-#define STB_IMAGE_IMPLEMENTATION
-extern "C" {
-#include "stb_image.h"
-}
-
 static void error_callback(int error, const char* description)
 {
     fprintf(stderr, "Error %d: %s\n", error, description);

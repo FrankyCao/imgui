@@ -68,6 +68,7 @@ public:
     bool show_markdown_window = false;
     bool show_dock_window = false;
     bool show_node_window = false;
+    bool show_node_edit_window = false;
     bool show_addon_widget = false;
 
 public:
@@ -191,7 +192,8 @@ void Application_Frame(void* handle)
         ImGui::Checkbox("Show Text Edit Window", &example->show_text_edit_window);
         ImGui::Checkbox("Show Markdown Window", &example->show_markdown_window);
         ImGui::Checkbox("Show Dock Window", &example->show_dock_window);
-        ImGui::Checkbox("Show Node Window", &example->show_node_window);
+        ImGui::Checkbox("Show Node Sample Window", &example->show_node_window);
+        ImGui::Checkbox("Show Node Edit Windows", &example->show_node_edit_window);
         ImGui::Checkbox("Show Addon Widgets", &example->show_addon_widget);
 
         // show hotkey window
@@ -304,13 +306,24 @@ void Application_Frame(void* handle)
         ImGui::End();
     }
 
-    // 10. Show Node Window
+    // 10. Show Node Sample Window
     if (example->show_node_window)
     {
         imnodes_sample::NodeEditorShow();
     }
 
-    // 11. Show Addon Widget.
+    // 11. Show Node Edit Window
+    if (example->show_node_edit_window)
+    {
+        ImGui::SetNextWindowSize(ImVec2(700,600), ImGuiCond_FirstUseEver);
+        if (ImGui::Begin("Example: Custom Node Graph",&example->show_node_edit_window, ImGuiWindowFlags_NoScrollbar))
+        {
+            ImGui::TestNodeGraphEditor();   // see its code for further info         
+        }
+        ImGui::End();
+    }
+
+    // 12. Show Addon Widget.
     if (example->show_addon_widget)
     {
         ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
