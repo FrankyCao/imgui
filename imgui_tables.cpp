@@ -1010,7 +1010,7 @@ void ImGui::TableUpdateLayout(ImGuiTable* table)
         }
 
         if (visible_n < table->FreezeColumnsCount)
-            host_clip_rect.Min.x = ImMax(host_clip_rect.Min.x, column->MaxX + TABLE_BORDER_SIZE);
+            host_clip_rect.Min.x = ImClamp(column->MaxX + TABLE_BORDER_SIZE, host_clip_rect.Min.x, host_clip_rect.Max.x);
 
         offset_x += column->WidthGiven + table->CellSpacingX1 + table->CellSpacingX2 + table->CellPaddingX * 2.0f;
         visible_n++;
@@ -1313,7 +1313,8 @@ void    ImGui::EndTable()
     outer_window->DC.CurrentTableIdx = g.CurrentTable ? g.Tables.GetIndex(g.CurrentTable) : -1;
 }
 
-// See "COLUMN SIZING POLICIES" comments at the top of this file 
+// See "COLUMN SIZING POLICIES" comments at the top of this file
+// If (init_width_or_weight <= 0.0f) it is ignored
 void ImGui::TableSetupColumn(const char* label, ImGuiTableColumnFlags flags, float init_width_or_weight, ImGuiID user_id)
 {
     ImGuiContext& g = *GImGui;
@@ -1341,8 +1342,6 @@ void ImGui::TableSetupColumn(const char* label, ImGuiTableColumnFlags flags, flo
     flags = column->Flags;
 
     // Initialize defaults
-    if (flags & ImGuiTableColumnFlags_WidthStretch)
-        IM_ASSERT(init_width_or_weight != 0.0f && "Need to provide a valid weight!");
     column->InitStretchWeightOrWidth = init_width_or_weight;
     if (table->IsInitializing)
     {
@@ -2345,7 +2344,7 @@ void ImGui::TableMergeDrawChannels(ImGuiTable* table)
 void ImGui::TableDrawBorders(ImGuiTable* table)
 {
     ImGuiWindow* inner_window = table->InnerWindow;
-    if (inner_window->Hidden || !table->HostClipRect.Overlaps(table->InnerClipRect))
+    if (!table->OuterWindow->ClipRect.Overlaps(table->OuterRect))
         return;
 
     ImDrawList* inner_drawlist = inner_window->DrawList;
