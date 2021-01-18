@@ -73,7 +73,7 @@ void ShowAddonsDemoWindowWidgets()
             // choice OK here
         }
 
-#ifndef _WIN32  // FIXME::Dicky Windows load texture will crush
+//#ifndef _WIN32  // FIXME::Dicky Windows load texture will crush
         ImGui::Separator();
         // Single column popup menu with icon support. It disappears when the mouse goes away. Never tested.
         // User is supposed to create a static instance of it, add entries once, and then call "render()".
@@ -97,7 +97,7 @@ void ShowAddonsDemoWindowWidgets()
         // Buttons With Images
         ImGui::Spacing();ImGui::Separator();ImGui::Text("Buttons With Images:");ImGui::Separator();
         ImGui::ImageButtonWithText(ImageTextureNumber,"MyImageButtonWithText",ImVec2(16,16),ImVec2(0,0),ImVec2(0.33334f,0.33334f));
-#endif
+//#endif
         ImGui::TreePop();
     }
 

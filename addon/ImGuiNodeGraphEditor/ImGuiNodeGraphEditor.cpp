@@ -4,197 +4,9 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
 
-//-----------------------------------------------------------------------------------------------------------------
-#ifdef _WIN32
-#include "imgui_impl_dx11.h"
-#define ImImpl_LoadTexture ImGui_LoadTexture
-#define ImImpl_FreeTexture ImGui_DestroyTexture
-#else
-#if defined(IMGUI_IMPL_OPENGL_LOADER_GL3W)
-#include <GL/gl3w.h>            // Initialize with gl3wInit()
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
-#include <GL/glew.h>            // Initialize with glewInit()
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLAD)
-#include <glad/glad.h>          // Initialize with gladLoadGL()
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLAD2)
-#include <glad/gl.h>            // Initialize with gladLoadGL(...) or gladLoaderLoadGL()
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLBINDING2)
-#define GLFW_INCLUDE_NONE       // GLFW including OpenGL headers causes ambiguity or multiple definition errors.
-#include <glbinding/Binding.h>  // Initialize with glbinding::Binding::initialize()
-#include <glbinding/gl/gl.h>
-using namespace gl;
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLBINDING3)
-#define GLFW_INCLUDE_NONE       // GLFW including OpenGL headers causes ambiguity or multiple definition errors.
-#include <glbinding/glbinding.h>// Initialize with glbinding::initialize()
-#include <glbinding/gl/gl.h>
-using namespace gl;
-#else
-#include IMGUI_IMPL_OPENGL_LOADER_CUSTOM
-#endif
-
-
-static void ImImpl_GenerateOrUpdateTexture(ImTextureID& imtexid,int width,int height,int channels,const unsigned char* pixels,bool useMipmapsIfPossible,bool wraps,bool wrapt,bool minFilterNearest,bool magFilterNearest) {
-    IM_ASSERT(pixels);
-    IM_ASSERT(channels>0 && channels<=4);
-    GLuint& texid = reinterpret_cast<GLuint&>(imtexid);
-    if (texid==0) glGenTextures(1, &texid);
-
-    glBindTexture(GL_TEXTURE_2D, texid);
-
-    GLenum clampEnum = 0x2900;    // 0x2900 -> GL_CLAMP; 0x812F -> GL_CLAMP_TO_EDGE
-#   ifndef GL_CLAMP
-#       ifdef GL_CLAMP_TO_EDGE
-        clampEnum = GL_CLAMP_TO_EDGE;
-#       else //GL_CLAMP_TO_EDGE
-        clampEnum = 0x812F;
-#       endif // GL_CLAMP_TO_EDGE
-#   else //GL_CLAMP
-    clampEnum = GL_CLAMP;
-#   endif //GL_CLAMP
-
-    unsigned char* potImageBuffer = NULL;
-
-#   if (defined(__EMSCRIPTEN__) || defined(IMIMPL_SHADER_GLES))
-#       ifdef GL_CLAMP_TO_EDGE
-        clampEnum = GL_CLAMP_TO_EDGE;   // Well, WebGL2, OpenGLES2 and upper should have this
-#       endif //GL_CLAMP_TO_EDGE
-    // WebGL and OpenGLES2 need this workaround for non-power of two textures (WebGL2 and OpenGLES3 don't need this anymore):
-#   ifndef IMIMPL_SHADER_GL3
-    /*
-    From: https://www.khronos.org/webgl/wiki/WebGL_and_OpenGL_Differences
-    OpenGL ES 2.0 and WebGL have only limited NPOT support. The restrictions are defined in Sections 3.8.2, "Shader Execution", and 3.7.11, "Mipmap Generation", of the OpenGL ES 2.0 specification, and are summarized here:
-
-    -> generateMipmap(target) generates an INVALID_OPERATION error if the level 0 image of the texture currently bound to target has an NPOT width or height.
-    -> Sampling an NPOT texture in a shader will produce the RGBA color (0, 0, 0, 1) if:
-    -> The minification filter is set to anything but NEAREST or LINEAR: in other words, if it uses one of the mipmapped filters.
-    -> The repeat mode is set to anything but CLAMP_TO_EDGE; repeating NPOT textures are not supported.
-    */
-
-    int wIsPower2 = ImImpl_IsPowerOfTwo(width);
-    int hIsPower2 = ImImpl_IsPowerOfTwo(height);
-    // OPTIONAL: but makes texture wrapping possible ---------------------------------------------------------------------
-    if ((wraps && !wIsPower2) || (wrapt && !hIsPower2)
-        // || (useMipmapsIfPossible && ((!wIsPower2) || (!hIsPower2)))     // Optional if we think mipmaps are essential
-    )
-    {
-        // scale the image to the nearest power of two in both dimensions
-        const unsigned minDimAllowed = 4;
-        const unsigned maxDimAllowed = 2048;    // 4096 ?
-        const int dstW = wIsPower2 ? width : ImImpl_NearestPowerOfTwo((unsigned)width,maxDimAllowed,minDimAllowed);
-        const int dstH = hIsPower2 ? height : ImImpl_NearestPowerOfTwo((unsigned)height,maxDimAllowed,minDimAllowed);
-        potImageBuffer = ImImpl_ResizeImageWithNearestFiltering(dstW,dstH,pixels,width,height,channels);
-        printf("Warning: texture Internally resized to POT: %dx%d from %dx%d\n",dstW,dstH,width,height);fflush(stdout);
-        //---------------------------
-        if (potImageBuffer) {
-            width = dstW;height = dstH;
-            wIsPower2 = hIsPower2 = true;
-        }
-    }
-    //----------------------------------------------------------------------------------------------------------------------
-    useMipmapsIfPossible&=(wIsPower2 && hIsPower2);
-    wraps&=wIsPower2;
-    wrapt&=hIsPower2;
-#   endif // IMIMPL_SHADER_GL3
-#   endif // (defined(__EMSCRIPTEN__) || defined(IMIMPL_SHADER_GLES))
-
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,wraps ? GL_REPEAT : clampEnum);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,wrapt ? GL_REPEAT : clampEnum);
-    //const GLfloat borderColor[]={0.f,0.f,0.f,1.f};glTexParameterfv(GL_TEXTURE_2D,GL_TEXTURE_BORDER_COLOR,borderColor);
-    if (magFilterNearest) glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    else glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    if (useMipmapsIfPossible)   {
-#       ifdef NO_IMGUI_OPENGL_GLGENERATEMIPMAP
-#           ifndef GL_GENERATE_MIPMAP
-#               define GL_GENERATE_MIPMAP 0x8191
-#           endif //GL_GENERATE_MIPMAP
-        // I guess this is compilable, even if it's not supported:
-        glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);    // This call must be done before glTexImage2D(...) // GL_GENERATE_MIPMAP can't be used with NPOT if there are not supported by the hardware of GL_ARB_texture_non_power_of_two.
-#       endif //NO_IMGUI_OPENGL_GLGENERATEMIPMAP
-    }
-    if (minFilterNearest) glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, useMipmapsIfPossible ? GL_LINEAR_MIPMAP_NEAREST : GL_NEAREST);
-    else glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, useMipmapsIfPossible ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
-
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    //glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-
-    GLenum luminanceAlphaEnum = 0x190A; // 0x190A -> GL_LUMINANCE_ALPHA [Note that we're FORCING this definition even if when it's not defined! What should we use for 2 channels?]
-    GLenum compressedLuminanceAlphaEnum = 0x84EB; // 0x84EB -> GL_COMPRESSED_LUMINANCE_ALPHA [Note that we're FORCING this definition even if when it's not defined! What should we use for 2 channels?]
-#   ifdef GL_LUMINANCE_ALPHA
-    luminanceAlphaEnum = GL_LUMINANCE_ALPHA;
-#   endif //GL_LUMINANCE_ALPHA
-#   ifdef GL_COMPRESSED_LUMINANCE_ALPHA
-    compressedLuminanceAlphaEnum = GL_COMPRESSED_LUMINANCE_ALPHA;
-#   endif //GL_COMPRESSED_LUMINANCE_ALPHA
-
-#   ifdef IMIMPL_USE_ARB_TEXTURE_SWIZZLE_TO_SAVE_FONT_TEXTURE_MEMORY
-    if (&imtexid==&gImImplPrivateParams.fontTex && channels==1) {
-        GLint swizzleMask[] = {GL_ONE, GL_ONE, GL_ONE, GL_ALPHA};
-        glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
-        //printf("IMIMPL_USE_ARB_TEXTURE_SWIZZLE_TO_SAVE_FONT_TEXTURE_MEMORY used.\n");
-    }
-#   endif //IMIMPL_USE_ARB_TEXTURE_SWIZZLE_TO_SAVE_FONT_TEXTURE_MEMORY
-
-    GLenum ifmt = channels==1 ? GL_ALPHA : channels==2 ? luminanceAlphaEnum : channels==3 ? GL_RGB : GL_RGBA;  // channels == 1 could be GL_LUMINANCE, GL_ALPHA, GL_RED ...
-    GLenum fmt = ifmt;
-#   ifdef IMIMPL_USE_ARB_TEXTURE_COMPRESSION_TO_COMPRESS_FONT_TEXTURE
-    if (&imtexid==&gImImplPrivateParams.fontTex)    {
-        ifmt = channels==1 ? GL_COMPRESSED_ALPHA : channels==2 ? compressedLuminanceAlphaEnum : channels==3 ? GL_COMPRESSED_RGB : GL_COMPRESSED_RGBA;  // channels == 1 could be GL_COMPRESSED_LUMINANCE, GL_COMPRESSED_ALPHA, GL_COMPRESSED_RED ...
-    }
-#   endif //IMIMPL_USE_ARB_TEXTURE_COMPRESSION_TO_COMPRESS_FONT_TEXTURE
-    glTexImage2D(GL_TEXTURE_2D, 0, ifmt, width, height, 0, fmt, GL_UNSIGNED_BYTE, potImageBuffer ? potImageBuffer : pixels);
-
-#   ifdef IMIMPL_USE_ARB_TEXTURE_COMPRESSION_TO_COMPRESS_FONT_TEXTURE
-    if (&imtexid==&gImImplPrivateParams.fontTex)    {
-        GLint compressed = GL_FALSE;
-        glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_COMPRESSED, &compressed);
-        if (compressed==GL_FALSE)
-            printf("Font texture compressed = %s\n",compressed==GL_TRUE?"true":"false");
-    }
-#   endif //IMIMPL_USE_ARB_TEXTURE_COMPRESSION_TO_COMPRESS_FONT_TEXTURE
-
-    if (potImageBuffer) {STBI_FREE(potImageBuffer);potImageBuffer=NULL;}
-
-#   ifndef NO_IMGUI_OPENGL_GLGENERATEMIPMAP
-    if (useMipmapsIfPossible) glGenerateMipmap(GL_TEXTURE_2D);
-#   endif //NO_IMGUI_OPENGL_GLGENERATEMIPMAP
-}
-
-static void ImImpl_FreeTexture(ImTextureID& imtexid) {
-    GLuint& texid = reinterpret_cast<GLuint&>(imtexid);
-    if (texid) {glDeleteTextures(1,&texid);texid=0;}
-}
-
-static ImTextureID ImImpl_LoadTextureFromMemory(const unsigned char* filenameInMemory,int filenameInMemorySize,int req_comp,bool useMipmapsIfPossible,bool wraps,bool wrapt,bool minFilterNearest,bool magFilterNearest)  {
-    int w,h,n;
-    unsigned char* pixels = stbi_load_from_memory(filenameInMemory,filenameInMemorySize,&w,&h,&n,req_comp);
-    if (!pixels) {
-        fprintf(stderr,"Error: can't load texture from memory\n");
-        return 0;
-    }
-    if (req_comp>0 && req_comp<=4) n = req_comp;
-
-    ImTextureID texId = NULL;
-    ImImpl_GenerateOrUpdateTexture(texId,w,h,n,pixels,useMipmapsIfPossible,wraps,wrapt,minFilterNearest,magFilterNearest);
-
-    stbi_image_free(pixels);
-
-    return texId;
-}
-
-static ImTextureID ImImpl_LoadTexture(const char* filename, int req_comp, bool useMipmapsIfPossible, bool wraps, bool wrapt,bool minFilterNearest,bool magFilterNearest)  {
-    // We avoid using stbi_load(...), because we support UTF8 paths under Windows too.
-    size_t file_size = 0;
-    unsigned char* file = (unsigned char*) ImFileLoadToMemory(filename,"rb",&file_size,0);
-    ImTextureID texId = NULL;
-    if (file)   {
-        texId = ImImpl_LoadTextureFromMemory(file,(int)file_size,req_comp,useMipmapsIfPossible,wraps,wrapt,minFilterNearest,magFilterNearest);
-        ImGui::MemFree(file);file=NULL;
-    }
-    return texId;
-}
-inline ImTextureID ImImpl_LoadTexture(const char* filename,int req_comp=0,bool useMipmapsIfPossible=false,bool wraps=true,bool wrapt=true)  {return ImImpl_LoadTexture(filename,req_comp,useMipmapsIfPossible,wraps,wrapt,false,false);}
-
-#endif /* WIN32 */
+#include "application.h"
+#define ImImpl_LoadTexture Application_LoadTexture
+#define ImImpl_FreeTexture Application_DestroyTexture
 
 #include <stdlib.h> // qsort
 
@@ -3115,13 +2927,11 @@ class TextureNode : public Node {
     }
 
     void processPath(const char* filePath)  {
-    #ifndef _WIN32  // FIXME::Dicky Win32 LoadTexture will crush
         if (!filePath || strcmp(filePath,lastValidImagePath)==0) return;
         if (!ValidateImagePath(filePath)) return;
         if (textureID) {ImImpl_FreeTexture(textureID);}
         textureID = ImImpl_LoadTexture(filePath);
         if (textureID) strcpy(lastValidImagePath,filePath);
-    #endif
     }
 
     // When the node is loaded from file or copied from another node, only the text field (="imagePath") is copied, so we must recreate "textureID":

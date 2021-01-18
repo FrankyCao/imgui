@@ -117,27 +117,134 @@ LRESULT WINAPI ImGui_WinProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 ImTextureID Application_LoadTexture(const char* path)
 {
-    return ImGui_LoadTexture(path);
+    int image_width = 0;
+    int image_height = 0;
+    unsigned char* image_data = stbi_load(path, &image_width, &image_height, NULL, 4);
+    if (image_data == NULL)
+        return 0;
+
+    // Create texture
+    D3D11_TEXTURE2D_DESC desc;
+    ZeroMemory(&desc, sizeof(desc));
+    desc.Width = image_width;
+    desc.Height = image_height;
+    desc.MipLevels = 1;
+    desc.ArraySize = 1;
+    desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    desc.SampleDesc.Count = 1;
+    desc.Usage = D3D11_USAGE_DEFAULT;
+    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    desc.CPUAccessFlags = 0;
+
+    ID3D11Texture2D *pTexture = NULL;
+    D3D11_SUBRESOURCE_DATA subResource;
+    subResource.pSysMem = image_data;
+    subResource.SysMemPitch = desc.Width * 4;
+    subResource.SysMemSlicePitch = 0;
+    g_pd3dDevice->CreateTexture2D(&desc, &subResource, &pTexture);
+
+    // Create texture view
+    ID3D11ShaderResourceView * texture = nullptr;
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+    ZeroMemory(&srvDesc, sizeof(srvDesc));
+    srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    srvDesc.Texture2D.MipLevels = desc.MipLevels;
+    srvDesc.Texture2D.MostDetailedMip = 0;
+    g_pd3dDevice->CreateShaderResourceView(pTexture, &srvDesc, &texture);
+    pTexture->Release();
+
+    stbi_image_free(image_data);
+    return (ImTextureID)texture;
 }
 
 ImTextureID Application_CreateTexture(const void* data, int width, int height)
 {
-    return ImGui_CreateTexture(data, width, height);
+    // Create texture
+    D3D11_TEXTURE2D_DESC desc;
+    ZeroMemory(&desc, sizeof(desc));
+    desc.Width = width;
+    desc.Height = height;
+    desc.MipLevels = 1;
+    desc.ArraySize = 1;
+    desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    desc.SampleDesc.Count = 1;
+    desc.Usage = D3D11_USAGE_DEFAULT;
+    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    desc.CPUAccessFlags = 0;
+
+    ID3D11Texture2D *pTexture = NULL;
+    D3D11_SUBRESOURCE_DATA subResource;
+    subResource.pSysMem = data;
+    subResource.SysMemPitch = desc.Width * 4;
+    subResource.SysMemSlicePitch = 0;
+    g_pd3dDevice->CreateTexture2D(&desc, &subResource, &pTexture);
+
+    // Create texture view
+    ID3D11ShaderResourceView * texture = nullptr;
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+    ZeroMemory(&srvDesc, sizeof(srvDesc));
+    srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    srvDesc.Texture2D.MipLevels = desc.MipLevels;
+    srvDesc.Texture2D.MostDetailedMip = 0;
+    g_pd3dDevice->CreateShaderResourceView(pTexture, &srvDesc, &texture);
+    pTexture->Release();
+    return (ImTextureID)texture;
 }
 
 void Application_DestroyTexture(ImTextureID texture)
 {
-    ImGui_DestroyTexture(texture);
+    ID3D11ShaderResourceView * tex = (ID3D11ShaderResourceView *)texture;
+    if (tex)
+    {
+        tex->Release();
+        tex = nullptr;
+    }
 }
 
 int Application_GetTextureWidth(ImTextureID texture)
 {
-    return ImGui_GetTextureWidth(texture);
+    ID3D11ShaderResourceView * tex = (ID3D11ShaderResourceView *)texture;
+    if (tex)
+    {
+        ID3D11Resource* res = nullptr;
+        tex->GetResource(&res);
+        ID3D11Texture2D* texture2d = nullptr;
+        HRESULT hr = res->QueryInterface(&texture2d);
+        if (SUCCEEDED(hr))
+        {
+            D3D11_TEXTURE2D_DESC desc;
+	        texture2d->GetDesc(&desc);
+	        return desc.Width;
+        }
+        else
+            return 0;
+    }
+    else
+        return 0;
 }
 
 int Application_GetTextureHeight(ImTextureID texture)
 {
-    return ImGui_GetTextureHeight(texture);
+   ID3D11ShaderResourceView * tex = (ID3D11ShaderResourceView *)texture;
+    if (tex)
+    {
+        ID3D11Resource* res = nullptr;
+        tex->GetResource(&res);
+        ID3D11Texture2D* texture2d = nullptr;
+        HRESULT hr = res->QueryInterface(&texture2d);
+        if (SUCCEEDED(hr))
+        {
+            D3D11_TEXTURE2D_DESC desc;
+	        texture2d->GetDesc(&desc);
+	        return desc.Height;
+        }
+        else
+            return 0;
+    }
+    else
+        return 0;
 }
 
 # if defined(_UNICODE)
