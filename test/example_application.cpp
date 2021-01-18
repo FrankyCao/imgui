@@ -67,6 +67,7 @@ public:
     bool show_text_edit_window = false;
     bool show_markdown_window = false;
     bool show_dock_window = false;
+    bool show_tab_window = false;
     bool show_node_window = false;
     bool show_node_edit_window = false;
     bool show_addon_widget = false;
@@ -192,6 +193,7 @@ void Application_Frame(void* handle)
         ImGui::Checkbox("Show Text Edit Window", &example->show_text_edit_window);
         ImGui::Checkbox("Show Markdown Window", &example->show_markdown_window);
         ImGui::Checkbox("Show Dock Window", &example->show_dock_window);
+        ImGui::Checkbox("Show Tab Window", &example->show_tab_window);
         ImGui::Checkbox("Show Node Sample Window", &example->show_node_window);
         ImGui::Checkbox("Show Node Edit Windows", &example->show_node_edit_window);
         ImGui::Checkbox("Show Addon Widgets", &example->show_addon_widget);
@@ -269,50 +271,31 @@ void Application_Frame(void* handle)
     if (example->show_dock_window)
     {
         ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
-        if(ImGui::Begin("Dock Demo"))
+        if(ImGui::Begin("imguidock window (= lumix engine's dock system)",&example->show_dock_window, ImGuiWindowFlags_NoScrollbar))
         {
-	        // dock layout by hard-coded or .ini file
-            ImGui::BeginDockspace();
-            if(ImGui::BeginDock("Dock 1"))
-            {
-                ImGui::Text("I'm Wubugui!");
-            }
-            ImGui::EndDock();
-            if(ImGui::BeginDock("Dock 2"))
-            {
-                ImGui::Text("I'm BentleyBlanks!");
-            }
-            ImGui::EndDock();
-            if(ImGui::BeginDock("Dock 3"))
-            {
-                ImGui::Text("I'm LonelyWaiting!");
-            }
-            ImGui::EndDock();
-            ImGui::EndDockspace();
-        }
-        ImGui::End();
-        // multiple dockspace supported
-        ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
-        if(ImGui::Begin("Dock Demo2"))
-        {
-            ImGui::BeginDockspace();
-            if(ImGui::BeginDock("Dock 2"))
-            {
-                ImGui::Text("Who's your daddy?");
-            }
-            ImGui::EndDock();
-            ImGui::EndDockspace();
+            ImGui::ShowAddonsDuckWindow();
         }
         ImGui::End();
     }
 
-    // 10. Show Node Sample Window
+    // 10. Show Tab Window
+    if (example->show_tab_window)
+    {
+        ImGui::SetNextWindowSize(ImVec2(700,600), ImGuiCond_FirstUseEver);
+        if (ImGui::Begin("Example: TabWindow", &example->show_tab_window, ImGuiWindowFlags_NoScrollbar))
+        {
+            ImGui::ShowAddonsTabWindow();   // see its code for further info         
+        }
+        ImGui::End();
+    }
+
+    // 11. Show Node Sample Window
     if (example->show_node_window)
     {
         imnodes_sample::NodeEditorShow();
     }
 
-    // 11. Show Node Edit Window
+    // 12. Show Node Edit Window
     if (example->show_node_edit_window)
     {
         ImGui::SetNextWindowSize(ImVec2(700,600), ImGuiCond_FirstUseEver);
@@ -323,7 +306,7 @@ void Application_Frame(void* handle)
         ImGui::End();
     }
 
-    // 12. Show Addon Widget.
+    // 13. Show Addon Widget.
     if (example->show_addon_widget)
     {
         ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);

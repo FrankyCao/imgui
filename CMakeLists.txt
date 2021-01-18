@@ -373,6 +373,7 @@ set(IMGUI_SRC
     icons/webfont.cpp
     icons/fork_webfont.cpp
     icons/material_icons.cpp
+    icons/NumberTexture.cpp
 )
 endif()
 
@@ -551,6 +552,20 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/addon/imguiDock
 )
 
+# Tab Window
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    addon/ImGuiTabWindow/ImGuiTabWindow.cpp
+)
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    addon/ImGuiTabWindow/ImGuiTabWindow.h
+)
+set(IMGUI_INC_DIRS
+    ${IMGUI_INC_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiTabWindow
+)
+
 # Simple nodes
 set(IMGUI_SRC
     ${IMGUI_SRC}
@@ -632,6 +647,20 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/addon/HotKey
 )
 
+# Date Chooser
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    addon/ImGuiDateChooser/ImGuiDateChooser.cpp
+)
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    addon/ImGuiDateChooser/ImGuiDateChooser.h
+)
+set(IMGUI_INC_DIRS
+    ${IMGUI_INC_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiDateChooser
+)
+
 # Node Editor
 set(IMGUI_SRC
     ${IMGUI_SRC}
@@ -657,6 +686,21 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/addon/imgui_node_editor
 )
 
+# Various Controls
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    addon/ImGuiVariousControls/ImGuiVariousControls.cpp
+)
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    addon/ImGuiVariousControls/ImGuiVariousControls.h
+)
+set(IMGUI_INC_DIRS
+    ${IMGUI_INC_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiVariousControls
+)
+
+# Addon Demo
 set(IMGUI_SRC
     ${IMGUI_SRC}
     addon/addons_demo.cpp

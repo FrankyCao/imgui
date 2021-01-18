@@ -6,6 +6,7 @@
 #include "IconsFontAwesome5Brands.h"
 #include "IconsForkAwesome.h"
 #include "IconsMaterialDesign.h"
+#include "texture.h"
 namespace ImGui
 {
     IMGUI_API bool LoadInternalIcons(ImFontAtlas* atlas);

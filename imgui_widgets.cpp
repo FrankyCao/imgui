@@ -1614,7 +1614,7 @@ bool ImGui::BeginCombo(const char* label, const char* preview_value, ImGuiComboF
         if (popup_window->WasActive)
         {
             // Always override 'AutoPosLastDirection' to not leave a chance for a past value to affect us.
-            ImVec2 size_expected = CalcWindowExpectedSize(popup_window);
+            ImVec2 size_expected = CalcWindowNextAutoFitSize(popup_window);
             if (flags & ImGuiComboFlags_PopupAlignLeft)
                 popup_window->AutoPosLastDirection = ImGuiDir_Left; // "Below, Toward Left"
             else
@@ -7241,7 +7241,8 @@ static void ImGui::TabBarLayout(ImGuiTabBar* tab_bar)
     // Actual layout in host window (we don't do it in BeginTabBar() so as not to waste an extra frame)
     ImGuiWindow* window = g.CurrentWindow;
     window->DC.CursorPos = tab_bar->BarRect.Min;
-    ItemSize(ImVec2(tab_bar->WidthAllTabsIdeal, tab_bar->BarRect.GetHeight()), tab_bar->FramePadding.y);
+    ItemSize(tab_bar->BarRect.GetSize(), tab_bar->FramePadding.y);
+    window->DC.IdealMaxPos.x = ImMax(window->DC.IdealMaxPos.x, tab_bar->BarRect.Min.x + tab_bar->WidthAllTabsIdeal);
 }
 
 // Dockables uses Name/ID in the global namespace. Non-dockable items use the ID stack.

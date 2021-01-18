@@ -1178,16 +1178,14 @@ void    ImGui::EndTable()
     inner_window->DC.PrevLineSize = table->HostBackupPrevLineSize;
     inner_window->DC.CurrLineSize = table->HostBackupCurrLineSize;
     inner_window->DC.CursorMaxPos = table->HostBackupCursorMaxPos;
-
+    const float inner_content_max_y = table->RowPosY2;
+    IM_ASSERT(table->RowPosY2 == inner_window->DC.CursorPos.y);
     if (inner_window != outer_window)
-    {
-        inner_window->DC.CursorMaxPos.y = table->RowPosY2;
-    }
+        inner_window->DC.CursorMaxPos.y = inner_content_max_y;
     else if (!(flags & ImGuiTableFlags_NoHostExtendY))
-    {
-        table->OuterRect.Max.y = table->InnerRect.Max.y = ImMax(table->OuterRect.Max.y, inner_window->DC.CursorPos.y); // Patch OuterRect/InnerRect height
-        outer_window->DC.CursorMaxPos.y = table->RowPosY2;
-    }
+        table->OuterRect.Max.y = table->InnerRect.Max.y = ImMax(table->OuterRect.Max.y, inner_content_max_y); // Patch OuterRect/InnerRect height
+    table->WorkRect.Max.y = ImMax(table->WorkRect.Max.y, table->OuterRect.Max.y);
+    table->LastOuterHeight = table->OuterRect.GetHeight();
 
     // Setup inner scrolling range
     // FIXME: This ideally should be done earlier, in BeginTable() SetNextWindowContentSize call, just like writing to inner_window->DC.CursorMaxPos.y,
@@ -1203,9 +1201,7 @@ void    ImGui::EndTable()
         table->InnerWindow->DC.CursorMaxPos.x = max_pos_x;
     }
 
-    table->WorkRect.Max.y = ImMax(table->WorkRect.Max.y, table->OuterRect.Max.y);
-    table->LastOuterHeight = table->OuterRect.GetHeight();
-
+    // Pop clipping rect
     if (!(flags & ImGuiTableFlags_NoClip))
         inner_window->DrawList->PopClipRect();
     inner_window->ClipRect = inner_window->DrawList->_ClipRectStack.back();
@@ -1238,7 +1234,13 @@ void    ImGui::EndTable()
     table->ColumnsAutoFitWidth = width_spacings + (table->CellPaddingX * 2.0f) * table->ColumnsEnabledCount;
     for (int column_n = 0; column_n < table->ColumnsCount; column_n++)
         if (table->EnabledMaskByIndex & ((ImU64)1 << column_n))
-            table->ColumnsAutoFitWidth += TableGetColumnWidthAuto(table, &table->Columns[column_n]);
+        {
+            ImGuiTableColumn* column = &table->Columns[column_n];
+            if ((column->Flags & ImGuiTableColumnFlags_WidthFixed) && !(column->Flags & ImGuiTableColumnFlags_NoResize))
+                table->ColumnsAutoFitWidth += column->WidthRequest;
+            else
+                table->ColumnsAutoFitWidth += TableGetColumnWidthAuto(table, column);
+        }
 
     // Update scroll
     if ((table->Flags & ImGuiTableFlags_ScrollX) == 0 && inner_window != outer_window)
@@ -1301,6 +1303,10 @@ void    ImGui::EndTable()
         outer_window->DC.CursorMaxPos.x = ImMax(backup_outer_max_pos.x, table->OuterRect.Min.x + table->ColumnsGivenWidth + inner_window->ScrollbarSizes.x); // For outer scrolling
     else
         outer_window->DC.CursorMaxPos.x = ImMax(backup_outer_max_pos.x, table->WorkRect.Min.x + outer_width); // For auto-fit
+
+    // Override declared contents height
+    if (inner_window == outer_window && !(flags & ImGuiTableFlags_NoHostExtendY))
+        outer_window->DC.CursorMaxPos.y = ImMax(outer_window->DC.CursorMaxPos.y, inner_content_max_y);
 
     // Save settings
     if (table->IsSettingsDirty)
@@ -1457,7 +1463,7 @@ ImRect ImGui::TableGetCellBgRect(const ImGuiTable* table, int column_n)
 // Return the resizing ID for the right-side of the given column.
 ImGuiID ImGui::TableGetColumnResizeID(const ImGuiTable* table, int column_n, int instance_no)
 {
-    IM_ASSERT(column_n < table->ColumnsCount);
+    IM_ASSERT(column_n >= 0 && column_n < table->ColumnsCount);
     ImGuiID id = table->ID + 1 + (instance_no * table->ColumnsCount) + column_n;
     return id;
 }

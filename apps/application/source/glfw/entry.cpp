@@ -140,6 +140,11 @@ int main(int, char**)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // Required on Mac
+#elif defined(__arm__) || defined(__aarch64__)
+    // GL 2.1 + GLSL 120
+    const char* glsl_version = "#version 120";
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
 #else
     // GL 3.0 + GLSL 130
     const char* glsl_version = "#version 130";
