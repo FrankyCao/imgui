@@ -29,6 +29,12 @@ inline int64_t GetTickCount(void) {
 #include <vector>
 #include <fstream>
 
+#ifndef max
+#define max std::max
+#endif
+#ifndef min
+#define min std::min
+#endif
 
 // for example
 namespace imnodes_sample
@@ -523,7 +529,7 @@ struct Node
 template<class T>
 T clamp(T x, T a, T b)
 {
-    return std::min(b, std::max(x, a));
+    return min(b, max(x, a));
 }
 
 static float current_time_seconds = 0.f;

@@ -280,7 +280,7 @@ endif()
 if(WIN32)
 if(IMGUI_DX9)
 set(LINK_LIBS
-    ${LINK_LIBS}
+    ${minzip}
     d3d9
 )
 set(IMGUI_SRC
@@ -402,19 +402,29 @@ set(IMGUI_INC_DIRS
 set(IMGUI_SRC
     ${IMGUI_SRC}
     addon/ImGuiFileSystem/ImGuiFileSystem.cpp
+)
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    addon/ImGuiFileSystem/ImGuiFileSystem.h
+    addon/ImGuiFileSystem/dirent_portable.h
+)
+
+if (NOT WIN32)
+set(IMGUI_SRC
+    ${IMGUI_SRC}
     addon/ImGuiFileSystem/minizip/zip.c
     addon/ImGuiFileSystem/minizip/unzip.c
     addon/ImGuiFileSystem/minizip/ioapi.c
 )
 set(IMGUI_INCS
     ${IMGUI_INCS}
-    addon/ImGuiFileSystem/ImGuiFileSystem.h
-    addon/ImGuiFileSystem/dirent_portable.h
     addon/ImGuiFileSystem/minizip/zip.h
     addon/ImGuiFileSystem/minizip/unzip.h
     addon/ImGuiFileSystem/minizip/ioapi.h
     addon/ImGuiFileSystem/minizip/crypt.h
 )
+endif()
+
 set(IMGUI_INC_DIRS
     ${IMGUI_INC_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiFileSystem

@@ -3,8 +3,13 @@
 #undef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
-//-----------------------------------------------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------------------------------------------
+#ifdef _WIN32
+#include "imgui_impl_dx11.h"
+#define ImImpl_LoadTexture ImGui_LoadTexture
+#define ImImpl_FreeTexture ImGui_DestroyTexture
+#else
 #if defined(IMGUI_IMPL_OPENGL_LOADER_GL3W)
 #include <GL/gl3w.h>            // Initialize with gl3wInit()
 #elif defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
@@ -154,6 +159,11 @@ static void ImImpl_GenerateOrUpdateTexture(ImTextureID& imtexid,int width,int he
 #   endif //NO_IMGUI_OPENGL_GLGENERATEMIPMAP
 }
 
+static void ImImpl_FreeTexture(ImTextureID& imtexid) {
+    GLuint& texid = reinterpret_cast<GLuint&>(imtexid);
+    if (texid) {glDeleteTextures(1,&texid);texid=0;}
+}
+
 static ImTextureID ImImpl_LoadTextureFromMemory(const unsigned char* filenameInMemory,int filenameInMemorySize,int req_comp,bool useMipmapsIfPossible,bool wraps,bool wrapt,bool minFilterNearest,bool magFilterNearest)  {
     int w,h,n;
     unsigned char* pixels = stbi_load_from_memory(filenameInMemory,filenameInMemorySize,&w,&h,&n,req_comp);
@@ -182,13 +192,9 @@ static ImTextureID ImImpl_LoadTexture(const char* filename, int req_comp, bool u
     }
     return texId;
 }
-
-static void ImImpl_FreeTexture(ImTextureID& imtexid) {
-    GLuint& texid = reinterpret_cast<GLuint&>(imtexid);
-    if (texid) {glDeleteTextures(1,&texid);texid=0;}
-}
-
 inline ImTextureID ImImpl_LoadTexture(const char* filename,int req_comp=0,bool useMipmapsIfPossible=false,bool wraps=true,bool wrapt=true)  {return ImImpl_LoadTexture(filename,req_comp,useMipmapsIfPossible,wraps,wrapt,false,false);}
+
+#endif /* WIN32 */
 
 #include <stdlib.h> // qsort
 
@@ -2790,10 +2796,6 @@ bool NodeGraphEditor::load(ImGuiHelper::Deserializer& d, const char ** pOptional
 
 }   // namespace ImGui
 
-
-
-
-
 #ifndef IMGUINODEGRAPHEDITOR_NOTESTDEMO
 
 /*#ifndef NO_IMGUIFILESYSTEM
@@ -3113,11 +3115,13 @@ class TextureNode : public Node {
     }
 
     void processPath(const char* filePath)  {
+    #ifndef _WIN32  // FIXME::Dicky Win32 LoadTexture will crush
         if (!filePath || strcmp(filePath,lastValidImagePath)==0) return;
         if (!ValidateImagePath(filePath)) return;
         if (textureID) {ImImpl_FreeTexture(textureID);}
         textureID = ImImpl_LoadTexture(filePath);
         if (textureID) strcpy(lastValidImagePath,filePath);
+    #endif
     }
 
     // When the node is loaded from file or copied from another node, only the text field (="imagePath") is copied, so we must recreate "textureID":

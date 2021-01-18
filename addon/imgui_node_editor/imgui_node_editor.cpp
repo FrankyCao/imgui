@@ -18,6 +18,13 @@
 # include <streambuf>
 # include <type_traits>
 
+#ifndef max
+#define max std::max
+#endif
+#ifndef min
+#define min std::min
+#endif
+
 // https://stackoverflow.com/a/8597498
 # define DECLARE_HAS_NESTED(Name, Member)                                          \
                                                                                    \
@@ -976,9 +983,9 @@ ImRect ed::Link::GetBounds() const
             const auto start_dir = ImNormalized(ImCubicBezierTangent(curve.P0, curve.P1, curve.P2, curve.P3, 0.0f));
             const auto p0 = curve.P0;
             const auto p1 = curve.P0 - start_dir * m_StartPin->m_ArrowSize;
-            const auto min = ImMin(p0, p1);
-            const auto max = ImMax(p0, p1);
-            auto arrowBounds = ImRect(min, ImMax(max, min + ImVec2(1, 1)));
+            const auto _min = ImMin(p0, p1);
+            const auto _max = ImMax(p0, p1);
+            auto arrowBounds = ImRect(_min, ImMax(_max, _min + ImVec2(1, 1)));
             bounds.Add(arrowBounds);
         }
 
@@ -987,9 +994,9 @@ ImRect ed::Link::GetBounds() const
             const auto end_dir = ImNormalized(ImCubicBezierTangent(curve.P0, curve.P1, curve.P2, curve.P3, 1.0f));
             const auto p0 = curve.P3;
             const auto p1 = curve.P3 + end_dir * m_EndPin->m_ArrowSize;
-            const auto min = ImMin(p0, p1);
-            const auto max = ImMax(p0, p1);
-            auto arrowBounds = ImRect(min, ImMax(max, min + ImVec2(1, 1)));
+            const auto _min = ImMin(p0, p1);
+            const auto _max = ImMax(p0, p1);
+            auto arrowBounds = ImRect(_min, ImMax(_max, _min + ImVec2(1, 1)));
             bounds.Add(arrowBounds);
         }
 
@@ -3632,7 +3639,7 @@ bool ed::SelectAction::Process(const Control& control)
     {
         m_EndPoint = ImGui::GetMousePos();
 
-        auto topLeft     = ImVec2(std::min(m_StartPoint.x, m_EndPoint.x), std::min(m_StartPoint.y, m_EndPoint.y));
+        auto topLeft     = ImVec2(min(m_StartPoint.x, m_EndPoint.x), min(m_StartPoint.y, m_EndPoint.y));
         auto bottomRight = ImVec2(ImMax(m_StartPoint.x, m_EndPoint.x), ImMax(m_StartPoint.y, m_EndPoint.y));
         auto rect        = ImRect(topLeft, bottomRight);
         if (rect.GetWidth() <= 0)
@@ -3703,12 +3710,12 @@ void ed::SelectAction::Draw(ImDrawList* drawList)
 
     drawList->ChannelsSetCurrent(c_BackgroundChannel_SelectionRect);
 
-    auto min  = ImVec2(std::min(m_StartPoint.x, m_EndPoint.x), std::min(m_StartPoint.y, m_EndPoint.y));
-    auto max  = ImVec2(ImMax(m_StartPoint.x, m_EndPoint.x), ImMax(m_StartPoint.y, m_EndPoint.y));
+    auto _min  = ImVec2(min(m_StartPoint.x, m_EndPoint.x), min(m_StartPoint.y, m_EndPoint.y));
+    auto _max  = ImVec2(ImMax(m_StartPoint.x, m_EndPoint.x), ImMax(m_StartPoint.y, m_EndPoint.y));
 
-    drawList->AddRectFilled(min, max, fillColor);
+    drawList->AddRectFilled(_min, _max, fillColor);
     FringeScaleScope fringe(1.0f);
-    drawList->AddRect(min, max, outlineColor);
+    drawList->AddRect(_min, _max, outlineColor);
 }
 
 
@@ -4991,7 +4998,7 @@ bool ed::HintBuilder::Begin(NodeId nodeId)
 
     Editor->Suspend(SuspendFlags::KeepSplitter);
 
-    const auto alpha = ImMax(0.0f, std::min(1.0f, (view.Scale - c_min_zoom) / (c_max_zoom - c_min_zoom)));
+    const auto alpha = ImMax(0.0f, min(1.0f, (view.Scale - c_min_zoom) / (c_max_zoom - c_min_zoom)));
 
     ImGui::GetWindowDrawList()->ChannelsSetCurrent(c_UserChannel_HintsBackground);
     ImGui::PushClipRect(rect.Min + ImVec2(1, 1), rect.Max - ImVec2(1, 1), false);
