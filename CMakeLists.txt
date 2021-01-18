@@ -280,7 +280,7 @@ endif()
 if(WIN32)
 if(IMGUI_DX9)
 set(LINK_LIBS
-    ${minzip}
+    ${LINK_LIBS}
     d3d9
 )
 set(IMGUI_SRC
