@@ -307,7 +307,7 @@ void ImGui::UvMeter(char const *label, ImVec2 const &size, int *value, int v_min
     }
 }
 
-bool ImGui::Knob(char const *label, float *p_value, float v_min, float v_max, ImVec2 const &size, char const *tooltip)
+bool ImGui::KnobFloat(char const *label, float *p_value, float v_min, float v_max, ImVec2 const &size, char const *tooltip)
 {
     bool showLabel = label[0] != '#' && label[1] != '#' && label[0] != '\0';
 
@@ -665,5 +665,204 @@ bool ImGui::Fader(const char *label, const ImVec2 &size, int *v, const int v_min
     if (label_size.x > 0.0f)
         RenderText(ImVec2(frame_bb.Max.x + style.ItemInnerSpacing.x, frame_bb.Min.y + style.FramePadding.y), label);
 
+    return value_changed;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// New Knob controllor 
+static void draw_circle(ImVec2 center, float _size, bool filled, int segments, float radius, ImGui::ColorSet& color)
+{
+    float circle_radius = _size * radius;
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    ImU32 _color = ImGui::GetColorU32(ImGui::IsItemActive() ? color.active : ImGui::IsItemHovered(0) ? color.hovered : color.base);
+    if (filled)
+        draw_list->AddCircleFilled(center, circle_radius, _color, segments);
+    else
+        draw_list->AddCircle(center, circle_radius, _color, segments);
+}
+
+static void bezier_arc(ImVec2 center, ImVec2 start, ImVec2 end, ImVec2& c1, ImVec2 & c2)
+{
+    float ax = start[0] - center[0];
+    float ay = start[1] - center[1];
+    float bx = end[0] - center[0];
+    float by = end[1] - center[1];
+    float q1 = ax * ax + ay * ay;
+    float q2 = q1 + ax * bx + ay * by;
+    float k2 = (4.0 / 3.0) * (sqrt(2.0 * q1 * q2) - q2) / (ax * by - ay * bx);
+    c1 = ImVec2(center[0] + ax - k2 * ay, center[1] + ay + k2 * ax);
+    c2 = ImVec2(center[0] + bx + k2 * by, center[1] + by - k2 * bx);
+}
+
+static void draw_arc1(ImVec2 center, float radius, float start_angle, float end_angle, float thickness, ImU32 color, int num_segments)
+{
+    ImVec2 start = {center[0] + cos(start_angle) * radius, center[1] + sin(start_angle) * radius};
+    ImVec2 end = {center[0] + cos(end_angle) * radius, center[1] + sin(end_angle) * radius};
+    ImVec2 c1, c2;
+    bezier_arc(center, start, end, c1, c2);
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    draw_list->AddBezierCubic(start, c1, c2, end, color, thickness, num_segments);
+}
+
+static void draw_arc(ImVec2 center, float radius, float start_angle, float end_angle, float thickness, ImU32 color, int num_segments, int8_t bezier_count)
+{
+    float overlap = thickness * radius * 0.00001 * M_PI;
+    float delta = end_angle - start_angle;
+    float bez_step = 1.0 / (float)bezier_count;
+    float mid_angle = start_angle + overlap;
+    for (int i = 0; i < bezier_count - 1; i++)
+    {
+        float mid_angle2 = delta * bez_step + mid_angle;
+        draw_arc1(center, radius, mid_angle - overlap, mid_angle2 + overlap, thickness, color, num_segments);
+        mid_angle = mid_angle2;
+    }
+    draw_arc1(center, radius, mid_angle - overlap, end_angle, thickness, color, num_segments);
+}
+
+static void draw_arc(ImVec2 center, float _radius, float _size, float radius, float start_angle, float end_angle, int segments, int8_t bezier_count, ImGui::ColorSet& color)
+{
+    float track_radius = _radius * radius;
+    float track_size = _size * radius * 0.5 + 0.0001;
+    ImU32 _color = ImGui::GetColorU32(ImGui::IsItemActive() ? color.active : ImGui::IsItemHovered(0) ? color.hovered : color.base);
+    draw_arc(center, track_radius, start_angle, end_angle, track_size, _color, segments, bezier_count);
+}
+
+static void draw_dot(ImVec2 center, float _radius, float _size, float radius, float _angle, bool filled, int segments, ImGui::ColorSet& color)
+{
+    float dot_size = _size * radius;
+    float dot_radius = _radius * radius;
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    ImU32 _color = ImGui::GetColorU32(ImGui::IsItemActive() ? color.active : ImGui::IsItemHovered(0) ? color.hovered : color.base);
+    if (filled)
+        draw_list->AddCircleFilled(
+                ImVec2(center[0] + cos(_angle) * dot_radius, center[1] + sin(_angle) * dot_radius),
+                dot_size, _color, segments);
+    else
+        draw_list->AddCircle(
+                ImVec2(center[0] + cos(_angle) * dot_radius, center[1] + sin(_angle) * dot_radius),
+                dot_size, _color, segments);
+}
+
+static void draw_tick(ImVec2 center, float radius, float start, float end, float width, float _angle, ImGui::ColorSet& color)
+{
+    float tick_start = start * radius;
+    float tick_end = end * radius;
+    float _angle_cos = cos(_angle);
+    float _angle_sin = sin(_angle);
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    ImU32 _color = ImGui::GetColorU32(ImGui::IsItemActive() ? color.active : ImGui::IsItemHovered(0) ? color.hovered : color.base);
+    draw_list->AddLine(
+            ImVec2(center[0] + _angle_cos * tick_end, center[1] + _angle_sin * tick_end),
+            ImVec2(center[0] + _angle_cos * tick_start, center[1] + _angle_sin * tick_start),
+            _color,
+            width * radius);
+}
+
+bool ImGui::Knob(char const *label, float *p_value, float v_min, float v_max, float size,
+                ColorSet circle_color, ColorSet wiper_color, ColorSet track_color, ColorSet tick_color,
+                ImGuiKnobType type, char const *format, int tick_steps)
+{
+    ImGuiStyle &style = ImGui::GetStyle();
+    float line_height = ImGui::GetTextLineHeight();
+    ImGuiIO &io = ImGui::GetIO();
+    ImVec2 ItemSize = ImVec2(size, size + line_height * 2 + style.ItemInnerSpacing.y * 2 + 4);
+    std::string ViewID = "###" + std::string(label) + "_KNOB_VIEW_CONTORL_";
+    ImGui::BeginChild(ViewID.c_str(), ItemSize, false, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+    bool showLabel = label[0] != '#' && label[1] != '#' && label[0] != '\0';
+    float radius = std::fmin(ItemSize.x, ItemSize.y) / 2.0f;
+    ImVec2 pos = ImGui::GetCursorScreenPos();
+    ImVec2 center = ImVec2(pos.x + radius, pos.y + radius);
+    auto textSize = CalcTextSize(label);
+    if (showLabel)
+    {
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+        draw_list->AddText(ImVec2(pos.x + ((ItemSize.x / 2) - (textSize.x / 2)), pos.y + style.ItemInnerSpacing.y), ImGui::GetColorU32(ImGuiCol_Text), label);
+        center.y += line_height + 4;
+    }
+
+    ImGui::InvisibleButton(label, ImVec2(radius * 2, radius * 2 + line_height));
+
+    bool value_changed = false;
+    bool is_active = ImGui::IsItemActive();
+    bool is_hovered = ImGui::IsItemActive();
+    if (is_active && io.MouseDelta.y != 0.0f)
+    {
+        float step = (v_max - v_min) / 200.0f;
+        *p_value -= io.MouseDelta.y * step;
+        if (*p_value < v_min)
+            *p_value = v_min;
+        if (*p_value > v_max)
+            *p_value = v_max;
+        value_changed = true;
+    }
+    float angle_min = M_PI * 0.75;
+    float angle_max = M_PI * 2.25;
+    float t = (*p_value - v_min) / (v_max - v_min);
+    float angle = angle_min + (angle_max - angle_min) * t;
+
+    switch (type)
+    {
+        case IMKNOB_WIPER:
+            draw_circle(center, 0.7, true, 32, radius, circle_color);
+            draw_arc(center, 0.8, 0.41, radius, angle_min, angle_max, 16, 2, track_color);
+            if (t > 0.01)
+                draw_arc(center, 0.8, 0.43, radius, angle_min, angle, 16, 2, wiper_color);
+        break;
+        case IMKNOB_WIPER_DOT:
+            draw_circle(center, 0.6, true, 32, radius, circle_color);
+            draw_arc(center, 0.85, 0.41, radius, angle_min, angle_max, 16, 2, track_color);
+            draw_dot(center, 0.85, 0.1, radius, angle, true, 12, wiper_color);
+        break;
+        case IMKNOB_WIPER_ONLY:
+            draw_arc(center, 0.8, 0.41, radius, angle_min, angle_max, 32, 2, track_color);
+            if (t > 0.01)
+                draw_arc(center, 0.8, 0.43, radius, angle_min, angle, 16, 2, wiper_color);
+        break;
+        case IMKNOB_TICK:
+            draw_circle(center, 0.7, true, 32, radius, circle_color);
+            draw_tick(center, radius, 0.4, 0.7, 0.15, angle, wiper_color);
+        break;
+        case IMKNOB_TICK_DOT:
+            draw_circle(center, 0.85, true, 32, radius, circle_color);
+            draw_dot(center, 0.6, 0.12, radius, angle, true, 12, wiper_color);
+        break;
+        case IMKNOB_SPACE:
+            draw_circle(center, 0.3 - t * 0.1, true, 16, radius, circle_color);
+            if (t > 0.01)
+            {
+                draw_arc(center, 0.4, 0.15, radius, angle_min - 1.0, angle - 1.0, 16, 2, wiper_color);
+                draw_arc(center, 0.6, 0.15, radius, angle_min + 1.0, angle + 1.0, 16, 2, wiper_color);
+                draw_arc(center, 0.8, 0.15, radius, angle_min + 3.0, angle + 3.0, 16, 2, wiper_color);
+            }
+        break;
+        case IMKNOB_STEPPED:
+            for (int i = 0; i < tick_steps; i++)
+            {
+                float a = (float)i / (float)(tick_steps - 1);
+                float angle = angle_min + (angle_max - angle_min) * a;
+                draw_tick(center, radius, 0.7, 0.9, 0.04, angle, tick_color);
+            }
+            draw_circle(center, 0.6, true, 32, radius, circle_color);
+            draw_tick(center, radius, 0.4, 0.7, 0.15, angle, wiper_color);
+        break;
+        case IMKNOB_STEPPED_DOT:
+            for (int i = 0; i < tick_steps; i++)
+            {
+                float a = (float)i / (float)(tick_steps - 1);
+                float angle = angle_min + (angle_max - angle_min) * a;
+                draw_tick(center, radius, 0.7, 0.9, 0.04, angle, tick_color);
+            }
+            draw_circle(center, 0.6, true, 32, radius, circle_color);
+            draw_dot(center, 0.4, 0.12, radius, angle, true, 12, wiper_color);
+        break;
+        default:
+        break;
+    }
+    
+    ImGui::PushItemWidth(size);
+    std::string DragID = "###" + std::string(label) + "_KNOB_DRAG_CONTORL_";
+    ImGui::DragFloat(DragID.c_str(), p_value, (v_max - v_min) / 200.0, v_min, v_max, format);
+    ImGui::PopItemWidth();
+    ImGui::EndChild();
     return value_changed;
 }

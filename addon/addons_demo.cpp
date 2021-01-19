@@ -413,7 +413,7 @@ void ShowAddonsDemoWindowWidgets()
     {
         static float freq = 0.5;
         static unsigned char intensity = 0;
-        ImGui::Knob("Float.", &freq, 0.0f, 1.0f, ImVec2(40, 40), "float value knob");
+        ImGui::KnobFloat("Float.", &freq, 0.0f, 1.0f, ImVec2(40, 40), "float value knob");
         ImGui::SameLine();
         ImGui::KnobUchar("UCHar", &intensity, 0, 127, ImVec2(40, 40), "uchar value knob");
         int idb = freq * 80;
@@ -424,6 +424,48 @@ void ShowAddonsDemoWindowWidgets()
         static bool checked = true;
         ImGui::ToggleButton("Check", &checked, ImVec2(96, 20)); ImGui::ShowTooltipOnHover("Toggle Button.");
         ImGui::ToggleButtonWithCheckbox("Add", &instrument, &checked, ImVec2(96, 32)); ImGui::ShowTooltipOnHover("Toggle Button With Left Checkbox.");
+
+        static float val = 0.5;
+        ImGui::Separator();
+        ImGui::Text("Style Knob controllors");
+        float t = (float)ImGui::GetTime();
+        float h = abs(sin(t * 0.2));
+        float s = abs(sin(t * 0.1)) * 0.5 + 0.4;
+        ImVec4 base_color = ImVec4(0.f, 0.f, 0.f, 1.f), active_color = ImVec4(0.f, 0.f, 0.f, 1.f), hovered_color = ImVec4(0.f, 0.f, 0.f, 1.f);
+        ImGui::ColorConvertHSVtoRGB(h, s, 0.5f, base_color.x, base_color.y, base_color.z);
+        ImGui::ColorConvertHSVtoRGB(h, s, 0.6f, active_color.x, active_color.y, active_color.z);
+        ImGui::ColorConvertHSVtoRGB(h, s, 0.7f, hovered_color.x, hovered_color.y, hovered_color.z);
+        ImVec4 highlight_base_color = ImVec4(0.f, 0.f, 0.f, 1.f), highlight_active_color = ImVec4(0.f, 0.f, 0.f, 1.f), highlight_hovered_color = ImVec4(0.f, 0.f, 0.f, 1.f);
+        ImGui::ColorConvertHSVtoRGB(h, s, 0.75f, highlight_base_color.x, highlight_base_color.y, highlight_base_color.z);
+        ImGui::ColorConvertHSVtoRGB(h, s, 0.95f, highlight_active_color.x, highlight_active_color.y, highlight_active_color.z);
+        ImGui::ColorConvertHSVtoRGB(h, s, 1.0f, highlight_hovered_color.x, highlight_hovered_color.y, highlight_hovered_color.z);
+        ImVec4 lowlight_base_color = ImVec4(0.f, 0.f, 0.f, 1.f), lowlight_active_color = ImVec4(0.f, 0.f, 0.f, 1.f), lowlight_hovered_color = ImVec4(0.f, 0.f, 0.f, 1.f);
+        ImGui::ColorConvertHSVtoRGB(h, s, 0.2f, lowlight_base_color.x, lowlight_base_color.y, lowlight_base_color.z);
+        ImGui::ColorConvertHSVtoRGB(h, s, 0.3f, lowlight_active_color.x, lowlight_active_color.y, lowlight_active_color.z);
+        ImGui::ColorConvertHSVtoRGB(h, s, 0.4f, lowlight_hovered_color.x, lowlight_hovered_color.y, lowlight_hovered_color.z);
+        ImVec4 tick_base_color = ImVec4(0.8f, 0.8f, 0.8f, 1.f), tick_active_color = ImVec4(1.f, 1.f, 1.f, 1.f), tick_hovered_color = ImVec4(1.f, 1.f, 1.f, 1.f);
+        ColorSet circle_color = {base_color, active_color, hovered_color};
+        ColorSet wiper_color = {highlight_base_color, highlight_active_color, highlight_hovered_color};
+        ColorSet track_color = {lowlight_base_color, lowlight_active_color, lowlight_hovered_color};
+        ColorSet tick_color = {tick_base_color, tick_active_color, tick_hovered_color};
+
+        float knob_size = 80.f;
+        ImGui::Knob("##Wiper", &val, 0.0f, 1.0f, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_WIPER, "%.03fdB");
+        ImGui::SameLine();
+        ImGui::Knob("WiperDot", &val, 0.0f, 1.0f, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_WIPER_DOT, "%.03fdB");
+        ImGui::SameLine();
+        ImGui::Knob("WiperOnly", &val, 0.0f, 1.0f, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_WIPER_ONLY, "%.03fdB");
+        ImGui::SameLine();
+        ImGui::Knob("Tick", &val, 0.0f, 1.0f, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_TICK, "%.03fdB");
+        ImGui::SameLine();
+        ImGui::Knob("TickDot", &val, 0.0f, 1.0f, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_TICK_DOT, "%.03fdB");
+        ImGui::SameLine();
+        ImGui::Knob("Space", &val, 0.0f, 1.0f, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_SPACE, "%.03fdB");
+        ImGui::SameLine();
+        ImGui::Knob("Stepped", &val, 0.0f, 1.0f, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_STEPPED, "%.03fdB", 10);
+        ImGui::SameLine();
+        ImGui::Knob("SteppedDot", &val, 0.0f, 1.0f, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_STEPPED_DOT, "%.03fdB", 10);
+
         ImGui::TreePop();
     }
 
