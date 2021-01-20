@@ -10,12 +10,48 @@
 #ifdef _WIN32
 #include <shellapi.h>	// ShellExecuteA(...) - Shell32.lib
 #include <objbase.h>    // CoInitializeEx(...)  - ole32.lib
+#ifdef IMGUI_DX11
+struct IUnknown;
+#include <d3d11.h>
+#elif defined(IMGUI_DX9)
+#include <d3d9.h>
+#endif
+#define DIRECTINPUT_VERSION 0x0800
+#include <dinput.h>
 #else //_WIN32
 #include <unistd.h>
 #include <stdlib.h> // system
 #endif //_WIN32
 
 #include <imgui_internal.h>
+
+#ifndef _WIN32
+// About Desktop OpenGL function loaders:
+//  Modern desktop OpenGL doesn't have a standard portable header file to load OpenGL function pointers.
+//  Helper libraries are often used for this purpose! Here we are supporting a few common ones (gl3w, glew, glad).
+//  You may use another loader/header of your choice (glext, glLoadGen, etc.), or chose to manually implement your own.
+#if defined(IMGUI_IMPL_OPENGL_LOADER_GL3W)
+#include <GL/gl3w.h>            // Initialize with gl3wInit()
+#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
+#include <GL/glew.h>            // Initialize with glewInit()
+#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLAD)
+#include <glad/glad.h>          // Initialize with gladLoadGL()
+#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLAD2)
+#include <glad/gl.h>            // Initialize with gladLoadGL(...) or gladLoaderLoadGL()
+#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLBINDING2)
+#define GLFW_INCLUDE_NONE       // GLFW including OpenGL headers causes ambiguity or multiple definition errors.
+#include <glbinding/Binding.h>  // Initialize with glbinding::Binding::initialize()
+#include <glbinding/gl/gl.h>
+using namespace gl;
+#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLBINDING3)
+#define GLFW_INCLUDE_NONE       // GLFW including OpenGL headers causes ambiguity or multiple definition errors.
+#include <glbinding/glbinding.h>// Initialize with glbinding::initialize()
+#include <glbinding/gl/gl.h>
+using namespace gl;
+#else
+#include IMGUI_IMPL_OPENGL_LOADER_CUSTOM
+#endif
+#endif
 
 #ifndef NO_IMGUIHELPER_DRAW_METHODS
 #if !defined(alloca)
@@ -34,8 +70,311 @@
 #endif //alloca
 #endif //NO_IMGUIHELPER_DRAW_METHODS
 
+#ifdef IMGUI_OPENGL
+struct ImTexture
+{
+    GLuint TextureID = 0;
+    int    Width     = 0;
+    int    Height    = 0;
+};
+#elif defined(IMGUI_DX11)
+extern ID3D11Device* g_pd3dDevice;
+struct ImTexture
+{
+    ID3D11ShaderResourceView * TextureID = nullptr;
+    int    Width     = 0;
+    int    Height    = 0;
+};
+#elif defined(IMGUI_DX9)
+extern LPDIRECT3DDEVICE9 g_pd3dDevice;
+struct ImTexture
+{
+    LPDIRECT3DTEXTURE9 TextureID = nullptr;
+    int    Width     = 0;
+    int    Height    = 0;
+};
+#else
+struct ImTexture
+{
+    int    TextureID = -1;
+    int    Width     = 0;
+    int    Height    = 0;
+};
+#endif
 
 namespace ImGui {
+// Image Load
+static std::vector<ImTexture> g_Textures;
+
+void ImGenerateOrUpdateTexture(ImTextureID& imtexid,int width,int height,int channels,const unsigned char* pixels,bool useMipmapsIfPossible,bool wraps,bool wrapt,bool minFilterNearest,bool magFilterNearest)
+{
+    IM_ASSERT(pixels);
+    IM_ASSERT(channels>0 && channels<=4);
+#ifdef IMGUI_OPENGL
+    GLuint& texid = reinterpret_cast<GLuint&>(imtexid);
+    if (texid==0) glGenTextures(1, &texid);
+
+    glBindTexture(GL_TEXTURE_2D, texid);
+
+    GLenum clampEnum = 0x2900;    // 0x2900 -> GL_CLAMP; 0x812F -> GL_CLAMP_TO_EDGE
+#   ifndef GL_CLAMP
+#       ifdef GL_CLAMP_TO_EDGE
+        clampEnum = GL_CLAMP_TO_EDGE;
+#       else //GL_CLAMP_TO_EDGE
+        clampEnum = 0x812F;
+#       endif // GL_CLAMP_TO_EDGE
+#   else //GL_CLAMP
+    clampEnum = GL_CLAMP;
+#   endif //GL_CLAMP
+
+    unsigned char* potImageBuffer = NULL;
+
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,wraps ? GL_REPEAT : clampEnum);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,wrapt ? GL_REPEAT : clampEnum);
+    //const GLfloat borderColor[]={0.f,0.f,0.f,1.f};glTexParameterfv(GL_TEXTURE_2D,GL_TEXTURE_BORDER_COLOR,borderColor);
+    if (magFilterNearest) glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    else glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    if (useMipmapsIfPossible)   {
+#       ifdef NO_IMGUI_OPENGL_GLGENERATEMIPMAP
+#           ifndef GL_GENERATE_MIPMAP
+#               define GL_GENERATE_MIPMAP 0x8191
+#           endif //GL_GENERATE_MIPMAP
+        // I guess this is compilable, even if it's not supported:
+        glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);    // This call must be done before glTexImage2D(...) // GL_GENERATE_MIPMAP can't be used with NPOT if there are not supported by the hardware of GL_ARB_texture_non_power_of_two.
+#       endif //NO_IMGUI_OPENGL_GLGENERATEMIPMAP
+    }
+    if (minFilterNearest) glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, useMipmapsIfPossible ? GL_LINEAR_MIPMAP_NEAREST : GL_NEAREST);
+    else glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, useMipmapsIfPossible ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    //glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+
+    GLenum luminanceAlphaEnum = 0x190A; // 0x190A -> GL_LUMINANCE_ALPHA [Note that we're FORCING this definition even if when it's not defined! What should we use for 2 channels?]
+    GLenum compressedLuminanceAlphaEnum = 0x84EB; // 0x84EB -> GL_COMPRESSED_LUMINANCE_ALPHA [Note that we're FORCING this definition even if when it's not defined! What should we use for 2 channels?]
+#   ifdef GL_LUMINANCE_ALPHA
+    luminanceAlphaEnum = GL_LUMINANCE_ALPHA;
+#   endif //GL_LUMINANCE_ALPHA
+#   ifdef GL_COMPRESSED_LUMINANCE_ALPHA
+    compressedLuminanceAlphaEnum = GL_COMPRESSED_LUMINANCE_ALPHA;
+#   endif //GL_COMPRESSED_LUMINANCE_ALPHA
+
+#   ifdef IMIMPL_USE_ARB_TEXTURE_SWIZZLE_TO_SAVE_FONT_TEXTURE_MEMORY
+    if (&imtexid==&gImImplPrivateParams.fontTex && channels==1) {
+        GLint swizzleMask[] = {GL_ONE, GL_ONE, GL_ONE, GL_ALPHA};
+        glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
+        //printf("IMIMPL_USE_ARB_TEXTURE_SWIZZLE_TO_SAVE_FONT_TEXTURE_MEMORY used.\n");
+    }
+#   endif //IMIMPL_USE_ARB_TEXTURE_SWIZZLE_TO_SAVE_FONT_TEXTURE_MEMORY
+
+    GLenum ifmt = channels==1 ? GL_ALPHA : channels==2 ? luminanceAlphaEnum : channels==3 ? GL_RGB : GL_RGBA;  // channels == 1 could be GL_LUMINANCE, GL_ALPHA, GL_RED ...
+    GLenum fmt = ifmt;
+#   ifdef IMIMPL_USE_ARB_TEXTURE_COMPRESSION_TO_COMPRESS_FONT_TEXTURE
+    if (&imtexid==&gImImplPrivateParams.fontTex)    {
+        ifmt = channels==1 ? GL_COMPRESSED_ALPHA : channels==2 ? compressedLuminanceAlphaEnum : channels==3 ? GL_COMPRESSED_RGB : GL_COMPRESSED_RGBA;  // channels == 1 could be GL_COMPRESSED_LUMINANCE, GL_COMPRESSED_ALPHA, GL_COMPRESSED_RED ...
+    }
+#   endif //IMIMPL_USE_ARB_TEXTURE_COMPRESSION_TO_COMPRESS_FONT_TEXTURE
+    glTexImage2D(GL_TEXTURE_2D, 0, ifmt, width, height, 0, fmt, GL_UNSIGNED_BYTE, potImageBuffer ? potImageBuffer : pixels);
+
+#   ifdef IMIMPL_USE_ARB_TEXTURE_COMPRESSION_TO_COMPRESS_FONT_TEXTURE
+    if (&imtexid==&gImImplPrivateParams.fontTex)    {
+        GLint compressed = GL_FALSE;
+        glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_COMPRESSED, &compressed);
+        if (compressed==GL_FALSE)
+            printf("Font texture compressed = %s\n",compressed==GL_TRUE?"true":"false");
+    }
+#   endif //IMIMPL_USE_ARB_TEXTURE_COMPRESSION_TO_COMPRESS_FONT_TEXTURE
+
+    if (potImageBuffer) {STBI_FREE(potImageBuffer);potImageBuffer=NULL;}
+
+#   ifndef NO_IMGUI_OPENGL_GLGENERATEMIPMAP
+    if (useMipmapsIfPossible) glGenerateMipmap(GL_TEXTURE_2D);
+#   endif //NO_IMGUI_OPENGL_GLGENERATEMIPMAP
+#elif defined(IMGUI_DX11)
+    auto textureID = (ID3D11ShaderResourceView *)imtexid;
+    if (textureID)
+    {
+        textureID->Release();
+        textureID = nullptr;
+    }
+    imtexid = ImCreateTexture(pixels, width, height);
+#elif defined(IMGUI_DX9)
+    LPDIRECT3DTEXTURE9& texid = reinterpret_cast<LPDIRECT3DTEXTURE9&>(imtexid);
+    if (texid==0 && g_pd3dDevice->CreateTexture(width, height, useMipmapsIfPossible ? 0 : 1, 0, channels==1 ? D3DFMT_A8 : channels==2 ? D3DFMT_A8L8 : channels==3 ? D3DFMT_R8G8B8 : D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &texid, NULL) < 0) return;
+
+    D3DLOCKED_RECT tex_locked_rect;
+    if (texid->LockRect(0, &tex_locked_rect, NULL, 0) != D3D_OK) {texid->Release();texid=0;return;}
+    if (channels==3 || channels==4) {
+        unsigned char* pw;
+        const unsigned char* ppxl = pixels;
+        for (int y = 0; y < height; y++)    {
+            pw = (unsigned char *)tex_locked_rect.pBits + tex_locked_rect.Pitch * y;  // each row has Pitch bytes
+            ppxl = &pixels[y*width*channels];
+            for( int x = 0; x < width; x++ )
+            {
+                *pw++ = ppxl[2];
+                *pw++ = ppxl[1];
+                *pw++ = ppxl[0];
+                if (channels==4) *pw++ = ppxl[3];
+                ppxl+=channels;
+            }
+        }
+    }
+    else {
+        for (int y = 0; y < height; y++)    {
+            memcpy((unsigned char *)tex_locked_rect.pBits + tex_locked_rect.Pitch * y, pixels + (width * channels) * y, (width * channels));
+        }
+    }
+    texid->UnlockRect(0);
+#endif
+}
+
+ImTextureID ImCreateTexture(const void* data, int width, int height)
+{
+#ifdef IMGUI_OPENGL
+    g_Textures.resize(g_Textures.size() + 1);
+    ImTexture& texture = g_Textures.back();
+
+    // Upload texture to graphics system
+    GLint last_texture = 0;
+    glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture);
+    glGenTextures(1, &texture.TextureID);
+    glBindTexture(GL_TEXTURE_2D, texture.TextureID);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glBindTexture(GL_TEXTURE_2D, last_texture);
+
+    texture.Width  = width;
+    texture.Height = height;
+
+    return reinterpret_cast<ImTextureID>(static_cast<std::intptr_t>(texture.TextureID));
+#elif defined(IMGUI_DX11)
+    if (!g_pd3dDevice)
+        return nullptr;
+    g_Textures.resize(g_Textures.size() + 1);
+    ImTexture& texture = g_Textures.back();
+
+    // Create texture
+    D3D11_TEXTURE2D_DESC desc;
+    ZeroMemory(&desc, sizeof(desc));
+    desc.Width = width;
+    desc.Height = height;
+    desc.MipLevels = 1;
+    desc.ArraySize = 1;
+    desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    desc.SampleDesc.Count = 1;
+    desc.Usage = D3D11_USAGE_DEFAULT;
+    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    desc.CPUAccessFlags = 0;
+
+    ID3D11Texture2D *pTexture = NULL;
+    D3D11_SUBRESOURCE_DATA subResource;
+    subResource.pSysMem = data;
+    subResource.SysMemPitch = desc.Width * 4;
+    subResource.SysMemSlicePitch = 0;
+    g_pd3dDevice->CreateTexture2D(&desc, &subResource, &pTexture);
+
+    // Create texture view
+    //ID3D11ShaderResourceView * texture = nullptr;
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+    ZeroMemory(&srvDesc, sizeof(srvDesc));
+    srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    srvDesc.Texture2D.MipLevels = desc.MipLevels;
+    srvDesc.Texture2D.MostDetailedMip = 0;
+    g_pd3dDevice->CreateShaderResourceView(pTexture, &srvDesc, &texture.TextureID);
+    pTexture->Release();
+    texture.Width  = width;
+    texture.Height = height;
+    return (ImTextureID)texture.TextureID;
+#elif defined(IMGUI_DX9)
+    if (!g_pd3dDevice)
+        return nullptr;
+    g_Textures.resize(g_Textures.size() + 1);
+    ImTexture& texture = g_Textures.back();
+    if (g_pd3dDevice->CreateTexture(width, height, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &texture.TextureID, NULL) < 0)
+        return nullptr;
+    D3DLOCKED_RECT tex_locked_rect;
+    int bytes_per_pixel = 4;
+    if (texture.TextureID->LockRect(0, &tex_locked_rect, NULL, 0) != D3D_OK)
+        return nullptr;
+    for (int y = 0; y < height; y++)
+        memcpy((unsigned char*)tex_locked_rect.pBits + tex_locked_rect.Pitch * y, (unsigned char* )data + (width * bytes_per_pixel) * y, (width * bytes_per_pixel));
+    texture.TextureID->UnlockRect(0);
+    return (ImTextureID)texture.TextureID;
+#else
+    return nullptr;
+#endif
+}
+
+static std::vector<ImTexture>::iterator ImFindTexture(ImTextureID texture)
+{
+#ifdef IMGUI_DX11
+    auto textureID = (ID3D11ShaderResourceView *)texture;
+#elif defined(IMGUI_DX9)
+    auto textureID = reinterpret_cast<LPDIRECT3DTEXTURE9>(texture);
+#elif defined(IMGUI_OPENGL)
+    auto textureID = static_cast<GLuint>(reinterpret_cast<std::intptr_t>(texture));
+#else
+    int textureID = -1;
+#endif
+    return std::find_if(g_Textures.begin(), g_Textures.end(), [textureID](ImTexture& texture)
+    {
+        return texture.TextureID == textureID;
+    });
+}
+
+void ImDestroyTexture(ImTextureID texture)
+{
+    auto textureIt = ImFindTexture(texture);
+    if (textureIt == g_Textures.end())
+        return;
+#ifdef IMGUI_OPENGL
+    glDeleteTextures(1, &textureIt->TextureID);
+#elif defined(IMGUI_DX11)
+    if (textureIt->TextureID)
+    {
+        textureIt->TextureID->Release();
+        textureIt->TextureID = nullptr;
+    }
+#elif defined(IMGUI_DX9)
+if (textureIt->TextureID)
+    {
+        textureIt->TextureID->Release();
+        textureIt->TextureID = nullptr;
+    }
+#endif
+    g_Textures.erase(textureIt);
+}
+
+int ImGetTextureWidth(ImTextureID texture)
+{
+    auto textureIt = ImFindTexture(texture);
+    if (textureIt != g_Textures.end())
+        return textureIt->Width;
+    return 0;
+}
+
+int ImGetTextureHeight(ImTextureID texture)
+{
+    auto textureIt = ImFindTexture(texture);
+    if (textureIt != g_Textures.end())
+        return textureIt->Height;
+    return 0;
+}
+
+ImTextureID ImLoadTexture(const char* path)
+{
+    int width = 0, height = 0, component = 0;
+    if (auto data = stbi_load(path, &width, &height, &component, 4))
+    {
+        auto texture = ImCreateTexture(data, width, height);
+        stbi_image_free(data);
+        return texture;
+    }
+    else
+        return nullptr;
+}
 
 bool OpenWithDefaultApplication(const char* url,bool exploreModeForWindowsOS)	{
 #       ifdef _WIN32

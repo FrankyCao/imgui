@@ -1,6 +1,4 @@
 #include "addons_demo.h"
-#include "application.h"
-
 ImTextureID ImageTextureNumber = 0;
 
 namespace ImGui
@@ -22,7 +20,7 @@ void ShowAddonsDemoWindowWidgets()
 {
     if (ImageTextureNumber == 0)
     {
-        ImageTextureNumber = Application_CreateTexture(NumberTexture_pixels, NumberTexture_width, NumberTexture_height);
+        ImageTextureNumber = ImCreateTexture(NumberTexture_pixels, NumberTexture_width, NumberTexture_height);
     }
     if (ImGui::TreeNode("Basic"))
     {
@@ -91,6 +89,7 @@ void ShowAddonsDemoWindowWidgets()
                 pm.addEntry(tmp,reinterpret_cast<void*>(ImageTextureNumber),uv0,uv1);
             }
         }
+
         static bool trigger = false;
         trigger|=ImGui::Button("Press me for a menu with images##PopupMenuWithImagesTest");
         //const int selectedImageMenuEntry =
@@ -99,9 +98,13 @@ void ShowAddonsDemoWindowWidgets()
         ImGui::Spacing();ImGui::Separator();ImGui::Text("Buttons With Images:");ImGui::Separator();
         ImGui::ImageButtonWithText(ImageTextureNumber,"MyImageButtonWithText",ImVec2(16,16),ImVec2(0,0),ImVec2(0.33334f,0.33334f));
 
-        //static ImGui::AnimatedImage gif(ImageTextureNumber,64,64,9,3,3,30,true);
-        //ImGui::SameLine();
-        //gif.render();
+        // AnimatedImage
+        ImGui::Separator();
+        ImGui::Text("AnimatedImage:");
+        static ImGui::AnimatedImage gif(ImageTextureNumber,64,64,9,3,3,30,true);
+        gif.render();
+        ImGui::SameLine();
+        gif.renderAsButton("myButton123",ImVec2(-.5f,-.5f));    // Negative size multiplies the 'native' gif size
 
         ImGui::TreePop();
     }

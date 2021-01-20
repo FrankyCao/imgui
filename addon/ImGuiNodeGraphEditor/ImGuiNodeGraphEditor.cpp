@@ -4,10 +4,6 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
 
-#include "application.h"
-#define ImImpl_LoadTexture Application_LoadTexture
-#define ImImpl_FreeTexture Application_DestroyTexture
-
 #include <stdlib.h> // qsort
 
 
@@ -2848,7 +2844,7 @@ class TextureNode : public Node {
     typedef Node Base;  //Base Class
     typedef TextureNode ThisClass;
     TextureNode() : Base() {}
-    virtual ~TextureNode() {if (textureID) {ImImpl_FreeTexture(textureID);}}
+    virtual ~TextureNode() {if (textureID) {ImGui::ImDestroyTexture(textureID);}}
     static const int TYPE = MNT_TEXTURE_NODE;
     static const int TextBufferSize =
 #   ifdef IMGUI_FILESYSTEM_H_
@@ -2929,8 +2925,8 @@ class TextureNode : public Node {
     void processPath(const char* filePath)  {
         if (!filePath || strcmp(filePath,lastValidImagePath)==0) return;
         if (!ValidateImagePath(filePath)) return;
-        if (textureID) {ImImpl_FreeTexture(textureID);}
-        textureID = ImImpl_LoadTexture(filePath);
+        if (textureID) {ImGui::ImDestroyTexture(textureID);}
+        textureID = ImGui::ImLoadTexture(filePath);
         if (textureID) strcpy(lastValidImagePath,filePath);
     }
 

@@ -134,6 +134,7 @@ endif()
 
 # OpenGL
 if(OPENGL_FOUND)
+add_definitions(-DIMGUI_OPENGL)
 set(IMGUI_SRC
     ${IMGUI_SRC}
     backends/imgui_impl_opengl2.cpp
@@ -279,6 +280,7 @@ endif()
 
 if(WIN32)
 if(IMGUI_DX9)
+add_definitions(-DIMGUI_DX9)
 set(LINK_LIBS
     ${LINK_LIBS}
     d3d9
@@ -306,7 +308,9 @@ set(IMGUI_INCS
     backends/imgui_impl_dx10.h
 )
 endif(IMGUI_DX10)
+
 if(IMGUI_DX11)
+add_definitions(-DIMGUI_DX11)
 set(LINK_LIBS
     ${LINK_LIBS}
     d3d11
@@ -320,6 +324,7 @@ set(IMGUI_INCS
     backends/imgui_impl_dx11.h
 )
 endif(IMGUI_DX11)
+
 if(IMGUI_DX12)
 set(LINK_LIBS
     ${LINK_LIBS}
@@ -723,16 +728,18 @@ set(IMGUI_INCS
 
 # Application Framework
 if (IMGUI_APPS)
-if (WIN32 AND IMGUI_DX11)
+if (WIN32 AND (IMGUI_DX11 OR IMGUI_DX9))
+if (IMGUI_DX11)
 set(IMGUI_SRC
     ${IMGUI_SRC}
     apps/application/source/dx11/entry.cpp
 )
-elseif(ANDROID AND GLUT_FOUND AND IMGUI_GLUT)
+else()
 set(IMGUI_SRC
     ${IMGUI_SRC}
-    apps/application/source/glut/entry.cpp
+    apps/application/source/dx9/entry.cpp
 )
+endif(IMGUI_DX11)
 elseif(SDL2_FOUND AND IMGUI_SDL2)
 set(IMGUI_SRC
     ${IMGUI_SRC}
@@ -742,6 +749,11 @@ elseif(GLFW_FOUND AND IMGUI_GLFW)
 set(IMGUI_SRC
     ${IMGUI_SRC}
     apps/application/source/glfw/entry.cpp
+)
+elseif(GLUT_FOUND AND IMGUI_GLUT)
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    apps/application/source/glut/entry.cpp
 )
 endif()
 set(IMGUI_INCS
@@ -865,7 +877,7 @@ target_link_libraries(
 )
 endif()
 
-if (GLFW_FOUND)
+if (GLFW_FOUND AND IMGUI_GLFW)
 add_executable(
     example_glfw_opengl3
     test/example_glfw_opengl3.cpp
@@ -875,7 +887,7 @@ target_link_libraries(
     imgui
     ${LINK_LIBS}
 )
-endif(GLFW_FOUND)
+endif()
 
 if (APPLE AND IMGUI_MATAL AND IMGUI_APPLE_APP)
 add_executable(

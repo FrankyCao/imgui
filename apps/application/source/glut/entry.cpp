@@ -12,86 +12,33 @@
 #pragma warning (disable: 4505) // unreferenced local function has been removed
 #endif
 
+static void * user_handle = nullptr;
+
 ImTextureID Application_LoadTexture(const char* path)
 {
-    int width = 0, height = 0, component = 0;
-    if (auto data = stbi_load(path, &width, &height, &component, 4))
-    {
-        auto texture = Application_CreateTexture(data, width, height);
-        stbi_image_free(data);
-        return texture;
-    }
-    else
-        return nullptr;
+    return ImGui::ImLoadTexture(path);
 }
 
-struct ImTexture
-{
-    GLuint TextureID = 0;
-    int    Width     = 0;
-    int    Height    = 0;
-};
-
-static std::vector<ImTexture> g_Textures;
-static void * user_handle = nullptr;
 static ImVec4 clear_color = ImVec4(0.125f, 0.125f, 0.125f, 1.00f);
 
 ImTextureID Application_CreateTexture(const void* data, int width, int height)
 {
-    g_Textures.resize(g_Textures.size() + 1);
-    ImTexture& texture = g_Textures.back();
-
-    // Upload texture to graphics system
-    GLint last_texture = 0;
-    glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture);
-    glGenTextures(1, &texture.TextureID);
-    glBindTexture(GL_TEXTURE_2D, texture.TextureID);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-    glBindTexture(GL_TEXTURE_2D, last_texture);
-
-    texture.Width  = width;
-    texture.Height = height;
-
-    return reinterpret_cast<ImTextureID>(static_cast<std::intptr_t>(texture.TextureID));
-}
-
-static std::vector<ImTexture>::iterator Application_FindTexture(ImTextureID texture)
-{
-    auto textureID = static_cast<GLuint>(reinterpret_cast<std::intptr_t>(texture));
-
-    return std::find_if(g_Textures.begin(), g_Textures.end(), [textureID](ImTexture& texture)
-    {
-        return texture.TextureID == textureID;
-    });
+    return ImGui::ImCreateTexture(data, width, height);
 }
 
 void Application_DestroyTexture(ImTextureID texture)
 {
-    auto textureIt = Application_FindTexture(texture);
-    if (textureIt == g_Textures.end())
-        return;
-
-    glDeleteTextures(1, &textureIt->TextureID);
-
-    g_Textures.erase(textureIt);
+    ImGui::ImDestroyTexture(texture);
 }
 
 int Application_GetTextureWidth(ImTextureID texture)
 {
-    auto textureIt = Application_FindTexture(texture);
-    if (textureIt != g_Textures.end())
-        return textureIt->Width;
-    return 0;
+    return ImGui::ImGetTextureWidth(texture);
 }
 
 int Application_GetTextureHeight(ImTextureID texture)
 {
-    auto textureIt = Application_FindTexture(texture);
-    if (textureIt != g_Textures.end())
-        return textureIt->Height;
-    return 0;
+    return ImGui::ImGetTextureHeight(texture);
 }
 
 void glut_display_func()

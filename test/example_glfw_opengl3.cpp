@@ -267,7 +267,10 @@ int main(int, char**)
     bool show_text_edit_window = false;
     bool show_markdown_window = false;
     bool show_dock_window = false;
+    bool show_tab_window = false;
     bool show_node_window = false;
+    bool show_node_edit_window = false;
+    bool show_addon_widget = false;
 
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
@@ -306,7 +309,10 @@ int main(int, char**)
             ImGui::Checkbox("Show Text Edit Window", &show_text_edit_window);
             ImGui::Checkbox("Show Markdown Window", &show_markdown_window);
             ImGui::Checkbox("Show Dock Window", &show_dock_window);
-            ImGui::Checkbox("Show Node Window", &show_node_window);
+            ImGui::Checkbox("Show Tab Window", &show_tab_window);
+            ImGui::Checkbox("Show Node Sample Window", &show_node_window);
+            ImGui::Checkbox("Show Node Edit Windows", &show_node_edit_window);
+            ImGui::Checkbox("Show Addon Widgets", &show_addon_widget);
 
             // show hotkey window
             if (ImGui::Button("Edit Hotkeys"))
@@ -381,46 +387,49 @@ int main(int, char**)
         // 9. Show Dock Window
         if (show_dock_window)
         {
-            if(ImGui::Begin("Dock Demo"))
+            ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
+            if(ImGui::Begin("imguidock window (= lumix engine's dock system)",&show_dock_window, ImGuiWindowFlags_NoScrollbar))
             {
-		        // dock layout by hard-coded or .ini file
-                ImGui::BeginDockspace();
-                if(ImGui::BeginDock("Dock 1"))
-                {
-                    ImGui::Text("I'm Wubugui!");
-                }
-                ImGui::EndDock();
-                if(ImGui::BeginDock("Dock 2"))
-                {
-                    ImGui::Text("I'm BentleyBlanks!");
-                }
-                ImGui::EndDock();
-                if(ImGui::BeginDock("Dock 3"))
-                {
-                    ImGui::Text("I'm LonelyWaiting!");
-                }
-                ImGui::EndDock();
-                ImGui::EndDockspace();
-            }
-            ImGui::End();
-            // multiple dockspace supported
-            if(ImGui::Begin("Dock Demo2"))
-            {
-                ImGui::BeginDockspace();
-                if(ImGui::BeginDock("Dock 2"))
-                {
-                    ImGui::Text("Who's your daddy?");
-                }
-                ImGui::EndDock();
-                ImGui::EndDockspace();
+                ImGui::ShowAddonsDuckWindow();
             }
             ImGui::End();
         }
 
-        // 10. Show Node  Window
+        // 10. Show Tab Window
+        if (show_tab_window)
+        {
+            ImGui::SetNextWindowSize(ImVec2(700,600), ImGuiCond_FirstUseEver);
+            if (ImGui::Begin("Example: TabWindow", &show_tab_window, ImGuiWindowFlags_NoScrollbar))
+            {
+                ImGui::ShowAddonsTabWindow();   // see its code for further info         
+            }
+            ImGui::End();
+        }
+
+        // 11. Show Node  Window
         if (show_node_window)
         {
             imnodes_sample::NodeEditorShow();
+        }
+
+        // 12. Show Node Edit Window
+        if (show_node_edit_window)
+        {
+            ImGui::SetNextWindowSize(ImVec2(700,600), ImGuiCond_FirstUseEver);
+            if (ImGui::Begin("Example: Custom Node Graph",&show_node_edit_window, ImGuiWindowFlags_NoScrollbar))
+            {
+                ImGui::TestNodeGraphEditor();   // see its code for further info         
+            }
+            ImGui::End();
+        }
+
+        // 13. Show Addon Widget.
+        if (show_addon_widget)
+        {
+            ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
+            ImGui::Begin("Addon Widget", &show_addon_widget);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+            ImGui::ShowAddonsDemoWindowWidgets();
+            ImGui::End();
         }
 
         // Rendering

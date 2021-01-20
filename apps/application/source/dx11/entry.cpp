@@ -15,7 +15,7 @@ struct IUnknown;
 #include <string>
 
 // Data
-static ID3D11Device*            g_pd3dDevice = nullptr;
+ID3D11Device*            g_pd3dDevice = nullptr;
 static ID3D11DeviceContext*     g_pd3dDeviceContext = nullptr;
 static IDXGISwapChain*          g_pSwapChain = nullptr;
 static ID3D11RenderTargetView*  g_mainRenderTargetView = nullptr;
@@ -117,134 +117,27 @@ LRESULT WINAPI ImGui_WinProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 ImTextureID Application_LoadTexture(const char* path)
 {
-    int image_width = 0;
-    int image_height = 0;
-    unsigned char* image_data = stbi_load(path, &image_width, &image_height, NULL, 4);
-    if (image_data == NULL)
-        return 0;
-
-    // Create texture
-    D3D11_TEXTURE2D_DESC desc;
-    ZeroMemory(&desc, sizeof(desc));
-    desc.Width = image_width;
-    desc.Height = image_height;
-    desc.MipLevels = 1;
-    desc.ArraySize = 1;
-    desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    desc.SampleDesc.Count = 1;
-    desc.Usage = D3D11_USAGE_DEFAULT;
-    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-    desc.CPUAccessFlags = 0;
-
-    ID3D11Texture2D *pTexture = NULL;
-    D3D11_SUBRESOURCE_DATA subResource;
-    subResource.pSysMem = image_data;
-    subResource.SysMemPitch = desc.Width * 4;
-    subResource.SysMemSlicePitch = 0;
-    g_pd3dDevice->CreateTexture2D(&desc, &subResource, &pTexture);
-
-    // Create texture view
-    ID3D11ShaderResourceView * texture = nullptr;
-    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-    ZeroMemory(&srvDesc, sizeof(srvDesc));
-    srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-    srvDesc.Texture2D.MipLevels = desc.MipLevels;
-    srvDesc.Texture2D.MostDetailedMip = 0;
-    g_pd3dDevice->CreateShaderResourceView(pTexture, &srvDesc, &texture);
-    pTexture->Release();
-
-    stbi_image_free(image_data);
-    return (ImTextureID)texture;
+    return ImGui::ImLoadTexture(path);
 }
 
 ImTextureID Application_CreateTexture(const void* data, int width, int height)
 {
-    // Create texture
-    D3D11_TEXTURE2D_DESC desc;
-    ZeroMemory(&desc, sizeof(desc));
-    desc.Width = width;
-    desc.Height = height;
-    desc.MipLevels = 1;
-    desc.ArraySize = 1;
-    desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    desc.SampleDesc.Count = 1;
-    desc.Usage = D3D11_USAGE_DEFAULT;
-    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-    desc.CPUAccessFlags = 0;
-
-    ID3D11Texture2D *pTexture = NULL;
-    D3D11_SUBRESOURCE_DATA subResource;
-    subResource.pSysMem = data;
-    subResource.SysMemPitch = desc.Width * 4;
-    subResource.SysMemSlicePitch = 0;
-    g_pd3dDevice->CreateTexture2D(&desc, &subResource, &pTexture);
-
-    // Create texture view
-    ID3D11ShaderResourceView * texture = nullptr;
-    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-    ZeroMemory(&srvDesc, sizeof(srvDesc));
-    srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-    srvDesc.Texture2D.MipLevels = desc.MipLevels;
-    srvDesc.Texture2D.MostDetailedMip = 0;
-    g_pd3dDevice->CreateShaderResourceView(pTexture, &srvDesc, &texture);
-    pTexture->Release();
-    return (ImTextureID)texture;
+    return ImGui::ImCreateTexture(data, width, height);
 }
 
 void Application_DestroyTexture(ImTextureID texture)
 {
-    ID3D11ShaderResourceView * tex = (ID3D11ShaderResourceView *)texture;
-    if (tex)
-    {
-        tex->Release();
-        tex = nullptr;
-    }
+    ImGui::ImDestroyTexture(texture);
 }
 
 int Application_GetTextureWidth(ImTextureID texture)
 {
-    ID3D11ShaderResourceView * tex = (ID3D11ShaderResourceView *)texture;
-    if (tex)
-    {
-        ID3D11Resource* res = nullptr;
-        tex->GetResource(&res);
-        ID3D11Texture2D* texture2d = nullptr;
-        HRESULT hr = res->QueryInterface(&texture2d);
-        if (SUCCEEDED(hr))
-        {
-            D3D11_TEXTURE2D_DESC desc;
-	        texture2d->GetDesc(&desc);
-	        return desc.Width;
-        }
-        else
-            return 0;
-    }
-    else
-        return 0;
+    return ImGui::ImGetTextureWidth(texture);
 }
 
 int Application_GetTextureHeight(ImTextureID texture)
 {
-   ID3D11ShaderResourceView * tex = (ID3D11ShaderResourceView *)texture;
-    if (tex)
-    {
-        ID3D11Resource* res = nullptr;
-        tex->GetResource(&res);
-        ID3D11Texture2D* texture2d = nullptr;
-        HRESULT hr = res->QueryInterface(&texture2d);
-        if (SUCCEEDED(hr))
-        {
-            D3D11_TEXTURE2D_DESC desc;
-	        texture2d->GetDesc(&desc);
-	        return desc.Height;
-        }
-        else
-            return 0;
-    }
-    else
-        return 0;
+    return ImGui::ImGetTextureHeight(texture);
 }
 
 # if defined(_UNICODE)
@@ -259,7 +152,7 @@ std::wstring widen(const std::string& str)
 
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd)
 {
-    const auto c_ClassName  = _T("Node Editor Class");
+    const auto c_ClassName  = _T("Imgui Application Class");
 # if defined(_UNICODE)
     const std::wstring c_WindowName = widen(Application_GetName(user_handle));
 # else
@@ -274,7 +167,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
         LoadCursor(nullptr, IDC_ARROW), nullptr, nullptr, c_ClassName, LoadIcon(GetModuleHandle(nullptr), IDI_APPLICATION) };
     RegisterClassEx(&wc); AX_SCOPE_EXIT { UnregisterClass(c_ClassName, wc.hInstance) ; };
 
-    auto hwnd = CreateWindow(c_ClassName, c_WindowName.c_str(), WS_OVERLAPPEDWINDOW, 1920 + 100, 100, 1440, 800, nullptr, nullptr, wc.hInstance, nullptr);
+    auto hwnd = CreateWindow(c_ClassName, c_WindowName.c_str(), WS_OVERLAPPEDWINDOW, 100, 100, 1440, 800, nullptr, nullptr, wc.hInstance, nullptr);
 
     // Initialize Direct3D
     if (CreateDeviceD3D(hwnd) < 0)

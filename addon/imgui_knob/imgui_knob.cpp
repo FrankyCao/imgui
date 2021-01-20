@@ -1,5 +1,8 @@
 #include "imgui_knob.h"
-
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
+#endif
+#include "imgui_internal.h"
 #include <iostream>
 #include <cmath>
 #include <imgui.h>
@@ -428,7 +431,7 @@ static void draw_arc1(ImVec2 center, float radius, float start_angle, float end_
 
 static void draw_arc(ImVec2 center, float radius, float start_angle, float end_angle, float thickness, ImU32 color, int num_segments, int8_t bezier_count)
 {
-    float overlap = thickness * radius * 0.00001 * M_PI;
+    float overlap = thickness * radius * 0.00001 * IM_PI;
     float delta = end_angle - start_angle;
     float bez_step = 1.0 / (float)bezier_count;
     float mid_angle = start_angle + overlap;
@@ -527,8 +530,8 @@ bool ImGui::Knob(char const *label, float *p_value, float v_min, float v_max, fl
         }
     }
 
-    float angle_min = M_PI * 0.75;
-    float angle_max = M_PI * 2.25;
+    float angle_min = IM_PI * 0.75;
+    float angle_max = IM_PI * 2.25;
     float t = (*p_value - v_min) / (v_max - v_min);
     float angle = angle_min + (angle_max - angle_min) * t;
 
