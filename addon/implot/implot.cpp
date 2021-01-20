@@ -282,17 +282,21 @@ static const ImPlotStyleVarInfo* GetPlotStyleVarInfo(ImPlotStyleVar idx) {
 //-----------------------------------------------------------------------------
 
 void AddTextVertical(ImDrawList *DrawList, ImVec2 pos, ImU32 col, const char *text_begin, const char* text_end) {
+    // the code below is based loosely on ImFont::RenderText
     if (!text_end)
         text_end = text_begin + strlen(text_begin);
     ImGuiContext& g = *GImGui;
     ImFont* font = g.Font;
-    pos.x = IM_FLOOR(pos.x); // + font->ConfigData->GlyphOffset.y);
-    pos.y = IM_FLOOR(pos.y); // + font->ConfigData->GlyphOffset.x);
-    const char* s = text_begin;
-    const int vtx_count = (int)(text_end - s) * 4;
-    const int idx_count = (int)(text_end - s) * 6;
-    DrawList->PrimReserve(idx_count, vtx_count);
+    // Align to be pixel perfect
+    pos.x = IM_FLOOR(pos.x);
+    pos.y = IM_FLOOR(pos.y);
     const float scale = g.FontSize / font->FontSize;
+    const char* s = text_begin;
+    int chars_exp = (int)(text_end - s);
+    int chars_rnd = 0;
+    const int vtx_count_max = chars_exp * 4;
+    const int idx_count_max = chars_exp * 6;
+    DrawList->PrimReserve(idx_count_max, vtx_count_max);
     while (s < text_end) {
         unsigned int c = (unsigned int)*s;
         if (c < 0x80) {
@@ -304,15 +308,20 @@ void AddTextVertical(ImDrawList *DrawList, ImVec2 pos, ImU32 col, const char *te
                 break;
         }
         const ImFontGlyph * glyph = font->FindGlyph((ImWchar)c);
-        if (glyph == NULL)
+        if (glyph == NULL) {
             continue;
+        }
         DrawList->PrimQuadUV(pos + ImVec2(glyph->Y0, -glyph->X0) * scale, pos + ImVec2(glyph->Y0, -glyph->X1) * scale,
                              pos + ImVec2(glyph->Y1, -glyph->X1) * scale, pos + ImVec2(glyph->Y1, -glyph->X0) * scale,
                              ImVec2(glyph->U0, glyph->V0), ImVec2(glyph->U1, glyph->V0),
                              ImVec2(glyph->U1, glyph->V1), ImVec2(glyph->U0, glyph->V1),
                              col);
         pos.y -= glyph->AdvanceX * scale;
+        chars_rnd++;
     }
+    // Give back unused vertices
+    int chars_skp = chars_exp-chars_rnd;
+    DrawList->PrimUnreserve(chars_skp*6, chars_skp*4);
 }
 
 double NiceNum(double x, bool round) {
@@ -2267,6 +2276,16 @@ void EndPlot() {
                 ImVec2 p2(x_loc + 5, plot.PlotRect.Max.y + 5);
                 DrawList.AddRect(p1, p2, ImGui::GetColorU32(ImGuiCol_DragDropTarget), 0.0f,  ImDrawCornerFlags_All, 2.0f);
             }
+        }
+    }
+
+    // render x-axis drag/drop hover
+    if (plot.XAxis.Present && ImGui::IsDragDropPayloadBeingAccepted()) {
+        if (plot.XAxis.ExtHovered) {
+            float y_loc = plot.XAxis.HoverRect.Min.y;
+            ImVec2 p1(plot.XAxis.HoverRect.Min.x - 5, y_loc - 5);
+            ImVec2 p2(plot.XAxis.HoverRect.Max.x + 5, y_loc + 5);
+            DrawList.AddRect(p1, p2, ImGui::GetColorU32(ImGuiCol_DragDropTarget), 0.0f,  ImDrawCornerFlags_All, 2.0f);
         }
     }
 

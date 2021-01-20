@@ -49,6 +49,39 @@ static bool CheckButton(const char* label,bool* pvalue,bool useSmallButton,float
 bool CheckButton(const char* label,bool* pvalue) {return CheckButton(label,pvalue,false);}
 bool SmallCheckButton(const char* label,bool* pvalue) {return CheckButton(label,pvalue,true);}
 
+bool ToggleButton(const char *str_id, bool *v, const ImVec2 &size)
+{
+    bool valueChange = false;
+
+    ImVec2 pos = ImGui::GetCursorScreenPos();
+    ImDrawList *draw_list = ImGui::GetWindowDrawList();
+
+    ImGui::InvisibleButton(str_id, size);
+    if (ImGui::IsItemClicked())
+    {
+        *v = !*v;
+        valueChange = true;
+    }
+
+    ImU32 col_tint = ImGui::GetColorU32((*v ? ImGui::GetColorU32(ImGuiCol_Text) : ImGui::GetColorU32(ImGuiCol_Border)));
+    ImU32 col_bg = ImGui::GetColorU32(ImGui::GetColorU32(ImGuiCol_WindowBg));
+    if (ImGui::IsItemHovered())
+    {
+        col_bg = ImGui::GetColorU32(ImGuiCol_ButtonHovered);
+    }
+    if (ImGui::IsItemActive() || *v)
+    {
+        col_bg = ImGui::GetColorU32(ImGuiCol_Button);
+    }
+
+    draw_list->AddRectFilled(pos, pos + size, GetColorU32(col_bg));
+
+    auto textSize = CalcTextSize(str_id);
+    draw_list->AddText(ImVec2(pos.x + (size.x - textSize.x) / 2, pos.y), col_tint, str_id);
+
+    return valueChange;
+}
+
 float ProgressBar(const char *optionalPrefixText, float value, const float minValue, const float maxValue, const char *format, const ImVec2 &sizeOfBarWithoutTextInPixels, const ImVec4 &colorLeft, const ImVec4 &colorRight, const ImVec4 &colorBorder)    {
     if (value<minValue) value=minValue;
     else if (value>maxValue) value = maxValue;
@@ -634,110 +667,6 @@ static int MultilineScrollCallback(ImGuiInputTextCallbackData *data) {
 
     return 0;
 }
-// Based on the code from: https://github.com/Roflraging (see https://github.com/ocornut/imgui/issues/383)
-bool InputTextMultilineWithHorizontalScrolling(const char* label, char* buf, size_t buf_size, float height, ImGuiInputTextFlags flags, bool* pOptionalIsHoveredOut, int *pOptionalCursorPosOut, int *pOptionalSelectionStartOut, int *pOptionalSelectionEndOut,float SCROLL_WIDTH)  {
-    float scrollbarSize = ImGui::GetStyle().ScrollbarSize;
-    //float labelWidth = ImGui::CalcTextSize(label).x + scrollbarSize;
-    MultilineScrollState scrollState = {};
-
-    // Set up child region for horizontal scrolling of the text box.
-    ImGui::BeginChild(label, ImVec2(0/*-labelWidth*/, height), false, ImGuiWindowFlags_HorizontalScrollbar);
-    scrollState.scrollRegionX = ImGui::GetWindowWidth() - scrollbarSize; if (scrollState.scrollRegionX<0) scrollState.scrollRegionX = 0;
-    scrollState.scrollX = ImGui::GetScrollX();
-    scrollState.storage = ImGui::GetStateStorage();
-    bool changed = ImGui::InputTextMultiline(label, buf, buf_size, ImVec2(SCROLL_WIDTH-scrollbarSize, (height - scrollbarSize)>0?(height - scrollbarSize):0),
-                                             flags | ImGuiInputTextFlags_CallbackAlways, MultilineScrollCallback, &scrollState);
-    if (pOptionalIsHoveredOut) *pOptionalIsHoveredOut = ImGui::IsItemHovered();
-
-    if (scrollState.newScrollPositionAvailable) {
-        ImGui::SetScrollX(scrollState.newScrollX);
-    }
-
-    ImGui::EndChild();
-    //ImGui::SameLine();
-    //ImGui::Text("%s",label);
-
-    if (pOptionalCursorPosOut) *pOptionalCursorPosOut = scrollState.CursorPos;
-    if (pOptionalSelectionStartOut) *pOptionalSelectionStartOut = scrollState.SelectionStart;
-    if (pOptionalSelectionEndOut)   *pOptionalSelectionEndOut = scrollState.SelectionEnd;
-
-    return changed;
-}
-
-// Based on the code from: https://github.com/Roflraging (see https://github.com/ocornut/imgui/issues/383)
-bool InputTextMultilineWithHorizontalScrollingAndCopyCutPasteMenu(const char *label, char *buf, int buf_size, float height,bool& staticBoolVar,int *staticArrayOfThreeIntegersHere, ImGuiInputTextFlags flags, bool *pOptionalHoveredOut,float SCROLL_WIDTH, const char *copyName, const char *cutName, const char* pasteName)   {
-    bool isHovered=false;
-    int& cursorPos=staticArrayOfThreeIntegersHere[0];
-    int& selectionStart=staticArrayOfThreeIntegersHere[1];
-    int& selectionEnd=staticArrayOfThreeIntegersHere[2];
-    bool& popup_open = staticBoolVar;
-    const bool changed = InputTextMultilineWithHorizontalScrolling(label,buf,(size_t)buf_size,height,flags,&isHovered,popup_open ? NULL : &cursorPos,popup_open ? NULL : &selectionStart,popup_open ? NULL : &selectionEnd,SCROLL_WIDTH);
-    if (pOptionalHoveredOut) *pOptionalHoveredOut=isHovered;
-    // Popup Menu ------------------------------------------
-
-    const bool readOnly = flags&ImGuiInputTextFlags_ReadOnly;       // "Cut","","Paste" not available
-    const bool hasSelectedText = selectionStart != selectionEnd;	// "Copy","Cut" available
-
-    if (hasSelectedText || !readOnly)	{
-        const bool onlyPaste = !readOnly && !hasSelectedText;
-        const char* clipboardText = ImGui::GetIO().GetClipboardTextFn(NULL);
-        const bool canPaste = clipboardText && strlen(clipboardText)>0;
-        if (onlyPaste && !canPaste) popup_open = false;
-        else {
-            static const char* entries[] = {"Copy","Cut","","Paste"};   // "" is separator
-            const char* pEntries[4]={copyName?copyName:entries[0],cutName?cutName:entries[1],entries[2],pasteName?pasteName:entries[3]};
-            popup_open|= ImGui::GetIO().MouseClicked[1] && isHovered; // RIGHT CLICK
-            int sel = ImGui::PopupMenuSimple(popup_open,onlyPaste ? &pEntries[3] : pEntries,(readOnly||onlyPaste)?1:canPaste? 4:2);
-            if (sel==3) sel = 2; // Normally separator takes out one space
-            const bool mustCopy = sel==0 && !onlyPaste;
-            const bool mustCut = !mustCopy && sel==1;
-            const bool mustPaste = !mustCopy && !mustCut && (sel==2 || (sel==0 && onlyPaste));
-            if (mustCopy || mustCut || (mustPaste && (selectionStart<selectionEnd))) {
-                // Copy to clipboard
-                if (!mustPaste)	{
-                    const char tmp = buf[selectionEnd];buf[selectionEnd]='\0';
-                    ImGui::GetIO().SetClipboardTextFn(NULL,&buf[selectionStart]);
-                    buf[selectionEnd]=tmp;
-                }
-                // Delete chars
-                if (!mustCopy) {
-                    //if (mustPaste) {fprintf(stderr,"Deleting before pasting: %d  %d.\n",selectionStart,selectionEnd);}
-
-		    //strncpy(&buf[selectionStart],&buf[selectionEnd],buf_size-selectionEnd);				// Valgrind complains here, but I KNOW that source and destination overlap: I just want to shift chars to the left!
-		    for (int i=0,isz=buf_size-selectionEnd;i<isz;i++) buf[i+selectionStart]=buf[i+selectionEnd];// I do it manually, so Valgrind is happy
-
-		    for (int i=selectionStart+buf_size-selectionEnd;i<buf_size;i++) buf[i]='\0';		// This is mandatory at the end
-                }
-                popup_open = false;
-            }
-            if (mustPaste)  {
-                // This is VERY HARD to make it work as expected...
-                const int cursorPosition = (selectionStart<selectionEnd) ? selectionStart : cursorPos;
-                const int clipboardTextSize = strlen(clipboardText);
-                int buf_len = strlen(buf);if (buf_len>buf_size) buf_len=buf_size;
-
-                // Step 1- Shift [cursorPosition] to [cursorPosition+clipboardTextSize]
-                const int numCharsToShiftRight = buf_len - cursorPosition;
-                //fprintf(stderr,"Pasting: \"%s\"(%d) at %d. buf_len=%d buf_size=%d numCharsToShiftRight=%d\n",clipboardText,clipboardTextSize,cursorPosition,buf_len,buf_size,numCharsToShiftRight);
-
-                for (int i=cursorPosition+numCharsToShiftRight>buf_size?buf_size-1:cursorPosition+numCharsToShiftRight-1;i>=cursorPosition;i--) {
-                    if (i+clipboardTextSize<buf_size) {
-                        //fprintf(stderr,"moving to the right char (%d): '%c' (%d)\n",i,buf[i],(int)buf[i]);
-                        buf[i+clipboardTextSize] = buf[i];
-                    }
-                }
-                // Step 2- Overwrite [cursorPosition] o [cursorPosition+clipboardTextSize]
-                for (int i=cursorPosition,isz=cursorPosition+clipboardTextSize>=buf_size?buf_size:cursorPosition+clipboardTextSize;i<isz;i++) buf[i]=clipboardText[i-cursorPosition];
-
-                popup_open = false;
-            }
-        }	 
-    }
-    else popup_open = false;
-    //------------------------------------------------------------------
-    return changed;
-}
-
 
 bool ImageButtonWithText(ImTextureID texId,const char* label,const ImVec2& imageSize, const ImVec2 &uv0, const ImVec2 &uv1, int frame_padding, const ImVec4 &bg_col, const ImVec4 &tint_col) {
     ImGuiWindow* window = GetCurrentWindow();

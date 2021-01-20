@@ -41,6 +41,7 @@ IMGUI_API bool IsItemJustReleased();
 
 IMGUI_API bool CheckButton(const char* label,bool* pvalue);
 IMGUI_API bool SmallCheckButton(const char* label,bool* pvalue);
+IMGUI_API bool ToggleButton(const char *str_id, bool *v, const ImVec2 &size);
 
 // Please note that you can tweak the "format" argument if you want to add a prefix (or a suffix) piece of text to the text that appears at the right of the bar.
 // returns the value "fraction" in 0.f-1.f.
@@ -234,23 +235,6 @@ bool isEmpty() const {return entries.size()==0;}
 IMGUI_API bool ColorChooser(bool* open,ImVec4* pColorOut=NULL, bool supportsAlpha=true);
 // Based on the code from: https://github.com/benoitjacquier/imgui
 IMGUI_API bool ColorCombo(const char* label,ImVec4 *pColorOut=NULL,bool supportsAlpha=false,float width=0.f,bool closeWhenMouseLeavesIt=true);
-
-
-// Based on the code from: https://github.com/Roflraging (see https://github.com/ocornut/imgui/issues/383)
-/*
-    *pOptionalCursorPosOut;      // Out
-    *pOptionalSelectionStartOut; // Out (== to SelectionEnd when no selection)
-    *pOptionalSelectionEndOut;   // Out
-*/
-IMGUI_API bool InputTextMultilineWithHorizontalScrolling(const char* label, char* buf, size_t buf_size, float height, ImGuiInputTextFlags flags = 0, bool* pOptionalIsHoveredOut=NULL, int* pOptionalCursorPosOut=NULL, int* pOptionalSelectionStartOut=NULL, int* pOptionalSelectionEndOut=NULL, float SCROLL_WIDTH=2000.f);
-
-// Based on the code from: https://github.com/Roflraging (see https://github.com/ocornut/imgui/issues/383)
-/*
-  staticBoolVar is true if the popup_menu is open
-  The three integers represent the cursorPos, the selectionStart and the selectionEnd position.
-  Must be static and be in an array.
-*/
-IMGUI_API bool InputTextMultilineWithHorizontalScrollingAndCopyCutPasteMenu(const char* label, char* buf, int buf_size, float height,bool& staticBoolVar, int* staticArrayOfThreeIntegersHere, ImGuiInputTextFlags flags=0, bool*pOptionalHoveredOut=NULL,float SCROLL_WIDTH=2000.f,const char* copyName=NULL, const char* cutName=NULL, const char *pasteName=NULL);
 
 // label is used as id
 // <0 frame_padding uses default frame padding settings. 0 for no padding

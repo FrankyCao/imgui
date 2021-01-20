@@ -36,6 +36,8 @@ void ShowAddonsDemoWindowWidgets()
         if (ImGui::CheckButton("CheckButton",&check)) {/*checkButtonState1 changed*/}
         ImGui::SameLine();
         if (ImGui::SmallCheckButton("SmallCheckButton",&check)) {/*checkButtonState2 changed*/}
+        ImGui::SameLine();
+        ImGui::ToggleButton("StatusButton", &check, ImVec2(96, 20)); ImGui::ShowTooltipOnHover("Toggle Button.");
         ImGui::Separator();
         static bool checkStyled[2] = {false,true};
         ImGui::CheckboxStyled("Checkbox Styled 1 (default style)",&checkStyled[0]);
@@ -73,7 +75,6 @@ void ShowAddonsDemoWindowWidgets()
             // choice OK here
         }
 
-//#ifndef _WIN32  // FIXME::Dicky Windows load texture will crush
         ImGui::Separator();
         // Single column popup menu with icon support. It disappears when the mouse goes away. Never tested.
         // User is supposed to create a static instance of it, add entries once, and then call "render()".
@@ -97,7 +98,11 @@ void ShowAddonsDemoWindowWidgets()
         // Buttons With Images
         ImGui::Spacing();ImGui::Separator();ImGui::Text("Buttons With Images:");ImGui::Separator();
         ImGui::ImageButtonWithText(ImageTextureNumber,"MyImageButtonWithText",ImVec2(16,16),ImVec2(0,0),ImVec2(0.33334f,0.33334f));
-//#endif
+
+        //static ImGui::AnimatedImage gif(ImageTextureNumber,64,64,9,3,3,30,true);
+        //ImGui::SameLine();
+        //gif.render();
+
         ImGui::TreePop();
     }
 
@@ -409,25 +414,9 @@ void ShowAddonsDemoWindowWidgets()
         ImGui::TreePop();
     }
 
-    if (ImGui::TreeNode("Knob Widgets"))
+    if (ImGui::TreeNode("Style Knob Widgets"))
     {
-        static float freq = 0.5;
-        static unsigned char intensity = 0;
-        ImGui::KnobFloat("Float.", &freq, 0.0f, 1.0f, ImVec2(40, 40), "float value knob");
-        ImGui::SameLine();
-        ImGui::KnobUchar("UCHar", &intensity, 0, 127, ImVec2(40, 40), "uchar value knob");
-        int idb = freq * 80;
-        ImGui::UvMeter("##uvr", ImVec2(10, 80), &idb, 0, 80); ImGui::ShowTooltipOnHover("Uv meters.");
-        ImGui::SameLine();
-        ImGui::Fader("##mastervol", ImVec2(20, 80), &idb, 0, 80, "%d", 1.0f); ImGui::ShowTooltipOnHover("Slide.");
-        static bool instrument = true;
-        static bool checked = true;
-        ImGui::ToggleButton("Check", &checked, ImVec2(96, 20)); ImGui::ShowTooltipOnHover("Toggle Button.");
-        ImGui::ToggleButtonWithCheckbox("Add", &instrument, &checked, ImVec2(96, 32)); ImGui::ShowTooltipOnHover("Toggle Button With Left Checkbox.");
-
-        static float val = 0.5;
-        ImGui::Separator();
-        ImGui::Text("Style Knob controllors");
+        static float val = 0.5, val_default = 0.5;
         float t = (float)ImGui::GetTime();
         float h = abs(sin(t * 0.2));
         float s = abs(sin(t * 0.1)) * 0.5 + 0.4;
@@ -450,21 +439,32 @@ void ShowAddonsDemoWindowWidgets()
         ColorSet tick_color = {tick_base_color, tick_active_color, tick_hovered_color};
 
         float knob_size = 80.f;
-        ImGui::Knob("##Wiper", &val, 0.0f, 1.0f, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_WIPER, "%.03fdB");
+        ImGui::Knob("##Tick", &val, 0.0f, 1.0f, val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_TICK, "%.03fdB");
         ImGui::SameLine();
-        ImGui::Knob("WiperDot", &val, 0.0f, 1.0f, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_WIPER_DOT, "%.03fdB");
+        ImGui::Knob("TickDot", &val, 0.0f, 1.0f, val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_TICK_DOT, "%.03fdB");
         ImGui::SameLine();
-        ImGui::Knob("WiperOnly", &val, 0.0f, 1.0f, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_WIPER_ONLY, "%.03fdB");
+        ImGui::Knob("TickWiper", &val, 0.0f, 1.0f, val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_TICK_WIPER, "%.03fdB");
         ImGui::SameLine();
-        ImGui::Knob("Tick", &val, 0.0f, 1.0f, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_TICK, "%.03fdB");
+        ImGui::Knob("Wiper", &val, 0.0f, 1.0f, val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_WIPER, "%.03fdB");
         ImGui::SameLine();
-        ImGui::Knob("TickDot", &val, 0.0f, 1.0f, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_TICK_DOT, "%.03fdB");
+        ImGui::Knob("WiperTick", &val, 0.0f, 1.0f, val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_WIPER_TICK, "%.03fdB");
         ImGui::SameLine();
-        ImGui::Knob("Space", &val, 0.0f, 1.0f, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_SPACE, "%.03fdB");
+        ImGui::Knob("WiperDot", &val, 0.0f, 1.0f, val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_WIPER_DOT, "%.03fdB");
         ImGui::SameLine();
-        ImGui::Knob("Stepped", &val, 0.0f, 1.0f, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_STEPPED, "%.03fdB", 10);
+        ImGui::Knob("WiperOnly", &val, 0.0f, 1.0f, val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_WIPER_ONLY, "%.03fdB");
         ImGui::SameLine();
-        ImGui::Knob("SteppedDot", &val, 0.0f, 1.0f, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_STEPPED_DOT, "%.03fdB", 10);
+        ImGui::Knob("SteppedTick", &val, 0.0f, 1.0f, val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_STEPPED_TICK, "%.03fdB", 10);
+        ImGui::SameLine();
+        ImGui::Knob("SteppedDot", &val, 0.0f, 1.0f, val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_STEPPED_DOT, "%.03fdB", 10);
+        ImGui::SameLine();
+        ImGui::Knob("Space", &val, 0.0f, 1.0f, val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_SPACE, "%.03fdB");
+
+        int idb = val * 80;
+        ImGui::Fader("##mastervol", ImVec2(20, 80), &idb, 0, 80, "%d", 1.0f); ImGui::ShowTooltipOnHover("Slide.");
+        ImGui::SameLine();
+        ImGui::UvMeter("##vuvr", ImVec2(10, 80), &idb, 0, 80); ImGui::ShowTooltipOnHover("Vertical Uv meters.");
+        ImGui::UvMeter("##huvr", ImVec2(80, 10), &idb, 0, 80); ImGui::ShowTooltipOnHover("Horizon Uv meters.");
+
 
         ImGui::TreePop();
     }
