@@ -71,6 +71,7 @@ public:
     bool show_node_window = false;
     bool show_node_edit_window = false;
     bool show_addon_widget = false;
+    bool show_zmo_window = false;
 
 public:
     std::string get_file_contents(const char *filename);
@@ -197,6 +198,7 @@ void Application_Frame(void* handle)
         ImGui::Checkbox("Show Node Sample Window", &example->show_node_window);
         ImGui::Checkbox("Show Node Edit Windows", &example->show_node_edit_window);
         ImGui::Checkbox("Show Addon Widgets", &example->show_addon_widget);
+        ImGui::Checkbox("Show ZMO Window", &example->show_zmo_window);
 
         // show hotkey window
         if (ImGui::Button("Edit Hotkeys"))
@@ -240,6 +242,7 @@ void Application_Frame(void* handle)
     // 6. Show Memory Edit window
     if (example->mem_edit.Open)
     {
+        ImGui::SetNextWindowSize(ImVec2(400, 768), ImGuiCond_FirstUseEver);
         ImGui::Begin("Memory Window", &example->mem_edit.Open);
         example->mem_edit.DrawWindow("Memory Editor", example->data, 0x1000);
         ImGui::End();
@@ -254,17 +257,20 @@ void Application_Frame(void* handle)
     // 8. Show Markdown Window
     if (example->show_markdown_window)
     {
+        ImGui::SetNextWindowSize(ImVec2(1024, 768), ImGuiCond_FirstUseEver);
+        ImGui::Begin("iMarkdown window",&example->show_markdown_window, ImGuiWindowFlags_NoScrollbar);
         std::string help_doc =                   example->get_file_contents("docs/imgui.md");
         example->mdConfig.linkCallback =         example->LinkCallback;
         example->mdConfig.tooltipCallback =      NULL;
         example->mdConfig.imageCallback =        example->ImageCallback;
         example->mdConfig.linkIcon =             ICON_FA5_LINK;
         example->mdConfig.headingFormats[0] =    { io.Fonts->Fonts[0], true };
-        example->mdConfig.headingFormats[1] =    { io.Fonts->Fonts[1], true };
-        example->mdConfig.headingFormats[2] =    { io.Fonts->Fonts[2], false };
+        example->mdConfig.headingFormats[1] =    { io.Fonts->Fonts.size() > 1 ? io.Fonts->Fonts[1] : nullptr, true };
+        example->mdConfig.headingFormats[2] =    { io.Fonts->Fonts.size() > 2 ? io.Fonts->Fonts[2] : nullptr, false };
         example->mdConfig.userData =             NULL;
         example->mdConfig.formatCallback =       example->ExampleMarkdownFormatCallback;
         ImGui::Markdown( help_doc.c_str(), help_doc.length(), example->mdConfig );
+        ImGui::End();
     }
 
     // 9. Show Dock Window
@@ -292,7 +298,7 @@ void Application_Frame(void* handle)
     // 11. Show Node Sample Window
     if (example->show_node_window)
     {
-        imnodes_sample::NodeEditorShow();
+        imnodes_sample::NodeEditorShow(&example->show_node_window);
     }
 
     // 12. Show Node Edit Window
@@ -312,6 +318,16 @@ void Application_Frame(void* handle)
         ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
         ImGui::Begin("Addon Widget", &example->show_addon_widget);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
         ImGui::ShowAddonsDemoWindowWidgets();
+        ImGui::End();
+    }
+
+    // 14. Show Zmo Window
+    if (example->show_zmo_window)
+    {
+        ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(1280, 800), ImGuiCond_FirstUseEver);
+        ImGui::Begin("##ZMO", &example->show_zmo_window, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar);
+        ImGui::ShowAddonsZMOWindow();
         ImGui::End();
     }
 }

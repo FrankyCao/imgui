@@ -640,7 +640,7 @@ class ColorNodeEditor
 public:
     ColorNodeEditor() : graph_(), nodes_(), root_node_id_(-1) {}
 
-    void show()
+    void show(bool * open)
     {
         // Update timer context
 #if defined(__WIN32__) || defined(_WIN32) || !defined(IMGUI_SDL2)
@@ -651,7 +651,7 @@ public:
         current_time_seconds = 0.001f * SDL_GetTicks();
 #endif
         // The node editor window
-        ImGui::Begin("color node editor");
+        ImGui::Begin("color node editor", open);
         ImGui::TextUnformatted("Edit the color of the output color window using nodes.");
         ImGui::Columns(2);
         ImGui::TextUnformatted("A -- add node");
@@ -1426,7 +1426,7 @@ void NodeEditorInitialize()
     color_editor.load();
 }
 
-void NodeEditorShow() { color_editor.show(); }
+void NodeEditorShow(bool * open) { color_editor.show(open); }
 
 void NodeEditorShutdown() {
     color_editor.save();

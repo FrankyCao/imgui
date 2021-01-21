@@ -1,4 +1,5 @@
 #include "addons_demo.h"
+
 ImTextureID ImageTextureNumber = 0;
 
 namespace ImGui
@@ -619,5 +620,4 @@ void ShowAddonsTabWindow()
         //if (optionalHoveredVerticalTab>=0) ImGui::Text("Mouse is hovering Tab Label: \"%s\".\n\n",verticalTabNames[optionalHoveredVerticalTab]);
     }
 }
-
 } // namespace ImGui

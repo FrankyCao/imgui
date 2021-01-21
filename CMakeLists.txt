@@ -715,6 +715,28 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiVariousControls
 )
 
+# ImGuizmo
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    addon/ImGuizmo/ImGuizmo.cpp
+    addon/ImGuizmo/ImCurveEdit.cpp
+    addon/ImGuizmo/ImGradient.cpp
+    addon/ImGuizmo/ImSequencer.cpp
+    addon/ImGuizmo/ImGuizmoDemo.cpp
+)
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    addon/ImGuizmo/ImGuizmo.h
+    addon/ImGuizmo/ImCurveEdit.h
+    addon/ImGuizmo/ImGradient.h
+    addon/ImGuizmo/ImSequencer.h
+    addon/ImGuizmo/ImZoomSlider.h
+)
+set(IMGUI_INC_DIRS
+    ${IMGUI_INC_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuizmo
+)
+
 # Addon Demo
 set(IMGUI_SRC
     ${IMGUI_SRC}
