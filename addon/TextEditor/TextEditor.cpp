@@ -9,12 +9,6 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "imgui.h" // for imGui::GetCurrentWindow()
 
-#ifndef max
-#define max std::max
-#endif
-#ifndef min
-#define min std::min
-#endif
 // TODO
 // - multiline comments vs single-line: latter is blocking start of a ML
 
@@ -142,7 +136,7 @@ TextEditor::Coordinates TextEditor::SanitizeCoordinates(const Coordinates & aVal
 	}
 	else
 	{
-		column = mLines.empty() ? 0 : min(column, GetLineMaxColumn(line));
+		column = mLines.empty() ? 0 : ImMin(column, GetLineMaxColumn(line));
 		return Coordinates(line, column);
 	}
 }
@@ -212,7 +206,7 @@ void TextEditor::Advance(Coordinates & aCoordinates) const
 		if (cindex + 1 < (int)line.size())
 		{
 			auto delta = UTF8CharLength(line[cindex].mChar);
-			cindex = min(cindex + delta, (int)line.size() - 1);
+			cindex = ImMin(cindex + delta, (int)line.size() - 1);
 		}
 		else
 		{
@@ -332,7 +326,7 @@ TextEditor::Coordinates TextEditor::ScreenPosToCoordinates(const ImVec2& aPositi
 	ImVec2 origin = ImGui::GetCursorScreenPos();
 	ImVec2 local(aPosition.x - origin.x, aPosition.y - origin.y);
 
-	int lineNo = max(0, (int)floor(local.y / mCharAdvance.y));
+	int lineNo = ImMax(0, (int)floor(local.y / mCharAdvance.y));
 
 	int columnCoord = 0;
 
@@ -467,7 +461,7 @@ TextEditor::Coordinates TextEditor::FindNextWord(const Coordinates & aFrom) cons
 	{
 		if (at.mLine >= mLines.size())
 		{
-			auto l = max(0, (int) mLines.size() - 1);
+			auto l = ImMax(0, (int) mLines.size() - 1);
 			return Coordinates(l, GetLineMaxColumn(l));
 		}
 
@@ -889,7 +883,7 @@ void TextEditor::Render()
 
 	auto lineNo = (int)floor(scrollY / mCharAdvance.y);
 	auto globalLineMax = (int)mLines.size();
-	auto lineMax = max(0, min((int)mLines.size() - 1, lineNo + (int)floor((scrollY + contentSize.y) / mCharAdvance.y)));
+	auto lineMax = ImMax(0, ImMin((int)mLines.size() - 1, lineNo + (int)floor((scrollY + contentSize.y) / mCharAdvance.y)));
 
 	// Deduce mTextStart by evaluating mLines size (global lineMax) plus two spaces as text width
 	char buf[16];
@@ -906,7 +900,7 @@ void TextEditor::Render()
 			ImVec2 textScreenPos = ImVec2(lineStartScreenPos.x + mTextStart, lineStartScreenPos.y);
 
 			auto& line = mLines[lineNo];
-			longest = max(mTextStart + TextDistanceToLineStart(Coordinates(lineNo, GetLineMaxColumn(lineNo))), longest);
+			longest = ImMax(mTextStart + TextDistanceToLineStart(Coordinates(lineNo, GetLineMaxColumn(lineNo))), longest);
 			auto columnNo = 0;
 			Coordinates lineStartCoord(lineNo, 0);
 			Coordinates lineEndCoord(lineNo, GetLineMaxColumn(lineNo));
@@ -1464,7 +1458,7 @@ void TextEditor::SetSelection(const Coordinates & aStart, const Coordinates & aE
 
 void TextEditor::SetTabSize(int aValue)
 {
-	mTabSize = max(0, min(32, aValue));
+	mTabSize = ImMax(0, ImMin(32, aValue));
 }
 
 void TextEditor::InsertText(const std::string & aValue)
@@ -1478,7 +1472,7 @@ void TextEditor::InsertText(const char * aValue)
 		return;
 
 	auto pos = GetActualCursorCoordinates();
-	auto start = min(pos, mState.mSelectionStart);
+	auto start = ImMin(pos, mState.mSelectionStart);
 	int totalLines = pos.mLine - start.mLine;
 
 	totalLines += InsertTextAt(pos, aValue);
@@ -1505,7 +1499,7 @@ void TextEditor::DeleteSelection()
 void TextEditor::MoveUp(int aAmount, bool aSelect)
 {
 	auto oldPos = mState.mCursorPosition;
-	mState.mCursorPosition.mLine = max(0, mState.mCursorPosition.mLine - aAmount);
+	mState.mCursorPosition.mLine = ImMax(0, mState.mCursorPosition.mLine - aAmount);
 	if (oldPos != mState.mCursorPosition)
 	{
 		if (aSelect)
@@ -1532,7 +1526,7 @@ void TextEditor::MoveDown(int aAmount, bool aSelect)
 {
 	assert(mState.mCursorPosition.mColumn >= 0);
 	auto oldPos = mState.mCursorPosition;
-	mState.mCursorPosition.mLine = max(0, min((int)mLines.size() - 1, mState.mCursorPosition.mLine + aAmount));
+	mState.mCursorPosition.mLine = ImMax(0, ImMin((int)mLines.size() - 1, mState.mCursorPosition.mLine + aAmount));
 
 	if (mState.mCursorPosition != oldPos)
 	{
@@ -1644,7 +1638,7 @@ void TextEditor::MoveRight(int aAmount, bool aSelect, bool aWordMode)
 		{
 			if (mState.mCursorPosition.mLine < mLines.size() - 1)
 			{
-				mState.mCursorPosition.mLine = max(0, min((int)mLines.size() - 1, mState.mCursorPosition.mLine + 1));
+				mState.mCursorPosition.mLine = ImMax(0, ImMin((int)mLines.size() - 1, mState.mCursorPosition.mLine + 1));
 				mState.mCursorPosition.mColumn = 0;
 			}
 			else
@@ -2139,11 +2133,11 @@ void TextEditor::ProcessInputs()
 
 void TextEditor::Colorize(int aFromLine, int aLines)
 {
-	int toLine = aLines == -1 ? (int)mLines.size() : min((int)mLines.size(), aFromLine + aLines);
-	mColorRangeMin = min(mColorRangeMin, aFromLine);
-	mColorRangeMax = max(mColorRangeMax, toLine);
-	mColorRangeMin = max(0, mColorRangeMin);
-	mColorRangeMax = max(mColorRangeMin, mColorRangeMax);
+	int toLine = aLines == -1 ? (int)mLines.size() : ImMin((int)mLines.size(), aFromLine + aLines);
+	mColorRangeMin = ImMin(mColorRangeMin, aFromLine);
+	mColorRangeMax = ImMax(mColorRangeMax, toLine);
+	mColorRangeMin = ImMax(0, mColorRangeMin);
+	mColorRangeMax = ImMax(mColorRangeMin, mColorRangeMax);
 	mCheckComments = true;
 }
 
@@ -2156,7 +2150,7 @@ void TextEditor::ColorizeRange(int aFromLine, int aToLine)
 	std::cmatch results;
 	std::string id;
 
-	int endLine = max(0, min((int)mLines.size(), aToLine));
+	int endLine = ImMax(0, ImMin((int)mLines.size(), aToLine));
 	for (int i = aFromLine; i < endLine; ++i)
 	{
 		auto& line = mLines[i];
@@ -2382,7 +2376,7 @@ void TextEditor::ColorizeInternal()
 	if (mColorRangeMin < mColorRangeMax)
 	{
 		const int increment = (mLanguageDefinition.mTokenize == nullptr) ? 10 : 10000;
-		const int to = min(mColorRangeMin + increment, mColorRangeMax);
+		const int to = ImMin(mColorRangeMin + increment, mColorRangeMax);
 		ColorizeRange(mColorRangeMin, to);
 		mColorRangeMin = to;
 
@@ -2448,13 +2442,13 @@ void TextEditor::EnsureCursorVisible()
 	auto len = TextDistanceToLineStart(pos);
 
 	if (pos.mLine < top)
-		ImGui::SetScrollY(max(0.0f, (pos.mLine - 1) * mCharAdvance.y));
+		ImGui::SetScrollY(ImMax(0.0f, (pos.mLine - 1) * mCharAdvance.y));
 	if (pos.mLine > bottom - 4)
-		ImGui::SetScrollY(max(0.0f, (pos.mLine + 4) * mCharAdvance.y - height));
+		ImGui::SetScrollY(ImMax(0.0f, (pos.mLine + 4) * mCharAdvance.y - height));
 	if (len + mTextStart < left + 4)
-		ImGui::SetScrollX(max(0.0f, len + mTextStart - 4));
+		ImGui::SetScrollX(ImMax(0.0f, len + mTextStart - 4));
 	if (len + mTextStart > right - 4)
-		ImGui::SetScrollX(max(0.0f, len + mTextStart + 4 - width));
+		ImGui::SetScrollX(ImMax(0.0f, len + mTextStart + 4 - width));
 }
 
 int TextEditor::GetPageSize() const

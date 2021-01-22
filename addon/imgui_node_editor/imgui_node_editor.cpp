@@ -18,13 +18,6 @@
 # include <streambuf>
 # include <type_traits>
 
-#ifndef max
-#define max std::max
-#endif
-#ifndef min
-#define min std::min
-#endif
-
 // https://stackoverflow.com/a/8597498
 # define DECLARE_HAS_NESTED(Name, Member)                                          \
                                                                                    \
@@ -259,7 +252,7 @@ static void ImDrawList_SwapSplitter(ImDrawList* drawList, ImDrawListSplitter& sp
 //        for (auto i = 1u; i < idxCount; ++i)
 //        {
 //            auto idx = idxRead[indexOffset + i];
-//            minIndex = std::min(minIndex, idx);
+//            minIndex = ImMin(minIndex, idx);
 //            maxIndex = ImMax(maxIndex, idx);
 //        }
 //
@@ -303,8 +296,8 @@ static void ImDrawList_SwapSplitter(ImDrawList* drawList, ImDrawListSplitter& sp
 //    {
 //        cmd.ClipRect.x = ImMax(cmd.ClipRect.x + offset.x, clipRect.x);
 //        cmd.ClipRect.y = ImMax(cmd.ClipRect.y + offset.y, clipRect.y);
-//        cmd.ClipRect.z = std::min(cmd.ClipRect.z + offset.x, clipRect.z);
-//        cmd.ClipRect.w = std::min(cmd.ClipRect.w + offset.y, clipRect.w);
+//        cmd.ClipRect.z = ImMin(cmd.ClipRect.z + offset.x, clipRect.z);
+//        cmd.ClipRect.w = ImMin(cmd.ClipRect.w + offset.y, clipRect.w);
 //    }
 //}
 
@@ -2734,7 +2727,7 @@ void ed::FlowAnimation::ClearPath()
 
 ImVec2 ed::FlowAnimation::SamplePath(float distance)
 {
-    //distance = ImMax(0.0f, std::min(distance, PathLength));
+    //distance = ImMax(0.0f, ImMin(distance, PathLength));
 
     auto endPointIt = std::find_if(m_Path.begin(), m_Path.end(), [distance](const CurvePoint& p) { return distance < p.Distance; });
     if (endPointIt == m_Path.end())
@@ -3639,7 +3632,7 @@ bool ed::SelectAction::Process(const Control& control)
     {
         m_EndPoint = ImGui::GetMousePos();
 
-        auto topLeft     = ImVec2(min(m_StartPoint.x, m_EndPoint.x), min(m_StartPoint.y, m_EndPoint.y));
+        auto topLeft     = ImVec2(ImMin(m_StartPoint.x, m_EndPoint.x), ImMin(m_StartPoint.y, m_EndPoint.y));
         auto bottomRight = ImVec2(ImMax(m_StartPoint.x, m_EndPoint.x), ImMax(m_StartPoint.y, m_EndPoint.y));
         auto rect        = ImRect(topLeft, bottomRight);
         if (rect.GetWidth() <= 0)
@@ -3710,7 +3703,7 @@ void ed::SelectAction::Draw(ImDrawList* drawList)
 
     drawList->ChannelsSetCurrent(c_BackgroundChannel_SelectionRect);
 
-    auto _min  = ImVec2(min(m_StartPoint.x, m_EndPoint.x), min(m_StartPoint.y, m_EndPoint.y));
+    auto _min  = ImVec2(ImMin(m_StartPoint.x, m_EndPoint.x), ImMin(m_StartPoint.y, m_EndPoint.y));
     auto _max  = ImVec2(ImMax(m_StartPoint.x, m_EndPoint.x), ImMax(m_StartPoint.y, m_EndPoint.y));
 
     drawList->AddRectFilled(_min, _max, fillColor);
@@ -4998,7 +4991,7 @@ bool ed::HintBuilder::Begin(NodeId nodeId)
 
     Editor->Suspend(SuspendFlags::KeepSplitter);
 
-    const auto alpha = ImMax(0.0f, min(1.0f, (view.Scale - c_min_zoom) / (c_max_zoom - c_min_zoom)));
+    const auto alpha = ImMax(0.0f, ImMin(1.0f, (view.Scale - c_min_zoom) / (c_max_zoom - c_min_zoom)));
 
     ImGui::GetWindowDrawList()->ChannelsSetCurrent(c_UserChannel_HintsBackground);
     ImGui::PushClipRect(rect.Min + ImVec2(1, 1), rect.Max - ImVec2(1, 1), false);

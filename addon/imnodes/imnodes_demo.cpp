@@ -29,13 +29,6 @@ inline int64_t GetTickCount(void) {
 #include <vector>
 #include <fstream>
 
-#ifndef max
-#define max std::max
-#endif
-#ifndef min
-#define min std::min
-#endif
-
 // for example
 namespace imnodes_sample
 {
@@ -526,12 +519,6 @@ struct Node
     Node(const NodeType t, const float v) : type(t), value(v) {}
 };
 
-template<class T>
-T clamp(T x, T a, T b)
-{
-    return min(b, max(x, a));
-}
-
 static float current_time_seconds = 0.f;
 
 ImU32 evaluate(const Graph<Node>& graph, const int root_node)
@@ -625,11 +612,11 @@ ImU32 evaluate(const Graph<Node>& graph, const int root_node)
     // The final output node isn't evaluated in the loop -- instead we just pop
     // the three values which should be in the stack.
     assert(value_stack.size() == 3ull);
-    const int b = static_cast<int>(255.f * clamp(value_stack.top(), 0.f, 1.f) + 0.5f);
+    const int b = static_cast<int>(255.f * ImClamp(value_stack.top(), 0.f, 1.f) + 0.5f);
     value_stack.pop();
-    const int g = static_cast<int>(255.f * clamp(value_stack.top(), 0.f, 1.f) + 0.5f);
+    const int g = static_cast<int>(255.f * ImClamp(value_stack.top(), 0.f, 1.f) + 0.5f);
     value_stack.pop();
-    const int r = static_cast<int>(255.f * clamp(value_stack.top(), 0.f, 1.f) + 0.5f);
+    const int r = static_cast<int>(255.f * ImClamp(value_stack.top(), 0.f, 1.f) + 0.5f);
     value_stack.pop();
 
     return IM_COL32(r, g, b, 255);

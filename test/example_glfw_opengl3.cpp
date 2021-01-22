@@ -232,6 +232,9 @@ int main(int, char**)
     ImGuiFileDialog filedialog;
     prepare_file_dialog_demo_window(&filedialog);
 
+    // init sample file dialog
+    ImGuiFs::Dialog dlg;
+
     // init memory edit
     MemoryEditor mem_edit;
     mem_edit.Open = false;
@@ -264,6 +267,7 @@ int main(int, char**)
     bool show_another_window = false;
     bool show_implot_window = false;
     bool show_file_dialog_window = false;
+    bool show_sample_file_dialog = false;
     bool show_text_edit_window = false;
     bool show_markdown_window = false;
     bool show_dock_window = false;
@@ -271,6 +275,7 @@ int main(int, char**)
     bool show_node_window = false;
     bool show_node_edit_window = false;
     bool show_addon_widget = false;
+    bool show_zmo_window = false;
 
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
@@ -305,6 +310,7 @@ int main(int, char**)
             ImGui::Checkbox("Another Window", &show_another_window);
             ImGui::Checkbox("ImPlot Window", &show_implot_window);
             ImGui::Checkbox("File Dialog Window", &show_file_dialog_window);
+            ImGui::Checkbox("Sample File Dialog", &show_sample_file_dialog);
             ImGui::Checkbox("Memory Edit Window", &mem_edit.Open);
             ImGui::Checkbox("Show Text Edit Window", &show_text_edit_window);
             ImGui::Checkbox("Show Markdown Window", &show_markdown_window);
@@ -313,6 +319,7 @@ int main(int, char**)
             ImGui::Checkbox("Show Node Sample Window", &show_node_window);
             ImGui::Checkbox("Show Node Edit Windows", &show_node_edit_window);
             ImGui::Checkbox("Show Addon Widgets", &show_addon_widget);
+            ImGui::Checkbox("Show ImGuizmo Window", &show_zmo_window);
 
             // show hotkey window
             if (ImGui::Button("Edit Hotkeys"))
@@ -354,7 +361,18 @@ int main(int, char**)
             show_file_dialog_demo_window(&filedialog, &show_file_dialog_window);
         }
 
-        // 6. Show Memory Edit window
+        // 6. Show Sample FileDialog
+        {
+            // dlg.WrapMode = false;
+            const char* filePath = dlg.chooseFileDialog(show_sample_file_dialog, dlg.getLastDirectory(), ".jpg;.jpeg;.png;.gif;.tga;.bmp", "Sample file dialog", ImVec2(400, 800), ImVec2(50, 50));
+            if (strlen(filePath) > 0) 
+            {
+	            //fprintf(stderr,"Browsed..: %s\n",filePath);
+            }
+            show_sample_file_dialog = false;
+        }
+
+        // 7. Show Memory Edit window
         if (mem_edit.Open)
         {
             ImGui::Begin("Memory Window", &mem_edit.Open);
@@ -362,13 +380,13 @@ int main(int, char**)
             ImGui::End();
         }
 
-        // 7. Show Text Edit Window
+        // 8. Show Text Edit Window
         if (show_text_edit_window)
         {
             editor.text_edit_demo(&show_text_edit_window);
         }
 
-        // 8. Show Markdown Window
+        // 9. Show Markdown Window
         if (show_markdown_window)
         {
             std::string help_doc = get_file_contents("docs/imgui.md");
@@ -384,7 +402,7 @@ int main(int, char**)
             ImGui::Markdown( help_doc.c_str(), help_doc.length(), mdConfig );
         }
 
-        // 9. Show Dock Window
+        // 10. Show Dock Window
         if (show_dock_window)
         {
             ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
@@ -395,7 +413,7 @@ int main(int, char**)
             ImGui::End();
         }
 
-        // 10. Show Tab Window
+        // 11. Show Tab Window
         if (show_tab_window)
         {
             ImGui::SetNextWindowSize(ImVec2(700,600), ImGuiCond_FirstUseEver);
@@ -406,13 +424,13 @@ int main(int, char**)
             ImGui::End();
         }
 
-        // 11. Show Node  Window
+        // 12. Show Node  Window
         if (show_node_window)
         {
             imnodes_sample::NodeEditorShow();
         }
 
-        // 12. Show Node Edit Window
+        // 13. Show Node Edit Window
         if (show_node_edit_window)
         {
             ImGui::SetNextWindowSize(ImVec2(700,600), ImGuiCond_FirstUseEver);
@@ -423,12 +441,22 @@ int main(int, char**)
             ImGui::End();
         }
 
-        // 13. Show Addon Widget.
+        // 14. Show Addon Widget.
         if (show_addon_widget)
         {
             ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
             ImGui::Begin("Addon Widget", &show_addon_widget);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
             ImGui::ShowAddonsDemoWindowWidgets();
+            ImGui::End();
+        }
+
+        // 15. Show Zmo Window
+        if (show_zmo_window)
+        {
+            ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
+            ImGui::SetNextWindowSize(ImVec2(1280, 800), ImGuiCond_FirstUseEver);
+            ImGui::Begin("##ZMO", &show_zmo_window, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar);
+            ImGui::ShowAddonsZMOWindow();
             ImGui::End();
         }
 

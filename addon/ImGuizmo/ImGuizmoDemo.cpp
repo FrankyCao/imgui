@@ -343,8 +343,6 @@ struct MySequence : public ImSequencer::SequenceInterface
 
 void build_procedural_texture(ImTextureID & procTexture)
 {
-    //glGenTextures(1, &procTexture);
-    //glBindTexture(GL_TEXTURE_2D, procTexture);
     uint32_t* tempBitmap = new uint32_t[256 * 256];
     int index = 0;
     for (int y = 0; y < 256; y++)
@@ -363,8 +361,6 @@ void build_procedural_texture(ImTextureID & procTexture)
             index++;
         }
     }
-    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 256, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, tempBitmap);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     procTexture = ImGui::ImCreateTexture(tempBitmap, 256, 256);
     delete [] tempBitmap;
 }
@@ -510,7 +506,7 @@ void ShowAddonsZMOWindow()
         OrthoGraphic(-viewWidth, viewWidth, -viewHeight, viewHeight, 1000.f, -1000.f, cameraProjection);
     }
     ImGuizmo::SetOrthographic(!isPerspective);
-    //ImGuizmo::BeginFrame();
+
     if (size_edit == 0 || size_other == 0 || size_edit_h == 0 || size_zmo_h == 0)
     {
         size_edit = 0.7 * window_size.y;
@@ -518,7 +514,7 @@ void ShowAddonsZMOWindow()
         size_edit_h = 0.25 * size_edit;
         size_zmo_h = size_edit - size_edit_h;
     }
-
+/*
     ImGui::Begin("window size");
         ImGui::Text(" width : %.1f", window_size.x);
         ImGui::Text("height : %.1f", window_size.y);
@@ -529,7 +525,7 @@ void ShowAddonsZMOWindow()
         ImGui::Text("edit h : %.1f", size_edit_h);
         ImGui::Text("vide h : %.1f", size_zmo_h);
     ImGui::End();
-
+*/
     ImGui::PushID("##ImGuizmoDemo");
     ImGui::Splitter(false, 8.0f, &size_edit, &size_other, 8, 12, window_size.x);
     ImGui::PopID();

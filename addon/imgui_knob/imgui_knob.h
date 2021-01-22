@@ -44,53 +44,5 @@ IMGUI_API bool Fader(const char* label, const ImVec2& size, int* v, const int v_
 
 } // namespace ImGui
 
-/*
-namespace ImGui
-{
 
-struct ColorSet 
-{
-    ImU32 base;
-    ImU32 hovered;
-    ImU32 active;
-};
-
-class Knob
-{
-public:
-    Knob(const char* _label, float * _value, float _min, float _max, float _default, float _radius, bool controllable);
-    ~Knob();
-
-private:
-    const char* label;
-    float*      p_value;
-    float       v_min;
-    float       v_max;
-    float       v_default;
-    float       radius;
-    ImVec2      screen_pos;
-    bool        value_changed;
-    ImVec2      center;
-    bool        is_active;
-    bool        is_hovered;
-    float       angle_min;
-    float       angle_max;
-    float       t;
-    float       angle;
-    float       angle_cos;
-    float       angle_sin;
-
-private:
-    void draw_dot(float _size, float _radius, float _angle, bool filled, int segments,
-                ImU32 base_color, ImU32 active_color, ImU32 hovered_color);
-    void draw_tick(float start, float end, float width, float _angle, 
-                ImU32 base_color, ImU32 active_color, ImU32 hovered_color);
-
-    void draw_circle(float _size, bool filled, int segments,
-                    ImU32 base_color, ImU32 active_color, ImU32 hovered_color);
-    void draw_arc(float _size, float _radius, float start_angle, float end_angle, int segments, int8_t bezier_count,
-                ImU32 base_color, ImU32 active_color, ImU32 hovered_color);
-};
-} // namespace ImGui
-*/
 #endif // IMGUI_KNOB_H

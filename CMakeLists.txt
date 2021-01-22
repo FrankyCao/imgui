@@ -467,20 +467,6 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/addon/implot
 )
 
-# Spin 
-set(IMGUI_SRC
-    ${IMGUI_SRC}
-    addon/Spin/Spin.cpp
-)
-set(IMGUI_INCS
-    ${IMGUI_INCS}
-    addon/Spin/Spin.h
-)
-set(IMGUI_INC_DIRS
-    ${IMGUI_INC_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/addon/Spin
-)
-
 # Progress Indicators
 set(IMGUI_SRC
     ${IMGUI_SRC}
@@ -521,20 +507,6 @@ set(IMGUI_INCS
 set(IMGUI_INC_DIRS
     ${IMGUI_INC_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/addon/TextEditor
-)
-
-# Toggle Button
-set(IMGUI_SRC
-    ${IMGUI_SRC}
-    addon/ToggleButton/ToggleButton.cpp
-)
-set(IMGUI_INCS
-    ${IMGUI_INCS}
-    addon/ToggleButton/ToggleButton.h
-)
-set(IMGUI_INC_DIRS
-    ${IMGUI_INC_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/addon/ToggleButton
 )
 
 # Memory Editor
@@ -636,20 +608,6 @@ set(IMGUI_INCS
 set(IMGUI_INC_DIRS
     ${IMGUI_INC_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/addon/imgui_knob
-)
-
-# Bezier
-set(IMGUI_SRC
-    ${IMGUI_SRC}
-    addon/Bezier/Bezier.cpp
-)
-set(IMGUI_INCS
-    ${IMGUI_INCS}
-    addon/Bezier/Bezier.h
-)
-set(IMGUI_INC_DIRS
-    ${IMGUI_INC_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/addon/Bezier
 )
 
 # HotKeys

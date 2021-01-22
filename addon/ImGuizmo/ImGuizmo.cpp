@@ -26,11 +26,6 @@
 #endif
 #include "imgui_internal.h"
 #include "ImGuizmo.h"
-#if !defined(_WIN32) 
-#define _malloca(x) alloca(x)
-#else
-#include <malloc.h>
-#endif
 
 // includes patches for multiview from
 // https://github.com/CedricGuillemet/ImGuizmo/issues/15
@@ -154,9 +149,6 @@ namespace ImGuizmo
       m16[15] = 1.0f;
    }
 
-   template <typename T> T Clamp(T x, T y, T z) { return ((x < y) ? y : ((x > z) ? z : x)); }
-   template <typename T> T max(T x, T y) { return (x > y) ? x : y; }
-   template <typename T> T min(T x, T y) { return (x < y) ? x : y; }
    template <typename T> bool IsWithin(T x, T y, T z) { return (x >= y) && (x <= z); }
 
    struct matrix_t;
@@ -945,11 +937,11 @@ namespace ImGuizmo
       gContext.mCameraUp = viewInverse.v.up;
 
       // projection reverse
-      vec_t far;
+      vec_t _far;
       matrix_t projectionInverse;
       projectionInverse.Inverse(gContext.mViewProjection);
-      far.Transform(makeVect(0, 0, 10.f, 1.f), projectionInverse);
-      gContext.mReversed = (far.z/far.w) < 0.f;
+      _far.Transform(makeVect(0, 0, 10.f, 1.f), projectionInverse);
+      gContext.mReversed = (_far.z / _far.w) < 0.f;
       
       // compute scale from the size of camera right vector projected on screen at the matrix position
       vec_t pointRight = viewInverse.v.right;
@@ -1096,7 +1088,7 @@ namespace ImGuizmo
       vec_t perpendicularVector;
       perpendicularVector.Cross(gContext.mRotationVectorSource, gContext.mTranslationPlan);
       perpendicularVector.Normalize();
-      float acosAngle = Clamp(Dot(localPos, gContext.mRotationVectorSource), -1.f, 1.f);
+      float acosAngle = ImClamp(Dot(localPos, gContext.mRotationVectorSource), -1.f, 1.f);
       float angle = acosf(acosAngle);
       angle *= (Dot(localPos, perpendicularVector) < 0.f) ? 1.f : -1.f;
       return angle;
@@ -1445,7 +1437,7 @@ namespace ImGuizmo
             }
             float boundDistance = sqrtf(ImLengthSqr(worldBound1 - worldBound2));
             int stepCount = (int)(boundDistance / 10.f);
-            stepCount = min(stepCount, 1000);
+            stepCount = ImMin(stepCount, 1000);
             float stepLength = 1.f / (float)stepCount;
             for (int j = 0; j < stepCount; j++)
             {
@@ -1897,12 +1889,12 @@ namespace ImGuizmo
             vec_t baseVector = gContext.mTranslationPlanOrigin - gContext.mModel.v.position;
             float ratio = Dot(axisValue, baseVector + delta) / Dot(axisValue, baseVector);
 
-            gContext.mScale[axisIndex] = max(ratio, 0.001f);
+            gContext.mScale[axisIndex] = ImMax(ratio, 0.001f);
          }
          else
          {
             float scaleDelta = (io.MousePos.x - gContext.mSaveMousePosx) * 0.01f;
-            gContext.mScale.Set(max(1.f + scaleDelta, 0.001f));
+            gContext.mScale.Set(ImMax(1.f + scaleDelta, 0.001f));
          }
 
          // snap
@@ -1914,7 +1906,7 @@ namespace ImGuizmo
 
          // no 0 allowed
          for (int i = 0; i < 3; i++)
-            gContext.mScale[i] = max(gContext.mScale[i], 0.001f);
+            gContext.mScale[i] = ImMax(gContext.mScale[i], 0.001f);
 
          if (gContext.mScaleLast != gContext.mScale)
          {
@@ -2226,12 +2218,7 @@ namespace ImGuizmo
          ImVec2 faceCoordsScreen[4];
          ImU32 color;
       };
-      CubeFace* faces = (CubeFace*)_malloca(sizeof(CubeFace) * matrixCount * 6);
-
-      if (!faces)
-      {
-         return;
-      }
+      CubeFace faces[matrixCount * 6]; // instead of (CubeFace*)_malloca(sizeof(CubeFace) * matrixCount * 6);
 
       vec_t frustum[6];
       matrix_t viewProjection = *(matrix_t*)view * *(matrix_t*)projection;

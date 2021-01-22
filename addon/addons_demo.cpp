@@ -298,8 +298,9 @@ void ShowAddonsDemoWindowWidgets()
         ImGui::TreePop();
     }
 
-    if (ImGui::TreeNode("Spin"))
+    if (ImGui::TreeNode("Progress&Indicators"))
     {
+        // Spin Test:
         static int int_v = 10;
         ImGui::SpinInt("##spin_int", &int_v, 1, 10);
         ImGui::SameLine(); HelpMarker("Hold key Ctrl to spin fast.");
@@ -309,11 +310,8 @@ void ShowAddonsDemoWindowWidgets()
         static double double_v = 10.0;
         ImGui::SpinDouble("##spin_double", &double_v, 1., 10.);
         ImGui::SameLine(); HelpMarker("Hold key Ctrl to spin fast.");
-        ImGui::TreePop();
-    }
+        ImGui::Separator();
 
-    if (ImGui::TreeNode("Progress Indicators"))
-    {
         // ProgressBar Test:
         ImGui::TestProgressBar();
         ImGui::Separator();
@@ -357,7 +355,25 @@ void ShowAddonsDemoWindowWidgets()
         ImGui::Separator();
 
         ImGui::ShowBezierDemo(); ImGui::SameLine(); HelpMarker("ImGui Bezier widget.");
+        ImGui::Separator();
 
+        static ImVec2 val2d(0.f, 0.f);
+        static ImVec4 val3d(0.f, 0.f, 0.f, 0.f);
+        ImGui::BeginChild("##InputVec2", ImVec2(240, 340), true, ImGuiWindowFlags_NoMove);
+        ImGui::InputVec2("Vec2D", &val2d, ImVec2(-1.f, -1.f), ImVec2(1.f, 1.f));
+        ImGui::EndChild();
+        ImGui::SameLine();
+        ImGui::BeginChild("##SliderScalar2D", ImVec2(240, 340), true, ImGuiWindowFlags_NoMove);
+        ImGui::SliderScalar2D("Scalar2D ", &val2d.x, &val2d.y, -1.f, 1.f, -1.f, 1.f);
+        ImGui::EndChild();
+        ImGui::SameLine();
+        ImGui::BeginChild("##InputVec3D", ImVec2(240, 340), true, ImGuiWindowFlags_NoMove);
+        ImGui::InputVec3("Vec3D", &val3d, ImVec4(-1.f, -1.f, -1.f, -1.f), ImVec4(1.f, 1.f, 1.f, 1.f));
+        ImGui::EndChild();
+        ImGui::SameLine();
+        ImGui::BeginChild("##InputScalar3D", ImVec2(240, 340), true, ImGuiWindowFlags_NoMove);
+        ImGui::SliderScalar3D("Scalar3D", &val3d.x, &val3d.y, &val3d.z, -1.f, 1.f, -1.f, 1.f, -1.f, 1.f);
+        ImGui::EndChild();
         ImGui::TreePop();
     }
 

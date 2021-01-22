@@ -51,6 +51,9 @@ public:
     // init file dialog
     ImGuiFileDialog filedialog;
 
+    // init sample file dialog
+    ImGuiFs::Dialog dlg;
+
     // init memory edit
     MemoryEditor mem_edit;
     void* data = nullptr;
@@ -64,6 +67,7 @@ public:
     bool show_another_window = false;
     bool show_implot_window = false;
     bool show_file_dialog_window = false;
+    bool show_sample_file_dialog = false;
     bool show_text_edit_window = false;
     bool show_markdown_window = false;
     bool show_dock_window = false;
@@ -190,6 +194,7 @@ void Application_Frame(void* handle)
         ImGui::Checkbox("Another Window", &example->show_another_window);
         ImGui::Checkbox("ImPlot Window", &example->show_implot_window);
         ImGui::Checkbox("File Dialog Window", &example->show_file_dialog_window);
+        ImGui::Checkbox("Sample File Dialog", &example->show_sample_file_dialog);
         ImGui::Checkbox("Memory Edit Window", &example->mem_edit.Open);
         ImGui::Checkbox("Show Text Edit Window", &example->show_text_edit_window);
         ImGui::Checkbox("Show Markdown Window", &example->show_markdown_window);
@@ -239,7 +244,18 @@ void Application_Frame(void* handle)
         show_file_dialog_demo_window(&example->filedialog, &example->show_file_dialog_window);
     }
 
-    // 6. Show Memory Edit window
+    // 6. Show Sample FileDialog
+    {
+        //example->dlg.WrapMode = false;
+        const char* filePath = example->dlg.chooseFileDialog(example->show_sample_file_dialog, example->dlg.getLastDirectory(), ".jpg;.jpeg;.png;.gif;.tga;.bmp", "Sample file dialog", ImVec2(400, 800), ImVec2(50, 50));
+        if (strlen(filePath) > 0) 
+        {
+	        //fprintf(stderr,"Browsed..: %s\n",filePath);
+        }
+        example->show_sample_file_dialog = false;
+    }
+
+    // 7. Show Memory Edit window
     if (example->mem_edit.Open)
     {
         ImGui::SetNextWindowSize(ImVec2(400, 768), ImGuiCond_FirstUseEver);
@@ -248,13 +264,13 @@ void Application_Frame(void* handle)
         ImGui::End();
     }
 
-    // 7. Show Text Edit Window
+    // 8. Show Text Edit Window
     if (example->show_text_edit_window)
     {
         example->editor.text_edit_demo(&example->show_text_edit_window);
     }
 
-    // 8. Show Markdown Window
+    // 9. Show Markdown Window
     if (example->show_markdown_window)
     {
         ImGui::SetNextWindowSize(ImVec2(1024, 768), ImGuiCond_FirstUseEver);
@@ -273,7 +289,7 @@ void Application_Frame(void* handle)
         ImGui::End();
     }
 
-    // 9. Show Dock Window
+    // 10. Show Dock Window
     if (example->show_dock_window)
     {
         ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
@@ -284,7 +300,7 @@ void Application_Frame(void* handle)
         ImGui::End();
     }
 
-    // 10. Show Tab Window
+    // 11. Show Tab Window
     if (example->show_tab_window)
     {
         ImGui::SetNextWindowSize(ImVec2(700,600), ImGuiCond_FirstUseEver);
@@ -295,13 +311,13 @@ void Application_Frame(void* handle)
         ImGui::End();
     }
 
-    // 11. Show Node Sample Window
+    // 12. Show Node Sample Window
     if (example->show_node_window)
     {
         imnodes_sample::NodeEditorShow(&example->show_node_window);
     }
 
-    // 12. Show Node Edit Window
+    // 13. Show Node Edit Window
     if (example->show_node_edit_window)
     {
         ImGui::SetNextWindowSize(ImVec2(700,600), ImGuiCond_FirstUseEver);
@@ -312,7 +328,7 @@ void Application_Frame(void* handle)
         ImGui::End();
     }
 
-    // 13. Show Addon Widget.
+    // 14. Show Addon Widget.
     if (example->show_addon_widget)
     {
         ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
@@ -321,7 +337,7 @@ void Application_Frame(void* handle)
         ImGui::End();
     }
 
-    // 14. Show Zmo Window
+    // 15. Show Zmo Window
     if (example->show_zmo_window)
     {
         ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);

@@ -161,7 +161,6 @@ struct Dialog {
     typedef bool (*DrawFolderIconDelegate) (bool useOpenFolderIconIfAvailable,const ImVec4* pOptionalColorOverride);// must return "true" if the icon is set.
     static DrawFolderIconDelegate DrawFolderIconCallback;
 
-
     private:
     struct Internal* internal;
     friend const char* ChooseFileMainMethod(Dialog& ist,const char* directory,const bool _isFolderChooserDialog,const bool _isSaveFileDialog,const char* _saveFileName,const char* fileFilterExtensionString,const char* windowTitle,const ImVec2& windowSize,const ImVec2& windowPos,const float windowAlpha);
