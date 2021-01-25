@@ -47,31 +47,6 @@ static void error_callback(int error, const char* description)
     fprintf(stderr, "Error %d: %s\n", error, description);
 }
 
-ImTextureID Application_LoadTexture(const char* path)
-{
-    return ImGui::ImLoadTexture(path);
-}
-
-ImTextureID Application_CreateTexture(const void* data, int width, int height)
-{
-    return ImGui::ImCreateTexture(data, width, height);
-}
-
-void Application_DestroyTexture(ImTextureID texture)
-{
-    ImGui::ImDestroyTexture(texture);
-}
-
-int Application_GetTextureWidth(ImTextureID texture)
-{
-    return ImGui::ImGetTextureWidth(texture);
-}
-
-int Application_GetTextureHeight(ImTextureID texture)
-{
-    return ImGui::ImGetTextureHeight(texture);
-}
-
 int main(int, char**)
 {
     // Setup window

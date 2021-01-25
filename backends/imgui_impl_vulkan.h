@@ -125,4 +125,3 @@ struct ImGui_ImplVulkanH_Window
         ClearEnable = true;
     }
 };
-

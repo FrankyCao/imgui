@@ -14,32 +14,7 @@
 
 static void * user_handle = nullptr;
 
-ImTextureID Application_LoadTexture(const char* path)
-{
-    return ImGui::ImLoadTexture(path);
-}
-
 static ImVec4 clear_color = ImVec4(0.125f, 0.125f, 0.125f, 1.00f);
-
-ImTextureID Application_CreateTexture(const void* data, int width, int height)
-{
-    return ImGui::ImCreateTexture(data, width, height);
-}
-
-void Application_DestroyTexture(ImTextureID texture)
-{
-    ImGui::ImDestroyTexture(texture);
-}
-
-int Application_GetTextureWidth(ImTextureID texture)
-{
-    return ImGui::ImGetTextureWidth(texture);
-}
-
-int Application_GetTextureHeight(ImTextureID texture)
-{
-    return ImGui::ImGetTextureHeight(texture);
-}
 
 void glut_display_func()
 {
