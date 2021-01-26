@@ -152,6 +152,10 @@ int main(int, char**)
         return 1;
     }
 
+    // Show the window
+    ::ShowWindow(hwnd, SW_SHOWDEFAULT);
+    ::UpdateWindow(hwnd);
+
     // Setup ImGui binding
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -174,16 +178,16 @@ int main(int, char**)
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::SetNextWindowPos(ImVec2(0, 0));
-        ImGui::SetNextWindowSize(io.DisplaySize);
-        ImGui::Begin("Content", nullptr,
-            ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-            ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoSavedSettings |
-            ImGuiWindowFlags_NoBringToFrontOnFocus);
+        //ImGui::SetNextWindowPos(ImVec2(0, 0));
+        //ImGui::SetNextWindowSize(io.DisplaySize);
+        //ImGui::Begin("Content", nullptr,
+        //    ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+        //    ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoSavedSettings |
+        //    ImGuiWindowFlags_NoBringToFrontOnFocus);
 
         Application_Frame(user_handle);
 
-        ImGui::End();
+        //ImGui::End();
 
         // Rendering
         g_pd3dDeviceContext->ClearRenderTargetView(g_mainRenderTargetView, (float*)&backgroundColor);
@@ -194,8 +198,8 @@ int main(int, char**)
 
     frame();
 
-    ShowWindow(hwnd, SW_SHOWMAXIMIZED);
-    UpdateWindow(hwnd);
+    //ShowWindow(hwnd, SW_SHOWMAXIMIZED);
+    //UpdateWindow(hwnd);
 
     // Main loop
     MSG msg = {};
