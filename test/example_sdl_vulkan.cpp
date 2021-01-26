@@ -541,6 +541,10 @@ int main(int, char**)
         }
     }
 
+    // Cleanup Demo
+    ImGui::CleanupDemo();
+    ImGui::CleanupZMODemo();
+
     // Cleanup
     err = vkDeviceWaitIdle(g_Device);
     check_vk_result(err);

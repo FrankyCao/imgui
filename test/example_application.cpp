@@ -38,6 +38,12 @@ public:
         std::string node_path = std::string(DEFAULT_CONFIG_PATH) + "nodes_save_load.node";
         imnodes::Initialize();
         imnodes_sample::NodeEditorInitialize(node_ini_path.c_str(), node_path.c_str());
+
+        // Init NodeGraphEditor
+        std::string nge_ini_path = std::string(DEFAULT_CONFIG_PATH) + "nodeGraphEditor.nge.ini";
+        std::string nge_style_path = std::string(DEFAULT_CONFIG_PATH) + "nodeGraphEditor.style.ini";
+        nge.save_node_path = nge_ini_path;
+        nge.save_style_path = nge_style_path;
     };
     ~Example() 
     { 
@@ -53,6 +59,8 @@ public:
         std::string node_path = std::string(DEFAULT_CONFIG_PATH) + "nodes_save_load.node";
         imnodes_sample::NodeEditorShutdown(node_ini_path.c_str(), node_path.c_str());
         imnodes::Shutdown();
+        ImGui::CleanupDemo();
+        ImGui::CleanupZMODemo();
     }
 
 public:
@@ -65,10 +73,15 @@ public:
     // init memory edit
     MemoryEditor mem_edit;
     void* data = nullptr;
+
     // Init Text Edit
     TextEditor editor;
+
     // Init MarkDown
     ImGui::MarkdownConfig mdConfig;
+
+    // Init NodeGraphEditor
+    ImGui::NodeGraphEditor nge;
 
 public:
     bool show_demo_window = true;
@@ -335,9 +348,7 @@ void Application_Frame(void* handle)
         ImGui::SetNextWindowSize(ImVec2(700,600), ImGuiCond_FirstUseEver);
         if (ImGui::Begin("Example: Custom Node Graph",&example->show_node_edit_window, ImGuiWindowFlags_NoScrollbar))
         {
-            std::string node_ini_path = std::string(DEFAULT_CONFIG_PATH) + "nodeGraphEditor.nge.ini";
-            std::string node_style_path = std::string(DEFAULT_CONFIG_PATH) + "nodeGraphEditor.style.ini";
-            ImGui::TestNodeGraphEditor(node_ini_path, node_style_path);   // see its code for further info         
+            ImGui::TestNodeGraphEditor(&example->nge);   // see its code for further info         
         }
         ImGui::End();
     }

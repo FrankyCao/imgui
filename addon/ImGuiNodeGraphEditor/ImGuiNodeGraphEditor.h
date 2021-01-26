@@ -795,7 +795,7 @@ class NodeGraphEditor
 
 
 #ifndef IMGUINODEGRAPHEDITOR_NOTESTDEMO
-IMGUI_API void TestNodeGraphEditor(std::string save_node_path, std::string save_style_path);
+IMGUI_API void TestNodeGraphEditor(ImGui::NodeGraphEditor * nge);
 #endif //IMGUINODEGRAPHEDITOR_NOTESTDEMO
 
 

@@ -636,4 +636,8 @@ void ShowAddonsTabWindow()
         //if (optionalHoveredVerticalTab>=0) ImGui::Text("Mouse is hovering Tab Label: \"%s\".\n\n",verticalTabNames[optionalHoveredVerticalTab]);
     }
 }
+void CleanupDemo()
+{
+    if (ImageTextureNumber) { ImDestroyTexture(ImageTextureNumber); ImageTextureNumber = 0; }
+}
 } // namespace ImGui

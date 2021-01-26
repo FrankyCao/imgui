@@ -77,7 +77,6 @@ IMGUI_IMPL_API void                 ImGui_ImplVulkanH_DestroyWindow(VkInstance i
 IMGUI_IMPL_API VkSurfaceFormatKHR   ImGui_ImplVulkanH_SelectSurfaceFormat(VkPhysicalDevice physical_device, VkSurfaceKHR surface, const VkFormat* request_formats, int request_formats_count, VkColorSpaceKHR request_color_space);
 IMGUI_IMPL_API VkPresentModeKHR     ImGui_ImplVulkanH_SelectPresentMode(VkPhysicalDevice physical_device, VkSurfaceKHR surface, const VkPresentModeKHR* request_modes, int request_modes_count);
 IMGUI_IMPL_API int                  ImGui_ImplVulkanH_GetMinImageCountFromPresentMode(VkPresentModeKHR present_mode);
-
 // Helper structure to hold the data needed by one rendering frame
 // (Used by example's main.cpp. Used by multi-viewport features. Probably NOT used by your own engine/app.)
 // [Please zero-clear before use!]
@@ -116,7 +115,7 @@ struct ImGui_ImplVulkanH_Window
     uint32_t            SemaphoreIndex;         // Current set of swapchain wait semaphores we're using (needs to be distinct from per frame data)
     ImGui_ImplVulkanH_Frame*            Frames;
     ImGui_ImplVulkanH_FrameSemaphores*  FrameSemaphores;
-    VkCommandBuffer     command_buffer;
+
     ImGui_ImplVulkanH_Window()
     {
         memset(this, 0, sizeof(*this));
@@ -125,5 +124,20 @@ struct ImGui_ImplVulkanH_Window
     }
 };
 
-IMGUI_IMPL_API VkImage  ImGui_ImplVulkan_CreateTexture(const void * pixels, int width, int height);
-IMGUI_IMPL_API void     ImGui_ImplVulkan_DestroyTexture(VkImage texture);
+typedef struct ImTextureVK
+{
+    VkDescriptorSet textureDescriptor = VK_NULL_HANDLE;
+    VkImage textureImage = VK_NULL_HANDLE;
+    VkDeviceMemory textureImageMemory = VK_NULL_HANDLE;
+    VkImageView textureView = VK_NULL_HANDLE;
+    VkSampler textureSampler = VK_NULL_HANDLE;
+    ImTextureVK()
+    {
+        memset(this, 0, sizeof(*this));
+    }
+
+} *ImTextureVk;
+
+IMGUI_IMPL_API ImTextureID  ImGui_ImplVulkan_AddTexture(VkSampler sampler, VkImageView image_view, VkImageLayout image_layout);
+IMGUI_IMPL_API ImTextureID  ImGui_ImplVulkan_CreateTexture(const void * pixels, int width, int height);
+IMGUI_IMPL_API void         ImGui_ImplVulkan_DestroyTexture(ImTextureVk * texture);

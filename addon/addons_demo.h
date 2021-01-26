@@ -8,5 +8,7 @@ namespace ImGui
     IMGUI_API void          ShowAddonsTabWindow();
     IMGUI_API void          ShowBezierDemo();
     IMGUI_API void          ShowAddonsZMOWindow();
+    IMGUI_API void          CleanupZMODemo();
+    IMGUI_API void          CleanupDemo();
 }
 #endif /* __ADDONS_DEMO_H */

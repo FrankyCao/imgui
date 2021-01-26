@@ -404,6 +404,10 @@ int main(int, char**)
     imnodes_sample::NodeEditorShutdown(node_ini_path.c_str(), node_path.c_str());
     imnodes::Shutdown();
 
+    // Cleanup Demo
+    ImGui::CleanupDemo();
+    ImGui::CleanupZMODemo();
+
     // Cleanup
     ImGui_ImplSdlGLES2_Shutdown();
     ImPlot::DestroyContext();

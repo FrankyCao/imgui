@@ -78,7 +78,7 @@ using namespace gl;
 #if     defined(IMGUI_VULKAN)
 struct ImTexture
 {
-    VkImage TextureID = nullptr;
+    ImTextureVk TextureID = nullptr;
     int     Width     = 0;
     int     Height    = 0;
 };
@@ -247,7 +247,7 @@ ImTextureID ImCreateTexture(const void* data, int width, int height)
 #if     defined(IMGUI_VULKAN)
     g_Textures.resize(g_Textures.size() + 1);
     ImTexture& texture = g_Textures.back();
-    texture.TextureID = ImGui_ImplVulkan_CreateTexture(data, width, height);
+    texture.TextureID = (ImTextureVk)ImGui_ImplVulkan_CreateTexture(data, width, height);
     texture.Width  = width;
     texture.Height = height;
     return (ImTextureID)texture.TextureID;
@@ -331,7 +331,7 @@ ImTextureID ImCreateTexture(const void* data, int width, int height)
 static std::vector<ImTexture>::iterator ImFindTexture(ImTextureID texture)
 {
 #if     defined(IMGUI_VULKAN)
-    auto textureID = reinterpret_cast<VkImage>(texture);
+    auto textureID = reinterpret_cast<ImTextureVk>(texture);
 #elif   defined(IMGUI_OPENGL)
     auto textureID = static_cast<GLuint>(reinterpret_cast<std::intptr_t>(texture));
 #elif   defined(IMGUI_DX11)
@@ -355,7 +355,7 @@ void ImDestroyTexture(ImTextureID texture)
 #if     defined(IMGUI_VULKAN)
     if (textureIt->TextureID)
     {
-        ImGui_ImplVulkan_DestroyTexture(textureIt->TextureID);
+        ImGui_ImplVulkan_DestroyTexture(&textureIt->TextureID);
         textureIt->TextureID = nullptr;
     }
 #elif   defined(IMGUI_OPENGL)

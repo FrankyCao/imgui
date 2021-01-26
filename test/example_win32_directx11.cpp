@@ -178,6 +178,13 @@ int main(int, char**)
     imnodes::Initialize();
     imnodes_sample::NodeEditorInitialize(node_ini_path.c_str(), node_path.c_str());
 
+    // Init NodeGraphEditor
+    ImGui::NodeGraphEditor nge;
+    std::string nge_ini_path = std::string(DEFAULT_CONFIG_PATH) + "nodeGraphEditor.nge.ini";
+    std::string nge_style_path = std::string(DEFAULT_CONFIG_PATH) + "nodeGraphEditor.style.ini";
+    nge.save_node_path = nge_ini_path;
+    nge.save_style_path = nge_style_path;
+
     // Init HotKey
     static std::vector<ImHotKey::HotKey> hotkeys = 
     { 
@@ -370,7 +377,7 @@ int main(int, char**)
             {
                 std::string node_ini_path = std::string(DEFAULT_CONFIG_PATH) + "nodeGraphEditor.nge.ini";
                 std::string node_style_path = std::string(DEFAULT_CONFIG_PATH) + "nodeGraphEditor.style.ini";
-                ImGui::TestNodeGraphEditor(node_ini_path, node_style_path);   // see its code for further info         
+                ImGui::TestNodeGraphEditor(&nge);   // see its code for further info         
             }
             ImGui::End();
         }
@@ -414,6 +421,11 @@ int main(int, char**)
     // Clean Node Window
     imnodes_sample::NodeEditorShutdown(node_ini_path.c_str(), node_path.c_str());
     imnodes::Shutdown();
+
+    // Cleanup Demo
+    ImGui::CleanupDemo();
+    ImGui::CleanupZMODemo();
+    nge.clear();
 
     // Cleanup
     ImGui_ImplDX11_Shutdown();

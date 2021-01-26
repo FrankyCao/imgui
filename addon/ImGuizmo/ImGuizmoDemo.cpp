@@ -460,6 +460,8 @@ static void EditTransform(float* cameraView, float* cameraProjection, float* mat
     ImGui::EndChild();
 }
 
+static ImTextureID procTexture = 0;
+
 void ShowAddonsZMOWindow()
 {
     static float size_edit = 0;
@@ -474,7 +476,6 @@ void ShowAddonsZMOWindow()
     };
     static float cameraProjection[16];
     // build a procedural texture. Copy/pasted and adapted from https://rosettacode.org/wiki/Plasma_effect#Graphics_version
-    static ImTextureID procTexture = 0;
     if (!procTexture) build_procedural_texture(procTexture);
 
     // sequence with default values
@@ -635,5 +636,10 @@ void ShowAddonsZMOWindow()
         }
     }
     ImGui::EndChild();
+}
+
+void CleanupZMODemo()
+{
+    if (procTexture) {{ ImDestroyTexture(procTexture); procTexture = 0; }}
 }
 } // namespace ImGui
