@@ -3,10 +3,13 @@
 # include <imgui_internal.h>
 # include <imgui_node_editor.h>
 # include <application.h>
+# include "Config.h"
 
 namespace ed = ax::NodeEditor;
 
 static ed::EditorContext* g_Context = nullptr;
+static std::string ini_file = std::string(DEFAULT_CONFIG_PATH) + "Simple.ini";
+static std::string setting_file = std::string(DEFAULT_CONFIG_PATH) + "Simple.json";
 
 const char* Application_GetName(void* handle)
 {
@@ -16,8 +19,10 @@ const char* Application_GetName(void* handle)
 void Application_Initialize(void** handle)
 {
     ed::Config config;
-    config.SettingsFile = "Simple.json";
+    config.SettingsFile = setting_file.c_str();
     g_Context = ed::CreateEditor(&config);
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.IniFilename = ini_file.c_str();
 }
 
 void Application_Finalize(void** handle)

@@ -19,6 +19,14 @@ if(WIN32)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS) 
 endif() 
 
+SET(SDK_CONFIG_DIR ${PROJECT_SOURCE_DIR}/config/)
+CONFIGURE_FILE(Config.h.in Config.h)
+
+include_directories( 
+    ${CMAKE_CURRENT_BINARY_DIR}
+    ${PROJECT_BINARY_DIR}
+)
+
 find_package(PkgConfig)
 
 option(IMGUI_GL2        "Build ImGui OpenGL2 backends" ON)
@@ -724,7 +732,17 @@ if (IMGUI_APPS)
                 apps/application/source/dx9/entry.cpp
             )
         endif(IMGUI_DX11)
-    elseif(SDL2_FOUND AND IMGUI_SDL2)
+    elseif(VULKAN_FOUND AND IMGUI_VULKAN AND SDL2_FOUND AND IMGUI_SDL2)
+        set(IMGUI_SRC
+            ${IMGUI_SRC}
+            apps/application/source/vulkan/entry_sdl.cpp
+        )
+    elseif(VULKAN_FOUND AND IMGUI_VULKAN AND GLFW_FOUND AND IMGUI_GLFW)
+        set(IMGUI_SRC
+            ${IMGUI_SRC}
+            apps/application/source/vulkan/entry_glfw.cpp
+        )
+    elseif(SDL2_FOUND AND IMGUI_SDL2 AND IMGUI_OPENGL)
         set(IMGUI_SRC
             ${IMGUI_SRC}
             apps/application/source/sdl/entry.cpp
@@ -837,15 +855,15 @@ if (SDL2_FOUND AND IMGUI_SDL2)
     endif(ANDROID AND IMGUI_GLES)
     # Build Vulkan examples
     if (VULKAN_FOUND)
-    add_executable(
-        example_sdl_vulkan
-        test/example_sdl_vulkan.cpp
-    )
-    target_link_libraries(
-        example_sdl_vulkan
-        imgui
-        ${LINK_LIBS}
-    )
+        add_executable(
+            example_sdl_vulkan
+            test/example_sdl_vulkan.cpp
+        )
+        target_link_libraries(
+            example_sdl_vulkan
+            imgui
+            ${LINK_LIBS}
+        )
     endif(VULKAN_FOUND)
 endif(SDL2_FOUND AND IMGUI_SDL2)
 

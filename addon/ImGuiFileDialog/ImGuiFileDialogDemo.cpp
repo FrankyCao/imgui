@@ -76,7 +76,7 @@ inline bool RadioButtonLabeled(const char* label, bool active, bool disabled)
 	return pressed;
 }
 
-void prepare_file_dialog_demo_window(ImGuiFileDialog * dlg)
+void prepare_file_dialog_demo_window(ImGuiFileDialog * dlg, const char * bookmark_path)
 {
 #ifdef IMGUI_INTERNAL_ICONS
 	// set type color and icons
@@ -109,7 +109,7 @@ void prepare_file_dialog_demo_window(ImGuiFileDialog * dlg)
 
 #ifdef USE_BOOKMARK
 	// load bookmarks
-	std::ifstream docFile("bookmarks.cfg", std::ios::in);
+	std::ifstream docFile(bookmark_path, std::ios::in);
 	if (docFile.is_open())
 	{
 		std::stringstream strStream;
@@ -120,11 +120,11 @@ void prepare_file_dialog_demo_window(ImGuiFileDialog * dlg)
 #endif
 }
 
-void end_file_dialog_demo_window(ImGuiFileDialog * dlg)
+void end_file_dialog_demo_window(ImGuiFileDialog * dlg, const char * bookmark_path)
 {
 #ifdef USE_BOOKMARK
 	// save bookmarks
-	std::ofstream configFileWriter("bookmarks.cfg", std::ios::out);
+	std::ofstream configFileWriter(bookmark_path, std::ios::out);
 	if (!configFileWriter.bad())
 	{
 		configFileWriter << dlg->SerializeBookmarks();

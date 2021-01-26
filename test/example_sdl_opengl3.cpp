@@ -14,6 +14,7 @@
 #include <sstream>
 #include <string>
 #include <cerrno>
+#include "Config.h"
 
 static std::string get_file_contents(const char *filename)
 {
@@ -193,8 +194,9 @@ int main(int, char**)
     ImGui::CreateContext();
     ImPlot::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
+    std::string ini_file = std::string(DEFAULT_CONFIG_PATH) + "sdl_opengl3.ini";
+    io.IniFilename = ini_file.c_str();
     io.FontGlobalScale = window_scale;
-    io.IniFilename = "sdl_opengl3.ini";
 
     io.Fonts->AddFontDefault();
     
@@ -208,7 +210,8 @@ int main(int, char**)
 
     // load file dialog resource
     ImGuiFileDialog filedialog;
-    prepare_file_dialog_demo_window(&filedialog);
+    std::string bookmark_path = std::string(DEFAULT_CONFIG_PATH) + "bookmark.ini";
+    prepare_file_dialog_demo_window(&filedialog, bookmark_path.c_str());
 
     // init sample file dialog
     ImGuiFs::Dialog dlg;
@@ -227,8 +230,10 @@ int main(int, char**)
     ImGui::MarkdownConfig mdConfig; 
 
     // Init imnodes
+    std::string node_ini_path = std::string(DEFAULT_CONFIG_PATH) + "nodes_save_load.ini";
+    std::string node_path = std::string(DEFAULT_CONFIG_PATH) + "nodes_save_load.node";
     imnodes::Initialize();
-    imnodes_sample::NodeEditorInitialize();
+    imnodes_sample::NodeEditorInitialize(node_ini_path.c_str(), node_path.c_str());
 
     // Init HotKey
     static std::vector<ImHotKey::HotKey> hotkeys = 
@@ -435,7 +440,9 @@ int main(int, char**)
             ImGui::SetNextWindowSize(ImVec2(700,600), ImGuiCond_FirstUseEver);
             if (ImGui::Begin("Example: Custom Node Graph",&show_node_edit_window, ImGuiWindowFlags_NoScrollbar))
             {
-                ImGui::TestNodeGraphEditor();   // see its code for further info         
+                std::string node_ini_path = std::string(DEFAULT_CONFIG_PATH) + "nodeGraphEditor.nge.ini";
+                std::string node_style_path = std::string(DEFAULT_CONFIG_PATH) + "nodeGraphEditor.style.ini";
+                ImGui::TestNodeGraphEditor(node_ini_path, node_style_path);   // see its code for further info         
             }
             ImGui::End();
         }
@@ -472,10 +479,10 @@ int main(int, char**)
         free(data);
 
     // Store file dialog bookmark
-    end_file_dialog_demo_window(&filedialog);
+    end_file_dialog_demo_window(&filedialog, bookmark_path.c_str());
 
     // Clean Node Window
-    imnodes_sample::NodeEditorShutdown();
+    imnodes_sample::NodeEditorShutdown(node_ini_path.c_str(), node_path.c_str());
     imnodes::Shutdown();
 
     // Cleanup

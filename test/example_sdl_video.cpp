@@ -19,6 +19,7 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include <opencv2/opencv.hpp>
+#include "Config.h"
 
 static const int pause_width = 64;
 static const int pause_height = 64;
@@ -217,7 +218,8 @@ int main(int, char**)
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.IniFilename = "sdl_video.ini";
+    std::string ini_file = std::string(DEFAULT_CONFIG_PATH) + "sdl_video.ini";
+    io.IniFilename = ini_file.c_str();
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 

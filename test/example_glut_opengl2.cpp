@@ -110,7 +110,8 @@ int main(int argc, char** argv)
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.IniFilename = "glut_opengl2.ini";
+    std::string ini_file = std::string(DEFAULT_CONFIG_PATH) + "glut_opengl2.ini";
+    io.IniFilename = ini_file.c_str();
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
 
     // Setup Dear ImGui style

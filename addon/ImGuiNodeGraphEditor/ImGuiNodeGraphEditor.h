@@ -510,6 +510,8 @@ class NodeGraphEditor
     static Style& GetStyle() {static Style style;return style;}
     /*mutable ImGuiColorEditMode colorEditMode;*/
     float nodesBaseWidth;
+    std::string save_node_path;
+    std::string save_style_path;
 
     NodeGraphEditor(bool show_grid_= true,bool show_connection_names_=true,bool _allowOnlyOneLinkPerInputSlot=true,bool _avoidCircularLinkLoopsInOut=true,bool init_in_ctr=false) {
         scrolling = ImVec2(0.0f, 0.0f);
@@ -793,7 +795,7 @@ class NodeGraphEditor
 
 
 #ifndef IMGUINODEGRAPHEDITOR_NOTESTDEMO
-IMGUI_API void TestNodeGraphEditor();
+IMGUI_API void TestNodeGraphEditor(std::string save_node_path, std::string save_style_path);
 #endif //IMGUINODEGRAPHEDITOR_NOTESTDEMO
 
 

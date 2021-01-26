@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <SDL.h>
 #include <SDL_opengl.h>
+#include "Config.h"
 
 // Main code
 int main(int, char**)
@@ -42,7 +43,8 @@ int main(int, char**)
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.IniFilename = "sdl_opengl2.ini";
+    std::string ini_file = std::string(DEFAULT_CONFIG_PATH) + "sdl_opengl2.ini";
+    io.IniFilename = ini_file.c_str();
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 

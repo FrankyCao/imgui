@@ -129,8 +129,6 @@ int main(int, char**)
     ImGui::CreateContext();
     ImPlot::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    std::string ini_file = std::string(Application_GetName()) + ".ini";
-    io.IniFilename = ini_file.c_str();
     io.FontGlobalScale = window_scale;
 
     // Setup Dear ImGui style

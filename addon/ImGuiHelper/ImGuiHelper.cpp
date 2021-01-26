@@ -70,7 +70,19 @@ using namespace gl;
 #endif //alloca
 #endif //NO_IMGUIHELPER_DRAW_METHODS
 
-#ifdef IMGUI_OPENGL
+#ifdef IMGUI_VULKAN
+#include <imgui_impl_vulkan.h>
+#endif
+
+
+#if     defined(IMGUI_VULKAN)
+struct ImTexture
+{
+    VkImage TextureID = nullptr;
+    int     Width     = 0;
+    int     Height    = 0;
+};
+#elif   defined(IMGUI_OPENGL)
 struct ImTexture
 {
     GLuint TextureID = 0;
@@ -110,7 +122,9 @@ void ImGenerateOrUpdateTexture(ImTextureID& imtexid,int width,int height,int cha
 {
     IM_ASSERT(pixels);
     IM_ASSERT(channels>0 && channels<=4);
-#ifdef IMGUI_OPENGL
+#if     defined(IMGUI_VULKAN)
+    return;
+#elif   defined(IMGUI_OPENGL)
     GLuint& texid = reinterpret_cast<GLuint&>(imtexid);
     if (texid==0) glGenTextures(1, &texid);
 
@@ -230,7 +244,14 @@ void ImGenerateOrUpdateTexture(ImTextureID& imtexid,int width,int height,int cha
 
 ImTextureID ImCreateTexture(const void* data, int width, int height)
 {
-#ifdef IMGUI_OPENGL
+#if     defined(IMGUI_VULKAN)
+    g_Textures.resize(g_Textures.size() + 1);
+    ImTexture& texture = g_Textures.back();
+    texture.TextureID = ImGui_ImplVulkan_CreateTexture(data, width, height);
+    texture.Width  = width;
+    texture.Height = height;
+    return (ImTextureID)texture.TextureID;
+#elif   defined(IMGUI_OPENGL)
     g_Textures.resize(g_Textures.size() + 1);
     ImTexture& texture = g_Textures.back();
 
@@ -248,7 +269,7 @@ ImTextureID ImCreateTexture(const void* data, int width, int height)
     texture.Height = height;
 
     return reinterpret_cast<ImTextureID>(static_cast<std::intptr_t>(texture.TextureID));
-#elif defined(IMGUI_DX11)
+#elif   defined(IMGUI_DX11)
     if (!g_pd3dDevice)
         return nullptr;
     g_Textures.resize(g_Textures.size() + 1);
@@ -287,7 +308,7 @@ ImTextureID ImCreateTexture(const void* data, int width, int height)
     texture.Width  = width;
     texture.Height = height;
     return (ImTextureID)texture.TextureID;
-#elif defined(IMGUI_DX9)
+#elif   defined(IMGUI_DX9)
     if (!g_pd3dDevice)
         return nullptr;
     g_Textures.resize(g_Textures.size() + 1);
@@ -309,12 +330,14 @@ ImTextureID ImCreateTexture(const void* data, int width, int height)
 
 static std::vector<ImTexture>::iterator ImFindTexture(ImTextureID texture)
 {
-#ifdef IMGUI_DX11
-    auto textureID = (ID3D11ShaderResourceView *)texture;
-#elif defined(IMGUI_DX9)
-    auto textureID = reinterpret_cast<LPDIRECT3DTEXTURE9>(texture);
-#elif defined(IMGUI_OPENGL)
+#if     defined(IMGUI_VULKAN)
+    auto textureID = reinterpret_cast<VkImage>(texture);
+#elif   defined(IMGUI_OPENGL)
     auto textureID = static_cast<GLuint>(reinterpret_cast<std::intptr_t>(texture));
+#elif   defined(IMGUI_DX11)
+    auto textureID = (ID3D11ShaderResourceView *)texture;
+#elif   defined(IMGUI_DX9)
+    auto textureID = reinterpret_cast<LPDIRECT3DTEXTURE9>(texture);
 #else
     int textureID = -1;
 #endif
@@ -329,16 +352,26 @@ void ImDestroyTexture(ImTextureID texture)
     auto textureIt = ImFindTexture(texture);
     if (textureIt == g_Textures.end())
         return;
-#ifdef IMGUI_OPENGL
-    glDeleteTextures(1, &textureIt->TextureID);
-#elif defined(IMGUI_DX11)
+#if     defined(IMGUI_VULKAN)
+    if (textureIt->TextureID)
+    {
+        ImGui_ImplVulkan_DestroyTexture(textureIt->TextureID);
+        textureIt->TextureID = nullptr;
+    }
+#elif   defined(IMGUI_OPENGL)
+    if (textureIt->TextureID)
+    {
+        glDeleteTextures(1, &textureIt->TextureID);
+        textureIt->TextureID = 0;
+    }
+#elif   defined(IMGUI_DX11)
     if (textureIt->TextureID)
     {
         textureIt->TextureID->Release();
         textureIt->TextureID = nullptr;
     }
-#elif defined(IMGUI_DX9)
-if (textureIt->TextureID)
+#elif   defined(IMGUI_DX9)
+    if (textureIt->TextureID)
     {
         textureIt->TextureID->Release();
         textureIt->TextureID = nullptr;
@@ -376,7 +409,8 @@ ImTextureID ImLoadTexture(const char* path)
         return nullptr;
 }
 
-bool OpenWithDefaultApplication(const char* url,bool exploreModeForWindowsOS)	{
+bool OpenWithDefaultApplication(const char* url,bool exploreModeForWindowsOS)	
+{
 #       ifdef _WIN32
             //CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);  // Needed ??? Well, let's suppose the user initializes it himself for now"
             return ((size_t)ShellExecuteA( NULL, exploreModeForWindowsOS ? "explore" : "open", url, "", ".", SW_SHOWNORMAL ))>32;

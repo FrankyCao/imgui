@@ -1,0 +1,8 @@
+#ifndef _CONFIG_HPP_
+#define _CONFIG_HPP_
+#define DEFAULT_CONFIG_PATH                             "@SDK_CONFIG_DIR@"
+#endif
+
+// Local Variables:
+// mode: c++
+// End:

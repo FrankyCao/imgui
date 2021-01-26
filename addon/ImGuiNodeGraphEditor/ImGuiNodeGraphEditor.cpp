@@ -575,8 +575,8 @@ void NodeGraphEditor::render()
                 ImGui::Separator();
 #if             (defined(IMGUIHELPER_H_) && !defined(NO_IMGUIHELPER_SERIALIZATION))
                 const char* saveName = "nodeGraphEditor.style.ini";
-                const char* saveNamePersistent = "/persistent_folder/nodeGraphEditor.style.ini";
-                const char* pSaveName = saveName;
+                //const char* saveNamePersistent = "/persistent_folder/nodeGraphEditor.style.ini";
+                const char* pSaveName = save_style_path.empty() ? saveName : save_style_path.c_str();
 #               ifndef NO_IMGUIHELPER_SERIALIZATION_SAVE
                 if (ImGui::SmallButton("Save##saveGNEStyle")) {
 #                   ifdef YES_IMGUIEMSCRIPTENPERSISTENTFOLDER
@@ -614,8 +614,8 @@ void NodeGraphEditor::render()
             if (ImGui::CollapsingHeader("Serialization##serialization",NULL,false))   {
                 ImGui::Separator();
                 const char* saveName = "nodeGraphEditor.nge.ini";
-                const char* saveNamePersistent = "/persistent_folder/nodeGraphEditor.nge.ini";
-                const char* pSaveName = saveName;
+                //const char* saveNamePersistent = "/persistent_folder/nodeGraphEditor.nge.ini";
+                const char* pSaveName = save_node_path.empty() ? saveName : save_node_path.c_str();
 #       ifndef NO_IMGUIHELPER_SERIALIZATION_SAVE
                 if (ImGui::SmallButton("Save##saveGNE")) {
 #           ifdef YES_IMGUIEMSCRIPTENPERSISTENTFOLDER
@@ -3022,9 +3022,12 @@ static Node* MyNodeFactory(int nt,const ImVec2& pos,const NodeGraphEditor& /*nge
     }
     return NULL;
 }
-void TestNodeGraphEditor()  {
+
+void TestNodeGraphEditor(std::string save_node_path, std::string save_style_path)  {
     static ImGui::NodeGraphEditor nge;
     if (nge.isInited())	{
+        nge.save_node_path = save_node_path;
+        nge.save_style_path = save_style_path;
         // This adds entries to the "add node" context menu
         nge.registerNodeTypes(MyNodeTypeNames,MNT_COUNT,MyNodeFactory,NULL,-1); // last 2 args can be used to add only a subset of nodes (or to sort their order inside the context menu)
         // The line above can be replaced by the following two lines, if we want to use only an active subset of the available node types:

@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <SDL.h>
 #include <SDL_image.h>
+#include "Config.h"
 
 // About Desktop OpenGL function loaders:
 //  Modern desktop OpenGL doesn't have a standard portable header file to load OpenGL function pointers.
@@ -146,7 +147,8 @@ int main(int, char**)
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.IniFilename = "sdl_rendering.ini";
+    std::string ini_file = std::string(DEFAULT_CONFIG_PATH) + "sdl_rendering.ini";
+    io.IniFilename = ini_file.c_str();
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 

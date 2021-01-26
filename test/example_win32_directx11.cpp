@@ -12,6 +12,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include "Config.h"
 
 // Data
 ID3D11Device*                   g_pd3dDevice = NULL;
@@ -122,7 +123,8 @@ int main(int, char**)
     ImGui::CreateContext();
     ImPlot::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.IniFilename = "win32_directx11.ini";
+    std::string ini_file = std::string(DEFAULT_CONFIG_PATH) + "win32_directx11.ini";
+    io.IniFilename = ini_file.c_str();
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
@@ -151,7 +153,8 @@ int main(int, char**)
 
     // load file dialog resource
     ImGuiFileDialog filedialog;
-    prepare_file_dialog_demo_window(&filedialog);
+    std::string bookmark_path = std::string(DEFAULT_CONFIG_PATH) + "bookmark.ini";
+    prepare_file_dialog_demo_window(&filedialog, bookmark_path.c_str());
 
     // init sample file dialog
     ImGuiFs::Dialog dlg;
@@ -170,8 +173,10 @@ int main(int, char**)
     ImGui::MarkdownConfig mdConfig; 
 
     // Init imnodes
+    std::string node_ini_path = std::string(DEFAULT_CONFIG_PATH) + "nodes_save_load.ini";
+    std::string node_path = std::string(DEFAULT_CONFIG_PATH) + "nodes_save_load.node";
     imnodes::Initialize();
-    imnodes_sample::NodeEditorInitialize();
+    imnodes_sample::NodeEditorInitialize(node_ini_path.c_str(), node_path.c_str());
 
     // Init HotKey
     static std::vector<ImHotKey::HotKey> hotkeys = 
@@ -363,7 +368,9 @@ int main(int, char**)
             ImGui::SetNextWindowSize(ImVec2(700,600), ImGuiCond_FirstUseEver);
             if (ImGui::Begin("Example: Custom Node Graph",&show_node_edit_window, ImGuiWindowFlags_NoScrollbar))
             {
-                ImGui::TestNodeGraphEditor();   // see its code for further info         
+                std::string node_ini_path = std::string(DEFAULT_CONFIG_PATH) + "nodeGraphEditor.nge.ini";
+                std::string node_style_path = std::string(DEFAULT_CONFIG_PATH) + "nodeGraphEditor.style.ini";
+                ImGui::TestNodeGraphEditor(node_ini_path, node_style_path);   // see its code for further info         
             }
             ImGui::End();
         }
@@ -398,14 +405,14 @@ int main(int, char**)
     }
 
     // Store file dialog bookmark
-    end_file_dialog_demo_window(&filedialog);
+    end_file_dialog_demo_window(&filedialog, bookmark_path.c_str());
 
     // Cleanup memory edit resource
     if (data)
         free(data);
 
     // Clean Node Window
-    imnodes_sample::NodeEditorShutdown();
+    imnodes_sample::NodeEditorShutdown(node_ini_path.c_str(), node_path.c_str());
     imnodes::Shutdown();
 
     // Cleanup

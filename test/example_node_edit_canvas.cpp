@@ -3,6 +3,9 @@
 # include <imgui_internal.h>
 # include <imgui_canvas.h>
 # include <application.h>
+# include "Config.h"
+
+static std::string ini_file = std::string(DEFAULT_CONFIG_PATH) + "Canvas.ini";
 
 static void DrawScale(const ImVec2& from, const ImVec2& to, float majorUnit, float minorUnit, float labelAlignment, float sign = 1.0f)
 {
@@ -53,6 +56,8 @@ const char* Application_GetName(void* handle)
 
 void Application_Initialize(void** handle)
 {
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.IniFilename = ini_file.c_str();
 }
 
 void Application_Finalize(void** handle)
@@ -209,29 +214,5 @@ void Application_Frame(void* handle)
 
         canvas.End();
     }
-
-
-
-
-
-
-    //ed::SetCurrentEditor(g_Context);
-    //ed::Begin("My Editor", ImVec2(0.0, 0.0f));
-    //int uniqueId = 1;
-    //// Start drawing nodes.
-    //ed::BeginNode(uniqueId++);
-    //    ImGui::Text("Node A");
-    //    ed::BeginPin(uniqueId++, ed::PinKind::Input);
-    //        ImGui::Text("-> In");
-    //    ed::EndPin();
-    //    ImGui::SameLine();
-    //    ed::BeginPin(uniqueId++, ed::PinKind::Output);
-    //        ImGui::Text("Out ->");
-    //    ed::EndPin();
-    //ed::EndNode();
-    //ed::End();
-    //ed::SetCurrentEditor(nullptr);
-
-	//ImGui::ShowMetricsWindow();
 }
 

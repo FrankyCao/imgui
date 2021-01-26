@@ -324,7 +324,7 @@ void LoadEditorStateFromIniFile(EditorContext* editor, const char* file_name);
 // for demo
 namespace imnodes_sample
 {
-void NodeEditorInitialize();
+void NodeEditorInitialize(const char * ini_path, const char * node_path);
 void NodeEditorShow(bool * open = (bool *)nullptr);
-void NodeEditorShutdown();
+void NodeEditorShutdown(const char * ini_path, const char * node_path);
 } // namespace imnodes_sample

@@ -6,6 +6,7 @@
 #include <sstream>
 #include <string>
 #include <cerrno>
+#include "Config.h"
 
 // Init HotKey
 static std::vector<ImHotKey::HotKey> hotkeys = 
@@ -22,8 +23,10 @@ class Example
 public:
     Example() 
     {
+        std::string node_save_path;
         // load file dialog resource
-        prepare_file_dialog_demo_window(&filedialog);
+        std::string bookmark_path = std::string(DEFAULT_CONFIG_PATH) + "bookmark.ini";
+        prepare_file_dialog_demo_window(&filedialog, bookmark_path.c_str());
 
         // init memory edit
         mem_edit.Open = false;
@@ -31,8 +34,10 @@ public:
         data = malloc(0x1000);
 
         // Init imnodes
+        std::string node_ini_path = std::string(DEFAULT_CONFIG_PATH) + "nodes_save_load.ini";
+        std::string node_path = std::string(DEFAULT_CONFIG_PATH) + "nodes_save_load.node";
         imnodes::Initialize();
-        imnodes_sample::NodeEditorInitialize();
+        imnodes_sample::NodeEditorInitialize(node_ini_path.c_str(), node_path.c_str());
     };
     ~Example() 
     { 
@@ -40,10 +45,13 @@ public:
             free(data); 
 
         // Store file dialog bookmark
-        end_file_dialog_demo_window(&filedialog);
+        std::string bookmark_path = std::string(DEFAULT_CONFIG_PATH) + "bookmark.ini";
+        end_file_dialog_demo_window(&filedialog, bookmark_path.c_str());
 
         // Clean Node Window
-        imnodes_sample::NodeEditorShutdown();
+        std::string node_ini_path = std::string(DEFAULT_CONFIG_PATH) + "nodes_save_load.ini";
+        std::string node_path = std::string(DEFAULT_CONFIG_PATH) + "nodes_save_load.node";
+        imnodes_sample::NodeEditorShutdown(node_ini_path.c_str(), node_path.c_str());
         imnodes::Shutdown();
     }
 
@@ -151,6 +159,8 @@ void Example::ExampleMarkdownFormatCallback( const ImGui::MarkdownFormatInfo& ma
     }
 }
 
+static std::string ini_file = std::string(DEFAULT_CONFIG_PATH) + "Application_Example.ini";
+
 const char* Application_GetName(void* handle)
 {
     return "Application_Example";
@@ -160,6 +170,8 @@ void Application_Initialize(void** handle)
 {
     *handle = new Example();
     Example * example = (Example *)*handle;
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.IniFilename = ini_file.c_str();
 }
 
 void Application_Finalize(void** handle)
@@ -323,7 +335,9 @@ void Application_Frame(void* handle)
         ImGui::SetNextWindowSize(ImVec2(700,600), ImGuiCond_FirstUseEver);
         if (ImGui::Begin("Example: Custom Node Graph",&example->show_node_edit_window, ImGuiWindowFlags_NoScrollbar))
         {
-            ImGui::TestNodeGraphEditor();   // see its code for further info         
+            std::string node_ini_path = std::string(DEFAULT_CONFIG_PATH) + "nodeGraphEditor.nge.ini";
+            std::string node_style_path = std::string(DEFAULT_CONFIG_PATH) + "nodeGraphEditor.style.ini";
+            ImGui::TestNodeGraphEditor(node_ini_path, node_style_path);   // see its code for further info         
         }
         ImGui::End();
     }

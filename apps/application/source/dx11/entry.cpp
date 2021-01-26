@@ -125,7 +125,7 @@ std::wstring widen(const std::string& str)
 }
 # endif
 
-int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd)
+int main(int, char**)
 {
     const auto c_ClassName  = _T("Imgui Application Class");
 # if defined(_UNICODE)
@@ -156,10 +156,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImPlot::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
-    std::string ini_file = std::string(Application_GetName()) + ".ini";
-    io.IniFilename = ini_file.c_str();
-    io.LogFilename = nullptr;
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
 
     // Setup ImGui binding
     ImGui_ImplWin32_Init(hwnd);

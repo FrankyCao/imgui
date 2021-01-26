@@ -2,6 +2,7 @@
 # include <imgui_node_editor.h>
 # define IMGUI_DEFINE_MATH_OPERATORS
 # include <imgui_internal.h>
+#include "Config.h"
 
 namespace ed = ax::NodeEditor;
 
@@ -21,6 +22,9 @@ static bool                 g_FirstFrame = true;    // Flag set for first frame 
 static ImVector<LinkInfo>   g_Links;                // List of live links. It is dynamic unless you want to create read-only view over nodes.
 static int                  g_NextLinkId = 100;     // Counter to help generate link ids. In real application this will probably based on pointer to user data structure.
 
+static std::string setting_file = std::string(DEFAULT_CONFIG_PATH) + "BasicInteraction.json";
+static std::string ini_file = std::string(DEFAULT_CONFIG_PATH) + "BasicInteraction.ini";
+
 const char* Application_GetName(void* handle)
 {
     return "Basic Interaction";
@@ -29,8 +33,10 @@ const char* Application_GetName(void* handle)
 void Application_Initialize(void** handle)
 {
     ed::Config config;
-    config.SettingsFile = "BasicInteraction.json";
+    config.SettingsFile = setting_file.c_str();
     g_Context = ed::CreateEditor(&config);
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.IniFilename = ini_file.c_str();
 }
 
 void Application_Finalize(void** handle)

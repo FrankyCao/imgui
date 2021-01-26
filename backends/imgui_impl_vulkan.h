@@ -52,7 +52,6 @@ IMGUI_IMPL_API bool     ImGui_ImplVulkan_CreateFontsTexture(VkCommandBuffer comm
 IMGUI_IMPL_API void     ImGui_ImplVulkan_DestroyFontUploadObjects();
 IMGUI_IMPL_API void     ImGui_ImplVulkan_SetMinImageCount(uint32_t min_image_count); // To override MinImageCount after initialization (e.g. if swap chain is recreated)
 
-
 //-------------------------------------------------------------------------
 // Internal / Miscellaneous Vulkan Helpers
 // (Used by example's main.cpp. Used by multi-viewport features. PROBABLY NOT used by your own engine/app.)
@@ -117,7 +116,7 @@ struct ImGui_ImplVulkanH_Window
     uint32_t            SemaphoreIndex;         // Current set of swapchain wait semaphores we're using (needs to be distinct from per frame data)
     ImGui_ImplVulkanH_Frame*            Frames;
     ImGui_ImplVulkanH_FrameSemaphores*  FrameSemaphores;
-
+    VkCommandBuffer     command_buffer;
     ImGui_ImplVulkanH_Window()
     {
         memset(this, 0, sizeof(*this));
@@ -125,3 +124,6 @@ struct ImGui_ImplVulkanH_Window
         ClearEnable = true;
     }
 };
+
+IMGUI_IMPL_API VkImage  ImGui_ImplVulkan_CreateTexture(const void * pixels, int width, int height);
+IMGUI_IMPL_API void     ImGui_ImplVulkan_DestroyTexture(VkImage texture);

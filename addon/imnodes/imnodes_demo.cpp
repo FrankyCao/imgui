@@ -1299,13 +1299,12 @@ public:
         ImGui::End();
     }
 
-    void save()
+    void save(const char * ini_path, const char * node_path)
     {
         // Save the internal imnodes state
-        imnodes::SaveCurrentEditorStateToIniFile("nodes_save_load.ini");
+        imnodes::SaveCurrentEditorStateToIniFile(ini_path);
         // Dump our editor state as bytes into a file
-        std::fstream fout(
-            "nodes_save_load.node", std::ios_base::out | std::ios_base::binary | std::ios_base::trunc);
+        std::fstream fout(node_path, std::ios_base::out | std::ios_base::binary | std::ios_base::trunc);
         // copy the node vector to file
         const size_t num_nodes = nodes_.size();
         fout.write(
@@ -1321,12 +1320,12 @@ public:
             reinterpret_cast<const char*>(&root_node_id_), static_cast<std::streamsize>(sizeof(int)));
     }
 
-    void load()
+    void load(const char * ini_path, const char * node_path)
     {
         // Load the internal imnodes state
-        imnodes::LoadCurrentEditorStateFromIniFile("nodes_save_load.ini");
+        imnodes::LoadCurrentEditorStateFromIniFile(ini_path);
         // Load our editor state into memory
-        std::fstream fin("nodes_save_load.node", std::ios_base::in | std::ios_base::binary);
+        std::fstream fin(node_path, std::ios_base::in | std::ios_base::binary);
         if (!fin.is_open())
         {
             return;
@@ -1406,16 +1405,17 @@ private:
 static ColorNodeEditor color_editor;
 } // namespace
 
-void NodeEditorInitialize()
+void NodeEditorInitialize(const char * ini_path, const char * node_path)
 {
     imnodes::IO& io = imnodes::GetIO();
     io.link_detach_with_modifier_click.modifier = &ImGui::GetIO().KeyCtrl;
-    color_editor.load();
+    color_editor.load(ini_path, node_path);
 }
 
 void NodeEditorShow(bool * open) { color_editor.show(open); }
 
-void NodeEditorShutdown() {
-    color_editor.save();
+void NodeEditorShutdown(const char * ini_path, const char * node_path) 
+{
+    color_editor.save(ini_path, node_path);
 }
 } // namespace imnodes_sample

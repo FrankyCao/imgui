@@ -19,6 +19,8 @@
 #if TARGET_OS_OSX
 #include "imgui_impl_osx.h"
 
+#include "Config.h"
+
 @interface ViewController : NSViewController
 @end
 #else
@@ -52,6 +54,7 @@
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
+    std::string ini_filepath = DEFAULT_CONFIG_PATH + "apple_metal.ini";
     io.IniFilename = "apple_metal.ini";
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
