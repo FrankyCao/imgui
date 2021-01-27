@@ -120,9 +120,12 @@ std::string Example::get_file_contents(const char *filename)
 
 ImGui::MarkdownImageData Example::ImageCallback( ImGui::MarkdownLinkCallbackData data_ )
 {
+    char image_url[MAX_PATH_BUFFER_SIZE] = {0};
+    strncpy(image_url, data_.link, data_.linkLength);
     // In your application you would load an image based on data_ input. Here we just use the imgui font texture.
     ImTextureID image = ImGui::GetIO().Fonts->TexID;
     // > C++14 can use ImGui::MarkdownImageData imageData{ true, false, image, ImVec2( 40.0f, 20.0f ) };
+
     ImGui::MarkdownImageData imageData;
     imageData.isValid =         true;
     imageData.useLinkCallback = false;
@@ -197,12 +200,13 @@ void Application_Finalize(void** handle)
     }
 }
 
-void Application_Frame(void* handle)
+bool Application_Frame(void* handle)
 {
+    bool done = false;
     auto& io = ImGui::GetIO();
     Example * example = (Example *)handle;
     if (!example)
-        return;
+        return true;
     // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
     if (example->show_demo_window)
         ImGui::ShowDemoWindow(&example->show_demo_window);
@@ -371,4 +375,5 @@ void Application_Frame(void* handle)
         ImGui::ShowAddonsZMOWindow();
         ImGui::End();
     }
+    return done;
 }

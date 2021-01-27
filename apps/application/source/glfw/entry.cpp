@@ -123,6 +123,7 @@ int main(int, char**)
     ImPlot::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.FontGlobalScale = window_scale;
+
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
 
@@ -130,12 +131,13 @@ int main(int, char**)
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
-    ImVec4 clear_color = ImVec4(0.125f, 0.125f, 0.125f, 1.00f);
+    ImVec4 clear_color = ImVec4(0.f, 0.f, 0.f, 1.f);
 
     Application_Initialize(&user_handle);
 
     // Main loop
-    while (!glfwWindowShouldClose(window))
+    bool done = false;
+    while (!glfwWindowShouldClose(window) && !done)
     {
         // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
         // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application.
@@ -153,7 +155,7 @@ int main(int, char**)
             ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoSavedSettings |
             ImGuiWindowFlags_NoBringToFrontOnFocus);
 
-        Application_Frame(user_handle);
+        done = Application_Frame(user_handle);
 
         ImGui::End();
 

@@ -140,4 +140,5 @@ typedef struct ImTextureVK
 
 IMGUI_IMPL_API ImTextureID  ImGui_ImplVulkan_AddTexture(VkSampler sampler, VkImageView image_view, VkImageLayout image_layout);
 IMGUI_IMPL_API ImTextureID  ImGui_ImplVulkan_CreateTexture(const void * pixels, int width, int height);
+IMGUI_IMPL_API void         ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, const void * pixels, int width, int height);
 IMGUI_IMPL_API void         ImGui_ImplVulkan_DestroyTexture(ImTextureVk * texture);

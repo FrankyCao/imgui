@@ -63,7 +63,7 @@ int main(int, char**)
 
     // Create Framebuffers
     int w, h;
-    glfwGetFramebufferSize(window, &w, &h);
+    glfwGetWindowSize(window, &w, &h);
     ImGui_ImplVulkanH_Window* wd = &g_MainWindowData;
     SetupVulkanWindow(wd, surface, w, h);
 
@@ -118,24 +118,25 @@ int main(int, char**)
         err = vkQueueSubmit(g_Queue, 1, &end_info, VK_NULL_HANDLE);
         check_vk_result(err);
 
-        err = vkDeviceWaitIdle(g_vkDevice);
+        err = vkDeviceWaitIdle(g_Device);
         check_vk_result(err);
         ImGui_ImplVulkan_DestroyFontUploadObjects();
     }
 
     Application_Initialize(&user_handle);
 
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    ImVec4 clear_color = ImVec4(0.f, 0.f, 0.f, 1.f);
 
     // Main loop
-    while (!glfwWindowShouldClose(window))
+    bool done = false;
+    while (!glfwWindowShouldClose(window) && !done)
     {
         glfwPollEvents();
         // Resize swap chain?
         if (g_SwapChainRebuild)
         {
             int width, height;
-            glfwGetFramebufferSize(window, &width, &height);
+            glfwGetWindowSize(window, &width, &height);
             if (width > 0 && height > 0)
             {
                 ImGui_ImplVulkan_SetMinImageCount(g_MinImageCount);
@@ -150,7 +151,7 @@ int main(int, char**)
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        Application_Frame(user_handle);
+        done = Application_Frame(user_handle);
 
         // Rendering
         ImGui::Render();

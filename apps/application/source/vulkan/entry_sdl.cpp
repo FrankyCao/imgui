@@ -126,14 +126,15 @@ int main(int, char**)
         ImGui_ImplVulkan_DestroyFontUploadObjects();
     }
 
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    ImVec4 clear_color = ImVec4(0.f, 0.f, 0.f, 1.f);
 
     Application_Initialize(&user_handle);
 
     // Main loop
     bool done = false;
+    bool app_done = false;
     bool show = true;
-    while (!done)
+    while (!done && !app_done)
     {
         SDL_Event event;
         while (SDL_PollEvent(&event))
@@ -176,7 +177,7 @@ int main(int, char**)
         ImGui_ImplSDL2_NewFrame(window);
         ImGui::NewFrame();
 
-        Application_Frame(user_handle);
+        app_done = Application_Frame(user_handle);
 
         // Rendering
         ImGui::Render();

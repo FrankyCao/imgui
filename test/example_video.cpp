@@ -1,23 +1,11 @@
-// Dear ImGui: standalone example application for SDL2 + OpenGL
-// (SDL is a cross-platform general purpose library for handling windows, inputs, OpenGL/Vulkan/Metal graphics context creation, etc.)
-// If you are new to Dear ImGui, read documentation from the docs/ folder + read the top of imgui.cpp.
-// Read online: https://github.com/ocornut/imgui/tree/master/docs
-
-// **DO NOT USE THIS CODE IF YOUR CODE/ENGINE IS USING MODERN OPENGL (SHADERS, VBO, VAO, etc.)**
-// **Prefer using the code in the example_sdl_opengl3/ folder**
-// See imgui_impl_sdl.cpp for details.
-
-#include "imgui.h"
-#ifndef IMGUI_DEFINE_MATH_OPERATORS
-#define IMGUI_DEFINE_MATH_OPERATORS
-#endif
-#include "imgui_internal.h"
-#include "imgui_impl_sdl.h"
-#include "imgui_impl_opengl3.h"
-#include "ImGuiFileDialog.h"
-#include <stdio.h>
-#include <SDL.h>
-#include <SDL_image.h>
+# include <imgui.h>
+# define IMGUI_DEFINE_MATH_OPERATORS
+# include <imgui_internal.h>
+# include <application.h>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <cerrno>
 #include <opencv2/opencv.hpp>
 #include "Config.h"
 
@@ -162,418 +150,251 @@ static const uchar play_pixels[] =
 	0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,0x58,0x24,0x80,0x00,
 };
 
+static std::string ini_file = std::string(DEFAULT_CONFIG_PATH) + "Application_Example_Video.ini";
 
-// About Desktop OpenGL function loaders:
-//  Modern desktop OpenGL doesn't have a standard portable header file to load OpenGL function pointers.
-//  Helper libraries are often used for this purpose! Here we are supporting a few common ones (gl3w, glew, glad).
-//  You may use another loader/header of your choice (glext, glLoadGen, etc.), or chose to manually implement your own.
-#if defined(IMGUI_IMPL_OPENGL_LOADER_GL3W)
-#include <GL/gl3w.h>            // Initialize with gl3wInit()
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
-#include <GL/glew.h>            // Initialize with glewInit()
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLAD)
-#include <glad/glad.h>          // Initialize with gladLoadGL()
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLAD2)
-#include <glad/gl.h>            // Initialize with gladLoadGL(...) or gladLoaderLoadGL()
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLBINDING2)
-#define GLFW_INCLUDE_NONE       // GLFW including OpenGL headers causes ambiguity or multiple definition errors.
-#include <glbinding/Binding.h>  // Initialize with glbinding::Binding::initialize()
-#include <glbinding/gl/gl.h>
-using namespace gl;
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLBINDING3)
-#define GLFW_INCLUDE_NONE       // GLFW including OpenGL headers causes ambiguity or multiple definition errors.
-#include <glbinding/glbinding.h>// Initialize with glbinding::initialize()
-#include <glbinding/gl/gl.h>
-using namespace gl;
-#else
-#include IMGUI_IMPL_OPENGL_LOADER_CUSTOM
-#endif
-
-#define GL_LOAD_FORMAT_RGB GL_BGR
-#define GL_LOAD_FORMAT_RGBA GL_BGRA
-
-#define WINDOW_WIDTH    1280
-#define WINDOW_HEIGHT   720
-
-void load_video(cv::VideoCapture &cap, GLuint &texture)
+class Example
 {
-    if (texture != -1)
+public:
+    Example() 
     {
-        glDeleteTextures(1, &texture);
-        texture = -1;
-    }
-    cv::Mat frame;
-    cap >> frame;
-    if (frame.empty())
-        return;
-    Uint32 bmask = 0x000000ff;
-    Uint32 gmask = 0x0000ff00;
-    Uint32 rmask = 0x00ff0000;
-    Uint32 amask = 0xff000000;
-    Uint32 depth = 24;//frame.depth();
-    Uint32 pitch = frame.step1();
-    SDL_Surface *surface = SDL_CreateRGBSurfaceFrom(frame.data, 
-                                                    frame.cols, 
-                                                    frame.rows, 
-                                                    depth,
-                                                    pitch,
-                                                    rmask, gmask, bmask, amask);
-    if (surface != nullptr) 
-    {
-		int mode = GL_LOAD_FORMAT_RGB;
-		if (surface->format->BytesPerPixel == 4) 
-        {
-			mode = GL_LOAD_FORMAT_RGBA;
-		}
-        glGenTextures(1, &texture);
-		glBindTexture(GL_TEXTURE_2D, texture);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surface->w, surface->h, 0, mode, GL_UNSIGNED_BYTE, surface->pixels);
-		SDL_FreeSurface(surface);
-    }
-    else
-    {
-        printf("Creating surface failed: %s\n", SDL_GetError());
-    }
-}
+        // load file dialog resource
+        std::string bookmark_path = std::string(DEFAULT_CONFIG_PATH) + "bookmark.ini";
+        prepare_file_dialog_demo_window(&filedialog, bookmark_path.c_str());
 
-void load_icon(const uchar * data, const int width, const int height, GLuint &texture)
-{
-    if (texture != -1)
-    {
-        glDeleteTextures(1, &texture);
-        texture = -1;
+        // load icon
+        icon_pause_texture = ImGui::ImCreateTexture(pause_pixels, pause_width, pause_height);
+        icon_play_texture = ImGui::ImCreateTexture(play_pixels, play_width, play_height);
     }
-    Uint32 bmask = 0x000000ff;
-    Uint32 gmask = 0x0000ff00;
-    Uint32 rmask = 0x00ff0000;
-    Uint32 amask = 0xff000000;
-    Uint32 depth = 32;
-    Uint32 pitch = width * 4;
-    SDL_Surface *surface = SDL_CreateRGBSurfaceFrom((void *)data, 
-                                                    width, 
-                                                    height, 
-                                                    depth,
-                                                    pitch,
-                                                    rmask, gmask, bmask, amask);
-    if (surface != nullptr) 
-    {
-		int mode = GL_LOAD_FORMAT_RGB;
-		if (surface->format->BytesPerPixel == 4) 
-        {
-			mode = GL_LOAD_FORMAT_RGBA;
-		}
-        glGenTextures(1, &texture);
-		glBindTexture(GL_TEXTURE_2D, texture);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surface->w, surface->h, 0, mode, GL_UNSIGNED_BYTE, surface->pixels);
-		SDL_FreeSurface(surface);
+    ~Example() 
+    { 
+        // Store file dialog bookmark
+        std::string bookmark_path = std::string(DEFAULT_CONFIG_PATH) + "bookmark.ini";
+        end_file_dialog_demo_window(&filedialog, bookmark_path.c_str());
     }
-    else
-    {
-        printf("Creating surface failed: %s\n", SDL_GetError());
-    }
-}
-// Main code
-int main(int, char**)
-{
-    GLuint framebuffer_texture = -1;
-    GLuint icon_pause_texture = -1;
-    GLuint icon_play_texture = -1;
-    IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG);
-    // Setup SDL
-    // (Some versions of SDL before <2.0.10 appears to have performance/stalling issues on a minority of Windows systems,
-    // depending on whether SDL_INIT_GAMECONTROLLER is enabled or disabled.. updating to latest version of SDL is recommended!)
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0)
-    {
-        printf("Error: %s\n", SDL_GetError());
-        return -1;
-    }
-
-#ifdef __APPLE__
-    // GL 3.2 Core + GLSL 150
-    const char* glsl_version = "#version 150";
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG); // Always required on Mac
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-#else
-    // GL 3.0 + GLSL 130
-    const char* glsl_version = "#version 130";
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-#endif
-
-    // Setup window
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-    SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE);
-    SDL_Window* window = SDL_CreateWindow("Dear ImGui SDL Video", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, window_flags);
-    SDL_GLContext gl_context = SDL_GL_CreateContext(window);
-    SDL_GL_MakeCurrent(window, gl_context);
-    SDL_GL_SetSwapInterval(1); // Enable vsync
-
-    // Initialize OpenGL loader
-#if defined(IMGUI_IMPL_OPENGL_LOADER_GL3W)
-    bool err = gl3wInit() != 0;
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
-    bool err = glewInit() != GLEW_OK;
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLAD)
-    bool err = gladLoadGL() == 0;
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLAD2)
-    bool err = gladLoadGL((GLADloadfunc)SDL_GL_GetProcAddress) == 0; // glad2 recommend using the windowing library loader instead of the (optionally) bundled one.
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLBINDING2)
-    bool err = false;
-    glbinding::Binding::initialize();
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLBINDING3)
-    bool err = false;
-    glbinding::initialize([](const char* name) { return (glbinding::ProcAddress)SDL_GL_GetProcAddress(name); });
-#else
-    bool err = false; // If you use IMGUI_IMPL_OPENGL_LOADER_CUSTOM, your loader is likely to requires some form of initialization.
-#endif
-    if (err)
-    {
-        fprintf(stderr, "Failed to initialize OpenGL loader!\n");
-        return 1;
-    }
-    // Setup icons
-    load_icon(play_pixels, play_width, play_height, icon_play_texture);
-    load_icon(pause_pixels, pause_width, pause_height, icon_pause_texture);
-
-    // Setup Dear ImGui context
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    std::string ini_file = std::string(DEFAULT_CONFIG_PATH) + "sdl_video.ini";
-    io.IniFilename = ini_file.c_str();
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-
-    // Setup Dear ImGui style
-    ImGui::StyleColorsDark();
-    //ImGui::StyleColorsClassic();
+public:
+    // init icon
+    ImTextureID icon_play_texture = nullptr;
+    ImTextureID icon_pause_texture = nullptr;
+    // init file dialog
+    ImGuiFileDialog filedialog;
 
     // init input
     cv::VideoCapture mVideoCapture;
 
-    // init File Dialog
-    ImGuiFileDialog filedialog;
+    // init video texture
+    ImTextureID video_texture = nullptr;
 
-    // Setup Platform/Renderer backends
-    ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
-    ImGui_ImplOpenGL3_Init();
-
-    // Main loop
+public:
     float video_fps = 0;
     float video_frames = 0;
     float fps = 25.0f;
-    bool done = false;
     int play_time = 0;
     float total_time = 0;
     bool is_playing = false;
-    while (!done)
+
+};
+
+const char* Application_GetName(void* handle)
+{
+    return "Application Example Video";
+}
+
+void Application_Initialize(void** handle)
+{
+    *handle = new Example();
+    Example * example = (Example *)*handle;
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.IniFilename = ini_file.c_str();
+    io.DeltaTime = 1.0f / 30.f;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+}
+
+void Application_Finalize(void** handle)
+{
+    if (handle && *handle)
     {
-        // Poll and handle events (inputs, window resize, etc.)
-        // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
-        // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application.
-        // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application.
-        // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
-        SDL_Event event;
-        while (SDL_PollEvent(&event))
+        Example * example = (Example *)*handle;
+        delete example;
+        *handle = nullptr;
+    }
+}
+
+bool Application_Frame(void* handle)
+{
+    bool done = false;
+    auto& io = ImGui::GetIO();
+    Example * example = (Example *)handle;
+    if (!example)
+        return true;
+
+    if (ImGui::BeginMainMenuBar())
+    {
+        if (ImGui::BeginMenu("文件")) 
         {
-            ImGui_ImplSDL2_ProcessEvent(&event);
-            if (event.type == SDL_KEYDOWN)
+            if (ImGui::Button("关于..."))
+                ImGui::OpenPopup("关于");
+            ImVec2 center(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f);
+            ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+            if (ImGui::BeginPopupModal("关于", NULL, ImGuiWindowFlags_AlwaysAutoResize))
             {
-                int key = event.key.keysym.scancode;
-                if (key == SDL_SCANCODE_Q || key == SDL_SCANCODE_ESCAPE)
-                {
-                    done = true;
-                }
-            }
-            if (event.type == SDL_QUIT)
-                done = true;
-            if (event.type == SDL_WINDOWEVENT && 
-                event.window.event == SDL_WINDOWEVENT_CLOSE && 
-                event.window.windowID == SDL_GetWindowID(window))
-                done = true;
-        }
-        // Start the Dear ImGui frame
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplSDL2_NewFrame(window);
-        ImGui::NewFrame();
-        if (ImGui::BeginMainMenuBar())
-        {
-            if (ImGui::BeginMenu("文件")) 
-            {
-                if (ImGui::Button("关于..."))
-                    ImGui::OpenPopup("关于");
-                ImVec2 center(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f);
-                ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-                if (ImGui::BeginPopupModal("关于", NULL, ImGuiWindowFlags_AlwaysAutoResize))
-                {
-                    ImGui::Text("ImGUI Video\n\n");
-                    ImGui::Separator();
-                    int i = ImGui::GetCurrentWindow()->ContentSize.x;
-                    ImGui::Indent((i - 40.0f) * 0.5f);
-                    if (ImGui::Button("OK", ImVec2(40, 0))) { ImGui::CloseCurrentPopup(); }
-                    ImGui::SetItemDefaultFocus();
-                    ImGui::EndPopup();
-                }
+                ImGui::Text("ImGUI Video\n\n");
                 ImGui::Separator();
-                if (ImGui::Button("打开文件"))
-                {
-                    const char *filters = "视频文件(*.mp4 *.mov *.mkv *.avi){.mp4,.mov,.mkv,.avi},.*";
-					filedialog.OpenModal("ChooseFileDlgKey",
-							ICON_IGFD_FOLDER_OPEN " 打开视频文件", filters, ".");
-                }
-                ImGui::Separator();
-                if (ImGui::Button("退出")) 
-                {
-                    done = true;
-                }
-
-                ImGui::EndMenu();
+                int i = ImGui::GetCurrentWindow()->ContentSize.x;
+                ImGui::Indent((i - 40.0f) * 0.5f);
+                if (ImGui::Button("OK", ImVec2(40, 0))) { ImGui::CloseCurrentPopup(); }
+                ImGui::SetItemDefaultFocus();
+                ImGui::EndPopup();
             }
-            ImGui::EndMainMenuBar();
-        }
-
-        ImVec2 maxSize = ImVec2((float)io.DisplaySize.x, (float)io.DisplaySize.y);
-		ImVec2 minSize = maxSize * 0.5f;
-        if (filedialog.Display("ChooseFileDlgKey", ImGuiWindowFlags_NoCollapse, minSize, maxSize))
-		{
-            if (filedialog.IsOk())
-			{
-                std::string filePathName = filedialog.GetFilePathName();
-                mVideoCapture = cv::VideoCapture(filePathName);
-                if (mVideoCapture.isOpened())
-                {
-                    video_fps = mVideoCapture.get(cv::CAP_PROP_FPS);
-                    video_frames = mVideoCapture.get(cv::CAP_PROP_FRAME_COUNT);
-                    if (video_fps > 0 )
-                    {
-                        fps = video_fps;
-                        total_time = video_frames / video_fps;
-                    }
-                    is_playing = true;
-                }
-            }
-            filedialog.Close();
-        }
-
-        if (is_playing && mVideoCapture.isOpened())
-        {
-            load_video(mVideoCapture, framebuffer_texture);
-        }
-
-        // Show PlayControl panel
-        ImVec2 center(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.9f);
-        ImVec2 panel_size(ImGui::GetIO().DisplaySize.x - 20.0, 96);
-        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-        ImGui::SetNextWindowSize(panel_size, ImGuiCond_Appearing);
-        ImGui::SetNextWindowBgAlpha(0.5);
-        if (ImGui::Begin("Control", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoResize))
-        {
-            // add button
-            int i = ImGui::FindWindowByName("Control")->Size.x;
-            ImGui::Indent((i - 48.0f) * 0.5f);
-            ImVec2 size = ImVec2(48.0f, 48.0f); // Size of the image we want to make visible
-            ImVec2 uv0 = ImVec2(0.0f, 0.0f);                               // UV coordinates for lower-left
-            ImVec2 uv1 = ImVec2(1.0f, 1.0f);                               // UV coordinates for (32,32) in our texture
-            ImVec4 bg_col = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);         // Black background
-            ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);       // No tint
-            ImTextureID icon = is_playing ? (void *)(intptr_t)icon_pause_texture : (void *)(intptr_t)icon_play_texture;
-            if (ImGui::ImageButton(icon, size, uv0, uv1, 0, bg_col, tint_col))
-            {
-                if (mVideoCapture.isOpened())
-                    is_playing = !is_playing;
-            }
-            ImGui::Unindent((i - 48.0f) * 0.5f);
-            // add slider bar
             ImGui::Separator();
-            if (total_time > 0)
+            if (ImGui::Button("打开文件"))
             {
-                float time = mVideoCapture.get(cv::CAP_PROP_POS_MSEC);
-                int current_time = time / 1000;
-                static ImGuiSliderFlags flags = ImGuiSliderFlags_NoInput | ImGuiSliderFlags_NoLabel;
-                if (ImGui::SliderInt("time", &current_time, 0, total_time, "%d", flags))
-                {
-                    play_time = current_time;
-                    double pos = play_time * 1000.0;
-                    mVideoCapture.set(cv::CAP_PROP_POS_MSEC, pos);
-                }
-                ImGui::SameLine();
-                int hours = time / 1000 / 60 / 60; time -= hours * 60 * 60 * 1000;
-                int mins = time / 1000 / 60; time -= mins * 60 * 1000;
-                int secs = time / 1000; time -= secs * 1000;
-                int ms = time;
-                ImGui::Text("%02d:%02d:%02d.%03d", hours, mins, secs, ms);
-
-                ImGui::SameLine();
-                float ftime = total_time * 1000.0f;
-                hours = ftime / 1000 / 60 / 60; ftime -= hours * 60 * 60 * 1000;
-                mins = ftime / 1000 / 60; ftime -= mins * 60 * 1000;
-                secs = ftime / 1000; ftime -= secs * 1000;
-                ms = ftime;
-                ImGui::Text("/ %02d:%02d:%02d.%03d", hours, mins, secs, ms);
-
-                ImGui::SameLine();
-                ImGui::Text("[%.3fms %.1ffps]", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+                const char *filters = "视频文件(*.mp4 *.mov *.mkv *.avi){.mp4,.mov,.mkv,.avi},.*";
+				example->filedialog.OpenModal("ChooseFileDlgKey",
+                                    ICON_IGFD_FOLDER_OPEN " 打开视频文件", filters, ".");
             }
-            ImGui::End();
-        }
+            ImGui::Separator();
+            if (ImGui::Button("退出")) 
+            {
+                done = true;
+            }
 
-        int window_width = 0;
-        int window_height = 0;
-        SDL_GetWindowSize(window, &window_width, &window_height);
-        ImVec4 tint(1.0, 1.0, 1.0, 1.0);
-		ImGuiWindowFlags flags = ImGuiWindowFlags_None;
-		flags = ImGuiWindowFlags_NoTitleBar |
-				ImGuiWindowFlags_NoResize |
-				ImGuiWindowFlags_NoFocusOnAppearing |
-				ImGuiWindowFlags_NoBackground |
-				ImGuiWindowFlags_NoMove | 
-				ImGuiWindowFlags_NoBringToFrontOnFocus;
-		ImVec2 pos(0.0f, 0.0f);
-		ImVec2 initial_size((float)window_width, (float)window_height);
-		ImGui::SetNextWindowPos(pos, ImGuiCond_Always);
-		ImGui::SetNextWindowSize(initial_size, ImGuiCond_Always);
-		if (framebuffer_texture != -1 && ImGui::Begin("screen", nullptr, flags)) 
-		{
-            ImVec2 content_region = ImGui::GetContentRegionAvail();
-            ImGui::Image((void *)(intptr_t)framebuffer_texture,
-                        content_region,
-                        ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f),
-                        tint);
-            ImGui::End();
-            SDL_Delay(1000.0/fps - 1000 / 60.0f);
+            ImGui::EndMenu();
         }
-        ImGui::EndFrame();
-        // Rendering
-        ImGui::Render();
-        glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-        glClearColor(0.f, 0.f, 0.f, 1.f);
-        glClear(GL_COLOR_BUFFER_BIT);
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        SDL_GL_SwapWindow(window);
+        ImGui::EndMainMenuBar();
+    }
+    ImVec2 maxSize = ImVec2((float)io.DisplaySize.x, (float)io.DisplaySize.y);
+	ImVec2 minSize = maxSize * 0.5f;
+    if (example->filedialog.Display("ChooseFileDlgKey", ImGuiWindowFlags_NoCollapse, minSize, maxSize))
+	{
+        if (example->filedialog.IsOk())
+		{
+            std::string filePathName = example->filedialog.GetFilePathName();
+            example->mVideoCapture = cv::VideoCapture(filePathName);
+            if (example->mVideoCapture.isOpened())
+            {
+                example->video_fps = example->mVideoCapture.get(cv::CAP_PROP_FPS);
+                example->video_frames = example->mVideoCapture.get(cv::CAP_PROP_FRAME_COUNT);
+                if (example->video_fps > 0 )
+                {
+                    example->fps = example->video_fps;
+                    example->total_time = example->video_frames / example->video_fps;
+                }
+                example->is_playing = true;
+            }
+        }
+        example->filedialog.Close();
     }
 
-    // Cleanup
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplSDL2_Shutdown();
-    ImGui::DestroyContext();
+    // load video texture
+    if (example->is_playing && example->mVideoCapture.isOpened())
+    {
+        cv::Mat frame;
+        example->mVideoCapture >> frame;
+        if (!frame.empty())
+        {
+            cv::Mat RGB_frame;
+            cv::cvtColor(frame, RGB_frame, cv::COLOR_BGR2RGBA);
+            ImGui::ImGenerateOrUpdateTexture(example->video_texture, RGB_frame.cols, RGB_frame.rows, RGB_frame.channels(), RGB_frame.data);
+        }
+    }
+    // load video end
 
-    SDL_GL_DeleteContext(gl_context);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
+    // Show PlayControl panel
+    ImVec2 center(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.9f);
+    ImVec2 panel_size(ImGui::GetIO().DisplaySize.x - 20.0, 96);
+    ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+    ImGui::SetNextWindowSize(panel_size, ImGuiCond_Always);
+    ImGui::SetNextWindowBgAlpha(0.5);
+    if (ImGui::Begin("Control", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoResize))
+    {
+        // add button
+        int i = ImGui::FindWindowByName("Control")->Size.x;
+        ImGui::Indent((i - 48.0f) * 0.5f);
+        ImVec2 size = ImVec2(48.0f, 48.0f); // Size of the image we want to make visible
+        ImVec2 uv0 = ImVec2(0.0f, 0.0f);                               // UV coordinates for lower-left
+        ImVec2 uv1 = ImVec2(1.0f, 1.0f);                               // UV coordinates for (32,32) in our texture
+        ImVec4 bg_col = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);         // Black background
+        ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);       // No tint
+        ImTextureID icon = example->is_playing ? example->icon_pause_texture : example->icon_play_texture;
+        if (ImGui::ImageButton(icon, size, uv0, uv1, 0, bg_col, tint_col))
+        {
+            if (example->mVideoCapture.isOpened())
+                example->is_playing = !example->is_playing;
+        }
+        ImGui::Unindent((i - 48.0f) * 0.5f);
+        // add slider bar
+        ImGui::Separator();
+        if (example->total_time > 0)
+        {
+            float time = example->mVideoCapture.get(cv::CAP_PROP_POS_MSEC);
+            int current_time = time / 1000;
+            static ImGuiSliderFlags flags = ImGuiSliderFlags_NoInput | ImGuiSliderFlags_NoLabel;
+            if (ImGui::SliderInt("time", &current_time, 0, example->total_time, "%d", flags))
+            {
+                example->play_time = current_time;
+                double pos = example->play_time * 1000.0;
+                example->mVideoCapture.set(cv::CAP_PROP_POS_MSEC, pos);
+            }
+            ImGui::SameLine();
+            int hours = time / 1000 / 60 / 60; time -= hours * 60 * 60 * 1000;
+            int mins = time / 1000 / 60; time -= mins * 60 * 1000;
+            int secs = time / 1000; time -= secs * 1000;
+            int ms = time;
+            ImGui::Text("%02d:%02d:%02d.%03d", hours, mins, secs, ms);
 
-    return 0;
+            ImGui::SameLine();
+            float ftime = example->total_time * 1000.0f;
+            hours = ftime / 1000 / 60 / 60; ftime -= hours * 60 * 60 * 1000;
+            mins = ftime / 1000 / 60; ftime -= mins * 60 * 1000;
+            secs = ftime / 1000; ftime -= secs * 1000;
+            ms = ftime;
+            ImGui::Text("/ %02d:%02d:%02d.%03d", hours, mins, secs, ms);
+
+            ImGui::SameLine();
+            ImGui::Text("[%.3fms %.1ffps]", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        }
+        ImGui::End();
+    }
+
+    if (!io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Space), false))
+    {
+        if (example->mVideoCapture.isOpened())
+            example->is_playing = !example->is_playing;
+    }
+
+    if (!io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape), false))
+    {
+        done = true;
+    }
+
+    if (example->video_texture)
+    {
+        ImGuiWindowFlags flags = ImGuiWindowFlags_None;
+        flags = ImGuiWindowFlags_NoTitleBar |
+                ImGuiWindowFlags_NoFocusOnAppearing |
+                ImGuiWindowFlags_NoBackground |
+                ImGuiWindowFlags_NoMove | 
+	    		//ImGuiWindowFlags_NoBringToFrontOnFocus |
+                ImGuiWindowFlags_NoResize |
+                ImGuiWindowFlags_NoSavedSettings |
+                ImGuiWindowFlags_NoInputs;
+        ImVec2 video_size = io.DisplaySize;
+        int texture_width = ImGui::ImGetTextureWidth(example->video_texture);
+        int texture_height = ImGui::ImGetTextureHeight(example->video_texture);
+        float aspect_ratio = (float)texture_width / ((float)texture_height + 1e-10);
+        float adj_x = texture_width > texture_height ? video_size.x : video_size.y * aspect_ratio;
+        float adj_y = texture_width > texture_height ? video_size.x / aspect_ratio : video_size.y;
+        float offset_x = (video_size.x - adj_x) / 2.0;
+        float offset_y = (video_size.y - adj_y) / 2.0;
+        ImGui::SetNextWindowSize(ImVec2(adj_x, adj_y), ImGuiCond_Always);
+        ImGui::SetNextWindowPos(ImVec2(offset_x, offset_y), ImGuiCond_Always);
+        if (ImGui::Begin("screen", nullptr, flags)) 
+        {
+            ImVec2 content_region = ImGui::GetContentRegionAvail();
+            ImGui::Image((void *)(intptr_t)example->video_texture, content_region);
+            ImGui::End();
+        }
+    }
+
+    return done;
 }

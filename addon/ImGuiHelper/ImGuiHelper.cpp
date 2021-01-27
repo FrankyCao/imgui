@@ -75,21 +75,7 @@ using namespace gl;
 #endif
 
 
-#if     defined(IMGUI_VULKAN)
-struct ImTexture
-{
-    ImTextureVk TextureID = nullptr;
-    int     Width     = 0;
-    int     Height    = 0;
-};
-#elif   defined(IMGUI_OPENGL)
-struct ImTexture
-{
-    GLuint TextureID = 0;
-    int    Width     = 0;
-    int    Height    = 0;
-};
-#elif defined(IMGUI_DX11)
+#if     defined(IMGUI_DX11)
 extern ID3D11Device* g_pd3dDevice;
 struct ImTexture
 {
@@ -102,6 +88,20 @@ extern LPDIRECT3DDEVICE9 g_pd3dDevice;
 struct ImTexture
 {
     LPDIRECT3DTEXTURE9 TextureID = nullptr;
+    int    Width     = 0;
+    int    Height    = 0;
+};
+#elif   defined(IMGUI_VULKAN)
+struct ImTexture
+{
+    ImTextureVk TextureID = nullptr;
+    int     Width     = 0;
+    int     Height    = 0;
+};
+#elif   defined(IMGUI_OPENGL)
+struct ImTexture
+{
+    GLuint TextureID = 0;
     int    Width     = 0;
     int    Height    = 0;
 };
@@ -122,11 +122,65 @@ void ImGenerateOrUpdateTexture(ImTextureID& imtexid,int width,int height,int cha
 {
     IM_ASSERT(pixels);
     IM_ASSERT(channels>0 && channels<=4);
-#if     defined(IMGUI_VULKAN)
-    return;
+#if     defined(IMGUI_DX11)
+    auto textureID = (ID3D11ShaderResourceView *)imtexid;
+    if (textureID)
+    {
+        textureID->Release();
+        textureID = nullptr;
+    }
+    imtexid = ImCreateTexture(pixels, width, height);
+#elif   defined(IMGUI_DX9)
+    LPDIRECT3DTEXTURE9& texid = reinterpret_cast<LPDIRECT3DTEXTURE9&>(imtexid);
+    if (texid==0 && g_pd3dDevice->CreateTexture(width, height, useMipmapsIfPossible ? 0 : 1, 0, channels==1 ? D3DFMT_A8 : channels==2 ? D3DFMT_A8L8 : channels==3 ? D3DFMT_R8G8B8 : D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &texid, NULL) < 0) return;
+
+    D3DLOCKED_RECT tex_locked_rect;
+    if (texid->LockRect(0, &tex_locked_rect, NULL, 0) != D3D_OK) {texid->Release();texid=0;return;}
+    if (channels==3 || channels==4) {
+        unsigned char* pw;
+        const unsigned char* ppxl = pixels;
+        for (int y = 0; y < height; y++)    {
+            pw = (unsigned char *)tex_locked_rect.pBits + tex_locked_rect.Pitch * y;  // each row has Pitch bytes
+            ppxl = &pixels[y*width*channels];
+            for( int x = 0; x < width; x++ )
+            {
+                *pw++ = ppxl[2];
+                *pw++ = ppxl[1];
+                *pw++ = ppxl[0];
+                if (channels==4) *pw++ = ppxl[3];
+                ppxl+=channels;
+            }
+        }
+    }
+    else {
+        for (int y = 0; y < height; y++)    {
+            memcpy((unsigned char *)tex_locked_rect.pBits + tex_locked_rect.Pitch * y, pixels + (width * channels) * y, (width * channels));
+        }
+    }
+    texid->UnlockRect(0);
+#elif   defined(IMGUI_VULKAN)
+    if (imtexid == 0)
+    {
+        g_Textures.resize(g_Textures.size() + 1);
+        ImTexture& texture = g_Textures.back();
+        texture.TextureID = (ImTextureVk)ImGui_ImplVulkan_CreateTexture(pixels, width, height);
+        texture.Width  = width;
+        texture.Height = height;
+        imtexid = texture.TextureID;
+        return;
+    }
+    ImGui_ImplVulkan_UpdateTexture(imtexid, pixels, width, height);
 #elif   defined(IMGUI_OPENGL)
     GLuint& texid = reinterpret_cast<GLuint&>(imtexid);
-    if (texid==0) glGenTextures(1, &texid);
+    if (texid==0) 
+    {
+        glGenTextures(1, &texid);
+        g_Textures.resize(g_Textures.size() + 1);
+        ImTexture& texture = g_Textures.back();
+        texture.TextureID = texid;
+        texture.Width  = width;
+        texture.Height = height;
+    }
 
     glBindTexture(GL_TEXTURE_2D, texid);
 
@@ -203,73 +257,12 @@ void ImGenerateOrUpdateTexture(ImTextureID& imtexid,int width,int height,int cha
 #   ifndef NO_IMGUI_OPENGL_GLGENERATEMIPMAP
     if (useMipmapsIfPossible) glGenerateMipmap(GL_TEXTURE_2D);
 #   endif //NO_IMGUI_OPENGL_GLGENERATEMIPMAP
-#elif defined(IMGUI_DX11)
-    auto textureID = (ID3D11ShaderResourceView *)imtexid;
-    if (textureID)
-    {
-        textureID->Release();
-        textureID = nullptr;
-    }
-    imtexid = ImCreateTexture(pixels, width, height);
-#elif defined(IMGUI_DX9)
-    LPDIRECT3DTEXTURE9& texid = reinterpret_cast<LPDIRECT3DTEXTURE9&>(imtexid);
-    if (texid==0 && g_pd3dDevice->CreateTexture(width, height, useMipmapsIfPossible ? 0 : 1, 0, channels==1 ? D3DFMT_A8 : channels==2 ? D3DFMT_A8L8 : channels==3 ? D3DFMT_R8G8B8 : D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &texid, NULL) < 0) return;
-
-    D3DLOCKED_RECT tex_locked_rect;
-    if (texid->LockRect(0, &tex_locked_rect, NULL, 0) != D3D_OK) {texid->Release();texid=0;return;}
-    if (channels==3 || channels==4) {
-        unsigned char* pw;
-        const unsigned char* ppxl = pixels;
-        for (int y = 0; y < height; y++)    {
-            pw = (unsigned char *)tex_locked_rect.pBits + tex_locked_rect.Pitch * y;  // each row has Pitch bytes
-            ppxl = &pixels[y*width*channels];
-            for( int x = 0; x < width; x++ )
-            {
-                *pw++ = ppxl[2];
-                *pw++ = ppxl[1];
-                *pw++ = ppxl[0];
-                if (channels==4) *pw++ = ppxl[3];
-                ppxl+=channels;
-            }
-        }
-    }
-    else {
-        for (int y = 0; y < height; y++)    {
-            memcpy((unsigned char *)tex_locked_rect.pBits + tex_locked_rect.Pitch * y, pixels + (width * channels) * y, (width * channels));
-        }
-    }
-    texid->UnlockRect(0);
 #endif
 }
 
 ImTextureID ImCreateTexture(const void* data, int width, int height)
 {
-#if     defined(IMGUI_VULKAN)
-    g_Textures.resize(g_Textures.size() + 1);
-    ImTexture& texture = g_Textures.back();
-    texture.TextureID = (ImTextureVk)ImGui_ImplVulkan_CreateTexture(data, width, height);
-    texture.Width  = width;
-    texture.Height = height;
-    return (ImTextureID)texture.TextureID;
-#elif   defined(IMGUI_OPENGL)
-    g_Textures.resize(g_Textures.size() + 1);
-    ImTexture& texture = g_Textures.back();
-
-    // Upload texture to graphics system
-    GLint last_texture = 0;
-    glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture);
-    glGenTextures(1, &texture.TextureID);
-    glBindTexture(GL_TEXTURE_2D, texture.TextureID);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-    glBindTexture(GL_TEXTURE_2D, last_texture);
-
-    texture.Width  = width;
-    texture.Height = height;
-
-    return reinterpret_cast<ImTextureID>(static_cast<std::intptr_t>(texture.TextureID));
-#elif   defined(IMGUI_DX11)
+#if     defined(IMGUI_DX11)
     if (!g_pd3dDevice)
         return nullptr;
     g_Textures.resize(g_Textures.size() + 1);
@@ -323,6 +316,31 @@ ImTextureID ImCreateTexture(const void* data, int width, int height)
         memcpy((unsigned char*)tex_locked_rect.pBits + tex_locked_rect.Pitch * y, (unsigned char* )data + (width * bytes_per_pixel) * y, (width * bytes_per_pixel));
     texture.TextureID->UnlockRect(0);
     return (ImTextureID)texture.TextureID;
+#elif   defined(IMGUI_VULKAN)
+    g_Textures.resize(g_Textures.size() + 1);
+    ImTexture& texture = g_Textures.back();
+    texture.TextureID = (ImTextureVk)ImGui_ImplVulkan_CreateTexture(data, width, height);
+    texture.Width  = width;
+    texture.Height = height;
+    return (ImTextureID)texture.TextureID;
+#elif   defined(IMGUI_OPENGL)
+    g_Textures.resize(g_Textures.size() + 1);
+    ImTexture& texture = g_Textures.back();
+
+    // Upload texture to graphics system
+    GLint last_texture = 0;
+    glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture);
+    glGenTextures(1, &texture.TextureID);
+    glBindTexture(GL_TEXTURE_2D, texture.TextureID);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glBindTexture(GL_TEXTURE_2D, last_texture);
+
+    texture.Width  = width;
+    texture.Height = height;
+
+    return reinterpret_cast<ImTextureID>(static_cast<std::intptr_t>(texture.TextureID));
 #else
     return nullptr;
 #endif
@@ -330,14 +348,14 @@ ImTextureID ImCreateTexture(const void* data, int width, int height)
 
 static std::vector<ImTexture>::iterator ImFindTexture(ImTextureID texture)
 {
-#if     defined(IMGUI_VULKAN)
-    auto textureID = reinterpret_cast<ImTextureVk>(texture);
-#elif   defined(IMGUI_OPENGL)
-    auto textureID = static_cast<GLuint>(reinterpret_cast<std::intptr_t>(texture));
-#elif   defined(IMGUI_DX11)
+#if     defined(IMGUI_DX11)
     auto textureID = (ID3D11ShaderResourceView *)texture;
 #elif   defined(IMGUI_DX9)
     auto textureID = reinterpret_cast<LPDIRECT3DTEXTURE9>(texture);
+#elif   defined(IMGUI_VULKAN)
+    auto textureID = reinterpret_cast<ImTextureVk>(texture);
+#elif   defined(IMGUI_OPENGL)
+    auto textureID = static_cast<GLuint>(reinterpret_cast<std::intptr_t>(texture));
 #else
     int textureID = -1;
 #endif
@@ -352,19 +370,7 @@ void ImDestroyTexture(ImTextureID texture)
     auto textureIt = ImFindTexture(texture);
     if (textureIt == g_Textures.end())
         return;
-#if     defined(IMGUI_VULKAN)
-    if (textureIt->TextureID)
-    {
-        ImGui_ImplVulkan_DestroyTexture(&textureIt->TextureID);
-        textureIt->TextureID = nullptr;
-    }
-#elif   defined(IMGUI_OPENGL)
-    if (textureIt->TextureID)
-    {
-        glDeleteTextures(1, &textureIt->TextureID);
-        textureIt->TextureID = 0;
-    }
-#elif   defined(IMGUI_DX11)
+#if     defined(IMGUI_DX11)
     if (textureIt->TextureID)
     {
         textureIt->TextureID->Release();
@@ -375,6 +381,18 @@ void ImDestroyTexture(ImTextureID texture)
     {
         textureIt->TextureID->Release();
         textureIt->TextureID = nullptr;
+    }
+#elif   defined(IMGUI_VULKAN)
+    if (textureIt->TextureID)
+    {
+        ImGui_ImplVulkan_DestroyTexture(&textureIt->TextureID);
+        textureIt->TextureID = nullptr;
+    }
+#elif   defined(IMGUI_OPENGL)
+    if (textureIt->TextureID)
+    {
+        glDeleteTextures(1, &textureIt->TextureID);
+        textureIt->TextureID = 0;
     }
 #endif
     g_Textures.erase(textureIt);

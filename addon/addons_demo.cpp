@@ -246,7 +246,7 @@ void ShowAddonsDemoWindowWidgets()
         ImGui::Text("Choose a date:");
         ImGui::SameLine();
         static tm myDate={}; 
-        ImGui::SetNextItemWidth(ImGui::GetWindowContentRegionWidth()*0.5f);
+        ImGui::SetNextItemWidth(ImGui::GetWindowContentRegionWidth()*0.2f);
         if (ImGui::DateChooser("Date Chooser ##MyDateChooser",myDate,"%d/%m/%Y")) {
             // A new date has been chosen
             //fprintf(stderr,"A new date has been chosen exacty now: \"%.2d-%.2d-%.4d\"\n",myDate.tm_mday,myDate.tm_mon+1,myDate.tm_year+1900);
@@ -258,7 +258,7 @@ void ShowAddonsDemoWindowWidgets()
         ImGui::Text("Choose another date:");
         ImGui::SameLine();
         static tm myDate2={};       // IMPORTANT: must be static! (plenty of compiler warnings here if we write: static tm myDate={0}; Is there any difference?)
-        ImGui::SetNextItemWidth(ImGui::GetWindowContentRegionWidth()*0.5f);
+        ImGui::SetNextItemWidth(ImGui::GetWindowContentRegionWidth()*0.2f);
         if (ImGui::DateChooser("##MyDateChooser2",myDate2,"%d/%m/%Y")) {
             // A new date has been chosen
             //fprintf(stderr,"A new date has been chosen exacty now: \"%.2d-%.2d-%.4d\"\n",myDate2.tm_mday,myDate2.tm_mon+1,myDate2.tm_year+1900);

@@ -106,8 +106,9 @@ void Application_Finalize()
     ed::DestroyEditor(g_Context);
 }
 
-void Application_Frame()
+bool Application_Frame()
 {
+    bool done = false;
     ed::SetCurrentEditor(g_Context);
 
     ed::Begin("My Editor");
@@ -127,6 +128,8 @@ void Application_Frame()
     ed::EndNode();
 
     ed::End();
+
+    return done;
 }
 ```
 

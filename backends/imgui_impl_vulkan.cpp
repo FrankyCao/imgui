@@ -1623,6 +1623,51 @@ ImTextureID ImGui_ImplVulkan_CreateTexture(const void * pixels, int width, int h
     return (ImTextureID)texture;
 }
 
+void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, const void * pixels, int width, int height)
+{
+    ImTextureVk texture = (ImTextureVk)textureid;
+    if (!texture)
+        return;
+    ImGui_ImplVulkan_InitInfo* v = &g_VulkanInitInfo;
+    VkDeviceSize imageSize = width * height * 4;
+    // create staging buffer
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    VkCommandPool commandPool = VK_NULL_HANDLE;
+    createBuffer(v, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                stagingBuffer, stagingBufferMemory);
+    void* data;
+    vkMapMemory(v->Device, stagingBufferMemory, 0, imageSize, 0, &data);
+    if (!data)
+    {
+        throw std::runtime_error("failed to map image memory!");
+    }
+    memcpy(data, pixels, static_cast<size_t>(imageSize));
+    vkUnmapMemory(v->Device, stagingBufferMemory);
+
+    VkCommandPoolCreateInfo poolInfo{};
+    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    poolInfo.queueFamilyIndex = v->QueueFamily;
+
+    if (vkCreateCommandPool(v->Device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create graphics command pool!");
+    }
+
+    transitionImageLayout(v, commandPool, texture->textureImage, 
+                        VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, 
+                        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    copyBufferToImage(v, commandPool, stagingBuffer, texture->textureImage, 
+                    static_cast<uint32_t>(width), static_cast<uint32_t>(height));
+    transitionImageLayout(v, commandPool, texture->textureImage, 
+                        VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 
+                        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+    vkDestroyBuffer(v->Device, stagingBuffer, nullptr);
+    vkFreeMemory(v->Device, stagingBufferMemory, nullptr);
+    vkDestroyCommandPool(v->Device, commandPool, nullptr);
+}
+
 void ImGui_ImplVulkan_DestroyTexture(ImTextureVk* texture)
 {
     ImGui_ImplVulkan_InitInfo* v = &g_VulkanInitInfo;

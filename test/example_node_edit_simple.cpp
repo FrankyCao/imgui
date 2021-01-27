@@ -30,8 +30,9 @@ void Application_Finalize(void** handle)
     ed::DestroyEditor(g_Context);
 }
 
-void Application_Frame(void* handle)
+bool Application_Frame(void* handle)
 {
+    bool done = false;
     auto& io = ImGui::GetIO();
 
     ImGui::Text("FPS: %.2f (%.2gms)", io.Framerate, io.Framerate ? 1000.0f / io.Framerate : 0.0f);
@@ -54,5 +55,6 @@ void Application_Frame(void* handle)
     ed::EndNode();
     ed::End();
     ed::SetCurrentEditor(nullptr);
+    return done;
 }
 

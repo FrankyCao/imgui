@@ -141,6 +141,7 @@ int main(int, char**)
     Application_Initialize(&user_handle);
 
     // Main loop
+    bool done = false;
     MSG msg;
     ZeroMemory(&msg, sizeof(msg));
     while (msg.message != WM_QUIT)
@@ -162,7 +163,9 @@ int main(int, char**)
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
 
-        Application_Frame(user_handle);
+        done = Application_Frame(user_handle);
+        if (done)
+            ::PostQuitMessage(0);
 
         // Rendering
         ImGui::EndFrame();

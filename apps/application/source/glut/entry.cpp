@@ -14,7 +14,8 @@
 
 static void * user_handle = nullptr;
 
-static ImVec4 clear_color = ImVec4(0.125f, 0.125f, 0.125f, 1.00f);
+static ImVec4 clear_color = ImVec4(0.f, 0.f, 0.f, 1.f);
+static bool done = false;
 
 void glut_display_func()
 {
@@ -30,7 +31,7 @@ void glut_display_func()
             ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoSavedSettings |
             ImGuiWindowFlags_NoBringToFrontOnFocus);
 
-    Application_Frame(user_handle);
+    done = Application_Frame(user_handle);
 
     ImGui::End();
     // Rendering

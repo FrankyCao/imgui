@@ -60,6 +60,14 @@ if (IMGUI_FREETYPE)
     find_package(Freetype)
 endif(IMGUI_FREETYPE)
 
+find_package(OpenCV)
+
+if (OPENCV_FOUND)
+    include_directories(
+        ${OpenCV_INCLUDE_DIRS}
+    )
+endif(OPENCV_FOUND)
+
 if(PKG_CONFIG_FOUND)
     if(IMGUI_GLEW)
         pkg_search_module(GLEW REQUIRED glew)
@@ -95,7 +103,8 @@ if(OPENGL_FOUND)
     )
 endif(OPENGL_FOUND)
 
-if(FREETYPE_FOUND)
+if(IMGUI_FREETYPE AND FREETYPE_FOUND)
+    #add_definitions(-DIMGUI_ENABLE_FREETYPE)
     set(IMGUI_INC_DIRS
         ${IMGUI_INC_DIRS}
         ${FREETYPE_INCLUDE_DIRS}
@@ -104,7 +113,7 @@ if(FREETYPE_FOUND)
         ${LINK_LIBS}
         ${FREETYPE_LIBRARIES}
     )
-endif(FREETYPE_FOUND)
+endif(IMGUI_FREETYPE AND FREETYPE_FOUND)
 
 # base sources
 set(IMGUI_SRC
@@ -126,6 +135,8 @@ set(IMGUI_INCS
     imstb_truetype.h
     imgui_user.h
     misc/cpp/imgui_stdlib.h
+    misc/stb_image.h
+    misc/stb_image_write.h
 )
 
 # Android
@@ -397,6 +408,7 @@ endif(IMGUI_ICONS)
 set(IMGUI_INC_DIRS
     ${IMGUI_INC_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/backends
+    ${CMAKE_CURRENT_SOURCE_DIR}/misc
     ${CMAKE_CURRENT_SOURCE_DIR}/misc/cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/misc/freetype
 )
@@ -742,15 +754,15 @@ if (IMGUI_APPS)
             ${IMGUI_SRC}
             apps/application/source/vulkan/entry_glfw.cpp
         )
-    elseif(SDL2_FOUND AND IMGUI_SDL2 AND IMGUI_OPENGL)
-        set(IMGUI_SRC
-            ${IMGUI_SRC}
-            apps/application/source/sdl/entry.cpp
-        )
     elseif(GLFW_FOUND AND IMGUI_GLFW)
         set(IMGUI_SRC
             ${IMGUI_SRC}
             apps/application/source/glfw/entry.cpp
+        )
+    elseif(SDL2_FOUND AND IMGUI_SDL2 AND IMGUI_OPENGL)
+        set(IMGUI_SRC
+            ${IMGUI_SRC}
+            apps/application/source/sdl/entry.cpp
         )
     elseif(GLUT_FOUND AND IMGUI_GLUT)
         set(IMGUI_SRC
@@ -827,20 +839,18 @@ if (SDL2_FOUND AND IMGUI_SDL2)
         imgui
         ${LINK_LIBS}
     )
-    find_package(OpenCV REQUIRED)
-    include_directories(
-        ${OpenCV_INCLUDE_DIRS}
-    )
-    add_executable(
-        example_sdl_video
-        test/example_sdl_video.cpp
-    )
-    target_link_libraries(
-        example_sdl_video
-        imgui
-        ${OpenCV_LIBS}
-        ${LINK_LIBS}
-    )
+    if (OPENCV_FOUND)
+        add_executable(
+            example_sdl_video
+            test/example_sdl_video.cpp
+        )
+        target_link_libraries(
+            example_sdl_video
+            imgui
+            ${OpenCV_LIBS}
+            ${LINK_LIBS}
+        )
+    endif(OPENCV_FOUND)
     # Build Android examples
     if(ANDROID AND IMGUI_GLES)
         add_executable(
@@ -1049,6 +1059,18 @@ if (IMGUI_APPS)
         imgui
         ${LINK_LIBS}
     )
+    if (OPENCV_FOUND)
+        add_executable(
+            example_video
+            test/example_video.cpp
+        )
+        target_link_libraries(
+            example_video
+            imgui
+            ${OpenCV_LIBS}
+            ${LINK_LIBS}
+        )
+    endif(OPENCV_FOUND)
 endif(IMGUI_APPS)
 
 get_directory_property(hasParent PARENT_DIRECTORY)

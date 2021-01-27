@@ -171,6 +171,7 @@ int main(int, char**)
     ImVec4 backgroundColor = ImColor(32, 32, 32, 255);//style.Colors[ImGuiCol_TitleBg];
 
     Application_Initialize(&user_handle);
+    bool done = false;
 
     auto frame = [&]()
     {
@@ -185,7 +186,9 @@ int main(int, char**)
         //    ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoSavedSettings |
         //    ImGuiWindowFlags_NoBringToFrontOnFocus);
 
-        Application_Frame(user_handle);
+        done = Application_Frame(user_handle);
+        if (done)
+            PostQuitMessage(0);
 
         //ImGui::End();
 
@@ -197,9 +200,6 @@ int main(int, char**)
     };
 
     frame();
-
-    //ShowWindow(hwnd, SW_SHOWMAXIMIZED);
-    //UpdateWindow(hwnd);
 
     // Main loop
     MSG msg = {};
