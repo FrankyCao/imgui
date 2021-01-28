@@ -143,6 +143,8 @@ struct NodeData
           pin_indices(), draggable(true)
     {
     }
+
+    ~NodeData() { id = INT_MIN; }
 };
 
 struct PinData
@@ -864,8 +866,10 @@ void object_pool_update(ObjectPool<NodeData>& nodes)
         {
             const int previous_id = nodes.pool[i].id;
             const int previous_idx = nodes.id_map.GetInt(previous_id, -1);
+
             if (previous_idx != -1)
             {
+                assert(previous_idx == i);
                 // Remove node idx form depth stack the first time we detect that this idx slot is
                 // unused
                 ImVector<int>& depth_stack = editor_context_get().node_depth_order;
@@ -1697,7 +1701,8 @@ void draw_pin(EditorContext& editor, const int pin_idx, const bool left_mouse_cl
     draw_pin_shape(pin.pos, pin, pin_color);
 }
 
-// TODO: Separate hover code from drawing code to avoid this unpleasant divergent function signature.
+// TODO: Separate hover code from drawing code to avoid this unpleasant divergent function
+// signature.
 bool is_node_hovered(const NodeData& node, const int node_idx, const ObjectPool<PinData> pins)
 {
     // We render pins on top of nodes. In order to prevent node interaction when a pin is on top of
@@ -1839,9 +1844,9 @@ void draw_link(EditorContext& editor, const int link_idx)
     }
 
 #if IMGUI_VERSION_NUM < 18000
-        g.canvas_draw_list->AddBezierCurve(
+    g.canvas_draw_list->AddBezierCurve(
 #else
-        g.canvas_draw_list->AddBezierCubic(
+    g.canvas_draw_list->AddBezierCubic(
 #endif
         link_data.bezier.p0,
         link_data.bezier.p1,
@@ -2508,10 +2513,7 @@ ImVec2 GetNodeGridSpacePos(int node_id)
     return node.origin;
 }
 
-bool IsEditorHovered()
-{
-    return mouse_in_canvas();
-}
+bool IsEditorHovered() { return mouse_in_canvas(); }
 
 bool IsNodeHovered(int* const node_id)
 {

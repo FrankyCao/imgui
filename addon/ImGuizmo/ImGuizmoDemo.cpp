@@ -461,6 +461,7 @@ static void EditTransform(float* cameraView, float* cameraProjection, float* mat
 }
 
 static ImTextureID procTexture = 0;
+static MySequence mySequence;
 
 void ShowAddonsZMOWindow()
 {
@@ -479,14 +480,16 @@ void ShowAddonsZMOWindow()
     if (!procTexture) build_procedural_texture(procTexture);
 
     // sequence with default values
-    MySequence mySequence;
-    mySequence.mFrameMin = -100;
-    mySequence.mFrameMax = 1000;
-    mySequence.myItems.push_back(MySequence::MySequenceItem{ 0, 10, 30, false });
-    mySequence.myItems.push_back(MySequence::MySequenceItem{ 1, 20, 30, true });
-    mySequence.myItems.push_back(MySequence::MySequenceItem{ 3, 12, 60, false });
-    mySequence.myItems.push_back(MySequence::MySequenceItem{ 2, 61, 90, false });
-    mySequence.myItems.push_back(MySequence::MySequenceItem{ 4, 90, 99, false });
+    if (mySequence.myItems.size() == 0)
+    {
+        mySequence.mFrameMin = -100;
+        mySequence.mFrameMax = 1000;
+        mySequence.myItems.push_back(MySequence::MySequenceItem{ 0, 10, 30, false });
+        mySequence.myItems.push_back(MySequence::MySequenceItem{ 1, 20, 30, false });
+        mySequence.myItems.push_back(MySequence::MySequenceItem{ 3, 12, 60, false });
+        mySequence.myItems.push_back(MySequence::MySequenceItem{ 2, 61, 90, false });
+        mySequence.myItems.push_back(MySequence::MySequenceItem{ 4, 90, 99, false });
+    }
 
     // Camera projection
     static bool isPerspective = true;

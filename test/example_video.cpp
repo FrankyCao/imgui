@@ -279,6 +279,11 @@ bool Application_Frame(void* handle)
                     example->fps = example->video_fps;
                     example->total_time = example->video_frames / example->video_fps;
                 }
+                if (example->video_texture)
+                {
+                    ImGui::ImDestroyTexture(example->video_texture);
+                    example->video_texture = nullptr;
+                }
                 example->is_playing = true;
             }
         }

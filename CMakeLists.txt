@@ -913,51 +913,53 @@ if (GLFW_FOUND AND IMGUI_GLFW)
     )
 endif(GLFW_FOUND AND IMGUI_GLFW)
 
-if (APPLE AND IMGUI_MATAL AND IMGUI_APPLE_APP)
-    add_executable(
-        example_apple_metal
-        MACOSX_BUNDLE
-        test/example_apple_metal.mm
-        test/metal.icns
-    )
-    set_target_properties(
-        example_apple_metal
-        PROPERTIES
-        OUTPUT_NAME "example_apple_metal"
-        MACOSX_BUNDLE_EXECUTABLE_NAME "example_apple_metal"
-        MACOSX_BUNDLE_BUNDLE_NAME "example_apple_metal"
-        FOLDER "example_apple_metal"
-        MACOSX_BUNDLE_ICON_FILE "metal"
-        MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0"
-        MACOSX_BUNDLE_LONG_VERSION_STRING "sample 1.0"
-        MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/test/Info-macOS.plist.in
-    )
-    target_link_libraries(
-        example_apple_metal
-        imgui
-        "-framework Metal"
-        "-framework MetalKit"
-        "-framework Cocoa"
-    )
-    set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/test/metal.icns PROPERTIES
-            MACOSX_PACKAGE_LOCATION "Resources"
-    )
-    # Handle the Storyboard ourselves
-    if(NOT ${CMAKE_GENERATOR} MATCHES "^Xcode.*")
-        # Compile the storyboard file with the ibtool.
-        add_custom_command(TARGET example_apple_metal POST_BUILD
-            COMMAND ibtool --errors --warnings --notices --output-format human-readable-text
-                --compile ${CMAKE_CURRENT_BINARY_DIR}/example_apple_metal.app/Contents/Resources/MainMenu.storyboardc
-                ${CMAKE_CURRENT_SOURCE_DIR}/test/MainMenu.storyboard
-                COMMENT "Compiling storyboard"
+if (APPLE AND IMGUI_MATAL)
+    if (IMGUI_APPLE_APP)
+        add_executable(
+            example_apple_metal
+            MACOSX_BUNDLE
+            test/example_apple_metal.mm
+            test/metal.icns
         )
-        # Fix up the library search path in the executable to find (loader) libraries in the bundle.
-        install(CODE "
-            include(BundleUtilities)
-            fixup_bundle(${CMAKE_INSTALL_PREFIX}/example_apple_metal.app \"\" \"\")
-            " COMPONENT Runtime
+        set_target_properties(
+            example_apple_metal
+            PROPERTIES
+            OUTPUT_NAME "example_apple_metal"
+            MACOSX_BUNDLE_EXECUTABLE_NAME "example_apple_metal"
+            MACOSX_BUNDLE_BUNDLE_NAME "example_apple_metal"
+            FOLDER "example_apple_metal"
+            MACOSX_BUNDLE_ICON_FILE "metal"
+            MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0"
+            MACOSX_BUNDLE_LONG_VERSION_STRING "sample 1.0"
+            MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/test/Info-macOS.plist.in
         )
-    endif()
+        target_link_libraries(
+            example_apple_metal
+            imgui
+            "-framework Metal"
+            "-framework MetalKit"
+            "-framework Cocoa"
+        )
+        set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/test/metal.icns PROPERTIES
+                MACOSX_PACKAGE_LOCATION "Resources"
+        )
+        # Handle the Storyboard ourselves
+        if(NOT ${CMAKE_GENERATOR} MATCHES "^Xcode.*")
+            # Compile the storyboard file with the ibtool.
+            add_custom_command(TARGET example_apple_metal POST_BUILD
+                COMMAND ibtool --errors --warnings --notices --output-format human-readable-text
+                    --compile ${CMAKE_CURRENT_BINARY_DIR}/example_apple_metal.app/Contents/Resources/MainMenu.storyboardc
+                    ${CMAKE_CURRENT_SOURCE_DIR}/test/MainMenu.storyboard
+                    COMMENT "Compiling storyboard"
+            )
+            # Fix up the library search path in the executable to find (loader) libraries in the bundle.
+            install(CODE "
+                include(BundleUtilities)
+                fixup_bundle(${CMAKE_INSTALL_PREFIX}/example_apple_metal.app \"\" \"\")
+                " COMPONENT Runtime
+            )
+        endif()
+    endif(IMGUI_APPLE_APP)
 
     if (GLFW_FOUND)
         add_executable(
@@ -970,7 +972,7 @@ if (APPLE AND IMGUI_MATAL AND IMGUI_APPLE_APP)
             ${LINK_LIBS}
         )
     endif(GLFW_FOUND)
-endif(APPLE AND IMGUI_MATAL AND IMGUI_APPLE_APP)
+endif(APPLE AND IMGUI_MATAL)
 
 if(WIN32)
     if(IMGUI_DX9)

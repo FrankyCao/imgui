@@ -54,8 +54,8 @@
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    std::string ini_filepath = DEFAULT_CONFIG_PATH + "apple_metal.ini";
-    io.IniFilename = "apple_metal.ini";
+    std::string ini_file = std::string(DEFAULT_CONFIG_PATH) + "apple_metal.ini";
+    io.IniFilename = ini_file.c_str();
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
