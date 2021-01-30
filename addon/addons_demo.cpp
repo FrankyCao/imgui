@@ -640,4 +640,376 @@ void CleanupDemo()
 {
     if (ImageTextureNumber) { ImDestroyTexture(ImageTextureNumber); ImageTextureNumber = 0; }
 }
+
+#ifdef IMGUI_VULKAN_SHADER
+int g_gpu_count = ImVulkan::get_gpu_count();
+
+static const char glsl_p1_data[] = R"(
+#version 450
+#if ImVulkan_fp16_storage
+#extension GL_EXT_shader_16bit_storage: require
+#endif
+#if ImVulkan_fp16_arithmetic
+#extension GL_EXT_shader_explicit_arithmetic_types_float16: require
+#endif
+layout (constant_id = 0) const int count = 0;
+layout (constant_id = 1) const int loop = 1;
+layout (binding = 0) readonly buffer a_blob { sfp a_blob_data[]; };
+layout (binding = 1) readonly buffer b_blob { sfp b_blob_data[]; };
+layout (binding = 2) writeonly buffer c_blob { sfp c_blob_data[]; };
+void main()
+{
+    int gx = int(gl_GlobalInvocationID.x);
+    int gy = int(gl_GlobalInvocationID.y);
+    int gz = int(gl_GlobalInvocationID.z);
+    if (gx >= count || gy >= 1 || gz >= 1)
+        return;
+    afp a = buffer_ld1(a_blob_data, gx);
+    afp b = buffer_ld1(b_blob_data, gx);
+    afp c = afp(1.f);
+    for (int i = 0; i < loop; i++)
+    {
+        c = a * c + b;
+        c = a * c + b;
+        c = a * c + b;
+        c = a * c + b;
+        c = a * c + b;
+        c = a * c + b;
+        c = a * c + b;
+        c = a * c + b;
+    }
+    buffer_st1(c_blob_data, gx, c);
+}
+)";
+
+static const char glsl_p4_data[] = R"(
+#version 450
+#if ImVulkan_fp16_storage
+#extension GL_EXT_shader_16bit_storage: require
+#endif
+#if ImVulkan_fp16_arithmetic
+#extension GL_EXT_shader_explicit_arithmetic_types_float16: require
+#endif
+layout (constant_id = 0) const int count = 0;
+layout (constant_id = 1) const int loop = 1;
+layout (binding = 0) readonly buffer a_blob { sfpvec4 a_blob_data[]; };
+layout (binding = 1) readonly buffer b_blob { sfpvec4 b_blob_data[]; };
+layout (binding = 2) writeonly buffer c_blob { sfpvec4 c_blob_data[]; };
+void main()
+{
+    int gx = int(gl_GlobalInvocationID.x);
+    int gy = int(gl_GlobalInvocationID.y);
+    int gz = int(gl_GlobalInvocationID.z);
+    if (gx >= count || gy >= 1 || gz >= 1)
+        return;
+    afpvec4 a = buffer_ld4(a_blob_data, gx);
+    afpvec4 b = buffer_ld4(b_blob_data, gx);
+    afpvec4 c = afpvec4(1.f);
+    for (int i = 0; i < loop; i++)
+    {
+        c = a * c + b;
+        c = a * c + b;
+        c = a * c + b;
+        c = a * c + b;
+        c = a * c + b;
+        c = a * c + b;
+        c = a * c + b;
+        c = a * c + b;
+    }
+    buffer_st4(c_blob_data, gx, c);
+}
+)";
+
+static const char glsl_p8_data[] = R"(
+#version 450
+#if ImVulkan_fp16_storage
+#extension GL_EXT_shader_16bit_storage: require
+#endif
+#if ImVulkan_fp16_arithmetic
+#extension GL_EXT_shader_explicit_arithmetic_types_float16: require
+#endif
+layout (constant_id = 0) const int count = 0;
+layout (constant_id = 1) const int loop = 1;
+layout (binding = 0) readonly buffer a_blob { sfpvec8 a_blob_data[]; };
+layout (binding = 1) readonly buffer b_blob { sfpvec8 b_blob_data[]; };
+layout (binding = 2) writeonly buffer c_blob { sfpvec8 c_blob_data[]; };
+void main()
+{
+    int gx = int(gl_GlobalInvocationID.x);
+    int gy = int(gl_GlobalInvocationID.y);
+    int gz = int(gl_GlobalInvocationID.z);
+    if (gx >= count || gy >= 1 || gz >= 1)
+        return;
+    afpvec8 a = buffer_ld8(a_blob_data, gx);
+    afpvec8 b = buffer_ld8(b_blob_data, gx);
+    afpvec8 c = afpvec8(afpvec4(1.f), afpvec4(1.f));
+    for (int i = 0; i < loop; i++)
+    {
+        c[0] = a[0] * c[0] + b[0];
+        c[1] = a[1] * c[1] + b[1];
+        c[0] = a[0] * c[0] + b[0];
+        c[1] = a[1] * c[1] + b[1];
+        c[0] = a[0] * c[0] + b[0];
+        c[1] = a[1] * c[1] + b[1];
+        c[0] = a[0] * c[0] + b[0];
+        c[1] = a[1] * c[1] + b[1];
+        c[0] = a[0] * c[0] + b[0];
+        c[1] = a[1] * c[1] + b[1];
+        c[0] = a[0] * c[0] + b[0];
+        c[1] = a[1] * c[1] + b[1];
+        c[0] = a[0] * c[0] + b[0];
+        c[1] = a[1] * c[1] + b[1];
+        c[0] = a[0] * c[0] + b[0];
+        c[1] = a[1] * c[1] + b[1];
+    }
+    buffer_st8(c_blob_data, gx, c);
+}
+)";
+
+static float vkpeak(ImVulkan::VulkanDevice* vkdev, int loop, int count_mb, int cmd_loop, int storage_type, int arithmetic_type, int packing_type)
+{
+    const int count = count_mb * 1024 * 1024;
+    int elempack = packing_type == 0 ? 1 : packing_type == 1 ? 4 : 8;
+    if (!vkdev->info.support_fp16_storage() && storage_type == 2)
+    {
+        return -233;
+    }
+    if (!vkdev->info.support_fp16_arithmetic() && arithmetic_type == 1)
+    {
+        return -233;
+    }
+    double max_gflops = -233;
+    ImVulkan::Option opt;
+    opt.use_fp16_packed = storage_type == 1;
+    opt.use_fp16_storage = storage_type == 2;
+    opt.use_fp16_arithmetic = arithmetic_type == 1;
+    opt.use_shader_pack8 = packing_type == 2;
+
+    // setup pipeline
+    ImVulkan::Pipeline pipeline(vkdev);
+    {
+        int local_size_x = std::min(128, std::max(32, (int)vkdev->info.subgroup_size()));
+        pipeline.set_local_size_xyz(local_size_x, 1, 1);
+        std::vector<ImVulkan::vk_specialization_type> specializations(2);
+        specializations[0].i = count;
+        specializations[1].i = loop;
+        // glsl to spirv
+        // -1 for omit the tail '\0'
+        std::vector<uint32_t> spirv;
+        if (packing_type == 0)
+        {
+            ImVulkan::compile_spirv_module(glsl_p1_data, opt, spirv);
+        }
+        if (packing_type == 1)
+        {
+            ImVulkan::compile_spirv_module(glsl_p4_data, opt, spirv);
+        }
+        if (packing_type == 2)
+        {
+            ImVulkan::compile_spirv_module(glsl_p8_data, opt, spirv);
+        }
+
+        pipeline.create(spirv.data(), spirv.size() * 4, specializations);
+    }
+
+    ImVulkan::VkAllocator* allocator = vkdev->acquire_blob_allocator();
+
+    // prepare storage
+    {
+        ImVulkan::VkImageBuffer a;
+        ImVulkan::VkImageBuffer b;
+        ImVulkan::VkImageBuffer c;
+        {
+            if (opt.use_fp16_packed || opt.use_fp16_storage)
+            {
+                a.create(count, (size_t)(2u * elempack), elempack, allocator);
+                b.create(count, (size_t)(2u * elempack), elempack, allocator);
+                c.create(count, (size_t)(2u * elempack), elempack, allocator);
+            }
+            else
+            {
+                a.create(count, (size_t)(4u * elempack), elempack, allocator);
+                b.create(count, (size_t)(4u * elempack), elempack, allocator);
+                c.create(count, (size_t)(4u * elempack), elempack, allocator);
+            }
+        }
+
+        for (int i = 0; i < cmd_loop; i++)
+        {
+            // encode command
+            ImVulkan::VkCompute cmd(vkdev);
+            {
+                std::vector<ImVulkan::VkImageBuffer> bindings(3);
+                bindings[0] = a;
+                bindings[1] = b;
+                bindings[2] = c;
+                std::vector<ImVulkan::vk_constant_type> constants(0);
+                cmd.record_pipeline(&pipeline, bindings, constants, c);
+            }
+
+            // time this
+            {
+                double t0 = ImGui::get_current_time();
+
+                int ret = cmd.submit_and_wait();
+                if (ret != 0)
+                {
+                    vkdev->reclaim_blob_allocator(allocator);
+                    return -1;
+                }
+
+                double time = ImGui::get_current_time() - t0;
+                const double mac = (double)count * (double)loop * 8 * elempack * 2;
+                double gflops = mac / time / 1000000;
+                if (gflops > max_gflops)
+                    max_gflops = gflops;
+            }
+        }
+    }
+    vkdev->reclaim_blob_allocator(allocator);
+    return max_gflops;
+}
+
+static std::string print_result(float gflops)
+{
+    if (gflops == -1)
+            return "  error";
+
+    if (gflops == -233)
+        return "  not supported";
+
+    if (gflops > 1000)
+        return "  " + std::to_string(gflops / 1000.0) + " TFLOPS";
+    return "  " + std::to_string(gflops) + " GFLOPS";
+}
+
+static ImTextureID g_texture = nullptr;
+static ImVulkan::VkImageMat test_vkimage;
+static ImVulkan::VulkanDevice* g_vkdev = nullptr;
+static ImVulkan::VkAllocator* g_blob_allocator = nullptr;
+static ImVulkan::VkAllocator* g_staging_allocator = nullptr;
+static ImVulkan::Option g_opt;
+
+void PrepareVulkanDemo()
+{
+    g_vkdev = ImVulkan::get_gpu_device(0);
+    g_blob_allocator = g_vkdev->acquire_blob_allocator();
+    g_staging_allocator = g_vkdev->acquire_staging_allocator();
+    g_opt.blob_vkallocator = g_blob_allocator;
+    g_opt.staging_vkallocator = g_staging_allocator;
+    g_opt.use_image_storage = true;
+
+    /*
+    uint32_t* tempBitmap = new uint32_t[256 * 256];
+    int index = 0;
+    for (int y = 0; y < 256; y++)
+    {
+        for (int x = 0; x < 256; x++)
+        {
+            float dx = x + .5f;
+            float dy = y + .5f;
+            float dv = sinf(x * 0.02f) + sinf(0.03f * (x + y)) + sinf(sqrtf(0.4f * (dx * dx + dy * dy) + 1.f));
+
+            tempBitmap[index] = 0xFF000000 +
+            (int(255 * fabsf(sinf(dv * 3.141592f))) << 16) +
+            (int(255 * fabsf(sinf(dv * 3.141592f + 2 * 3.141592f / 3))) << 8) + 
+            (int(255 * fabs(sin(dv * 3.141592f + 4.f * 3.141592f / 3.f))));
+
+            index++;
+        }
+    }
+    */
+    float * tempBitmap = new float[256 * 256 * 4];
+    for (int y = 0; y < 256; y++)
+    {
+        for (int x = 0; x < 256; x++)
+        {
+            float dx = x + .5f;
+            float dy = y + .5f;
+            float dv = sinf(x * 0.02f) + sinf(0.03f * (x + y)) + sinf(sqrtf(0.4f * (dx * dx + dy * dy) + 1.f));
+            
+            tempBitmap[(256 * 256) * 0 + y * 256 + x] = fabsf(sinf(dv * 3.141592f));
+            tempBitmap[(256 * 256) * 1 + y * 256 + x] = fabsf(sinf(dv * 3.141592f + 2.f * 3.141592f / 3.f));
+            tempBitmap[(256 * 256) * 2 + y * 256 + x] = fabsf(sinf(dv * 3.141592f + 4.f * 3.141592f / 3.f));
+            tempBitmap[(256 * 256) * 3 + y * 256 + x] = 1.f;
+            
+        }
+    }
+    ImVulkan::ImageBuffer test_image;
+    //ImVulkan::ImageBuffer test_out;
+    test_image.create_type(256, 256, 4, tempBitmap, ImVulkan::FLOAT32);
+    ImVulkan::VkCompute cmd(g_vkdev);
+    cmd.record_upload(test_image, test_vkimage, g_opt);
+    //cmd.record_download(test_vkimage, test_out, g_opt);
+    cmd.submit_and_wait();
+    delete [] tempBitmap;
+    g_texture = ImGui::ImCreateTexture(test_vkimage);
+    //g_texture = ImGui::ImCreateTexture(test_out.data, 256, 256);
+}
+
+void CleanVulkanDemo()
+{
+    if (!g_vkdev)
+        return;
+    if (g_blob_allocator) { g_vkdev->reclaim_blob_allocator(g_blob_allocator); g_blob_allocator = nullptr; }
+    if (g_staging_allocator) { g_vkdev->reclaim_staging_allocator(g_staging_allocator); g_staging_allocator = nullptr; }
+    if (g_texture) { ImDestroyTexture(&g_texture); g_texture = nullptr; }
+}
+
+void ShowAddonsVulkanShaderWindow()
+{
+    static float fp32;
+    static float fp32v4;
+    static float fp32v8;
+    static float fp16pv4;
+    static float fp16pv8;
+    static float fp16s;
+    static float fp16sv4;
+    static float fp16sv8;
+    static int loop_count = 1;
+    static int block_count = 1;
+    static int cmd_count = 1;
+
+    for (int i = 0; i < g_gpu_count; i++)
+    {
+        ImVulkan::VulkanDevice* vkdev = ImVulkan::get_gpu_device(i);
+        uint32_t driver_version = vkdev->info.driver_version();
+        uint32_t api_version = vkdev->info.api_version();
+        std::string driver_ver = std::to_string(VK_VERSION_MAJOR(driver_version)) + "." + 
+                                std::to_string(VK_VERSION_MINOR(driver_version)) + "." +
+                                std::to_string(VK_VERSION_PATCH(driver_version));
+        std::string api_ver =   std::to_string(VK_VERSION_MAJOR(api_version)) + "." + 
+                                std::to_string(VK_VERSION_MINOR(api_version)) + "." +
+                                std::to_string(VK_VERSION_PATCH(api_version));
+        std::string device_name = vkdev->info.device_name();
+        ImGui::Text("Device[%d]", i);
+        ImGui::Text("Driver:%s", driver_ver.c_str());
+        ImGui::Text("   API:%s", api_ver.c_str());
+        ImGui::Text("  Name:%s", device_name.c_str());
+        /*
+        fp32 = vkpeak(vkdev, loop_count, block_count, cmd_count, 0, 0, 0);
+        ImGui::Text(" FP32 Scalar :%s", print_result(fp32).c_str());
+        fp32v4 = vkpeak(vkdev, loop_count, block_count, cmd_count, 0, 0, 1);
+        ImGui::Text("   FP32 Vec4 :%s", print_result(fp32v4).c_str());
+        fp32v8 = vkpeak(vkdev, loop_count, block_count, cmd_count, 0, 0, 2);
+        ImGui::Text("   FP32 Vec8 :%s", print_result(fp32v8).c_str());
+        fp16pv4 = vkpeak(vkdev, loop_count, block_count, cmd_count, 1, 1, 1);
+        ImGui::Text("  FP16p Vec4 :%s", print_result(fp16pv4).c_str());
+        fp16pv8 = vkpeak(vkdev, loop_count, block_count, cmd_count, 1, 1, 2);
+        ImGui::Text("  FP16p Vec8 :%s", print_result(fp16pv8).c_str());
+        fp16s = vkpeak(vkdev, loop_count, block_count, cmd_count, 2, 1, 0);
+        ImGui::Text("FP16s Scalar :%s", print_result(fp16s).c_str());
+        fp16sv4 = vkpeak(vkdev, loop_count, block_count, cmd_count, 2, 1, 1);
+        ImGui::Text("  FP16s Vec4 :%s", print_result(fp16sv4).c_str());
+        fp16sv8 = vkpeak(vkdev, loop_count, block_count, cmd_count, 2, 1, 2);
+        ImGui::Text("  FP16s Vec8 :%s", print_result(fp16sv8).c_str());
+        */
+        ImGui::Separator();
+    }
+    
+    ImGui::Image(g_texture, ImVec2(128, 128));
+    ImGui::Separator();
+
+}
+#endif
 } // namespace ImGui

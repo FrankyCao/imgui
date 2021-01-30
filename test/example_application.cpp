@@ -6,6 +6,9 @@
 #include <sstream>
 #include <string>
 #include <cerrno>
+#ifdef IMGUI_VULKAN_SHADER
+#include "imgui_impl_vulkan.h"
+#endif
 #include "Config.h"
 
 // Init HotKey
@@ -44,6 +47,9 @@ public:
         std::string nge_style_path = std::string(DEFAULT_CONFIG_PATH) + "nodeGraphEditor.style.ini";
         nge.save_node_path = nge_ini_path;
         nge.save_style_path = nge_style_path;
+#ifdef IMGUI_VULKAN_SHADER
+        ImGui::PrepareVulkanDemo();
+#endif
     };
     ~Example() 
     { 
@@ -61,6 +67,9 @@ public:
         imnodes::Shutdown();
         ImGui::CleanupDemo();
         ImGui::CleanupZMODemo();
+#ifdef IMGUI_VULKAN_SHADER
+        ImGui::CleanVulkanDemo();
+#endif
     }
 
 public:
@@ -103,6 +112,10 @@ public:
     static ImGui::MarkdownImageData ImageCallback( ImGui::MarkdownLinkCallbackData data_ );
     static void LinkCallback( ImGui::MarkdownLinkCallbackData data_ );
     static void ExampleMarkdownFormatCallback( const ImGui::MarkdownFormatInfo& markdownFormatInfo_, bool start_ );
+#ifdef IMGUI_VULKAN_SHADER
+public:
+    bool show_shader_window = false;
+#endif
 };
 
 std::string Example::get_file_contents(const char *filename)
@@ -233,7 +246,9 @@ bool Application_Frame(void* handle)
         ImGui::Checkbox("Show Node Edit Windows", &example->show_node_edit_window);
         ImGui::Checkbox("Show Addon Widgets", &example->show_addon_widget);
         ImGui::Checkbox("Show ZMO Window", &example->show_zmo_window);
-
+#ifdef IMGUI_VULKAN_SHADER
+        ImGui::Checkbox("Show Shader Window", &example->show_shader_window);
+#endif
         // show hotkey window
         if (ImGui::Button("Edit Hotkeys"))
         {
@@ -375,5 +390,17 @@ bool Application_Frame(void* handle)
         ImGui::ShowAddonsZMOWindow();
         ImGui::End();
     }
+
+#ifdef IMGUI_VULKAN_SHADER
+    // 16. Show Shader Window
+    if (example->show_shader_window)
+    {
+        ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(400, 800), ImGuiCond_FirstUseEver);
+        ImGui::Begin("##Shader", &example->show_shader_window, ImGuiWindowFlags_NoSavedSettings);
+        ImGui::ShowAddonsVulkanShaderWindow();
+        ImGui::End();
+    }
+#endif
     return done;
 }

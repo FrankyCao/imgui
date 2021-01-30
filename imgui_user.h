@@ -8,6 +8,9 @@ extern "C" {
 #include "stb_image_write.h"
 }
 
+#ifdef IMGUI_VULKAN_SHADER
+#include "ImVulkanShader.h"
+#endif
 #include "ImGuiHelper.h"
 #include "ImGuiFileSystem.h"
 #include "imgui_memory_editor.h"
@@ -27,6 +30,6 @@ extern "C" {
 #include "imgui_node_editor.h"
 #include "ImGuiNodeGraphEditor.h"
 #include "ImGuiVariousControls.h"
-#include "icons/icons.h"
 
+#include "icons/icons.h"
 #include "addon/addons_demo.h"

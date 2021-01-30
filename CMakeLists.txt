@@ -29,24 +29,25 @@ include_directories(
 
 find_package(PkgConfig)
 
-option(IMGUI_GL2        "Build ImGui OpenGL2 backends" ON)
-option(IMGUI_GL3        "Build ImGui OpenGL3 backends" ON)
-option(IMGUI_SDL2       "Build ImGui SDL2 backends" ON)
-option(IMGUI_GLFW       "Build ImGui GLFW backends" ON)
-option(IMGUI_GLUT       "Build ImGui GLUT backends" OFF)
-option(IMGUI_GLEW       "Build ImGui GLEW backends" ON)
-option(IMGUI_GLES       "Build ImGui GLES backends" ON)
-option(IMGUI_MATAL      "Build ImGui Apple Metal backends" ON)
-option(IMGUI_VULKAN     "Build ImGui Vulkan backends" ON)
-option(IMGUI_DX9        "Build ImGui Direct9 backends(Windows only)" ON)
-option(IMGUI_DX10       "Build ImGui Direct10 backends(Windows only)" ON)
-option(IMGUI_DX11       "Build ImGui Direct11 backends(Windows only)" ON)
-option(IMGUI_DX12       "Build ImGui Direct12 backends(Windows only)" ON)
-option(IMGUI_FREETYPE   "Build ImGui with FreeType support" ON)
-option(IMGUI_FONTS      "Internal Fonts build in library" ON)
-option(IMGUI_ICONS      "Internal Icons build in library" ON)
-option(IMGUI_APPS       "build apps base on imgui" ON)
-option(IMGUI_APPLE_APP  "build apple app base on imgui" OFF)
+option(IMGUI_GL2            "Build ImGui OpenGL2 backends" ON)
+option(IMGUI_GL3            "Build ImGui OpenGL3 backends" ON)
+option(IMGUI_SDL2           "Build ImGui SDL2 backends" ON)
+option(IMGUI_GLFW           "Build ImGui GLFW backends" ON)
+option(IMGUI_GLUT           "Build ImGui GLUT backends" OFF)
+option(IMGUI_GLEW           "Build ImGui GLEW backends" ON)
+option(IMGUI_GLES           "Build ImGui GLES backends" ON)
+option(IMGUI_MATAL          "Build ImGui Apple Metal backends" ON)
+option(IMGUI_VULKAN         "Build ImGui Vulkan backends" ON)
+option(IMGUI_VULKAN_SHADER  "Build ImGui With Vulkan compute support" ON)
+option(IMGUI_DX9            "Build ImGui Direct9 backends(Windows only)" ON)
+option(IMGUI_DX10           "Build ImGui Direct10 backends(Windows only)" ON)
+option(IMGUI_DX11           "Build ImGui Direct11 backends(Windows only)" ON)
+option(IMGUI_DX12           "Build ImGui Direct12 backends(Windows only)" ON)
+option(IMGUI_FREETYPE       "Build ImGui with FreeType support" ON)
+option(IMGUI_FONTS          "Internal Fonts build in library" ON)
+option(IMGUI_ICONS          "Internal Icons build in library" ON)
+option(IMGUI_APPS           "build apps base on imgui" ON)
+option(IMGUI_APPLE_APP      "build apple app base on imgui" OFF)
 
 if (IMGUI_GL2 OR IMGUI_GL3)
     find_package(OpenGL)
@@ -718,6 +719,75 @@ set(IMGUI_INC_DIRS
     ${IMGUI_INC_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuizmo
 )
+
+if (IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
+    if(DEFINED ENV{PREFIX})
+        set(GLSLANG_TARGET_DIR $ENV{PREFIX}/lib/cmake CACHE PATH "Absolute path to glslangTargets.cmake directory")
+        message(STATUS "found ENV at ${GLSLANG_TARGET_DIR}")
+    else()
+        set(GLSLANG_TARGET_DIR "/usr/local/lib/cmake" CACHE PATH "Absolute path to glslangTargets.cmake directory")
+    endif()
+    if(NOT GLSLANG_TARGET_DIR AND NOT DEFINED ENV{GLSLANG_TARGET_DIR})
+        message(WARNING "GLSLANG_TARGET_DIR must be defined! IMGUI_VULKAN_SHADER will be turned off.")
+        set(IMGUI_VULKAN_SHADER OFF)
+    else()
+        message(STATUS "Using glslang install located at ${GLSLANG_TARGET_DIR}")
+        find_package(Threads)
+        include("${GLSLANG_TARGET_DIR}/OSDependentTargets.cmake")
+        include("${GLSLANG_TARGET_DIR}/OGLCompilerTargets.cmake")
+        if(EXISTS "${GLSLANG_TARGET_DIR}/HLSLTargets.cmake")
+            # hlsl support can be optional
+            include("${GLSLANG_TARGET_DIR}/HLSLTargets.cmake")
+        endif()
+        include("${GLSLANG_TARGET_DIR}/glslangTargets.cmake")
+        include("${GLSLANG_TARGET_DIR}/SPIRVTargets.cmake")
+
+        if (NOT TARGET glslang OR NOT TARGET SPIRV)
+            message(WARNING "glslang or SPIRV target not found! IMGUI_VULKAN_SHADER will be turned off.")
+            set(IMGUI_VULKAN_SHADER OFF)
+        else()
+            add_definitions(-DIMGUI_VULKAN_SHADER)
+            set(IMGUI_SRC
+                ${IMGUI_SRC}
+                addon/ImVulkanShader/option.cpp
+                addon/ImVulkanShader/allocator.cpp
+                addon/ImVulkanShader/gpu.cpp
+                addon/ImVulkanShader/command.cpp
+                addon/ImVulkanShader/pipeline.cpp
+                addon/ImVulkanShader/pipelinecache.cpp
+                addon/ImVulkanShader/Cast_vulkan.cpp
+                addon/ImVulkanShader/Packing_vulkan.cpp
+                addon/ImVulkanShader/ImVulkanShader.cpp
+            )
+            set(IMGUI_INCS
+                ${IMGUI_INCS}
+                addon/ImVulkanShader/platform.h
+                addon/ImVulkanShader/vulkan_header_fix.h
+                addon/ImVulkanShader/option.h
+                addon/ImVulkanShader/allocator.h
+                addon/ImVulkanShader/gpu.h
+                addon/ImVulkanShader/command.h
+                addon/ImVulkanShader/buffer.h
+                addon/ImVulkanShader/pipeline.h
+                addon/ImVulkanShader/pipelinecache.h
+                addon/ImVulkanShader/Cast_shader.h
+                addon/ImVulkanShader/Cast_vulkan.h
+                addon/ImVulkanShader/Packing_shader.h
+                addon/ImVulkanShader/Packing_vulkan.h
+                addon/ImVulkanShader/ImVulkanShader.h
+            )
+            set(IMGUI_INC_DIRS
+                ${IMGUI_INC_DIRS}
+                ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImVulkanShader
+            )
+            set(LINK_LIBS
+                glslang
+                SPIRV
+                ${LINK_LIBS}
+            )
+        endif()
+    endif()
+endif(IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
 
 # Addon Demo
 set(IMGUI_SRC

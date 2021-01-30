@@ -373,7 +373,7 @@ CODE
  When you are not sure about a old symbol or function name, try using the Search/Find function of your IDE to look for comments or references in all imgui files.
  You can read releases logs https://github.com/ocornut/imgui/releases for more details.
 
- - 2021/01/26 (1.81) - imgui_freetype: removed ImGuiFreeType::BuildFontAtlas() extra flags, now stored in ImFontAtlas::FontBuilderFlags.
+ - 2021/01/26 (1.81) - imgui_freetype: removed ImGuiFreeType::BuildFontAtlas(). Kept inline redirection function. Prefer using '#define IMGUI_ENABLE_FREETYPE', but there's a runtime selection path available too. The shared extra flags parameters (very rarely used) are now stored in ImFontAtlas::FontBuilderFlags.
                      - imgui_freetype: renamed ImFontConfig::RasterizerFlags (used by FreeType) to ImFontConfig::FontBuilderFlags.
                      - imgui_freetype: renamed ImGuiFreeType::XXX flags to ImGuiFreeTypeBuilderFlags_XXX for consistency with other API.
  - 2020/10/12 (1.80) - removed redirecting functions/enums that were marked obsolete in 1.63 (August 2018):
@@ -11192,5 +11192,31 @@ void ImGui::DebugNodeWindowsList(ImVector<ImGuiWindow*>*, const char*) {}
 #endif
 
 //-----------------------------------------------------------------------------
+// BanchMark utils
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#else // _WIN32
+#include <sys/time.h>
+#endif // _WIN32
+#ifdef _WIN32
+double ImGui::get_current_time()
+{
+    LARGE_INTEGER freq;
+    LARGE_INTEGER pc;
+    QueryPerformanceFrequency(&freq);
+    QueryPerformanceCounter(&pc);
 
+    return pc.QuadPart * 1000.0 / freq.QuadPart;
+}
+#else  // _WIN32
+double ImGui::get_current_time()
+{
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+
+    return tv.tv_sec * 1000.0 + tv.tv_usec / 1000.0;
+}
+#endif // _WIN32
+//-----------------------------------------------------------------------------
 #endif // #ifndef IMGUI_DISABLE

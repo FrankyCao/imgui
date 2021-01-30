@@ -2729,4 +2729,9 @@ struct ImFont
 #include "imgui_user.h"
 #endif
 
+namespace ImGui
+{
+    IMGUI_API double            get_current_time();
+} // namespace ImGui
+
 #endif // #ifndef IMGUI_DISABLE

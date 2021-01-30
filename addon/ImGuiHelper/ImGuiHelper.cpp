@@ -346,6 +346,18 @@ ImTextureID ImCreateTexture(const void* data, int width, int height)
 #endif
 }
 
+#ifdef IMGUI_VULKAN_SHADER
+ImTextureID ImCreateTexture(ImVulkan::VkImageMat & image)
+{
+    g_Textures.resize(g_Textures.size() + 1);
+    ImTexture& texture = g_Textures.back();
+    texture.TextureID = (ImTextureVk)ImVulkanImageToImTexture(image);
+    texture.Width  = image.w;
+    texture.Height = image.h;
+    return (ImTextureID)texture.TextureID;
+}
+#endif
+
 static std::vector<ImTexture>::iterator ImFindTexture(ImTextureID texture)
 {
 #if     defined(IMGUI_DX11)

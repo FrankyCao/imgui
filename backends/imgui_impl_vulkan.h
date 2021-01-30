@@ -153,6 +153,7 @@ typedef struct ImTextureVK
     VkDeviceMemory textureImageMemory = VK_NULL_HANDLE;
     VkImageView textureView = VK_NULL_HANDLE;
     VkSampler textureSampler = VK_NULL_HANDLE;
+    bool extra_image = false;
     ImTextureVK()
     {
         memset(this, 0, sizeof(*this));
@@ -160,7 +161,8 @@ typedef struct ImTextureVK
 
 } *ImTextureVk;
 
-IMGUI_IMPL_API ImTextureID  ImGui_ImplVulkan_AddTexture(VkSampler sampler, VkImageView image_view, VkImageLayout image_layout);
 IMGUI_IMPL_API ImTextureID  ImGui_ImplVulkan_CreateTexture(const void * pixels, int width, int height);
 IMGUI_IMPL_API void         ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, const void * pixels, int width, int height);
 IMGUI_IMPL_API void         ImGui_ImplVulkan_DestroyTexture(ImTextureVk * texture);
+IMGUI_IMPL_API VkDescriptorSet ImGui_ImplVulkan_AddTexture(VkSampler sampler, VkImageView image_view, VkImageLayout image_layout);
+

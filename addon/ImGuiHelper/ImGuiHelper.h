@@ -4,7 +4,9 @@
 #ifndef IMGUI_API
 #include <imgui.h>
 #endif //IMGUI_API
-
+#ifdef IMGUI_VULKAN_SHADER
+#include "gpu.h"
+#endif
 
 namespace ImGui {
 // Image load
@@ -15,7 +17,9 @@ IMGUI_API ImTextureID ImLoadTexture(const char* path);
 IMGUI_API void ImDestroyTexture(ImTextureID texture);
 IMGUI_API int ImGetTextureWidth(ImTextureID texture);
 IMGUI_API int ImGetTextureHeight(ImTextureID texture);
-
+#ifdef IMGUI_VULKAN_SHADER
+IMGUI_API ImTextureID ImCreateTexture(ImVulkan::VkImageMat & image);
+#endif
 // Experimental: tested on Ubuntu only. Should work with urls, folders and files.
 IMGUI_API bool OpenWithDefaultApplication(const char* url,bool exploreModeForWindowsOS=false);
 

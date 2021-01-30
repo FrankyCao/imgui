@@ -37,7 +37,9 @@ HOW TO UPDATE?
 
 Breaking Changes:
 
-- imgui_freetype: Removed ImGuiFreeType::BuildFontAtlas() extra flags, now stored in ImFontAtlas::FontBuilderFlags.
+- imgui_freetype: Removed ImGuiFreeType::BuildFontAtlas(). Kept inline redirection function.
+  Prefer using '#define IMGUI_ENABLE_FREETYPE', but there's a runtime selection path available too.
+  The shared extra flags parameters (very rarely used) are now stored in ImFontAtlas::FontBuilderFlags.
 - imgui_freetype: Renamed ImFontConfig::RasterizerFlags (used by FreeType) to ImFontConfig::FontBuilderFlags.
 - imgui_freetyoe: Renamed ImGuiFreeType::XXX flags to ImGuiFreeTypeBuilderFlags_XXX for consistency with other API.
 
@@ -59,6 +61,12 @@ Other Changes:
   User needs to call ImGui_ImplVulkan_LoadFunctions() with their custom loader prior to other functions.
 - Backends: Metal: Fixed texture storage mode when building on Mac Catalyst. (#3748) [@Belinsky-L-V]
 - Backends: OSX: Fixed mouse position not being reported when mouse buttons other than left one are down. (#3762) [@rokups]
+- Backends: WebGPU: Added enderer backend for WebGPU support (imgui_impl_wgpu.cpp) (#3632) [@bfierz]
+  Please note that WebGPU is currently experimental, will not run on non-beta browsers, and may break.
+- Examples: WebGPU: Added Emscripten+WebGPU example. (#3632) [@bfierz]
+- Backends: GLFW: Added ImGui_ImplGlfw_InitForWebGPU() init point. It currently has strictly no effect on anything, 
+  but because some multi-viewport renderers require knowledge of the render stack in the Platform back-end, we're 
+  adding it for consistency. (#3632)
 
 
 -----------------------------------------------------------------------
