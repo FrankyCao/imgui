@@ -396,7 +396,7 @@ bool Application_Frame(void* handle)
     if (example->show_shader_window)
     {
         ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
-        ImGui::SetNextWindowSize(ImVec2(400, 800), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(400, 850), ImGuiCond_FirstUseEver);
         ImGui::Begin("##Shader", &example->show_shader_window, ImGuiWindowFlags_NoSavedSettings);
         ImGui::ShowAddonsVulkanShaderWindow();
         ImGui::End();

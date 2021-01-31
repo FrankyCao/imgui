@@ -3682,6 +3682,16 @@ void cast_int8_to_float32(const ImageBuffer& src, ImageBuffer& dst, const Option
     cast.destroy_pipeline(opt);
 }
 
+void cast_int8_to_float16(const ImageBuffer& src, ImageBuffer& dst, const Option& opt)
+{
+    Cast_vulkan cast;
+    cast.type_from = 3;
+    cast.type_to = 2;
+    cast.create_pipeline(opt);
+    cast.forward(src, dst, opt);
+    cast.destroy_pipeline(opt);
+}
+
 void cast_float32_to_bfloat16(const ImageBuffer& src, ImageBuffer& dst, const Option& opt)
 {
     Cast_vulkan cast;

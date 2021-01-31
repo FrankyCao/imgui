@@ -346,7 +346,7 @@ void VkCompute::record_upload(const ImageBuffer& src, VkImageBuffer& dst, const 
         // cpu cast to fp16 (discrete gpu)
         if (vkdev->info.type() == 0 && (opt.use_fp16_storage || (opt.use_fp16_packed && src.elempack % 4 == 0)))
         {
-            cast_float32_to_float16(src, src_fp16, opt); // TODO::Dicky
+            cast_float32_to_float16(src, src_fp16, opt);
         }
         else
         {
@@ -407,7 +407,7 @@ void VkCompute::record_upload(const ImageBuffer& src, VkImageMat& dst, const Opt
         // cpu cast to fp16 (discrete gpu)
         if (vkdev->info.type() == 0 && (opt.use_fp16_storage || (opt.use_fp16_packed && src.elempack % 4 == 0)))
         {
-            cast_float32_to_float16(src, src_fp16, opt); // TODO::Dicky
+            cast_float32_to_float16(src, src_fp16, opt);
         }
         else
         {
@@ -416,7 +416,10 @@ void VkCompute::record_upload(const ImageBuffer& src, VkImageMat& dst, const Opt
     }
     else
     {
-        src_fp16 = src;
+        if (src.type == INT8)
+            cast_int8_to_float32(src, src_fp16, opt);
+        else
+            src_fp16 = src;
     }
 
     // upload
@@ -1912,7 +1915,7 @@ int VkCompute::submit_and_wait()
 
             Option opt;
             opt.blob_allocator = dst.allocator;
-            cast_float16_to_float32(src, dst, opt); // TODO::Dicky
+            cast_float16_to_float32(src, dst, opt);
             break;
         }
         default:
@@ -2479,7 +2482,7 @@ void VkTransfer::record_upload(const ImageBuffer& src, VkImageBuffer& dst, const
         if (opt.use_fp16_storage || (opt.use_fp16_packed && src.elempack % 4 == 0))
         {
             ImageBuffer src_fp16;
-            cast_float32_to_float16(src, src_fp16); // TODO::Dicky
+            cast_float32_to_float16(src, src_fp16);
 
             record_upload(src_fp16, dst, opt, flatten);
 
@@ -2656,7 +2659,7 @@ void VkTransfer::record_upload(const ImageBuffer& src, VkImageMat& dst, const Op
         if (opt.use_fp16_storage || (opt.use_fp16_packed && src.elempack % 4 == 0))
         {
             ImageBuffer src_fp16;
-            cast_float32_to_float16(src, src_fp16); // TODO::Dicky
+            cast_float32_to_float16(src, src_fp16);
 
             record_upload(src_fp16, dst, opt);
 

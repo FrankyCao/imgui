@@ -311,6 +311,7 @@ IMGUI_API int resolve_shader_info(const uint32_t* spv_data, size_t spv_data_size
 IMGUI_API void cast_float32_to_float16(const ImageBuffer& src, ImageBuffer& dst, const Option& opt = Option());
 IMGUI_API void cast_float16_to_float32(const ImageBuffer& src, ImageBuffer& dst, const Option& opt = Option());
 IMGUI_API void cast_int8_to_float32(const ImageBuffer& src, ImageBuffer& dst, const Option& opt = Option());
+IMGUI_API void cast_int8_to_float16(const ImageBuffer& src, ImageBuffer& dst, const Option& opt = Option());
 IMGUI_API void cast_float32_to_bfloat16(const ImageBuffer& src, ImageBuffer& dst, const Option& opt = Option());
 IMGUI_API void cast_bfloat16_to_float32(const ImageBuffer& src, ImageBuffer& dst, const Option& opt = Option());
 

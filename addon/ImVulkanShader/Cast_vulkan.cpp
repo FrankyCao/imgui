@@ -440,6 +440,20 @@ int Cast_vulkan::forward(const ImageBuffer& bottom_blob, ImageBuffer& top_blob, 
         }
     }
 
+    if (type_from == 3 && type_to == 2)
+    {
+        #pragma omp parallel for num_threads(opt.num_threads)
+        for (int q = 0; q < channels; q++)
+        {
+            const signed char* ptr = bottom_blob.channel(q);
+            unsigned short* outptr = top_blob.channel(q);
+
+            for (int i = 0; i < size; i++)
+            {
+                outptr[i] = float32_to_float16((float)ptr[i]);
+            }
+        }
+    }
     // TODO more cast type
 
     return 0;
