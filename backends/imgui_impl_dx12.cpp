@@ -474,7 +474,7 @@ bool    ImGui_ImplDX12_CreateDeviceObjects()
             if (d3d12_dll == NULL)
                 return false;
         }
-
+#ifdef _MSC_VER
         PFN_D3D12_SERIALIZE_ROOT_SIGNATURE D3D12SerializeRootSignatureFn = (PFN_D3D12_SERIALIZE_ROOT_SIGNATURE)::GetProcAddress(d3d12_dll, "D3D12SerializeRootSignature");
         if (D3D12SerializeRootSignatureFn == NULL)
             return false;
@@ -485,6 +485,7 @@ bool    ImGui_ImplDX12_CreateDeviceObjects()
 
         g_pd3dDevice->CreateRootSignature(0, blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(&g_pRootSignature));
         blob->Release();
+#endif
     }
 
     // By using D3DCompile() from <d3dcompiler.h> / d3dcompiler.lib, we introduce a dependency to a given version of d3dcompiler_XX.dll (see D3DCOMPILER_DLL_A)

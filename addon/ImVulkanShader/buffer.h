@@ -28,7 +28,11 @@ enum ColorSpace {
     SRGB = 0,
     BT601,
     BT709,
-    BT2020
+    BT2020,
+    HSV,
+    HLS,
+    CMY,
+    LAB
 };
 
 enum ColorFormat {
@@ -2345,5 +2349,7 @@ inline VkImageView VkImageMat::imageview() const
 {
     return data->imageview;
 }
+
+extern const ImageBuffer * color_table[2][2][4];
 
 } // namespace ImVulkan 

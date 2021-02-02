@@ -924,7 +924,9 @@ static float fp16sv8[8] = {0.f};
 static int loop_count = 100;
 static int block_count = 10;
 static int cmd_count = 10;
-
+#define TEST_WIDTH      256
+#define TEST_HEIGHT     256
+#define TEST_CHANNEL    4
 void PrepareVulkanDemo()
 {
     g_vkdev = ImVulkan::get_gpu_device(0);
@@ -934,24 +936,26 @@ void PrepareVulkanDemo()
     g_opt.staging_vkallocator = g_staging_allocator;
     g_opt.use_image_storage = true;
 
-    float * tempBitmap = new float[256 * 256 * 4];
-    for (int y = 0; y < 256; y++)
+    float * tempBitmap = new float[TEST_WIDTH * TEST_HEIGHT * TEST_CHANNEL];
+    for (int y = 0; y < TEST_HEIGHT; y++)
     {
-        for (int x = 0; x < 256; x++)
+        for (int x = 0; x < TEST_WIDTH; x++)
         {
             float dx = x + .5f;
             float dy = y + .5f;
             float dv = sinf(x * 0.02f) + sinf(0.03f * (x + y)) + sinf(sqrtf(0.4f * (dx * dx + dy * dy) + 1.f));
             
-            tempBitmap[(256 * 256) * 0 + y * 256 + x] = fabsf(sinf(dv * 3.141592f + 1.f * 3.141592f / 3.f));
-            tempBitmap[(256 * 256) * 1 + y * 256 + x] = fabsf(sinf(dv * 3.141592f + 2.f * 3.141592f / 3.f));
-            tempBitmap[(256 * 256) * 2 + y * 256 + x] = fabsf(sinf(dv * 3.141592f + 4.f * 3.141592f / 3.f));
-            tempBitmap[(256 * 256) * 3 + y * 256 + x] = 1.f;
-            
+            for (int c = 0; c < TEST_CHANNEL; c++)
+            {
+                if (c == 3)
+                    tempBitmap[(TEST_WIDTH * TEST_HEIGHT) * c + y * TEST_WIDTH + x] = 1.f;
+                else
+                    tempBitmap[(TEST_WIDTH * TEST_HEIGHT) * c + y * TEST_WIDTH + x] = fabsf(sinf(dv * 3.141592f + (c + 1) * 3.141592f / 3.f));
+            }
         }
     }
     ImVulkan::ImageBuffer test_image;
-    test_image.create_type(256, 256, 4, tempBitmap, ImVulkan::FLOAT32);
+    test_image.create_type(TEST_WIDTH, TEST_HEIGHT, TEST_CHANNEL, tempBitmap, ImVulkan::FLOAT32);
     g_cmd = new ImVulkan::VkCompute(g_vkdev);
     g_cmd->record_upload(test_image, test_vkimage, g_opt);
     g_cmd->submit_and_wait();

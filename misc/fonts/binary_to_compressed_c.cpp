@@ -20,7 +20,9 @@
 //   # binary_to_compressed_c.exe myfont.ttf MyFont > myfont.cpp
 //   # binary_to_compressed_c.exe -base85 myfont.ttf MyFont > myfont.cpp
 
+#ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
+#endif
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

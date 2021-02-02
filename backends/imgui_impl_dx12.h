@@ -15,13 +15,14 @@
 
 #pragma once
 #include "imgui.h"      // IMGUI_IMPL_API
+#include <dxgiformat.h>
 
 #ifdef _MSC_VER
 #pragma warning (push)
 #pragma warning (disable: 4471) // a forward declaration of an unscoped enumeration must have an underlying type
 #endif
 
-enum DXGI_FORMAT;
+//enum DXGI_FORMAT;
 struct ID3D12Device;
 struct ID3D12DescriptorHeap;
 struct ID3D12GraphicsCommandList;

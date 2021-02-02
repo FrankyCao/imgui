@@ -25,7 +25,7 @@ struct IUnknown;
 
 #include <imgui_internal.h>
 
-#ifndef _WIN32
+#ifdef IMGUI_OPENGL
 // About Desktop OpenGL function loaders:
 //  Modern desktop OpenGL doesn't have a standard portable header file to load OpenGL function pointers.
 //  Helper libraries are often used for this purpose! Here we are supporting a few common ones (gl3w, glew, glad).
@@ -75,7 +75,14 @@ using namespace gl;
 #endif
 
 
-#if     defined(IMGUI_DX11)
+#if     defined(IMGUI_VULKAN)
+struct ImTexture
+{
+    ImTextureVk TextureID = nullptr;
+    int     Width     = 0;
+    int     Height    = 0;
+};
+#elif   defined(IMGUI_DX11)
 extern ID3D11Device* g_pd3dDevice;
 struct ImTexture
 {
@@ -90,13 +97,6 @@ struct ImTexture
     LPDIRECT3DTEXTURE9 TextureID = nullptr;
     int    Width     = 0;
     int    Height    = 0;
-};
-#elif   defined(IMGUI_VULKAN)
-struct ImTexture
-{
-    ImTextureVk TextureID = nullptr;
-    int     Width     = 0;
-    int     Height    = 0;
 };
 #elif   defined(IMGUI_OPENGL)
 struct ImTexture
@@ -122,7 +122,19 @@ void ImGenerateOrUpdateTexture(ImTextureID& imtexid,int width,int height,int cha
 {
     IM_ASSERT(pixels);
     IM_ASSERT(channels>0 && channels<=4);
-#if     defined(IMGUI_DX11)
+#if     defined(IMGUI_VULKAN)
+    if (imtexid == 0)
+    {
+        g_Textures.resize(g_Textures.size() + 1);
+        ImTexture& texture = g_Textures.back();
+        texture.TextureID = (ImTextureVk)ImGui_ImplVulkan_CreateTexture(pixels, width, height);
+        texture.Width  = width;
+        texture.Height = height;
+        imtexid = texture.TextureID;
+        return;
+    }
+    ImGui_ImplVulkan_UpdateTexture(imtexid, pixels, width, height);
+#elif   defined(IMGUI_DX11)
     auto textureID = (ID3D11ShaderResourceView *)imtexid;
     if (textureID)
     {
@@ -158,18 +170,6 @@ void ImGenerateOrUpdateTexture(ImTextureID& imtexid,int width,int height,int cha
         }
     }
     texid->UnlockRect(0);
-#elif   defined(IMGUI_VULKAN)
-    if (imtexid == 0)
-    {
-        g_Textures.resize(g_Textures.size() + 1);
-        ImTexture& texture = g_Textures.back();
-        texture.TextureID = (ImTextureVk)ImGui_ImplVulkan_CreateTexture(pixels, width, height);
-        texture.Width  = width;
-        texture.Height = height;
-        imtexid = texture.TextureID;
-        return;
-    }
-    ImGui_ImplVulkan_UpdateTexture(imtexid, pixels, width, height);
 #elif   defined(IMGUI_OPENGL)
     GLuint& texid = reinterpret_cast<GLuint&>(imtexid);
     if (texid==0) 
@@ -262,7 +262,14 @@ void ImGenerateOrUpdateTexture(ImTextureID& imtexid,int width,int height,int cha
 
 ImTextureID ImCreateTexture(const void* data, int width, int height)
 {
-#if     defined(IMGUI_DX11)
+#if     defined(IMGUI_VULKAN)
+    g_Textures.resize(g_Textures.size() + 1);
+    ImTexture& texture = g_Textures.back();
+    texture.TextureID = (ImTextureVk)ImGui_ImplVulkan_CreateTexture(data, width, height);
+    texture.Width  = width;
+    texture.Height = height;
+    return (ImTextureID)texture.TextureID;
+#elif   defined(IMGUI_DX11)
     if (!g_pd3dDevice)
         return nullptr;
     g_Textures.resize(g_Textures.size() + 1);
@@ -316,13 +323,6 @@ ImTextureID ImCreateTexture(const void* data, int width, int height)
         memcpy((unsigned char*)tex_locked_rect.pBits + tex_locked_rect.Pitch * y, (unsigned char* )data + (width * bytes_per_pixel) * y, (width * bytes_per_pixel));
     texture.TextureID->UnlockRect(0);
     return (ImTextureID)texture.TextureID;
-#elif   defined(IMGUI_VULKAN)
-    g_Textures.resize(g_Textures.size() + 1);
-    ImTexture& texture = g_Textures.back();
-    texture.TextureID = (ImTextureVk)ImGui_ImplVulkan_CreateTexture(data, width, height);
-    texture.Width  = width;
-    texture.Height = height;
-    return (ImTextureID)texture.TextureID;
 #elif   defined(IMGUI_OPENGL)
     g_Textures.resize(g_Textures.size() + 1);
     ImTexture& texture = g_Textures.back();
@@ -360,12 +360,12 @@ ImTextureID ImCreateTexture(ImVulkan::VkImageMat & image)
 
 static std::vector<ImTexture>::iterator ImFindTexture(ImTextureID texture)
 {
-#if     defined(IMGUI_DX11)
+#if     defined(IMGUI_VULKAN)
+    auto textureID = reinterpret_cast<ImTextureVk>(texture);
+#elif   defined(IMGUI_DX11)
     auto textureID = (ID3D11ShaderResourceView *)texture;
 #elif   defined(IMGUI_DX9)
     auto textureID = reinterpret_cast<LPDIRECT3DTEXTURE9>(texture);
-#elif   defined(IMGUI_VULKAN)
-    auto textureID = reinterpret_cast<ImTextureVk>(texture);
 #elif   defined(IMGUI_OPENGL)
     auto textureID = static_cast<GLuint>(reinterpret_cast<std::intptr_t>(texture));
 #else
@@ -382,7 +382,13 @@ void ImDestroyTexture(ImTextureID texture)
     auto textureIt = ImFindTexture(texture);
     if (textureIt == g_Textures.end())
         return;
-#if     defined(IMGUI_DX11)
+#if     defined(IMGUI_VULKAN)
+    if (textureIt->TextureID)
+    {
+        ImGui_ImplVulkan_DestroyTexture(&textureIt->TextureID);
+        textureIt->TextureID = nullptr;
+    }
+#elif   defined(IMGUI_DX11)
     if (textureIt->TextureID)
     {
         textureIt->TextureID->Release();
@@ -392,12 +398,6 @@ void ImDestroyTexture(ImTextureID texture)
     if (textureIt->TextureID)
     {
         textureIt->TextureID->Release();
-        textureIt->TextureID = nullptr;
-    }
-#elif   defined(IMGUI_VULKAN)
-    if (textureIt->TextureID)
-    {
-        ImGui_ImplVulkan_DestroyTexture(&textureIt->TextureID);
         textureIt->TextureID = nullptr;
     }
 #elif   defined(IMGUI_OPENGL)

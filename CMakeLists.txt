@@ -61,13 +61,14 @@ if (IMGUI_FREETYPE)
     find_package(Freetype)
 endif(IMGUI_FREETYPE)
 
+if(NOT WIN32)
 find_package(OpenCV)
-
 if (OPENCV_FOUND)
     include_directories(
         ${OpenCV_INCLUDE_DIRS}
     )
 endif(OPENCV_FOUND)
+endif(NOT WIN32)
 
 if(PKG_CONFIG_FOUND)
     if(IMGUI_GLEW)
@@ -721,7 +722,9 @@ set(IMGUI_INC_DIRS
 )
 
 if (IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
-    if(DEFINED ENV{PREFIX})
+    if(WIN32)
+        set(GLSLANG_TARGET_DIR "C:\\msys64\\mingw64\\lib\\cmake" CACHE PATH "Absolute path to glslangTargets.cmake directory")
+    elseif(DEFINED ENV{PREFIX})
         set(GLSLANG_TARGET_DIR $ENV{PREFIX}/lib/cmake CACHE PATH "Absolute path to glslangTargets.cmake directory")
         message(STATUS "found ENV at ${GLSLANG_TARGET_DIR}")
     else()
@@ -753,6 +756,7 @@ if (IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
                 addon/ImVulkanShader/allocator.cpp
                 addon/ImVulkanShader/gpu.cpp
                 addon/ImVulkanShader/command.cpp
+                addon/ImVulkanShader/color.cpp
                 addon/ImVulkanShader/pipeline.cpp
                 addon/ImVulkanShader/pipelinecache.cpp
                 addon/ImVulkanShader/Cast_vulkan.cpp
@@ -801,45 +805,46 @@ set(IMGUI_INCS
 )
 
 # Application Framework
+set(IMGUI_APP_SRC)
 if (IMGUI_APPS)
-    if (WIN32 AND (IMGUI_DX11 OR IMGUI_DX9))
-        if (IMGUI_DX11)
-            set(IMGUI_SRC
-                ${IMGUI_SRC}
-                apps/application/source/dx11/entry.cpp
-            )
-        else(IMGUI_DX11)
-            set(IMGUI_SRC
-                ${IMGUI_SRC}
-                apps/application/source/dx9/entry.cpp
-            )
-        endif(IMGUI_DX11)
-    elseif(VULKAN_FOUND AND IMGUI_VULKAN AND SDL2_FOUND AND IMGUI_SDL2)
-        set(IMGUI_SRC
-            ${IMGUI_SRC}
+    if(VULKAN_FOUND AND IMGUI_VULKAN AND SDL2_FOUND AND IMGUI_SDL2)
+        set(IMGUI_APP_SRC
+            ${IMGUI_APP_SRC}
             apps/application/source/vulkan/entry_sdl.cpp
         )
     elseif(VULKAN_FOUND AND IMGUI_VULKAN AND GLFW_FOUND AND IMGUI_GLFW)
-        set(IMGUI_SRC
-            ${IMGUI_SRC}
+        set(IMGUI_APP_SRC
+            ${IMGUI_APP_SRC}
             apps/application/source/vulkan/entry_glfw.cpp
         )
+    elseif (WIN32 AND (IMGUI_DX11 OR IMGUI_DX9))
+        if (IMGUI_DX11)
+            set(IMGUI_APP_SRC
+                ${IMGUI_APP_SRC}
+                apps/application/source/dx11/entry.cpp
+            )
+        else(IMGUI_DX11)
+            set(IMGUI_APP_SRC
+                ${IMGUI_APP_SRC}
+                apps/application/source/dx9/entry.cpp
+            )
+        endif(IMGUI_DX11)
     elseif(GLFW_FOUND AND IMGUI_GLFW)
-        set(IMGUI_SRC
-            ${IMGUI_SRC}
+        set(IMGUI_APP_SRC
+            ${IMGUI_APP_SRC}
             apps/application/source/glfw/entry.cpp
         )
     elseif(SDL2_FOUND AND IMGUI_SDL2 AND IMGUI_OPENGL)
-        set(IMGUI_SRC
-            ${IMGUI_SRC}
+        set(IMGUI_APP_SRC
+            ${IMGUI_APP_SRC}
             apps/application/source/sdl/entry.cpp
         )
     elseif(GLUT_FOUND AND IMGUI_GLUT)
-        set(IMGUI_SRC
-            ${IMGUI_SRC}
+        set(IMGUI_APP_SRC
+            ${IMGUI_APP_SRC}
             apps/application/source/glut/entry.cpp
         )
-    endif(WIN32 AND (IMGUI_DX11 OR IMGUI_DX9))
+    endif()
     set(IMGUI_INCS
         ${IMGUI_INCS}
         apps/application/include/application.h
@@ -1095,6 +1100,7 @@ if (IMGUI_APPS)
     add_executable(
         example_node_edit_simple
         test/example_node_edit_simple.cpp
+        ${IMGUI_APP_SRC}
     )
     target_link_libraries(
         example_node_edit_simple
@@ -1105,6 +1111,7 @@ if (IMGUI_APPS)
     add_executable(
         example_node_edit_basic_interaction
         test/example_node_edit_basic_interaction.cpp
+        ${IMGUI_APP_SRC}
     )
     target_link_libraries(
         example_node_edit_basic_interaction
@@ -1115,6 +1122,7 @@ if (IMGUI_APPS)
     add_executable(
         example_node_edit_canvas
         test/example_node_edit_canvas.cpp
+        ${IMGUI_APP_SRC}
     )
     target_link_libraries(
         example_node_edit_canvas
@@ -1125,6 +1133,7 @@ if (IMGUI_APPS)
     add_executable(
         example_application
         test/example_application.cpp
+        ${IMGUI_APP_SRC}
     )
     target_link_libraries(
         example_application
@@ -1135,6 +1144,7 @@ if (IMGUI_APPS)
         add_executable(
             example_video
             test/example_video.cpp
+            ${IMGUI_APP_SRC}
         )
         target_link_libraries(
             example_video
