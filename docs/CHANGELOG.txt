@@ -48,11 +48,26 @@ Other Changes:
 - Tables: Fixed PopItemWidth() or multi-components items not restoring per-colum ItemWidth correctly. (#3760)
 - Window: Fixed minor title bar text clipping issue when FramePadding is small/zero and there are no
   close button in the window. (#3731)
-- imgui_freetype: Facilitated using FreeType integration: [@Xipiryon, @ocornut]
+- SliderInt: Fixed click/drag when v_min==v_max from setting the value to zero. (#3774) [@erwincoumans]
+  Would also repro with DragFloat() when using ImGuiSliderFlags_Logarithmic with v_min==v_max.
+- Menus: Fixed an issue with child-menu auto sizing (issue introduced in 1.80 on 2021/01/25) (#3779)
+- InputText: Fixed slightly off ScrollX tracking, noticeable with large values of FramePadding.x. (#3781)
+- InputText: Multiline: Fixed padding/cliprect not precisely matching single-line version. (#3781)
+- InputText: Multiline: Fixed FramePadding.y worth of vertical offset when aiming with mouse.
+- Fonts: imgui_freetype: Facilitated using FreeType integration: [@Xipiryon, @ocornut]
   - Use '#define IMGUI_ENABLE_FREETYPE' in imconfig.h should make it work with no other modifications
     other than compiling misc/freetype/imgui_freetype.cpp and linking with FreeType.
   - Use '#define IMGUI_ENABLE_STB_TRUETYPE' if you somehow need the stb_truetype rasterizer to be
     compiled in along with the FreeType one, otherwise it is enabled by default.
+- Fonts: imgui_freetype: Added support for colored glyphs as supported by Freetype 2.10+ (for .ttf using CPAL/COLR 
+  tables only). Enable the ImGuiFreeTypeBuilderFlags_LoadColor on a given font. Atlas always output directly
+  as RGBA8 in this situation. Likely to make sense with IMGUI_USE_WCHAR32. (#3369) [@pshurgal]
+- Fonts: Fixed CalcTextSize() width rounding so it behaves more like a ceil. This is in order for text wrapping
+  to have enough space when provided width precisely calculated with CalcTextSize().x. (#3776)
+  Note that the rounding of either positions and widths are technically undesirable (e.g. #3437, #791) but
+  variety of code is currently on it so we are first fixing current behavior before we'll eventually change it.
+- Log/Capture: Fix various new line/spacing issue when logging widgets. [@Xipiryon, @ocornut]
+- Log/Capture: Improved the ascii look of various widgets, making large dumps more easily human readable.
 - ImDrawList: Fixed AddCircle()/AddCircleFilled() with (rad > 0.0f && rad < 1.0f && num_segments == 0). (#3738)
   Would lead to a buffer read overflow.
 - Backends: Win32: Dynamically loading XInput DLL instead of linking with it, facilite compiling with

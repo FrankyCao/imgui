@@ -29,25 +29,27 @@ include_directories(
 
 find_package(PkgConfig)
 
-option(IMGUI_GL2            "Build ImGui OpenGL2 backends" ON)
-option(IMGUI_GL3            "Build ImGui OpenGL3 backends" ON)
-option(IMGUI_SDL2           "Build ImGui SDL2 backends" ON)
-option(IMGUI_GLFW           "Build ImGui GLFW backends" ON)
-option(IMGUI_GLUT           "Build ImGui GLUT backends" OFF)
-option(IMGUI_GLEW           "Build ImGui GLEW backends" ON)
-option(IMGUI_GLES           "Build ImGui GLES backends" ON)
-option(IMGUI_MATAL          "Build ImGui Apple Metal backends" ON)
-option(IMGUI_VULKAN         "Build ImGui Vulkan backends" ON)
-option(IMGUI_VULKAN_SHADER  "Build ImGui With Vulkan compute support" ON)
-option(IMGUI_DX9            "Build ImGui Direct9 backends(Windows only)" ON)
-option(IMGUI_DX10           "Build ImGui Direct10 backends(Windows only)" ON)
-option(IMGUI_DX11           "Build ImGui Direct11 backends(Windows only)" ON)
-option(IMGUI_DX12           "Build ImGui Direct12 backends(Windows only)" ON)
-option(IMGUI_FREETYPE       "Build ImGui with FreeType support" ON)
-option(IMGUI_FONTS          "Internal Fonts build in library" ON)
-option(IMGUI_ICONS          "Internal Icons build in library" ON)
-option(IMGUI_APPS           "build apps base on imgui" ON)
-option(IMGUI_APPLE_APP      "build apple app base on imgui" OFF)
+option(IMGUI_GL2                "Build ImGui OpenGL2 backends" ON)
+option(IMGUI_GL3                "Build ImGui OpenGL3 backends" ON)
+option(IMGUI_SDL2               "Build ImGui SDL2 backends" ON)
+option(IMGUI_GLFW               "Build ImGui GLFW backends" ON)
+option(IMGUI_GLUT               "Build ImGui GLUT backends" OFF)
+option(IMGUI_GLEW               "Build ImGui GLEW backends" ON)
+option(IMGUI_GLES               "Build ImGui GLES backends" ON)
+option(IMGUI_MATAL              "Build ImGui Apple Metal backends" ON)
+option(IMGUI_VULKAN             "Build ImGui Vulkan backends" ON)
+option(IMGUI_VULKAN_SHADER      "Build ImGui With Vulkan compute support" ON)
+option(IMGUI_VULKAN_BENCHMARK   "Build ImGui With Vulkan Shader Benchmark" OFF)
+option(IMGUI_DX9                "Build ImGui Direct9 backends(Windows only)" ON)
+option(IMGUI_DX10               "Build ImGui Direct10 backends(Windows only)" ON)
+option(IMGUI_DX11               "Build ImGui Direct11 backends(Windows only)" ON)
+option(IMGUI_DX12               "Build ImGui Direct12 backends(Windows only)" ON)
+option(IMGUI_FREETYPE           "Build ImGui with FreeType support" ON)
+option(IMGUI_FONTS              "Internal Fonts build in library" ON)
+option(IMGUI_ICONS              "Internal Icons build in library" ON)
+option(IMGUI_APPS               "build apps base on imgui" ON)
+option(IMGUI_APPLE_APP          "build apple app base on imgui" OFF)
+option(IMGUI_FFMPEG             "Build ImGui ffmpeg support" ON)
 
 if (IMGUI_GL2 OR IMGUI_GL3)
     find_package(OpenGL)
@@ -84,6 +86,16 @@ if(PKG_CONFIG_FOUND)
         pkg_search_module(SDL2 REQUIRED sdl2)
         pkg_search_module(SDL2_IMAGE REQUIRED SDL2_image>=2.0.0)
     endif(IMGUI_SDL2)
+    if (IMGUI_FFMPEG)
+        pkg_check_modules(FFMPEG REQUIRED IMPORTED_TARGET
+            libavcodec
+            libavformat
+            libavutil
+            libswresample
+            libavfilter
+            libavdevice
+        )
+    endif(IMGUI_FFMPEG)
 endif(PKG_CONFIG_FOUND)
 
 # base include
@@ -116,6 +128,19 @@ if(IMGUI_FREETYPE AND FREETYPE_FOUND)
         ${FREETYPE_LIBRARIES}
     )
 endif(IMGUI_FREETYPE AND FREETYPE_FOUND)
+
+if(FFMPEG_FOUND)
+    message(STATUS "Found FFMPEG libraries")
+    add_definitions(-DIMGUI_FFMPEG)
+    set(IMGUI_INC_DIRS
+        ${IMGUI_INC_DIRS}
+        ${FFMPEG_INCLUDE_DIRS}
+    )
+    set(LINK_LIBS
+        ${LINK_LIBS}
+        PkgConfig::FFMPEG
+    )
+endif()
 
 # base sources
 set(IMGUI_SRC
@@ -750,6 +775,9 @@ if (IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
             set(IMGUI_VULKAN_SHADER OFF)
         else()
             add_definitions(-DIMGUI_VULKAN_SHADER)
+            if(IMGUI_VULKAN_BENCHMARK)
+                add_definitions(-DSHADER_BENCHMARK)
+            endif(IMGUI_VULKAN_BENCHMARK)
             set(IMGUI_SRC
                 ${IMGUI_SRC}
                 addon/ImVulkanShader/option.cpp

@@ -360,14 +360,7 @@ void VkCompute::record_upload(const ImageBuffer& src, VkImageBuffer& dst, const 
 
     // upload
     VkImageBuffer dst_staging;
-    if (opt.blob_vkallocator->mappable)
-    {
-        dst_staging.create_like(src_fp16, opt.blob_vkallocator);
-    }
-    else
-    {
-        dst_staging.create_like(src_fp16, opt.staging_vkallocator);
-    }
+    dst_staging.create_like(src_fp16, opt.staging_vkallocator);
     if (dst_staging.empty())
         return;
 
@@ -424,14 +417,7 @@ void VkCompute::record_upload(const ImageBuffer& src, VkImageMat& dst, const Opt
 
     // upload
     VkImageBuffer dst_staging;
-    if (opt.blob_vkallocator->mappable)
-    {
-        dst_staging.create_like(src_fp16, opt.blob_vkallocator);
-    }
-    else
-    {
-        dst_staging.create_like(src_fp16, opt.staging_vkallocator);
-    }
+    dst_staging.create_like(src_fp16, opt.staging_vkallocator);
     if (dst_staging.empty())
         return;
 
@@ -753,35 +739,25 @@ void VkCompute::record_image_to_buffer(const VkImageMat& src, VkImageBuffer& dst
 
 void VkCompute::record_clone(const ImageBuffer& src, VkImageBuffer& dst, const Option& opt)
 {
-    if (!opt.blob_vkallocator->mappable)
-    {
-        // host to staging
-        VkImageBuffer dst_staging;
-        Option opt_staging = opt;
-        opt_staging.blob_vkallocator = opt.staging_vkallocator;
-        record_clone(src, dst_staging, opt_staging);
-
-        // staging to device
-        record_clone(dst_staging, dst, opt);
-
-        // stash staging
-        d->upload_staging_buffers.push_back(dst_staging);
-
-        return;
-    }
-
-    // create dst
-    dst.create_like(src, opt.blob_vkallocator);
-    if (dst.empty())
+    // host to staging
+    VkImageBuffer dst_staging;
+    dst_staging.create_like(src, opt.staging_vkallocator);
+    if (dst_staging.empty())
         return;
 
     // memcpy src to device
-    memcpy(dst.mapped_ptr(), src.data, src.total() * src.elemsize);
-    dst.allocator->flush(dst.data);
+    memcpy(dst_staging.mapped_ptr(), src.data, src.total() * src.elemsize);
+    dst_staging.allocator->flush(dst_staging.data);
 
     // mark device host-write @ null
-    dst.data->access_flags = VK_ACCESS_HOST_WRITE_BIT;
-    dst.data->stage_flags = VK_PIPELINE_STAGE_HOST_BIT;
+    dst_staging.data->access_flags = VK_ACCESS_HOST_WRITE_BIT;
+    dst_staging.data->stage_flags = VK_PIPELINE_STAGE_HOST_BIT;
+
+    // staging to device
+    record_clone(dst_staging, dst, opt);
+
+    // stash staging
+    d->upload_staging_buffers.push_back(dst_staging);
 }
 
 void VkCompute::record_clone(const ImageBuffer& src, VkImageMat& dst, const Option& opt)
