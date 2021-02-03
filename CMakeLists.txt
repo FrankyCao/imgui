@@ -15,6 +15,45 @@ if (POLICY CMP0072)
 endif()
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
+macro(_OPTION variable description value)
+    set(__value ${value})
+    set(__condition "")
+    set(__varname "__value")
+    foreach(arg ${ARGN})
+        if(arg STREQUAL "IF" OR arg STREQUAL "if")
+            set(__varname "__condition")
+        else()
+            list(APPEND ${__varname} ${arg})
+        endif()
+    endforeach()
+    unset(__varname)
+    if(__condition STREQUAL "")
+        set(__condition 2 GREATER 1)
+    endif()
+
+    if(${__condition})
+        if(__value MATCHES ";")
+            if(${__value})
+                option(${variable} "${description}" ON)
+            else()
+                option(${variable} "${description}" OFF)
+            endif()
+        elseif(DEFINED ${__value})
+            if(${__value})
+                option(${variable} "${description}" ON)
+            else()
+                option(${variable} "${description}" OFF)
+            endif()
+        else()
+            option(${variable} "${description}" ${__value})
+        endif()
+    else()
+        unset(${variable} CACHE)
+    endif()
+    unset(__condition)
+    unset(__value)
+endmacro()
+
 if(WIN32) 
     add_definitions(-D_CRT_SECURE_NO_WARNINGS) 
 endif() 
@@ -29,27 +68,28 @@ include_directories(
 
 find_package(PkgConfig)
 
-option(IMGUI_GL2                "Build ImGui OpenGL2 backends" ON)
-option(IMGUI_GL3                "Build ImGui OpenGL3 backends" ON)
-option(IMGUI_SDL2               "Build ImGui SDL2 backends" ON)
-option(IMGUI_GLFW               "Build ImGui GLFW backends" ON)
-option(IMGUI_GLUT               "Build ImGui GLUT backends" OFF)
-option(IMGUI_GLEW               "Build ImGui GLEW backends" ON)
-option(IMGUI_GLES               "Build ImGui GLES backends" ON)
-option(IMGUI_MATAL              "Build ImGui Apple Metal backends" ON)
-option(IMGUI_VULKAN             "Build ImGui Vulkan backends" ON)
-option(IMGUI_VULKAN_SHADER      "Build ImGui With Vulkan compute support" ON)
-option(IMGUI_VULKAN_BENCHMARK   "Build ImGui With Vulkan Shader Benchmark" OFF)
-option(IMGUI_DX9                "Build ImGui Direct9 backends(Windows only)" ON)
-option(IMGUI_DX10               "Build ImGui Direct10 backends(Windows only)" ON)
-option(IMGUI_DX11               "Build ImGui Direct11 backends(Windows only)" ON)
-option(IMGUI_DX12               "Build ImGui Direct12 backends(Windows only)" ON)
-option(IMGUI_FREETYPE           "Build ImGui with FreeType support" ON)
-option(IMGUI_FONTS              "Internal Fonts build in library" ON)
-option(IMGUI_ICONS              "Internal Icons build in library" ON)
-option(IMGUI_APPS               "build apps base on imgui" ON)
-option(IMGUI_APPLE_APP          "build apple app base on imgui" OFF)
-option(IMGUI_FFMPEG             "Build ImGui ffmpeg support" ON)
+_OPTION(IMGUI_GL2                "Build ImGui OpenGL2 backends" ON)
+_OPTION(IMGUI_GL3                "Build ImGui OpenGL3 backends" ON)
+_OPTION(IMGUI_SDL2               "Build ImGui SDL2 backends" ON)
+_OPTION(IMGUI_GLFW               "Build ImGui GLFW backends" ON)
+_OPTION(IMGUI_GLUT               "Build ImGui GLUT backends" OFF)
+_OPTION(IMGUI_GLEW               "Build ImGui GLEW backends" ON)
+_OPTION(IMGUI_GLES               "Build ImGui GLES backends" ON)
+_OPTION(IMGUI_MATAL              "Build ImGui Apple Metal backends(Apple only)" ON IF APPLE)
+_OPTION(IMGUI_VULKAN             "Build ImGui Vulkan backends" ON)
+_OPTION(IMGUI_VULKAN_SHADER      "Build ImGui With Vulkan compute support" ON)
+_OPTION(IMGUI_VULKAN_BENCHMARK   "Build ImGui With Vulkan Shader Benchmark" OFF)
+_OPTION(IMGUI_DX9                "Build ImGui Direct9 backends(Windows only)" ON IF WIN32)
+_OPTION(IMGUI_DX10               "Build ImGui Direct10 backends(Windows only)" ON IF WIN32)
+_OPTION(IMGUI_DX11               "Build ImGui Direct11 backends(Windows only)" ON IF WIN32)
+_OPTION(IMGUI_DX12               "Build ImGui Direct12 backends(Windows only)" ON IF WIN32)
+_OPTION(IMGUI_FREETYPE           "Build ImGui with FreeType support" ON)
+_OPTION(IMGUI_FONTS              "Internal Fonts build in library" ON)
+_OPTION(IMGUI_ICONS              "Internal Icons build in library" ON)
+_OPTION(IMGUI_ADDONS             "build addons base on imgui" OFF)
+_OPTION(IMGUI_APPS               "build apps base on imgui" ON)
+_OPTION(IMGUI_APPLE_APP          "build apple app base on imgui(Apple only)" OFF IF APPLE)
+_OPTION(IMGUI_FFMPEG             "Build ImGui ffmpeg support" ON)
 
 if (IMGUI_GL2 OR IMGUI_GL3)
     find_package(OpenGL)
@@ -428,7 +468,6 @@ if (IMGUI_ICONS)
         icons/webfont.cpp
         icons/fork_webfont.cpp
         icons/material_icons.cpp
-        icons/NumberTexture.cpp
     )
 endif(IMGUI_ICONS)
 
@@ -440,6 +479,8 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/misc/freetype
 )
 
+if(IMGUI_ADDONS)
+add_definitions(-DIMGUI_ADDONS)
 # ImGuiHelper
 set(IMGUI_SRC
     ${IMGUI_SRC}
@@ -825,12 +866,15 @@ endif(IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
 set(IMGUI_SRC
     ${IMGUI_SRC}
     addon/addons_demo.cpp
+    addon/NumberTexture.cpp
 )
 
 set(IMGUI_INCS
     ${IMGUI_INCS}
     addon/addons_demo.h
+    addon/NumberTexture.h
 )
+endif(IMGUI_ADDONS)
 
 # Application Framework
 set(IMGUI_APP_SRC)
@@ -933,16 +977,18 @@ if (SDL2_FOUND AND IMGUI_SDL2)
         imgui
         ${LINK_LIBS}
     )
-    add_executable(
-        example_sdl_rendering
-        test/example_sdl_rendering.cpp
-    )
-    target_link_libraries(
-        example_sdl_rendering
-        imgui
-        ${LINK_LIBS}
-    )
-    if (OPENCV_FOUND)
+    if(IMGUI_ADDONS)
+        add_executable(
+            example_sdl_rendering
+            test/example_sdl_rendering.cpp
+        )
+        target_link_libraries(
+            example_sdl_rendering
+            imgui
+            ${LINK_LIBS}
+        )
+    endif(IMGUI_ADDONS)
+    if (OPENCV_FOUND AND IMGUI_ADDONS)
         add_executable(
             example_sdl_video
             test/example_sdl_video.cpp
@@ -953,7 +999,7 @@ if (SDL2_FOUND AND IMGUI_SDL2)
             ${OpenCV_LIBS}
             ${LINK_LIBS}
         )
-    endif(OPENCV_FOUND)
+    endif(OPENCV_FOUND AND IMGUI_ADDONS)
     # Build Android examples
     if(ANDROID AND IMGUI_GLES)
         add_executable(
@@ -1125,39 +1171,40 @@ if(WIN32)
 endif(WIN32)
 
 if (IMGUI_APPS)
-    add_executable(
-        example_node_edit_simple
-        test/example_node_edit_simple.cpp
-        ${IMGUI_APP_SRC}
-    )
-    target_link_libraries(
-        example_node_edit_simple
-        imgui
-        ${LINK_LIBS}
-    )
+    if (IMGUI_ADDONS)
+        add_executable(
+            example_node_edit_simple
+            test/example_node_edit_simple.cpp
+            ${IMGUI_APP_SRC}
+        )
+        target_link_libraries(
+            example_node_edit_simple
+            imgui
+            ${LINK_LIBS}
+        )
 
-    add_executable(
-        example_node_edit_basic_interaction
-        test/example_node_edit_basic_interaction.cpp
-        ${IMGUI_APP_SRC}
-    )
-    target_link_libraries(
-        example_node_edit_basic_interaction
-        imgui
-        ${LINK_LIBS}
-    )
+        add_executable(
+            example_node_edit_basic_interaction
+            test/example_node_edit_basic_interaction.cpp
+            ${IMGUI_APP_SRC}
+        )
+        target_link_libraries(
+            example_node_edit_basic_interaction
+            imgui
+            ${LINK_LIBS}
+        )
 
-    add_executable(
-        example_node_edit_canvas
-        test/example_node_edit_canvas.cpp
-        ${IMGUI_APP_SRC}
-    )
-    target_link_libraries(
-        example_node_edit_canvas
-        imgui
-        ${LINK_LIBS}
-    )
-
+        add_executable(
+            example_node_edit_canvas
+            test/example_node_edit_canvas.cpp
+            ${IMGUI_APP_SRC}
+        )
+        target_link_libraries(
+            example_node_edit_canvas
+            imgui
+            ${LINK_LIBS}
+        )
+    endif (IMGUI_ADDONS)
     add_executable(
         example_application
         test/example_application.cpp
@@ -1168,7 +1215,7 @@ if (IMGUI_APPS)
         imgui
         ${LINK_LIBS}
     )
-    if (OPENCV_FOUND)
+    if (OPENCV_FOUND AND IMGUI_ADDONS)
         add_executable(
             example_video
             test/example_video.cpp
@@ -1180,7 +1227,7 @@ if (IMGUI_APPS)
             ${OpenCV_LIBS}
             ${LINK_LIBS}
         )
-    endif(OPENCV_FOUND)
+    endif(OPENCV_FOUND AND IMGUI_ADDONS)
 endif(IMGUI_APPS)
 
 get_directory_property(hasParent PARENT_DIRECTORY)

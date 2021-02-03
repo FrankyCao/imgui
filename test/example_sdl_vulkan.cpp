@@ -14,6 +14,7 @@
 #include "imgui_impl_vulkan.h"
 #include <stdio.h>          // printf, fprintf
 #include <stdlib.h>         // abort
+#include <string>
 #include <SDL.h>
 #include <SDL_vulkan.h>
 #include <vulkan/vulkan.h>
@@ -441,7 +442,9 @@ int main(int, char**)
     // Our state
     bool show_demo_window = true;
     bool show_another_window = false;
+#ifdef IMGUI_ADDONS
     bool show_addon_widget = false;
+#endif
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     // Main loop
@@ -496,8 +499,9 @@ int main(int, char**)
             ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
             ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
             ImGui::Checkbox("Another Window", &show_another_window);
+#ifdef IMGUI_ADDONS
             ImGui::Checkbox("Show Addon Widgets", &show_addon_widget);
-
+#endif
             ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
             ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
 
@@ -520,6 +524,7 @@ int main(int, char**)
             ImGui::End();
         }
 
+#ifdef IMGUI_ADDONS
         // 4. Show Addon Widget.
         if (show_addon_widget)
         {
@@ -528,7 +533,7 @@ int main(int, char**)
             ImGui::ShowAddonsDemoWindowWidgets();
             ImGui::End();
         }
-
+#endif
         // Rendering
         ImGui::Render();
         ImDrawData* draw_data = ImGui::GetDrawData();
@@ -541,9 +546,11 @@ int main(int, char**)
         }
     }
 
+#ifdef IMGUI_ADDONS
     // Cleanup Demo
     ImGui::CleanupDemo();
     ImGui::CleanupZMODemo();
+#endif
 
     // Cleanup
     err = vkDeviceWaitIdle(g_Device);

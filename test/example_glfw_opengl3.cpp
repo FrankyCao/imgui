@@ -13,6 +13,7 @@
 #include <cerrno>
 #include "Config.h"
 
+#ifdef IMGUI_ADDONS
 static std::string get_file_contents(const char *filename)
 {
     std::ifstream infile(filename, std::ios::in | std::ios::binary);
@@ -79,6 +80,7 @@ static void ExampleMarkdownFormatCallback( const ImGui::MarkdownFormatInfo& mark
         }
     }
 }
+#endif
 
 // About Desktop OpenGL function loaders:
 //  Modern desktop OpenGL doesn't have a standard portable header file to load OpenGL function pointers.
@@ -199,7 +201,9 @@ int main(int, char**)
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
+#ifdef IMGUI_ADDONS
     ImPlot::CreateContext();
+#endif
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     std::string ini_file = std::string(DEFAULT_CONFIG_PATH) + "glfw_opengl3.ini";
     io.IniFilename = ini_file.c_str();
@@ -230,6 +234,7 @@ int main(int, char**)
     //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
     //IM_ASSERT(font != NULL);
 
+#ifdef IMGUI_ADDONS
     // load file dialog resource
     ImGuiFileDialog filedialog;
     std::string bookmark_path = std::string(DEFAULT_CONFIG_PATH) + "bookmark.ini";
@@ -273,10 +278,13 @@ int main(int, char**)
         {"Play/Stop", "Play or stop the animation from the current graph", 0xFFFFFF3F},
         {"SetKey", "Make a new animation key with the current parameters values at the current time", 0xFFFFFF1F}
     };
+#endif
 
     // Our state
     bool show_demo_window = true;
     bool show_another_window = false;
+
+#ifdef IMGUI_ADDONS
     bool show_implot_window = false;
     bool show_file_dialog_window = false;
     bool show_sample_file_dialog = false;
@@ -288,6 +296,7 @@ int main(int, char**)
     bool show_node_edit_window = false;
     bool show_addon_widget = false;
     bool show_zmo_window = false;
+#endif
 
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
@@ -320,6 +329,7 @@ int main(int, char**)
             ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
             ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
             ImGui::Checkbox("Another Window", &show_another_window);
+#ifdef IMGUI_ADDONS
             ImGui::Checkbox("ImPlot Window", &show_implot_window);
             ImGui::Checkbox("File Dialog Window", &show_file_dialog_window);
             ImGui::Checkbox("Sample File Dialog", &show_sample_file_dialog);
@@ -346,7 +356,7 @@ int main(int, char**)
             {
                 // handle the hotkey index!
             }
-
+#endif
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
             ImGui::End();
         }
@@ -361,6 +371,7 @@ int main(int, char**)
             ImGui::End();
         }
 
+#ifdef IMGUI_ADDONS
         // 4. Show ImPlot simple window
         if (show_implot_window)
         {
@@ -473,6 +484,7 @@ int main(int, char**)
             ImGui::ShowAddonsZMOWindow();
             ImGui::End();
         }
+#endif
 
         // Rendering
         ImGui::Render();
@@ -485,6 +497,8 @@ int main(int, char**)
 
         glfwSwapBuffers(window);
     }
+
+#ifdef IMGUI_ADDONS
     // Cleanup memory edit resource
     if (data)
         free(data);
@@ -500,11 +514,13 @@ int main(int, char**)
     ImGui::CleanupDemo();
     ImGui::CleanupZMODemo();
     nge.clear();
-
+#endif
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
+#ifdef IMGUI_ADDONS
     ImPlot::DestroyContext();
+#endif
     ImGui::DestroyContext();
 
     glfwDestroyWindow(window);

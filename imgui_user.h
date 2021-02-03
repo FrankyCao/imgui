@@ -31,5 +31,4 @@ extern "C" {
 #include "ImGuiNodeGraphEditor.h"
 #include "ImGuiVariousControls.h"
 
-#include "icons/icons.h"
 #include "addon/addons_demo.h"

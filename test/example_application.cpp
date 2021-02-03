@@ -11,6 +11,7 @@
 #endif
 #include "Config.h"
 
+#ifdef IMGUI_ADDONS
 // Init HotKey
 static std::vector<ImHotKey::HotKey> hotkeys = 
 { 
@@ -20,12 +21,14 @@ static std::vector<ImHotKey::HotKey> hotkeys =
     {"Play/Stop", "Play or stop the animation from the current graph", 0xFFFFFF3F},
     {"SetKey", "Make a new animation key with the current parameters values at the current time", 0xFFFFFF1F}
 };
+#endif
 
 class Example
 {
 public:
     Example() 
     {
+#ifdef IMGUI_ADDONS
         std::string node_save_path;
         // load file dialog resource
         std::string bookmark_path = std::string(DEFAULT_CONFIG_PATH) + "bookmark.ini";
@@ -50,9 +53,11 @@ public:
 #ifdef IMGUI_VULKAN_SHADER
         ImGui::PrepareVulkanDemo();
 #endif
+#endif
     };
     ~Example() 
-    { 
+    {
+#ifdef IMGUI_ADDONS
         if (data)
             free(data); 
 
@@ -70,9 +75,14 @@ public:
 #ifdef IMGUI_VULKAN_SHADER
         ImGui::CleanVulkanDemo();
 #endif
+#endif
     }
 
 public:
+    bool show_demo_window = true;
+    bool show_another_window = false;
+
+#ifdef IMGUI_ADDONS
     // init file dialog
     ImGuiFileDialog filedialog;
 
@@ -93,8 +103,6 @@ public:
     ImGui::NodeGraphEditor nge;
 
 public:
-    bool show_demo_window = true;
-    bool show_another_window = false;
     bool show_implot_window = false;
     bool show_file_dialog_window = false;
     bool show_sample_file_dialog = false;
@@ -116,8 +124,10 @@ public:
 public:
     bool show_shader_window = false;
 #endif
+#endif
 };
 
+#ifdef IMGUI_ADDONS
 std::string Example::get_file_contents(const char *filename)
 {
     std::ifstream infile(filename, std::ios::in | std::ios::binary);
@@ -187,6 +197,7 @@ void Example::ExampleMarkdownFormatCallback( const ImGui::MarkdownFormatInfo& ma
         }
     }
 }
+#endif
 
 static std::string ini_file = std::string(DEFAULT_CONFIG_PATH) + "Application_Example.ini";
 
@@ -199,6 +210,9 @@ void Application_Initialize(void** handle)
 {
     *handle = new Example();
     Example * example = (Example *)*handle;
+#ifdef IMGUI_ADDONS
+    ImPlot::CreateContext();
+#endif
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.IniFilename = ini_file.c_str();
 }
@@ -211,6 +225,9 @@ void Application_Finalize(void** handle)
         delete example;
         *handle = nullptr;
     }
+#ifdef IMGUI_ADDONS
+    ImPlot::DestroyContext();
+#endif
 }
 
 bool Application_Frame(void* handle)
@@ -234,6 +251,7 @@ bool Application_Frame(void* handle)
         ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
         ImGui::Checkbox("Demo Window", &example->show_demo_window);      // Edit bools storing our window open/close state
         ImGui::Checkbox("Another Window", &example->show_another_window);
+#ifdef IMGUI_ADDONS
         ImGui::Checkbox("ImPlot Window", &example->show_implot_window);
         ImGui::Checkbox("File Dialog Window", &example->show_file_dialog_window);
         ImGui::Checkbox("Sample File Dialog", &example->show_sample_file_dialog);
@@ -249,6 +267,7 @@ bool Application_Frame(void* handle)
 #ifdef IMGUI_VULKAN_SHADER
         ImGui::Checkbox("Show Shader Window", &example->show_shader_window);
 #endif
+
         // show hotkey window
         if (ImGui::Button("Edit Hotkeys"))
         {
@@ -262,6 +281,7 @@ bool Application_Frame(void* handle)
         {
             // handle the hotkey index!
         }
+#endif
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
         ImGui::End();
     }
@@ -276,6 +296,7 @@ bool Application_Frame(void* handle)
         ImGui::End();
     }
 
+#ifdef IMGUI_ADDONS
     // 4. Show ImPlot simple window
     if (example->show_implot_window)
     {
@@ -401,6 +422,7 @@ bool Application_Frame(void* handle)
         ImGui::ShowAddonsVulkanShaderWindow();
         ImGui::End();
     }
+#endif
 #endif
     return done;
 }

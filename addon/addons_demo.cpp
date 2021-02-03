@@ -1,4 +1,5 @@
 #include "addons_demo.h"
+#include "NumberTexture.h"
 
 ImTextureID ImageTextureNumber = 0;
 

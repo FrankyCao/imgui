@@ -1,4 +1,4 @@
-#include "texture.h"
+#include "NumberTexture.h"
 
 const int NumberTexture_width = 128;
 const int NumberTexture_height = 128;

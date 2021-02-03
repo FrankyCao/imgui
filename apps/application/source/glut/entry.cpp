@@ -69,7 +69,6 @@ int main(int argc, char** argv)
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImPlot::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.FontGlobalScale = window_scale;
     // Setup Dear ImGui style
@@ -90,7 +89,6 @@ int main(int argc, char** argv)
 
     ImGui_ImplOpenGL2_Shutdown();
     ImGui_ImplGLUT_Shutdown();
-    ImPlot::DestroyContext();
     ImGui::DestroyContext();
 
     return 0;

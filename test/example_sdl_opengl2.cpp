@@ -11,6 +11,7 @@
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_opengl2.h"
 #include <stdio.h>
+#include <string>
 #include <SDL.h>
 #include <SDL_opengl.h>
 #include "Config.h"

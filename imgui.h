@@ -2730,6 +2730,10 @@ struct ImFont
 #include "imgui_user.h"
 #endif
 
+#if defined(IMGUI_INTERNAL_ICONS) || defined(IMGUI_ADDONS)
+#include "icons/icons.h"
+#endif
+
 namespace ImGui
 {
     IMGUI_API double            get_current_time();
