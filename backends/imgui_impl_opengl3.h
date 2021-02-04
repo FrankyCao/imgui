@@ -85,4 +85,3 @@ IMGUI_IMPL_API void     ImGui_ImplOpenGL3_DestroyDeviceObjects();
 #endif
 
 #endif
-

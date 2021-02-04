@@ -89,7 +89,6 @@ _OPTION(IMGUI_ICONS              "Internal Icons build in library" ON)
 _OPTION(IMGUI_ADDONS             "build addons base on imgui" OFF)
 _OPTION(IMGUI_APPS               "build apps base on imgui" ON)
 _OPTION(IMGUI_APPLE_APP          "build apple app base on imgui(Apple only)" OFF IF APPLE)
-_OPTION(IMGUI_FFMPEG             "Build ImGui ffmpeg support" ON)
 
 if (IMGUI_GL2 OR IMGUI_GL3)
     find_package(OpenGL)
@@ -126,16 +125,14 @@ if(PKG_CONFIG_FOUND)
         pkg_search_module(SDL2 REQUIRED sdl2)
         pkg_search_module(SDL2_IMAGE REQUIRED SDL2_image>=2.0.0)
     endif(IMGUI_SDL2)
-    if (IMGUI_FFMPEG)
-        pkg_check_modules(FFMPEG REQUIRED IMPORTED_TARGET
-            libavcodec
-            libavformat
-            libavutil
-            libswresample
-            libavfilter
-            libavdevice
-        )
-    endif(IMGUI_FFMPEG)
+    pkg_check_modules(FFMPEG REQUIRED IMPORTED_TARGET
+        libavcodec
+        libavformat
+        libavutil
+        libswresample
+        libavfilter
+        libavdevice
+    )
 endif(PKG_CONFIG_FOUND)
 
 # base include
@@ -169,9 +166,7 @@ if(IMGUI_FREETYPE AND FREETYPE_FOUND)
     )
 endif(IMGUI_FREETYPE AND FREETYPE_FOUND)
 
-if(FFMPEG_FOUND)
-    message(STATUS "Found FFMPEG libraries")
-    add_definitions(-DIMGUI_FFMPEG)
+if (FFMPEG_FOUND)
     set(IMGUI_INC_DIRS
         ${IMGUI_INC_DIRS}
         ${FFMPEG_INCLUDE_DIRS}
@@ -180,7 +175,7 @@ if(FFMPEG_FOUND)
         ${LINK_LIBS}
         PkgConfig::FFMPEG
     )
-endif()
+endif(FFMPEG_FOUND)
 
 # base sources
 set(IMGUI_SRC
@@ -480,400 +475,400 @@ set(IMGUI_INC_DIRS
 )
 
 if(IMGUI_ADDONS)
-add_definitions(-DIMGUI_ADDONS)
-# ImGuiHelper
-set(IMGUI_SRC
-    ${IMGUI_SRC}
-    addon/ImGuiHelper/ImGuiHelper.cpp
-)
-set(IMGUI_INCS
-    ${IMGUI_INCS}
-    addon/ImGuiHelper/ImGuiHelper.h
-)
-set(IMGUI_INC_DIRS
-    ${IMGUI_INC_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiHelper
-)
-
-# ImGuiFileSystem
-set(IMGUI_SRC
-    ${IMGUI_SRC}
-    addon/ImGuiFileSystem/ImGuiFileSystem.cpp
-)
-set(IMGUI_INCS
-    ${IMGUI_INCS}
-    addon/ImGuiFileSystem/ImGuiFileSystem.h
-    addon/ImGuiFileSystem/dirent_portable.h
-)
-
-if (NOT WIN32)
+    add_definitions(-DIMGUI_ADDONS)
+    # ImGuiHelper
     set(IMGUI_SRC
         ${IMGUI_SRC}
-        addon/ImGuiFileSystem/minizip/zip.c
-        addon/ImGuiFileSystem/minizip/unzip.c
-        addon/ImGuiFileSystem/minizip/ioapi.c
+        addon/ImGuiHelper/ImGuiHelper.cpp
     )
     set(IMGUI_INCS
         ${IMGUI_INCS}
-        addon/ImGuiFileSystem/minizip/zip.h
-        addon/ImGuiFileSystem/minizip/unzip.h
-        addon/ImGuiFileSystem/minizip/ioapi.h
-        addon/ImGuiFileSystem/minizip/crypt.h
+        addon/ImGuiHelper/ImGuiHelper.h
     )
-endif(NOT WIN32)
+    set(IMGUI_INC_DIRS
+        ${IMGUI_INC_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiHelper
+    )
 
-set(IMGUI_INC_DIRS
-    ${IMGUI_INC_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiFileSystem
-)
+    # ImGuiFileSystem
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
+        addon/ImGuiFileSystem/ImGuiFileSystem.cpp
+    )
+    set(IMGUI_INCS
+        ${IMGUI_INCS}
+        addon/ImGuiFileSystem/ImGuiFileSystem.h
+        addon/ImGuiFileSystem/dirent_portable.h
+    )
 
-# ImGuiFileDialog
-set(IMGUI_SRC
-    ${IMGUI_SRC}
-    addon/ImGuiFileDialog/ImGuiFileDialog.cpp
-    addon/ImGuiFileDialog/ImGuiFileDialogDemo.cpp
-)
-set(IMGUI_INCS
-    ${IMGUI_INCS}
-    addon/ImGuiFileDialog/ImGuiFileDialog.h
-)
-set(IMGUI_INC_DIRS
-    ${IMGUI_INC_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiFileDialog
-)
+    if (NOT WIN32)
+        set(IMGUI_SRC
+            ${IMGUI_SRC}
+            addon/ImGuiFileSystem/minizip/zip.c
+            addon/ImGuiFileSystem/minizip/unzip.c
+            addon/ImGuiFileSystem/minizip/ioapi.c
+        )
+        set(IMGUI_INCS
+            ${IMGUI_INCS}
+            addon/ImGuiFileSystem/minizip/zip.h
+            addon/ImGuiFileSystem/minizip/unzip.h
+            addon/ImGuiFileSystem/minizip/ioapi.h
+            addon/ImGuiFileSystem/minizip/crypt.h
+        )
+    endif(NOT WIN32)
 
-# implot
-set(IMGUI_SRC
-    ${IMGUI_SRC}
-    addon/implot/implot.cpp
-    addon/implot/implot_items.cpp
-    addon/implot/implot_demo.cpp
-)
-set(IMGUI_INCS
-    ${IMGUI_INCS}
-    addon/implot/implot.h
-    addon/implot/implot_internal.h
-)
-set(IMGUI_INC_DIRS
-    ${IMGUI_INC_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/addon/implot
-)
+    set(IMGUI_INC_DIRS
+        ${IMGUI_INC_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiFileSystem
+    )
 
-# Progress Indicators
-set(IMGUI_SRC
-    ${IMGUI_SRC}
-    addon/ProgressIndicators/ProgressIndicators.cpp
-)
-set(IMGUI_INCS
-    ${IMGUI_INCS}
-    addon/ProgressIndicators/ProgressIndicators.h
-)
-set(IMGUI_INC_DIRS
-    ${IMGUI_INC_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/addon/ProgressIndicators
-)
+    # ImGuiFileDialog
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
+        addon/ImGuiFileDialog/ImGuiFileDialog.cpp
+        addon/ImGuiFileDialog/ImGuiFileDialogDemo.cpp
+    )
+    set(IMGUI_INCS
+        ${IMGUI_INCS}
+        addon/ImGuiFileDialog/ImGuiFileDialog.h
+    )
+    set(IMGUI_INC_DIRS
+        ${IMGUI_INC_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiFileDialog
+    )
 
-# Splitter Window
-set(IMGUI_SRC
-    ${IMGUI_SRC}
-    addon/Splitter/Splitter.cpp
-)
-set(IMGUI_INCS
-    ${IMGUI_INCS}
-    addon/Splitter/Splitter.h
-)
-set(IMGUI_INC_DIRS
-    ${IMGUI_INC_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/addon/Splitter
-)
+    # implot
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
+        addon/implot/implot.cpp
+        addon/implot/implot_items.cpp
+        addon/implot/implot_demo.cpp
+    )
+    set(IMGUI_INCS
+        ${IMGUI_INCS}
+        addon/implot/implot.h
+        addon/implot/implot_internal.h
+    )
+    set(IMGUI_INC_DIRS
+        ${IMGUI_INC_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/addon/implot
+    )
 
-# Colorful Text Edit
-set(IMGUI_SRC
-    ${IMGUI_SRC}
-    addon/TextEditor/TextEditor.cpp
-)
-set(IMGUI_INCS
-    ${IMGUI_INCS}
-    addon/TextEditor/TextEditor.h
-)
-set(IMGUI_INC_DIRS
-    ${IMGUI_INC_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/addon/TextEditor
-)
+    # Progress Indicators
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
+        addon/ProgressIndicators/ProgressIndicators.cpp
+    )
+    set(IMGUI_INCS
+        ${IMGUI_INCS}
+        addon/ProgressIndicators/ProgressIndicators.h
+    )
+    set(IMGUI_INC_DIRS
+        ${IMGUI_INC_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/addon/ProgressIndicators
+    )
 
-# Memory Editor
-set(IMGUI_INCS
-    ${IMGUI_INCS}
-    addon/MemoryEditor/imgui_memory_editor.h
-)
-set(IMGUI_INC_DIRS
-    ${IMGUI_INC_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/addon/MemoryEditor
-)
+    # Splitter Window
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
+        addon/Splitter/Splitter.cpp
+    )
+    set(IMGUI_INCS
+        ${IMGUI_INCS}
+        addon/Splitter/Splitter.h
+    )
+    set(IMGUI_INC_DIRS
+        ${IMGUI_INC_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/addon/Splitter
+    )
 
-# Simple Markdown
-set(IMGUI_INC_DIRS
-    ${IMGUI_INC_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/addon/markdown
-)
+    # Colorful Text Edit
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
+        addon/TextEditor/TextEditor.cpp
+    )
+    set(IMGUI_INCS
+        ${IMGUI_INCS}
+        addon/TextEditor/TextEditor.h
+    )
+    set(IMGUI_INC_DIRS
+        ${IMGUI_INC_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/addon/TextEditor
+    )
 
-# Simple dock window
-set(IMGUI_SRC
-    ${IMGUI_SRC}
-    addon/imguiDock/imgui_dock.cpp
-)
-set(IMGUI_INCS
-    ${IMGUI_INCS}
-    addon/imguiDock/imgui_dock.h
-)
-set(IMGUI_INC_DIRS
-    ${IMGUI_INC_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/addon/imguiDock
-)
+    # Memory Editor
+    set(IMGUI_INCS
+        ${IMGUI_INCS}
+        addon/MemoryEditor/imgui_memory_editor.h
+    )
+    set(IMGUI_INC_DIRS
+        ${IMGUI_INC_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/addon/MemoryEditor
+    )
 
-# Tab Window
-set(IMGUI_SRC
-    ${IMGUI_SRC}
-    addon/ImGuiTabWindow/ImGuiTabWindow.cpp
-)
-set(IMGUI_INCS
-    ${IMGUI_INCS}
-    addon/ImGuiTabWindow/ImGuiTabWindow.h
-)
-set(IMGUI_INC_DIRS
-    ${IMGUI_INC_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiTabWindow
-)
+    # Simple Markdown
+    set(IMGUI_INC_DIRS
+        ${IMGUI_INC_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/addon/markdown
+    )
 
-# Simple nodes
-set(IMGUI_SRC
-    ${IMGUI_SRC}
-    addon/imnodes/imnodes.cpp
-    addon/imnodes/imnodes_demo.cpp
-)
-set(IMGUI_INCS
-    ${IMGUI_INCS}
-    addon/imnodes/imnodes.h
-)
-set(IMGUI_INC_DIRS
-    ${IMGUI_INC_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/addon/imnodes
-)
+    # Simple dock window
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
+        addon/imguiDock/imgui_dock.cpp
+    )
+    set(IMGUI_INCS
+        ${IMGUI_INCS}
+        addon/imguiDock/imgui_dock.h
+    )
+    set(IMGUI_INC_DIRS
+        ${IMGUI_INC_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/addon/imguiDock
+    )
 
-# Node Graph Edit
-set(IMGUI_SRC
-    ${IMGUI_SRC}
-    addon/ImGuiNodeGraphEditor/ImGuiNodeGraphEditor.cpp
-)
-set(IMGUI_INCS
-    ${IMGUI_INCS}
-    addon/ImGuiNodeGraphEditor/ImGuiNodeGraphEditor.h
-)
-set(IMGUI_INC_DIRS
-    ${IMGUI_INC_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiNodeGraphEditor
-)
+    # Tab Window
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
+        addon/ImGuiTabWindow/ImGuiTabWindow.cpp
+    )
+    set(IMGUI_INCS
+        ${IMGUI_INCS}
+        addon/ImGuiTabWindow/ImGuiTabWindow.h
+    )
+    set(IMGUI_INC_DIRS
+        ${IMGUI_INC_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiTabWindow
+    )
 
-# Simple TimeLine
-set(IMGUI_SRC
-    ${IMGUI_SRC}
-    addon/Timeline/Timeline.cpp
-)
-set(IMGUI_INCS
-    ${IMGUI_INCS}
-    addon/Timeline/Timeline.h
-)
-set(IMGUI_INC_DIRS
-    ${IMGUI_INC_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/addon/Timeline
-)
+    # Simple nodes
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
+        addon/imnodes/imnodes.cpp
+        addon/imnodes/imnodes_demo.cpp
+    )
+    set(IMGUI_INCS
+        ${IMGUI_INCS}
+        addon/imnodes/imnodes.h
+    )
+    set(IMGUI_INC_DIRS
+        ${IMGUI_INC_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/addon/imnodes
+    )
 
-# KNob
-set(IMGUI_SRC
-    ${IMGUI_SRC}
-    addon/imgui_knob/imgui_knob.cpp
-)
-set(IMGUI_INCS
-    ${IMGUI_INCS}
-    addon/imgui_knob/imgui_knob.h
-)
-set(IMGUI_INC_DIRS
-    ${IMGUI_INC_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/addon/imgui_knob
-)
+    # Node Graph Edit
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
+        addon/ImGuiNodeGraphEditor/ImGuiNodeGraphEditor.cpp
+    )
+    set(IMGUI_INCS
+        ${IMGUI_INCS}
+        addon/ImGuiNodeGraphEditor/ImGuiNodeGraphEditor.h
+    )
+    set(IMGUI_INC_DIRS
+        ${IMGUI_INC_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiNodeGraphEditor
+    )
 
-# HotKeys
-set(IMGUI_INCS
-    ${IMGUI_INCS}
-    addon/HotKey/HotKey.h
-)
-set(IMGUI_INC_DIRS
-    ${IMGUI_INC_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/addon/HotKey
-)
+    # Simple TimeLine
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
+        addon/Timeline/Timeline.cpp
+    )
+    set(IMGUI_INCS
+        ${IMGUI_INCS}
+        addon/Timeline/Timeline.h
+    )
+    set(IMGUI_INC_DIRS
+        ${IMGUI_INC_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/addon/Timeline
+    )
 
-# Date Chooser
-set(IMGUI_SRC
-    ${IMGUI_SRC}
-    addon/ImGuiDateChooser/ImGuiDateChooser.cpp
-)
-set(IMGUI_INCS
-    ${IMGUI_INCS}
-    addon/ImGuiDateChooser/ImGuiDateChooser.h
-)
-set(IMGUI_INC_DIRS
-    ${IMGUI_INC_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiDateChooser
-)
+    # KNob
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
+        addon/imgui_knob/imgui_knob.cpp
+    )
+    set(IMGUI_INCS
+        ${IMGUI_INCS}
+        addon/imgui_knob/imgui_knob.h
+    )
+    set(IMGUI_INC_DIRS
+        ${IMGUI_INC_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/addon/imgui_knob
+    )
 
-# Node Editor
-set(IMGUI_SRC
-    ${IMGUI_SRC}
-    addon/imgui_node_editor/crude_json.cpp
-    addon/imgui_node_editor/imgui_canvas.cpp
-    addon/imgui_node_editor/imgui_node_editor_api.cpp
-    addon/imgui_node_editor/imgui_node_editor.cpp
-)
-set(IMGUI_INCS
-    ${IMGUI_INCS}
-    addon/imgui_node_editor/crude_json.h
-    addon/imgui_node_editor/imgui_bezier_math.h
-    addon/imgui_node_editor/imgui_bezier_math.inl
-    addon/imgui_node_editor/imgui_canvas.h
-    addon/imgui_node_editor/imgui_extra_math.h
-    addon/imgui_node_editor/imgui_extra_math.inl
-    addon/imgui_node_editor/imgui_node_editor_internal.h
-    addon/imgui_node_editor/imgui_node_editor_internal.inl
-    addon/imgui_node_editor/imgui_node_editor.h
-)
-set(IMGUI_INC_DIRS
-    ${IMGUI_INC_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/addon/imgui_node_editor
-)
+    # HotKeys
+    set(IMGUI_INCS
+        ${IMGUI_INCS}
+        addon/HotKey/HotKey.h
+    )
+    set(IMGUI_INC_DIRS
+        ${IMGUI_INC_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/addon/HotKey
+    )
 
-# Various Controls
-set(IMGUI_SRC
-    ${IMGUI_SRC}
-    addon/ImGuiVariousControls/ImGuiVariousControls.cpp
-)
-set(IMGUI_INCS
-    ${IMGUI_INCS}
-    addon/ImGuiVariousControls/ImGuiVariousControls.h
-)
-set(IMGUI_INC_DIRS
-    ${IMGUI_INC_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiVariousControls
-)
+    # Date Chooser
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
+        addon/ImGuiDateChooser/ImGuiDateChooser.cpp
+    )
+    set(IMGUI_INCS
+        ${IMGUI_INCS}
+        addon/ImGuiDateChooser/ImGuiDateChooser.h
+    )
+    set(IMGUI_INC_DIRS
+        ${IMGUI_INC_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiDateChooser
+    )
 
-# ImGuizmo
-set(IMGUI_SRC
-    ${IMGUI_SRC}
-    addon/ImGuizmo/ImGuizmo.cpp
-    addon/ImGuizmo/ImCurveEdit.cpp
-    addon/ImGuizmo/ImGradient.cpp
-    addon/ImGuizmo/ImSequencer.cpp
-    addon/ImGuizmo/ImGuizmoDemo.cpp
-)
-set(IMGUI_INCS
-    ${IMGUI_INCS}
-    addon/ImGuizmo/ImGuizmo.h
-    addon/ImGuizmo/ImCurveEdit.h
-    addon/ImGuizmo/ImGradient.h
-    addon/ImGuizmo/ImSequencer.h
-    addon/ImGuizmo/ImZoomSlider.h
-)
-set(IMGUI_INC_DIRS
-    ${IMGUI_INC_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuizmo
-)
+    # Node Editor
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
+        addon/imgui_node_editor/crude_json.cpp
+        addon/imgui_node_editor/imgui_canvas.cpp
+        addon/imgui_node_editor/imgui_node_editor_api.cpp
+        addon/imgui_node_editor/imgui_node_editor.cpp
+    )
+    set(IMGUI_INCS
+        ${IMGUI_INCS}
+        addon/imgui_node_editor/crude_json.h
+        addon/imgui_node_editor/imgui_bezier_math.h
+        addon/imgui_node_editor/imgui_bezier_math.inl
+        addon/imgui_node_editor/imgui_canvas.h
+        addon/imgui_node_editor/imgui_extra_math.h
+        addon/imgui_node_editor/imgui_extra_math.inl
+        addon/imgui_node_editor/imgui_node_editor_internal.h
+        addon/imgui_node_editor/imgui_node_editor_internal.inl
+        addon/imgui_node_editor/imgui_node_editor.h
+    )
+    set(IMGUI_INC_DIRS
+        ${IMGUI_INC_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/addon/imgui_node_editor
+    )
 
-if (IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
-    if(WIN32)
-        set(GLSLANG_TARGET_DIR "C:\\msys64\\mingw64\\lib\\cmake" CACHE PATH "Absolute path to glslangTargets.cmake directory")
-    elseif(DEFINED ENV{PREFIX})
-        set(GLSLANG_TARGET_DIR $ENV{PREFIX}/lib/cmake CACHE PATH "Absolute path to glslangTargets.cmake directory")
-        message(STATUS "found ENV at ${GLSLANG_TARGET_DIR}")
-    else()
-        set(GLSLANG_TARGET_DIR "/usr/local/lib/cmake" CACHE PATH "Absolute path to glslangTargets.cmake directory")
-    endif()
-    if(NOT GLSLANG_TARGET_DIR AND NOT DEFINED ENV{GLSLANG_TARGET_DIR})
-        message(WARNING "GLSLANG_TARGET_DIR must be defined! IMGUI_VULKAN_SHADER will be turned off.")
-        set(IMGUI_VULKAN_SHADER OFF)
-    else()
-        message(STATUS "Using glslang install located at ${GLSLANG_TARGET_DIR}")
-        find_package(Threads)
-        include("${GLSLANG_TARGET_DIR}/OSDependentTargets.cmake")
-        include("${GLSLANG_TARGET_DIR}/OGLCompilerTargets.cmake")
-        if(EXISTS "${GLSLANG_TARGET_DIR}/HLSLTargets.cmake")
-            # hlsl support can be optional
-            include("${GLSLANG_TARGET_DIR}/HLSLTargets.cmake")
+    # Various Controls
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
+        addon/ImGuiVariousControls/ImGuiVariousControls.cpp
+    )
+    set(IMGUI_INCS
+        ${IMGUI_INCS}
+        addon/ImGuiVariousControls/ImGuiVariousControls.h
+    )
+    set(IMGUI_INC_DIRS
+        ${IMGUI_INC_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiVariousControls
+    )
+
+    # ImGuizmo
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
+        addon/ImGuizmo/ImGuizmo.cpp
+        addon/ImGuizmo/ImCurveEdit.cpp
+        addon/ImGuizmo/ImGradient.cpp
+        addon/ImGuizmo/ImSequencer.cpp
+        addon/ImGuizmo/ImGuizmoDemo.cpp
+    )
+    set(IMGUI_INCS
+        ${IMGUI_INCS}
+        addon/ImGuizmo/ImGuizmo.h
+        addon/ImGuizmo/ImCurveEdit.h
+        addon/ImGuizmo/ImGradient.h
+        addon/ImGuizmo/ImSequencer.h
+        addon/ImGuizmo/ImZoomSlider.h
+    )
+    set(IMGUI_INC_DIRS
+        ${IMGUI_INC_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuizmo
+    )
+
+    if (IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
+        if(WIN32)
+            set(GLSLANG_TARGET_DIR "C:\\msys64\\mingw64\\lib\\cmake" CACHE PATH "Absolute path to glslangTargets.cmake directory")
+        elseif(DEFINED ENV{PREFIX})
+            set(GLSLANG_TARGET_DIR $ENV{PREFIX}/lib/cmake CACHE PATH "Absolute path to glslangTargets.cmake directory")
+            message(STATUS "found ENV at ${GLSLANG_TARGET_DIR}")
+        else()
+            set(GLSLANG_TARGET_DIR "/usr/local/lib/cmake" CACHE PATH "Absolute path to glslangTargets.cmake directory")
         endif()
-        include("${GLSLANG_TARGET_DIR}/glslangTargets.cmake")
-        include("${GLSLANG_TARGET_DIR}/SPIRVTargets.cmake")
-
-        if (NOT TARGET glslang OR NOT TARGET SPIRV)
-            message(WARNING "glslang or SPIRV target not found! IMGUI_VULKAN_SHADER will be turned off.")
+        if(NOT GLSLANG_TARGET_DIR AND NOT DEFINED ENV{GLSLANG_TARGET_DIR})
+            message(WARNING "GLSLANG_TARGET_DIR must be defined! IMGUI_VULKAN_SHADER will be turned off.")
             set(IMGUI_VULKAN_SHADER OFF)
         else()
-            add_definitions(-DIMGUI_VULKAN_SHADER)
-            if(IMGUI_VULKAN_BENCHMARK)
-                add_definitions(-DSHADER_BENCHMARK)
-            endif(IMGUI_VULKAN_BENCHMARK)
-            set(IMGUI_SRC
-                ${IMGUI_SRC}
-                addon/ImVulkanShader/option.cpp
-                addon/ImVulkanShader/allocator.cpp
-                addon/ImVulkanShader/gpu.cpp
-                addon/ImVulkanShader/command.cpp
-                addon/ImVulkanShader/color.cpp
-                addon/ImVulkanShader/pipeline.cpp
-                addon/ImVulkanShader/pipelinecache.cpp
-                addon/ImVulkanShader/Cast_vulkan.cpp
-                addon/ImVulkanShader/Packing_vulkan.cpp
-                addon/ImVulkanShader/ImVulkanShader.cpp
-            )
-            set(IMGUI_INCS
-                ${IMGUI_INCS}
-                addon/ImVulkanShader/platform.h
-                addon/ImVulkanShader/vulkan_header_fix.h
-                addon/ImVulkanShader/option.h
-                addon/ImVulkanShader/allocator.h
-                addon/ImVulkanShader/gpu.h
-                addon/ImVulkanShader/command.h
-                addon/ImVulkanShader/buffer.h
-                addon/ImVulkanShader/pipeline.h
-                addon/ImVulkanShader/pipelinecache.h
-                addon/ImVulkanShader/Cast_shader.h
-                addon/ImVulkanShader/Cast_vulkan.h
-                addon/ImVulkanShader/Packing_shader.h
-                addon/ImVulkanShader/Packing_vulkan.h
-                addon/ImVulkanShader/ImVulkanShader.h
-            )
-            set(IMGUI_INC_DIRS
-                ${IMGUI_INC_DIRS}
-                ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImVulkanShader
-            )
-            set(LINK_LIBS
-                glslang
-                SPIRV
-                ${LINK_LIBS}
-            )
+            message(STATUS "Using glslang install located at ${GLSLANG_TARGET_DIR}")
+            find_package(Threads)
+            include("${GLSLANG_TARGET_DIR}/OSDependentTargets.cmake")
+            include("${GLSLANG_TARGET_DIR}/OGLCompilerTargets.cmake")
+            if(EXISTS "${GLSLANG_TARGET_DIR}/HLSLTargets.cmake")
+                # hlsl support can be optional
+                include("${GLSLANG_TARGET_DIR}/HLSLTargets.cmake")
+            endif()
+            include("${GLSLANG_TARGET_DIR}/glslangTargets.cmake")
+            include("${GLSLANG_TARGET_DIR}/SPIRVTargets.cmake")
+
+            if (NOT TARGET glslang OR NOT TARGET SPIRV)
+                message(WARNING "glslang or SPIRV target not found! IMGUI_VULKAN_SHADER will be turned off.")
+                set(IMGUI_VULKAN_SHADER OFF)
+            else()
+                add_definitions(-DIMGUI_VULKAN_SHADER)
+                if(IMGUI_VULKAN_BENCHMARK)
+                    add_definitions(-DSHADER_BENCHMARK)
+                endif(IMGUI_VULKAN_BENCHMARK)
+                set(IMGUI_SRC
+                    ${IMGUI_SRC}
+                    addon/ImVulkanShader/option.cpp
+                    addon/ImVulkanShader/allocator.cpp
+                    addon/ImVulkanShader/gpu.cpp
+                    addon/ImVulkanShader/command.cpp
+                    addon/ImVulkanShader/color.cpp
+                    addon/ImVulkanShader/pipeline.cpp
+                    addon/ImVulkanShader/pipelinecache.cpp
+                    addon/ImVulkanShader/Cast_vulkan.cpp
+                    addon/ImVulkanShader/Packing_vulkan.cpp
+                    addon/ImVulkanShader/ImVulkanShader.cpp
+                )
+                set(IMGUI_INCS
+                    ${IMGUI_INCS}
+                    addon/ImVulkanShader/platform.h
+                    addon/ImVulkanShader/vulkan_header_fix.h
+                    addon/ImVulkanShader/option.h
+                    addon/ImVulkanShader/allocator.h
+                    addon/ImVulkanShader/gpu.h
+                    addon/ImVulkanShader/command.h
+                    addon/ImVulkanShader/buffer.h
+                    addon/ImVulkanShader/pipeline.h
+                    addon/ImVulkanShader/pipelinecache.h
+                    addon/ImVulkanShader/Cast_shader.h
+                    addon/ImVulkanShader/Cast_vulkan.h
+                    addon/ImVulkanShader/Packing_shader.h
+                    addon/ImVulkanShader/Packing_vulkan.h
+                    addon/ImVulkanShader/ImVulkanShader.h
+                )
+                set(IMGUI_INC_DIRS
+                    ${IMGUI_INC_DIRS}
+                    ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImVulkanShader
+                )
+                set(LINK_LIBS
+                    glslang
+                    SPIRV
+                    ${LINK_LIBS}
+                )
+            endif()
         endif()
-    endif()
-endif(IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
+    endif(IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
 
-# Addon Demo
-set(IMGUI_SRC
-    ${IMGUI_SRC}
-    addon/addons_demo.cpp
-    addon/NumberTexture.cpp
-)
+    # Addon Demo
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
+        addon/addons_demo.cpp
+        addon/NumberTexture.cpp
+    )
 
-set(IMGUI_INCS
-    ${IMGUI_INCS}
-    addon/addons_demo.h
-    addon/NumberTexture.h
-)
+    set(IMGUI_INCS
+        ${IMGUI_INCS}
+        addon/addons_demo.h
+        addon/NumberTexture.h
+    )
 endif(IMGUI_ADDONS)
 
 # Application Framework
@@ -1215,7 +1210,7 @@ if (IMGUI_APPS)
         imgui
         ${LINK_LIBS}
     )
-    if (OPENCV_FOUND AND IMGUI_ADDONS)
+    if (FFMPEG_FOUND AND IMGUI_ADDONS)
         add_executable(
             example_video
             test/example_video.cpp
@@ -1227,7 +1222,7 @@ if (IMGUI_APPS)
             ${OpenCV_LIBS}
             ${LINK_LIBS}
         )
-    endif(OPENCV_FOUND AND IMGUI_ADDONS)
+    endif(FFMPEG_FOUND AND IMGUI_ADDONS)
 endif(IMGUI_APPS)
 
 get_directory_property(hasParent PARENT_DIRECTORY)

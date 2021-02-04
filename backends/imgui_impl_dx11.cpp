@@ -36,8 +36,6 @@
 #pragma comment(lib, "d3dcompiler") // Automatically link with d3dcompiler.lib as we are using D3DCompile() below.
 #endif
 
-struct TEXTURE;
-
 // DirectX data
 static ID3D11Device*            g_pd3dDevice = NULL;
 static ID3D11DeviceContext*     g_pd3dDeviceContext = NULL;
@@ -55,26 +53,9 @@ static ID3D11BlendState*        g_pBlendState = NULL;
 static ID3D11DepthStencilState* g_pDepthStencilState = NULL;
 static int                      g_VertexBufferSize = 5000, g_IndexBufferSize = 10000;
 
-static ImVector<TEXTURE*>       g_Textures;
-
 struct VERTEX_CONSTANT_BUFFER
 {
     float   mvp[4][4];
-};
-
-struct TEXTURE
-{
-    TEXTURE()
-    {
-        View = NULL;
-        Width = 0;
-        Height = 0;
-    }
-
-    ID3D11ShaderResourceView*   View;
-    int                         Width;
-    int                         Height;
-    ImVector<unsigned char>     Data;
 };
 
 static void ImGui_ImplDX11_SetupRenderState(ImDrawData* draw_data, ID3D11DeviceContext* ctx)
@@ -336,7 +317,7 @@ static void ImGui_ImplDX11_CreateFontsTexture()
     }
 
     // Store our identifier
-    io.Fonts->TexID = (ImTextureID)g_pFontTextureView;
+    io.Fonts->SetTexID((ImTextureID)g_pFontTextureView);
 
     // Create texture sampler
     {
@@ -513,7 +494,7 @@ void    ImGui_ImplDX11_InvalidateDeviceObjects()
         return;
 
     if (g_pFontSampler) { g_pFontSampler->Release(); g_pFontSampler = NULL; }
-    if (g_pFontTextureView) { g_pFontTextureView->Release(); g_pFontTextureView = NULL; ImGui::GetIO().Fonts->TexID = NULL; } // We copied g_pFontTextureView to io.Fonts->TexID so let's clear that as well.
+    if (g_pFontTextureView) { g_pFontTextureView->Release(); g_pFontTextureView = NULL; ImGui::GetIO().Fonts->SetTexID(NULL); } // We copied g_pFontTextureView to io.Fonts->TexID so let's clear that as well.
     if (g_pIB) { g_pIB->Release(); g_pIB = NULL; }
     if (g_pVB) { g_pVB->Release(); g_pVB = NULL; }
 

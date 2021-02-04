@@ -786,6 +786,29 @@ void main()
 }
 )";
 
+static ImTextureID g_texture = nullptr;
+static ImVulkan::VkImageMat test_vkimage;
+static ImVulkan::VulkanDevice* g_vkdev = nullptr;
+static ImVulkan::VkAllocator* g_blob_allocator = nullptr;
+static ImVulkan::VkAllocator* g_staging_allocator = nullptr;
+static ImVulkan::Option g_opt;
+static ImVulkan::Pipeline * g_pipeline = nullptr;
+static ImVulkan::VkCompute * g_cmd = nullptr;
+static float fp32[8] = {0.f};
+static float fp32v4[8] = {0.f};
+static float fp32v8[8] = {0.f};
+static float fp16pv4[8] = {0.f};
+static float fp16pv8[8] = {0.f};
+static float fp16s[8] = {0.f};
+static float fp16sv4[8] = {0.f};
+static float fp16sv8[8] = {0.f};
+static int loop_count = 100;
+static int block_count = 10;
+static int cmd_count = 1;
+#define TEST_WIDTH      256
+#define TEST_HEIGHT     256
+#define TEST_CHANNEL    4
+
 static float vkpeak(ImVulkan::VulkanDevice* vkdev, int loop, int count_mb, int cmd_loop, int storage_type, int arithmetic_type, int packing_type)
 {
     const int count = count_mb * 1024 * 1024;
@@ -798,7 +821,7 @@ static float vkpeak(ImVulkan::VulkanDevice* vkdev, int loop, int count_mb, int c
     {
         return -233;
     }
-    double max_gflops = -233;
+    double max_gflops = 0;
     ImVulkan::Option opt;
     opt.use_fp16_packed = storage_type == 1;
     opt.use_fp16_storage = storage_type == 2;
@@ -854,10 +877,10 @@ static float vkpeak(ImVulkan::VulkanDevice* vkdev, int loop, int count_mb, int c
             }
         }
 
+        // encode command
+        ImVulkan::VkCompute cmd(vkdev);
         for (int i = 0; i < cmd_loop; i++)
         {
-            // encode command
-            ImVulkan::VkCompute cmd(vkdev);
             {
                 std::vector<ImVulkan::VkImageBuffer> bindings(3);
                 bindings[0] = a;
@@ -881,13 +904,14 @@ static float vkpeak(ImVulkan::VulkanDevice* vkdev, int loop, int count_mb, int c
                 double time = ImGui::get_current_time() - t0;
                 const double mac = (double)count * (double)loop * 8 * elempack * 2;
                 double gflops = mac / time / 1000000;
-                if (gflops > max_gflops)
-                    max_gflops = gflops;
+                //if (gflops > max_gflops)
+                max_gflops += gflops;
             }
+            cmd.flash();
         }
     }
     vkdev->reclaim_blob_allocator(allocator);
-    return max_gflops;
+    return max_gflops / cmd_loop;
 }
 
 static std::string print_result(float gflops)
@@ -906,28 +930,6 @@ static std::string print_result(float gflops)
     return "  " + std::to_string(gflops) + " GFLOPS";
 }
 
-static ImTextureID g_texture = nullptr;
-static ImVulkan::VkImageMat test_vkimage;
-static ImVulkan::VulkanDevice* g_vkdev = nullptr;
-static ImVulkan::VkAllocator* g_blob_allocator = nullptr;
-static ImVulkan::VkAllocator* g_staging_allocator = nullptr;
-static ImVulkan::Option g_opt;
-static ImVulkan::Pipeline * g_pipeline = nullptr;
-static ImVulkan::VkCompute * g_cmd = nullptr;
-static float fp32[8] = {0.f};
-static float fp32v4[8] = {0.f};
-static float fp32v8[8] = {0.f};
-static float fp16pv4[8] = {0.f};
-static float fp16pv8[8] = {0.f};
-static float fp16s[8] = {0.f};
-static float fp16sv4[8] = {0.f};
-static float fp16sv8[8] = {0.f};
-static int loop_count = 100;
-static int block_count = 10;
-static int cmd_count = 10;
-#define TEST_WIDTH      256
-#define TEST_HEIGHT     256
-#define TEST_CHANNEL    4
 void PrepareVulkanDemo()
 {
     g_vkdev = ImVulkan::get_gpu_device(0);
@@ -995,10 +997,13 @@ void ShowAddonsVulkanShaderWindow()
                                 std::to_string(VK_VERSION_MINOR(api_version)) + "." +
                                 std::to_string(VK_VERSION_PATCH(api_version));
         std::string device_name = vkdev->info.device_name();
+        uint32_t gpu_memory_budget = vkdev->get_heap_budget();
+        ImGui::Text("%uMB", gpu_memory_budget);
         ImGui::Text("Device[%d]", i);
         ImGui::Text("Driver:%s", driver_ver.c_str());
         ImGui::Text("   API:%s", api_ver.c_str());
         ImGui::Text("  Name:%s", device_name.c_str());
+        ImGui::Text("Memory:%uMB", gpu_memory_budget);
         std::string buffon_label = "性能测试##" + std::to_string(i);
         if (ImGui::Button(buffon_label.c_str(), ImVec2(120, 20)))
         {
@@ -1019,7 +1024,7 @@ void ShowAddonsVulkanShaderWindow()
         ImGui::Text("FP16s Scalar :%s", print_result(fp16s[i]).c_str());
         ImGui::Text("  FP16s Vec4 :%s", print_result(fp16sv4[i]).c_str());
         ImGui::Text("  FP16s Vec8 :%s", print_result(fp16sv8[i]).c_str());
-
+        
         ImGui::Separator();
     }
     
@@ -1038,7 +1043,7 @@ void ShowAddonsVulkanShaderWindow()
         if (color_fading <= 0.f) { fading_step = 0.01f; }
         if (color_fading >= 1.f) { fading_step = -0.01f; }
     }
-    ImGui::Image(g_texture, ImVec2(256, 256));
+    ImGui::Image(g_texture, ImVec2(128, 128));
     ImGui::Separator();
 
 }
