@@ -40,6 +40,9 @@ SOFTWARE.
 #include <sys/stat.h>
 #include <stdio.h>
 #include <errno.h>
+#if defined (__EMSCRIPTEN__) // EMSCRIPTEN
+#include <emscripten.h>
+#endif // EMSCRIPTEN
 #if defined(__WIN32__) || defined(_WIN32)
 #ifndef WIN32
 #define WIN32
@@ -52,7 +55,7 @@ SOFTWARE.
 #ifndef PATH_MAX
 #define PATH_MAX 260
 #endif // PATH_MAX
-#elif defined(__linux__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__APPLE__)
+#elif defined(__linux__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__APPLE__) || defined (__EMSCRIPTEN__)
 #define UNIX
 #define stricmp strcasecmp
 #include <sys/types.h>
@@ -126,7 +129,7 @@ namespace IGFD
 #define fileNameString "File Name :"
 #endif // fileNameString
 #ifndef dirNameString
-#define dirNameString "Directory Name :"
+#define dirNameString "Directory Path :"
 #endif // dirNameString
 #ifndef buttonResetSearchString
 #define buttonResetSearchString "Reset search"
@@ -315,6 +318,9 @@ namespace IGFD
 
 #ifdef WIN32
 				CreateDirectoryA(name.c_str(), nullptr);
+#elif defined(__EMSCRIPTEN__)
+				std::string str = std::string("FS.mkdir('") + name.c_str() + "');";
+				emscripten_run_script(str.c_str());
 #elif defined(UNIX)
 				char buffer[PATH_MAX] = {};
 				snprintf(buffer, PATH_MAX, "mkdir -p %s", name.c_str());
@@ -889,7 +895,7 @@ namespace IGFD
 					!m_Filters.empty()) // filter exist
 					m_SelectedFilter = *m_Filters.begin(); // we take the first filter
 
-			// init list of files
+				// init list of files
 				if (m_FileList.empty() && !m_ShowDrives)
 				{
 					replaceString(dlg_defaultFileName, dlg_path, ""); // local path
@@ -898,6 +904,8 @@ namespace IGFD
 						SetDefaultFileName(dlg_defaultFileName);
 						SetSelectedFilterWithExt(dlg_defaultExt);
 					}
+					else if (dlg_filters.empty()) // directory mode
+						SetDefaultFileName(".");
 					ScanDir(dlg_path);
 				}
 
@@ -913,14 +921,20 @@ namespace IGFD
 				// disable the modal mode of the main file dialog
 				// see m_OkResultToConfirm under
 				if (dlg_modal &&
-					!m_OkResultToConfirm)
+					!m_OkResultToConfirm &&
+					!m_FileClicked)
 					ImGui::EndPopup();
 			}
 
 			// same things here regarding m_OkResultToConfirm
-			if (!dlg_modal || m_OkResultToConfirm)
+			if (!dlg_modal || m_OkResultToConfirm || m_FileClicked)
 				ImGui::End();
 
+			if (m_FileClicked)
+			{
+				m_IsOk = true;
+				return true;
+			}
 			// confirm the result and show the confirm to overwrite dialog if needed
 			return Confirm_Or_OpenOverWriteFileDialog_IfNeeded(res, vFlags);
 		}
@@ -933,6 +947,7 @@ namespace IGFD
 		// reset events
 		m_DrivesClicked = false;
 		m_PathClicked = false;
+		m_FileClicked = false;
 		m_CanWeContinue = true;
 	}
 
@@ -1305,69 +1320,39 @@ namespace IGFD
 							else
 								str = fileEntryString + str;
 						}
-						bool selected = false;
-						if (m_SelectedFileNames.find(infos.fileName) != m_SelectedFileNames.end()) // found
-							selected = true;
+						bool selected = (m_SelectedFileNames.find(infos.fileName) != m_SelectedFileNames.end()); // found
 						ImGui::TableNextRow();
+
+						bool needToBreakTheloop = false;
+
 						if (ImGui::TableSetColumnIndex(0)) // first column
 						{
-							ImGuiSelectableFlags selectableFlags = ImGuiSelectableFlags_AllowDoubleClick;
-							selectableFlags |=
-								ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_SpanAvailWidth;
-
-							bool _selectablePressed = false;
-#ifdef USE_EXPLORATION_BY_KEYS
-							bool flashed = BeginFlashItem(i);
-							_selectablePressed = FlashableSelectable(str.c_str(), selected, selectableFlags,
-								flashed);
-							if (flashed)
-								EndFlashItem();
-#else // USE_EXPLORATION_BY_KEYS
-							_selectablePressed = ImGui::Selectable(str.c_str(), selected, selectableFlags);
-#endif // USE_EXPLORATION_BY_KEYS
-							if (_selectablePressed)
-							{
-								if (infos.type == 'd')
-								{
-									if (!dlg_filters.empty() || ImGui::IsMouseDoubleClicked(0))
-									{
-										m_PathClicked = SelectDirectory(infos);
-									}
-									else // directory chooser
-									{
-										SelectFileName(infos);
-									}
-
-									if (showColor)
-										ImGui::PopStyleColor();
-									
-									if (showTypeColor)
-										ImGui::PopStyleColor();
-
-									break;
-								}
-								else
-								{
-									SelectFileName(infos);
-								}
-							}
+							needToBreakTheloop = SelectableItem(i, infos, selected, str.c_str());
 						}
 						if (ImGui::TableSetColumnIndex(1)) // second column
 						{
 							if (infos.type != 'd')
 							{
-								ImGui::Text("%s ", infos.formatedFileSize.c_str()); //-V111
+								needToBreakTheloop = SelectableItem(i, infos, selected, "%s ", infos.formatedFileSize.c_str());
+							}
+							else
+							{
+								needToBreakTheloop = SelectableItem(i, infos, selected, "");
 							}
 						}
 						if (ImGui::TableSetColumnIndex(2)) // third column
 						{
-							ImGui::Text("%s", infos.fileModifDate.c_str()); //-V111
+							needToBreakTheloop = SelectableItem(i, infos, selected, "%s", infos.fileModifDate.c_str());
 						}
+
 						if (showColor)
 							ImGui::PopStyleColor();
 
 						if (showTypeColor)
 							ImGui::PopStyleColor();
+
+						if (needToBreakTheloop)
+							break;
 					}
 				}
 				m_FileListClipper.End();
@@ -1407,6 +1392,58 @@ namespace IGFD
 		}
 
 		ImGui::EndChild();
+	}
+
+	bool IGFD::FileDialog::SelectableItem(int vidx, const FileInfoStruct& vInfos, bool vSelected, const char* vFmt, ...)
+	{
+		static ImGuiSelectableFlags selectableFlags = ImGuiSelectableFlags_AllowDoubleClick | 
+			ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_SpanAvailWidth;
+
+		va_list args;
+		va_start(args, vFmt);
+		vsnprintf(VariadicBuffer, MAX_FILE_DIALOG_NAME_BUFFER, vFmt, args);
+		va_end(args);
+
+#ifdef USE_EXPLORATION_BY_KEYS
+		bool flashed = BeginFlashItem(vidx);
+		bool res = FlashableSelectable(VariadicBuffer, vSelected, selectableFlags,
+			flashed);
+		if (flashed)
+			EndFlashItem();
+#else // USE_EXPLORATION_BY_KEYS
+		(void)vidx; // remove a warnings ofr unused var
+		bool res = ImGui::Selectable(VariadicBuffer, vSelected, selectableFlags);
+#endif // USE_EXPLORATION_BY_KEYS
+		if (res)
+		{
+			if (vInfos.type == 'd')
+			{
+				if (ImGui::IsMouseDoubleClicked(0)) // 0 -> left mouse button double click
+				{
+					m_PathClicked = SelectDirectory(vInfos); 
+				}
+				else if (dlg_filters.empty()) // directory chooser
+				{
+					SelectFileName(vInfos);
+				}
+
+				return true; // needToBreakTheloop
+			}
+			else if (vInfos.type == 'f')
+			{
+				if (ImGui::IsMouseDoubleClicked(0)) // 0 -> left mouse button double click
+				{
+					SelectFileName(vInfos);
+					m_FileClicked = true;
+				}
+			}
+			else
+			{
+				SelectFileName(vInfos);
+			}
+		}
+
+		return false;
 	}
 
 	void IGFD::FileDialog::DrawSidePane(float vHeight)
@@ -1467,40 +1504,59 @@ namespace IGFD
 
 	std::string IGFD::FileDialog::GetFilePathName()
 	{
-		std::string  result = m_CurrentPath;
+		std::string result = GetCurrentPath();
 
+		std::string filename = GetCurrentFileName();
+		if (!filename.empty())
+		{
 #ifdef UNIX
-		if (s_fs_root != result)
+			if (s_fs_root != result)
 #endif // UNIX
-			result += PATH_SEP;
+				result += PATH_SEP;
 
-		result += GetCurrentFileName();
+			result += filename;
+		}
 
 		return result;
 	}
 
 	std::string IGFD::FileDialog::GetCurrentPath()
 	{
-		return m_CurrentPath;
+		std::string path = m_CurrentPath;
+
+		if (dlg_filters.empty()) // if directory mode
+		{
+			std::string selectedDirectory = FileNameBuffer;
+			if (!selectedDirectory.empty() && 
+				selectedDirectory != ".")
+				path += PATH_SEP + selectedDirectory;
+		}
+
+		return path;
 	}
 
 	std::string IGFD::FileDialog::GetCurrentFileName()
 	{
-		std::string result = FileNameBuffer;
-
-		// if not a collection we can replace the filter by thee extention we want
-		if (m_SelectedFilter.collectionfilters.empty())
+		if (!dlg_filters.empty()) // if not directory mode
 		{
-			size_t lastPoint = result.find_last_of('.');
-			if (lastPoint != std::string::npos)
+			std::string result = FileNameBuffer;
+
+			// if not a collection we can replace the filter by the extention we want
+			if (m_SelectedFilter.collectionfilters.empty())
 			{
-				result = result.substr(0, lastPoint);
+				size_t lastPoint = result.find_last_of('.');
+				if (lastPoint != std::string::npos)
+				{
+					result = result.substr(0, lastPoint);
+				}
+
+				result += m_SelectedFilter.filter;
 			}
 
-			result += m_SelectedFilter.filter;
+			return result;
 		}
 
-		return result;
+		return ""; // directory mode
 	}
 
 	std::string IGFD::FileDialog::GetCurrentFilter()
@@ -1524,7 +1580,7 @@ namespace IGFD
 
 		for (auto& it : m_SelectedFileNames)
 		{
-			std::string result = m_CurrentPath;
+			std::string result = GetCurrentPath();
 
 #ifdef UNIX
 			if (s_fs_root != result)
@@ -1798,6 +1854,8 @@ namespace IGFD
 		m_CurrentPath = vPath;
 		m_FileList.clear();
 		m_CurrentPath_Decomposition.clear();
+		if (dlg_filters.empty()) // directory mode
+			SetDefaultFileName(".");
 		ScanDir(m_CurrentPath);
 	}
 
@@ -1832,9 +1890,11 @@ namespace IGFD
 		}
 	}
 
-	void IGFD::FileDialog::FillInfos(FileInfoStruct* vFileInfoStruct)
+	void IGFD::FileDialog::CompleteFileInfos(FileInfoStruct* vFileInfoStruct)
 	{
-		if (vFileInfoStruct && vFileInfoStruct->fileName != "..")
+		if (vFileInfoStruct && 
+			vFileInfoStruct->fileName != "." && 
+			vFileInfoStruct->fileName != "..")
 		{
 			// _stat struct :
 			//dev_t     st_dev;     /* ID of device containing file */
@@ -2031,7 +2091,8 @@ namespace IGFD
 					infos.fileName = ent->d_name;
 					infos.fileName_optimized = OptimizeFilenameForSearchOperations(infos.fileName);
 
-					if (("." != infos.fileName))
+					if (infos.fileName != "." 
+						|| dlg_filters.empty()) // in directory mode we must display the curent dir "."
 					{
 						switch (ent->d_type)
 						{
@@ -2055,7 +2116,7 @@ namespace IGFD
 							if (!dlg_filters.empty())
 							{
 								// check if current file extention is covered by current filter
-								// we do that here, for avoid doing taht during filelist display
+								// we do that here, for avoid doing that during filelist display
 								// for better fps
 								if (!m_SelectedFilter.empty() && // selected filter exist
 									(!m_SelectedFilter.filterExist(infos.ext) && // filter not found
@@ -2066,7 +2127,7 @@ namespace IGFD
 							}
 						}
 
-						FillInfos(&infos);
+						CompleteFileInfos(&infos);
 						m_FileList.push_back(infos);
 					}
 				}

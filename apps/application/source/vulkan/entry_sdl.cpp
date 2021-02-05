@@ -159,16 +159,18 @@ int main(int, char**)
         }
 
         // Resize swap chain?
-        if (g_SwapChainRebuild)
+        int width, height;
+        SDL_GetWindowSize(window, &width, &height);
+        if (g_SwapChainRebuild || width > window_width || height > window_height)
         {
-            int width, height;
-            SDL_GetWindowSize(window, &width, &height);
             if (width > 0 && height > 0)
             {
                 ImGui_ImplVulkan_SetMinImageCount(g_MinImageCount);
                 ImGui_ImplVulkanH_CreateOrResizeWindow(g_Instance, g_PhysicalDevice, g_Device, &g_MainWindowData, g_QueueFamily, g_Allocator, width, height, g_MinImageCount);
                 g_MainWindowData.FrameIndex = 0;
                 g_SwapChainRebuild = false;
+                window_width = width;
+                window_height = height;
             }
         }
 

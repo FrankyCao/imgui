@@ -131,6 +131,7 @@ if(PKG_CONFIG_FOUND)
         libavutil
         libswresample
         libavfilter
+        libswscale
         libavdevice
     )
 endif(PKG_CONFIG_FOUND)
@@ -1083,6 +1084,11 @@ if (APPLE AND IMGUI_MATAL)
             "-framework Metal"
             "-framework MetalKit"
             "-framework Cocoa"
+            "-framework QuartzCore"
+        )
+        target_compile_options(
+            example_apple_metal 
+            PUBLIC "-fobjc-arc"
         )
         set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/test/metal.icns PROPERTIES
                 MACOSX_PACKAGE_LOCATION "Resources"
@@ -1110,10 +1116,18 @@ if (APPLE AND IMGUI_MATAL)
             example_glfw_metal
             test/example_glfw_metal.mm
         )
+        target_compile_options(
+            example_glfw_metal 
+            PUBLIC "-fobjc-arc"
+        )
         target_link_libraries(
             example_glfw_metal
             imgui
             ${LINK_LIBS}
+            "-framework Metal"
+            "-framework MetalKit"
+            "-framework Cocoa"
+            "-framework QuartzCore"
         )
     endif(GLFW_FOUND)
 endif(APPLE AND IMGUI_MATAL)
