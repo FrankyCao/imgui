@@ -1022,7 +1022,7 @@ if (SDL2_FOUND AND IMGUI_SDL2)
     endif(VULKAN_FOUND)
 endif(SDL2_FOUND AND IMGUI_SDL2)
 
-if (VULKAN_FOUND AND GLFW_FOUND)
+if (VULKAN_FOUND AND GLFW_FOUND AND IMGUI_GLFW)
     add_executable(
         example_glfw_vulkan
         test/example_glfw_vulkan.cpp
@@ -1032,7 +1032,7 @@ if (VULKAN_FOUND AND GLFW_FOUND)
         imgui
         ${LINK_LIBS}
     )
-endif(VULKAN_FOUND AND GLFW_FOUND)
+endif(VULKAN_FOUND AND GLFW_FOUND AND IMGUI_GLFW)
 
 if (IMGUI_GLUT AND GLUT_FOUND)
     add_executable(

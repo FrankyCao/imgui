@@ -930,11 +930,13 @@ namespace IGFD
 			if (!dlg_modal || m_OkResultToConfirm || m_FileClicked)
 				ImGui::End();
 
+#ifndef _WIN32
 			if (m_FileClicked)
 			{
 				m_IsOk = true;
 				return true;
 			}
+#endif
 			// confirm the result and show the confirm to overwrite dialog if needed
 			return Confirm_Or_OpenOverWriteFileDialog_IfNeeded(res, vFlags);
 		}
@@ -1429,6 +1431,7 @@ namespace IGFD
 
 				return true; // needToBreakTheloop
 			}
+#ifndef _WIN32
 			else if (vInfos.type == 'f')
 			{
 				if (ImGui::IsMouseDoubleClicked(0)) // 0 -> left mouse button double click
@@ -1437,6 +1440,7 @@ namespace IGFD
 					m_FileClicked = true;
 				}
 			}
+#endif
 			else
 			{
 				SelectFileName(vInfos);
