@@ -327,6 +327,19 @@ static inline int ffmpeg_interrupt_callback(void *ptr)
     return metadata->timeout ? -1 : 0;
 }
 
+static enum AVPixelFormat hw_pix_fmt = AV_PIX_FMT_NONE;
+static enum AVHWDeviceType hw_type = AV_HWDEVICE_TYPE_NONE;
+static inline enum AVPixelFormat get_hw_format(AVCodecContext *ctx, const enum AVPixelFormat *pix_fmts)
+{
+    const enum AVPixelFormat *p;
+    for (p = pix_fmts; *p != -1; p++) {
+        if (*p == hw_pix_fmt)
+            return *p;
+    }
+    fprintf(stderr, "Failed to get HW surface format.\n");
+    return AV_PIX_FMT_NONE;
+}
+
 class Example
 {
 public:
@@ -359,8 +372,11 @@ public:
         if (picture) { av_frame_free(&picture); picture = nullptr; }
         if (packet.data) { av_packet_unref(&packet); packet.data = nullptr; }
         if (img_convert_ctx) { sws_freeContext(img_convert_ctx); img_convert_ctx = nullptr; }
+        if (hw_device_ctx) { av_buffer_unref(&hw_device_ctx); hw_device_ctx = nullptr; }
         video_codec_name = "";
         video_pfmt = AV_PIX_FMT_NONE;
+        hw_pix_fmt = AV_PIX_FMT_NONE;
+        hw_type = AV_HWDEVICE_TYPE_NONE;
         video_fps = 0;
         video_frames = 0;
         play_time = 0;
@@ -516,13 +532,55 @@ public:
                 break;
             }
         }
-        play_time = dts_to_sec(video_stream, picture_pts) * 1000.0;
     }
     void PlayMedia()
     {
         if (grabFrame())
         {
             int ret = 0;
+            AVFrame *tmp_frame = nullptr;
+            AVFrame *sw_frame = av_frame_alloc();
+            if (!sw_frame)
+            {
+                fprintf(stderr, "Can not alloc frame\n");
+                return;
+            }
+            if (picture->format == hw_pix_fmt) 
+            {
+                /* retrieve data from GPU to CPU */
+                if ((ret = av_hwframe_transfer_data(sw_frame, picture, 0)) < 0) 
+                {
+                    fprintf(stderr, "Error transferring the data to system memory\n");
+                    av_frame_unref(sw_frame);
+                    return;
+                }
+                else
+                {
+                    tmp_frame = sw_frame;
+                }
+            }
+            else
+                tmp_frame = picture;
+
+            if (video_pfmt != tmp_frame->format)
+            {
+                img_convert_ctx = sws_getCachedContext(
+                                            img_convert_ctx,
+                                            tmp_frame->width,
+                                            tmp_frame->height,
+                                            (AVPixelFormat)tmp_frame->format,
+                                            video_width,
+                                            video_height,
+                                            AV_PIX_FMT_RGBA,
+                                            SWS_BICUBIC,
+                                            NULL, NULL, NULL);
+                if (!img_convert_ctx)
+                {
+                    av_frame_unref(sw_frame);
+                    return;
+                }
+                video_pfmt = (AVPixelFormat)tmp_frame->format;
+            }
             AVFrame rgb_picture;
             memset(&rgb_picture, 0, sizeof(rgb_picture));
             rgb_picture.format = AV_PIX_FMT_RGBA;
@@ -533,8 +591,8 @@ public:
             {
                 sws_scale(
                     img_convert_ctx,
-                    picture->data,
-                    picture->linesize,
+                    tmp_frame->data,
+                    tmp_frame->linesize,
                     0, video_dec_ctx->height,
                     rgb_picture.data,
                     rgb_picture.linesize
@@ -542,8 +600,20 @@ public:
                 ImGui::ImGenerateOrUpdateTexture(video_texture, video_width, video_height, 4, rgb_picture.data[0]);
                 av_frame_unref(&rgb_picture);
             }
-            play_time = dts_to_sec(video_stream, picture_pts) * 1000.0;
+
+            av_frame_unref(sw_frame);
         }
+    }
+    int hw_decoder_init(AVCodecContext *ctx, const enum AVHWDeviceType type)
+    {
+        int err = 0;
+        if ((err = av_hwdevice_ctx_create(&hw_device_ctx, type, NULL, NULL, 0)) < 0) 
+        {
+            fprintf(stderr, "Failed to create specified HW device.\n");
+            return err;
+        }
+        ctx->hw_device_ctx = av_buffer_ref(hw_device_ctx);
+        return err;
     }
     int open_codec_context(int *stream_idx, AVCodecContext **dec_ctx, enum AVMediaType type)
     {
@@ -551,7 +621,7 @@ public:
         AVStream *st = nullptr;
         AVCodec *dec = nullptr;
         AVDictionary *opts = nullptr;
-        ret = av_find_best_stream(fmt_ctx, type, -1, -1, NULL, 0);
+        ret = av_find_best_stream(fmt_ctx, type, -1, -1, &dec, 0);
         if (ret < 0) 
         {
             return ret;
@@ -560,11 +630,23 @@ public:
         {
             stream_index = ret;
             st = fmt_ctx->streams[stream_index];
-            /* find decoder for the stream */
-            dec = avcodec_find_decoder(st->codecpar->codec_id);
-            if (!dec) 
+            if (type == AVMEDIA_TYPE_VIDEO)
             {
-                return -1;
+                for (int i = 0;; i++) 
+                {
+                    const AVCodecHWConfig *config = avcodec_get_hw_config(dec, i);
+                    if (!config)
+                    {
+                        fprintf(stderr, "Decoder %s does not support HW.\n", dec->name);
+                        break;
+                    }
+                    if (config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX) 
+                    {
+                        hw_pix_fmt = config->pix_fmt;
+                        hw_type = config->device_type;
+                        break;
+                    }
+                }
             }
             /* Allocate a codec context for the decoder */
             *dec_ctx = avcodec_alloc_context3(dec);
@@ -577,6 +659,15 @@ public:
             {
                 return ret;
             }
+
+            /* Init hw decoders */
+            if (hw_pix_fmt != AV_PIX_FMT_NONE)
+            {
+                (*dec_ctx)->get_format = get_hw_format;
+                if ((ret = hw_decoder_init(*dec_ctx, hw_type)) < 0)
+                    return ret;
+            }
+
             /* Init the decoders */
             if ((ret = avcodec_open2(*dec_ctx, dec, &opts)) < 0) 
             {
@@ -596,6 +687,7 @@ public:
     // init input
     AVFormatContext *fmt_ctx = nullptr;
     AVCodecContext *video_dec_ctx = nullptr;
+    AVBufferRef *hw_device_ctx = nullptr;
     AVCodecContext *audio_dec_ctx = nullptr;
     AVStream *video_stream = nullptr;
     AVStream *audio_stream = nullptr;
@@ -652,6 +744,38 @@ private:
     {
         return (double)(dts - stream->start_time) * r2d(stream->time_base);
     }
+    int video_decode(AVCodecContext *avctx, int *got_picture_ptr, AVPacket *packet)
+    {
+        int ret = 0;
+        *got_picture_ptr = 0;
+        if (!picture)
+            return -1;
+        ret = avcodec_send_packet(avctx, packet);
+        if (ret < 0) 
+        {
+            fprintf(stderr, "Error during decoding\n");
+            return ret;
+        }
+        while (ret >= 0) 
+        {
+            ret = avcodec_receive_frame(avctx, picture);
+            if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) 
+            {
+                return 0;
+            }
+            else if (ret < 0)
+            {
+                fprintf(stderr, "Error while decoding\n");
+                return ret;
+            }
+            else
+            {
+                *got_picture_ptr = 1;
+                return 0;
+            }
+        }
+        return 0;
+    }
     bool grabFrame(bool decode = true)
     {
         bool valid = false;
@@ -702,7 +826,7 @@ private:
                 break;
             }
             // Decode video frame
-            avcodec_decode_video2(video_dec_ctx, picture, &got_picture, &packet);
+            video_decode(video_dec_ctx, &got_picture, &packet);
             // Did we get a video frame?
             if (got_picture)
             {
@@ -720,13 +844,15 @@ private:
         }
 
         if (valid)
+        {
             frame_number++;
+            play_time = dts_to_sec(video_stream, picture_pts) * 1000.0;
+        }
 
         if (valid && first_frame_number < 0)
             first_frame_number = dts_to_frame_number(picture_pts);
 
         interrupt_metadata.timeout_after_ms = 0;
-
         return valid;
     }
 };
@@ -888,6 +1014,7 @@ bool Application_Frame(void* handle)
         ImGui::End();
     }
 
+    // handle key event
     if (!io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Space), false))
     {
         if (example->is_opened)
@@ -897,6 +1024,42 @@ bool Application_Frame(void* handle)
     if (!io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape), false))
     {
         done = true;
+    }
+
+    if (!io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_LeftArrow), true))
+    {
+        float time = example->play_time;
+        time -= 1000.f;
+        if (time < 0) time = 0;
+        example->SeekMedia(time / 1000.f);
+        example->PlayMedia();
+    }
+
+    if (!io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_RightArrow), true))
+    {
+        float time = example->play_time;
+        time += 1000.f;
+        if (time > example->total_time * 1000.f) time = example->total_time * 1000.f;
+        example->SeekMedia(time / 1000.f);
+        example->PlayMedia();
+    }
+
+    if (!io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_DownArrow), true))
+    {
+        float time = example->play_time;
+        time -= 5000.f;
+        if (time < 0) time = 0;
+        example->SeekMedia(time / 1000.f);
+        example->PlayMedia();
+    }
+
+    if (!io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_UpArrow), true))
+    {
+        float time = example->play_time;
+        time += 5000.f;
+        if (time > example->total_time * 1000.f) time = example->total_time * 1000.f;
+        example->SeekMedia(time / 1000.f);
+        example->PlayMedia();
     }
 
     if (example->video_texture)
@@ -959,51 +1122,59 @@ bool Application_Frame(void* handle)
         ImGui::SetNextWindowBgAlpha(0.35f); // Transparent background
         if (ImGui::Begin("Media Info", &example->is_opened, window_flags))
         {
-            float ftime = example->total_time * 1000.0f;
-            int hours = ftime / 1000 / 60 / 60; ftime -= hours * 60 * 60 * 1000;
-            int mins = ftime / 1000 / 60; ftime -= mins * 60 * 1000;
-            int secs = ftime / 1000; ftime -= secs * 1000;
-            int ms = ftime;
-            ImGui::Text("Media time:%02d:%02d:%02d.%03d", hours, mins, secs, ms);
-            ImGui::Separator();
-
-            if (example->video_stream_idx != -1)
+            ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+            if (ImGui::TreeNode("Media Info"))
             {
-                ImGui::Text("Video Stream");
-                ImGui::Text("     Codec: %s", example->video_codec_name.c_str());
-                ImGui::Text("    Format: %s", av_get_pix_fmt_name(example->video_pfmt));
-                ImGui::Text("     Depth: %d", example->video_depth);
-                ImGui::Text("     Width: %d", example->video_width);
-                ImGui::Text("    Height: %d", example->video_height);
-                ImGui::Text("       FPS: %.2f", example->video_fps);
-                ImGui::Text("    Frames: %d", example->video_frames);
-                if (example->video_color_space != AVCOL_SPC_UNSPECIFIED)
-                {
-                    ImGui::Text("ColorSpace: %s", av_color_space_name(example->video_color_space));
-                    ImGui::Text("ColorRange: %s", av_color_range_name(example->video_color_range));
-                }
-                else
-                    ImGui::Text("ColorSpace: %s", av_get_colorspace_name(example->video_color_space));
-                
                 ImGui::Separator();
-            }
-            if (example->audio_stream_idx != -1)
-            {
-                ImGui::Text("Audio Stream");
-                ImGui::Text("     Codec: %s", example->audio_codec_name.c_str());
-                ImGui::Text("    Format: %s", av_get_sample_fmt_name(example->audio_sfmt));
-                ImGui::Text("     Depth: %d", example->audio_depth);
-                ImGui::Text("      Rate: %d", example->audio_sample_rate);
-                ImGui::Text("  Channels: %d", example->audio_channels);
-            }
-            if (ImGui::BeginPopupContextWindow())
-            {
-                if (ImGui::MenuItem("Custom",       NULL, corner == -1)) corner = -1;
-                if (ImGui::MenuItem("Top-left",     NULL, corner == 0)) corner = 0;
-                if (ImGui::MenuItem("Top-right",    NULL, corner == 1)) corner = 1;
-                if (ImGui::MenuItem("Bottom-left",  NULL, corner == 2)) corner = 2;
-                if (ImGui::MenuItem("Bottom-right", NULL, corner == 3)) corner = 3;
-                ImGui::EndPopup();
+                ImGui::Text("  Media name: %s", example->fmt_ctx->url);
+                ImGui::Text("Media format: %s", example->fmt_ctx->iformat->long_name);
+                float ftime = example->total_time * 1000.0f;
+                int hours = ftime / 1000 / 60 / 60; ftime -= hours * 60 * 60 * 1000;
+                int mins = ftime / 1000 / 60; ftime -= mins * 60 * 1000;
+                int secs = ftime / 1000; ftime -= secs * 1000;
+                int ms = ftime;
+                ImGui::Text("  Media time: %02d:%02d:%02d.%03d", hours, mins, secs, ms);
+                ImGui::Separator();
+
+                if (example->video_stream_idx != -1)
+                {
+                    ImGui::Text("Video Stream");
+                    ImGui::Text("     Codec: %s", example->video_codec_name.c_str());
+                    ImGui::Text("    Format: %s", av_get_pix_fmt_name(example->video_pfmt));
+                    ImGui::Text("     Depth: %d", example->video_depth);
+                    ImGui::Text("     Width: %d", example->video_width);
+                    ImGui::Text("    Height: %d", example->video_height);
+                    ImGui::Text("       FPS: %.2f", example->video_fps);
+                    ImGui::Text("    Frames: %d", example->video_frames);
+                    if (example->video_color_space != AVCOL_SPC_UNSPECIFIED)
+                    {
+                        ImGui::Text("ColorSpace: %s", av_color_space_name(example->video_color_space));
+                        ImGui::Text("ColorRange: %s", av_color_range_name(example->video_color_range));
+                    }
+                    else
+                        ImGui::Text("ColorSpace: %s", av_get_colorspace_name(example->video_color_space));
+
+                    ImGui::Separator();
+                }
+                if (example->audio_stream_idx != -1)
+                {
+                    ImGui::Text("Audio Stream");
+                    ImGui::Text("     Codec: %s", example->audio_codec_name.c_str());
+                    ImGui::Text("    Format: %s", av_get_sample_fmt_name(example->audio_sfmt));
+                    ImGui::Text("     Depth: %d", example->audio_depth);
+                    ImGui::Text("      Rate: %d", example->audio_sample_rate);
+                    ImGui::Text("  Channels: %d", example->audio_channels);
+                }
+                if (ImGui::BeginPopupContextWindow())
+                {
+                    if (ImGui::MenuItem("Custom",       NULL, corner == -1)) corner = -1;
+                    if (ImGui::MenuItem("Top-left",     NULL, corner == 0)) corner = 0;
+                    if (ImGui::MenuItem("Top-right",    NULL, corner == 1)) corner = 1;
+                    if (ImGui::MenuItem("Bottom-left",  NULL, corner == 2)) corner = 2;
+                    if (ImGui::MenuItem("Bottom-right", NULL, corner == 3)) corner = 3;
+                    ImGui::EndPopup();
+                }
+                ImGui::TreePop();
             }
         }
         ImGui::End();
