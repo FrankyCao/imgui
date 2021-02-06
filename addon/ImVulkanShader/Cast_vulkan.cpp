@@ -456,6 +456,11 @@ int Cast_vulkan::forward(const ImageBuffer& bottom_blob, ImageBuffer& top_blob, 
     }
     // TODO more cast type
 
+    top_blob.type = type_to == 1 ? FLOAT32 : type_to == 2 ? FLOAT16 : type_to == 3 ? INT8 : type_to == 4 ? FLOAT16 : INT8;
+    top_blob.color_space = bottom_blob.color_space;
+    top_blob.color_format = bottom_blob.color_format;
+    top_blob.color_range = bottom_blob.color_range;
+
     return 0;
 }
 
@@ -554,6 +559,11 @@ int Cast_vulkan::forward(const VkImageBuffer& bottom_blob, VkImageBuffer& top_bl
 
     cmd.record_pipeline(pipeline, bindings, constants, top_blob);
 
+    top_blob.type = type_to == 1 ? FLOAT32 : type_to == 2 ? FLOAT16 : type_to == 3 ? INT8 : type_to == 4 ? FLOAT16 : INT8;
+    top_blob.color_space = bottom_blob.color_space;
+    top_blob.color_format = bottom_blob.color_format;
+    top_blob.color_range = bottom_blob.color_range;
+
     return 0;
 }
 
@@ -651,6 +661,11 @@ int Cast_vulkan::forward(const VkImageMat& bottom_blob, VkImageMat& top_blob, Vk
     // TODO more cast type
 
     cmd.record_pipeline(pipeline, bindings, constants, top_blob);
+
+    top_blob.type = type_to == 1 ? FLOAT32 : type_to == 2 ? FLOAT16 : type_to == 3 ? INT8 : type_to == 4 ? FLOAT16 : INT8;
+    top_blob.color_space = bottom_blob.color_space;
+    top_blob.color_format = bottom_blob.color_format;
+    top_blob.color_range = bottom_blob.color_range;
 
     return 0;
 }

@@ -526,6 +526,11 @@ int Packing_vulkan::forward(const VkImageMat& bottom_blob, VkImageMat& top_blob,
             return -100;
     }
 
+    top_blob.type = bottom_blob.type;
+    top_blob.color_space = bottom_blob.color_space;
+    top_blob.color_format = bottom_blob.color_format;
+    top_blob.color_range = bottom_blob.color_range;
+
     std::vector<VkImageBuffer> buffer_bindings(2);
 
     std::vector<VkImageMat> image_bindings(2);
@@ -653,6 +658,11 @@ int Packing_vulkan::forward(const VkImageBuffer& bottom_blob, VkImageMat& top_bl
             return -100;
     }
 
+    top_blob.type = bottom_blob.type;
+    top_blob.color_space = bottom_blob.color_space;
+    top_blob.color_format = bottom_blob.color_format;
+    top_blob.color_range = bottom_blob.color_range;
+
     std::vector<VkImageBuffer> buffer_bindings(2);
     buffer_bindings[0] = bottom_blob;
 
@@ -779,6 +789,11 @@ int Packing_vulkan::forward(const VkImageMat& bottom_blob, VkImageBuffer& top_bl
         if (top_blob.empty())
             return -100;
     }
+
+    top_blob.type = bottom_blob.type;
+    top_blob.color_space = bottom_blob.color_space;
+    top_blob.color_format = bottom_blob.color_format;
+    top_blob.color_range = bottom_blob.color_range;
 
     std::vector<VkImageBuffer> buffer_bindings(2);
     buffer_bindings[1] = top_blob;

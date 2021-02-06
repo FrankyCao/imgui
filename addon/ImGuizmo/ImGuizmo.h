@@ -42,6 +42,66 @@
 // 
 // -------------------------------------------------------------------------------------------
 // Example 
+#if 0
+void EditTransform(const Camera& camera, matrix_t& matrix)
+{
+   static ImGuizmo::OPERATION mCurrentGizmoOperation(ImGuizmo::ROTATE);
+   static ImGuizmo::MODE mCurrentGizmoMode(ImGuizmo::WORLD);
+   if (ImGui::IsKeyPressed(90))
+      mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
+   if (ImGui::IsKeyPressed(69))
+      mCurrentGizmoOperation = ImGuizmo::ROTATE;
+   if (ImGui::IsKeyPressed(82)) // r Key
+      mCurrentGizmoOperation = ImGuizmo::SCALE;
+   if (ImGui::RadioButton("Translate", mCurrentGizmoOperation == ImGuizmo::TRANSLATE))
+      mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
+   ImGui::SameLine();
+   if (ImGui::RadioButton("Rotate", mCurrentGizmoOperation == ImGuizmo::ROTATE))
+      mCurrentGizmoOperation = ImGuizmo::ROTATE;
+   ImGui::SameLine();
+   if (ImGui::RadioButton("Scale", mCurrentGizmoOperation == ImGuizmo::SCALE))
+      mCurrentGizmoOperation = ImGuizmo::SCALE;
+   float matrixTranslation[3], matrixRotation[3], matrixScale[3];
+   ImGuizmo::DecomposeMatrixToComponents(matrix.m16, matrixTranslation, matrixRotation, matrixScale);
+   ImGui::InputFloat3("Tr", matrixTranslation, 3);
+   ImGui::InputFloat3("Rt", matrixRotation, 3);
+   ImGui::InputFloat3("Sc", matrixScale, 3);
+   ImGuizmo::RecomposeMatrixFromComponents(matrixTranslation, matrixRotation, matrixScale, matrix.m16);
+
+   if (mCurrentGizmoOperation != ImGuizmo::SCALE)
+   {
+      if (ImGui::RadioButton("Local", mCurrentGizmoMode == ImGuizmo::LOCAL))
+         mCurrentGizmoMode = ImGuizmo::LOCAL;
+      ImGui::SameLine();
+      if (ImGui::RadioButton("World", mCurrentGizmoMode == ImGuizmo::WORLD))
+         mCurrentGizmoMode = ImGuizmo::WORLD;
+   }
+   static bool useSnap(false);
+   if (ImGui::IsKeyPressed(83))
+      useSnap = !useSnap;
+   ImGui::Checkbox("", &useSnap);
+   ImGui::SameLine();
+   vec_t snap;
+   switch (mCurrentGizmoOperation)
+   {
+   case ImGuizmo::TRANSLATE:
+      snap = config.mSnapTranslation;
+      ImGui::InputFloat3("Snap", &snap.x);
+      break;
+   case ImGuizmo::ROTATE:
+      snap = config.mSnapRotation;
+      ImGui::InputFloat("Angle Snap", &snap.x);
+      break;
+   case ImGuizmo::SCALE:
+      snap = config.mSnapScale;
+      ImGui::InputFloat("Scale Snap", &snap.x);
+      break;
+   }
+   ImGuiIO& io = ImGui::GetIO();
+   ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
+   ImGuizmo::Manipulate(camera.mView.m16, camera.mProjection.m16, mCurrentGizmoOperation, mCurrentGizmoMode, matrix.m16, NULL, useSnap ? &snap.x : NULL);
+}
+#endif
 #pragma once
 
 #ifdef USE_IMGUI_API
@@ -105,11 +165,26 @@ namespace ImGuizmo
    // translation is applied in world space
    enum OPERATION
    {
-      TRANSLATE,
-      ROTATE,
-      SCALE,
-      BOUNDS,
+      TRANSLATE_X      = (1u << 0),
+      TRANSLATE_Y      = (1u << 1),
+      TRANSLATE_Z      = (1u << 2),
+      ROTATE_X         = (1u << 3),
+      ROTATE_Y         = (1u << 4),
+      ROTATE_Z         = (1u << 5),
+      ROTATE_SCREEN    = (1u << 6),
+      SCALE_X          = (1u << 7),
+      SCALE_Y          = (1u << 8),
+      SCALE_Z          = (1u << 9),
+      BOUNDS           = (1u << 10),
+      TRANSLATE = TRANSLATE_X | TRANSLATE_Y | TRANSLATE_Z,
+      ROTATE = ROTATE_X | ROTATE_Y | ROTATE_Z | ROTATE_SCREEN,
+      SCALE = SCALE_X | SCALE_Y | SCALE_Z
    };
+
+   inline OPERATION operator|(OPERATION lhs, OPERATION rhs)
+   {
+     return static_cast<OPERATION>(static_cast<int>(lhs) | static_cast<int>(rhs));
+   }
 
    enum MODE
    {
@@ -130,4 +205,9 @@ namespace ImGuizmo
    // return true if the cursor is over the operation's gizmo
    IMGUI_API bool IsOver(OPERATION op);
    IMGUI_API void SetGizmoSizeClipSpace(float value);
-};
+
+   // Allow axis to flip
+   // When true (default), the guizmo axis flip for better visibility
+   // When false, they always stay along the positive world/local axis
+   IMGUI_API void AllowAxisFlip(bool value);
+}
