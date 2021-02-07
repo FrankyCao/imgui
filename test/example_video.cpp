@@ -619,7 +619,7 @@ public:
             double  time_base  = r2d(video_stream->time_base);
             time_stamp += (int64_t)(sec / time_base + 0.5);
             if (video_frames > 1) 
-                av_seek_frame(fmt_ctx, video_stream_idx, time_stamp, AVSEEK_FLAG_BACKWARD);
+                av_seek_frame(fmt_ctx, video_stream_idx, time_stamp, AVSEEK_FLAG_BACKWARD | AVSEEK_FLAG_ANY);
             avcodec_flush_buffers(video_dec_ctx);
             if (_frame_number > 0)
             {
@@ -1242,7 +1242,7 @@ bool Application_Frame(void* handle)
             if (ImGui::SliderFloat("time", &current_time, 0, example->total_time, "%.2f", flags))
             {
                 example->SeekMedia(current_time);
-                example->PlayMedia();
+                if (!example->is_playing) example->PlayMedia();
             }
             ImGui::SameLine();
             int hours = time / 1000 / 60 / 60; time -= hours * 60 * 60 * 1000;
