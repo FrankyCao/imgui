@@ -102,15 +102,6 @@ if (IMGUI_FREETYPE)
     find_package(Freetype)
 endif(IMGUI_FREETYPE)
 
-if(NOT WIN32)
-find_package(OpenCV)
-if (OPENCV_FOUND)
-    include_directories(
-        ${OpenCV_INCLUDE_DIRS}
-    )
-endif(OPENCV_FOUND)
-endif(NOT WIN32)
-
 if(PKG_CONFIG_FOUND)
     if(IMGUI_GLEW)
         pkg_search_module(GLEW REQUIRED glew)
@@ -984,18 +975,6 @@ if (SDL2_FOUND AND IMGUI_SDL2)
             ${LINK_LIBS}
         )
     endif(IMGUI_ADDONS)
-    if (OPENCV_FOUND AND IMGUI_ADDONS)
-        add_executable(
-            example_sdl_video
-            test/example_sdl_video.cpp
-        )
-        target_link_libraries(
-            example_sdl_video
-            imgui
-            ${OpenCV_LIBS}
-            ${LINK_LIBS}
-        )
-    endif(OPENCV_FOUND AND IMGUI_ADDONS)
     # Build Android examples
     if(ANDROID AND IMGUI_GLES)
         add_executable(
@@ -1233,7 +1212,6 @@ if (IMGUI_APPS)
         target_link_libraries(
             example_video
             imgui
-            ${OpenCV_LIBS}
             ${LINK_LIBS}
         )
     endif(FFMPEG_FOUND AND IMGUI_ADDONS)
