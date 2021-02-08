@@ -116,7 +116,7 @@ if(PKG_CONFIG_FOUND)
         pkg_search_module(SDL2 REQUIRED sdl2)
         pkg_search_module(SDL2_IMAGE REQUIRED SDL2_image>=2.0.0)
     endif(IMGUI_SDL2)
-    pkg_check_modules(FFMPEG REQUIRED IMPORTED_TARGET
+    pkg_check_modules(FFMPEG IMPORTED_TARGET
         libavcodec
         libavformat
         libavutil
@@ -812,11 +812,13 @@ if(IMGUI_ADDONS)
                     addon/ImVulkanShader/allocator.cpp
                     addon/ImVulkanShader/gpu.cpp
                     addon/ImVulkanShader/command.cpp
-                    addon/ImVulkanShader/color.cpp
+                    addon/ImVulkanShader/colorspace_table.cpp
                     addon/ImVulkanShader/pipeline.cpp
                     addon/ImVulkanShader/pipelinecache.cpp
                     addon/ImVulkanShader/Cast_vulkan.cpp
                     addon/ImVulkanShader/Packing_vulkan.cpp
+                    addon/ImVulkanShader/ColorConvert_vulkan.cpp
+                    addon/ImVulkanShader/Resize_vulkan.cpp
                     addon/ImVulkanShader/ImVulkanShader.cpp
                 )
                 set(IMGUI_INCS
@@ -834,6 +836,10 @@ if(IMGUI_ADDONS)
                     addon/ImVulkanShader/Cast_vulkan.h
                     addon/ImVulkanShader/Packing_shader.h
                     addon/ImVulkanShader/Packing_vulkan.h
+                    addon/ImVulkanShader/ColorConvert_shader.h
+                    addon/ImVulkanShader/ColorConvert_vulkan.h
+                    addon/ImVulkanShader/Resize_shader.h
+                    addon/ImVulkanShader/Resize_vulkan.h
                     addon/ImVulkanShader/ImVulkanShader.h
                 )
                 set(IMGUI_INC_DIRS

@@ -10,6 +10,7 @@
 extern "C" {
 #endif
 #include <libavformat/avformat.h>
+#include <libavutil/avutil.h>
 #include <libavutil/pixdesc.h>
 #include <libswscale/swscale.h>
 #include <libavcodec/avcodec.h>
@@ -240,200 +241,13 @@ static inline enum AVPixelFormat get_hw_format(AVCodecContext *ctx, const enum A
          format == AV_PIX_FMT_NV42 || \
          format == AV_PIX_FMT_NV20)
 
-#ifdef IMGUI_VULKAN_SHADER
-static const char YUV2RGB8_data[] = R"(
-#version 450
-#extension GL_EXT_shader_8bit_storage: require
-#extension GL_EXT_shader_16bit_storage: require
-#extension GL_EXT_shader_explicit_arithmetic_types_float16: require
-#define GRAY    0
-#define BGR     1
-#define RGB     2
-#define YUV420  3
-#define YUV422  4
-#define YUV444  5
-#define NV12    6
-layout (binding = 0) readonly buffer Y { uint8_t Y_data[]; };
-layout (binding = 1) readonly buffer U { uint8_t U_data[]; };
-layout (binding = 2) readonly buffer V { uint8_t V_data[]; };
-layout (binding = 3) writeonly buffer Out { float Out_data[]; };
-layout (binding = 4) writeonly buffer RGBA { uint8_t RGBA_data[]; };
-layout (binding = 5) readonly buffer matix_y2r { float convert_matix_y2r[]; };
-sfpmat3 matix_mat_y2r = {
-    {sfp(convert_matix_y2r[0]), sfp(convert_matix_y2r[3]), sfp(convert_matix_y2r[6])},
-    {sfp(convert_matix_y2r[1]), sfp(convert_matix_y2r[4]), sfp(convert_matix_y2r[7])},
-    {sfp(convert_matix_y2r[2]), sfp(convert_matix_y2r[5]), sfp(convert_matix_y2r[8])},
-};
-layout (push_constant) uniform parameter
-{
-    int w;
-    int h;
-    int cstep;
-    int in_format;
-    int in_space;
-    int in_range;
-    float in_scale;
-    int out_rgba;
-} p;
-sfpvec3 yuv_to_rgb(sfpvec3 yuv)
-{
-    sfpvec3 rgb;
-    sfpvec3 yuv_offset = {sfp(0.f), sfp(0.5f), sfp(0.5f)};
-    if (p.in_range == 1)
-        yuv_offset.x = sfp(16.0f / 255.0f);
-    rgb = matix_mat_y2r * (yuv - yuv_offset);
-    return clamp(rgb, sfp(0.f), sfp(1.f));
-}
-sfpvec3 load_src_yuv(int x, int y, int z)
-{
-    sfpvec3 yuv_in = {sfp(0.f), sfp(0.5f), sfp(0.5f)};
-    int uv_scale_w = p.in_format == YUV420 || p.in_format == YUV422 ? 2 : 1;
-    int uv_scale_h = p.in_format == YUV420 || p.in_format == NV12 ? 2 : 1;
-    int y_offset = y * p.w + x;
-    int u_offset = (y / uv_scale_h) * p.w / uv_scale_w + x / uv_scale_w;
-    int v_offset = (y / uv_scale_h) * p.w / uv_scale_w + x / uv_scale_w;
-    ivec2 uv_offset = ((y / 2) * p.w / 2 + x / 2) * 2 + ivec2(0, 1);
-    yuv_in.x = sfp(uint(Y_data[y_offset])) / sfp(p.in_scale);
-    if (p.in_format == NV12)
-    {
-        yuv_in.y = sfp(uint(U_data[uv_offset.x])) / sfp(p.in_scale);
-        yuv_in.z = sfp(uint(U_data[uv_offset.y])) / sfp(p.in_scale);
-    }
-    else
-    {
-        yuv_in.y = sfp(uint(U_data[u_offset])) / sfp(p.in_scale);
-        yuv_in.z = sfp(uint(V_data[v_offset])) / sfp(p.in_scale);
-    }
-    return yuv_in;
-}
-void store_dst_rgb(int x, int y, int z, sfpvec3 rgb)
-{
-    if (p.out_rgba == 1)
-    {
-        ivec4 o_offset = (y * p.w + x) * p.cstep + ivec4(0, 1, 2, 3);
-        RGBA_data[o_offset.r] = uint8_t(clamp(uint(floor(rgb.r * sfp(255.0))), 0, 255));
-        RGBA_data[o_offset.g] = uint8_t(clamp(uint(floor(rgb.g * sfp(255.0))), 0, 255));
-        RGBA_data[o_offset.b] = uint8_t(clamp(uint(floor(rgb.b * sfp(255.0))), 0, 255));
-        RGBA_data[o_offset.a] = uint8_t(255);
-    }
-    else
-    {
-        ivec4 v_offset = (y * p.w + x) + ivec4(0, 1, 2, 3) * (p.w * p.h);
-        buffer_st1(Out_data, v_offset.r, float(clamp(rgb.r, sfp(0.f), sfp(1.f))));
-        buffer_st1(Out_data, v_offset.g, float(clamp(rgb.g, sfp(0.f), sfp(1.f))));
-        buffer_st1(Out_data, v_offset.b, float(clamp(rgb.b, sfp(0.f), sfp(1.f))));
-        buffer_st1(Out_data, v_offset.a, 1.f);
-    }
-}
-void main()
-{
-    int gx = int(gl_GlobalInvocationID.x);
-    int gy = int(gl_GlobalInvocationID.y);
-    int gz = int(gl_GlobalInvocationID.z);
-    sfpvec3 rgb = yuv_to_rgb(load_src_yuv(gx, gy, gz));
-    store_dst_rgb(gx, gy, gz, rgb);
-}
-)";
-static const char YUV2RGB16_data[] = R"(
-#version 450
-#extension GL_EXT_shader_8bit_storage: require
-#extension GL_EXT_shader_16bit_storage: require
-#extension GL_EXT_shader_explicit_arithmetic_types_float16: require
-#define GRAY    0
-#define BGR     1
-#define RGB     2
-#define YUV420  3
-#define YUV422  4
-#define YUV444  5
-#define NV12    6
-layout (binding = 0) readonly buffer Y { uint16_t Y_data[]; };
-layout (binding = 1) readonly buffer U { uint16_t U_data[]; };
-layout (binding = 2) readonly buffer V { uint16_t V_data[]; };
-layout (binding = 3) writeonly buffer Out { float Out_data[]; };
-layout (binding = 4) writeonly buffer RGBA { uint8_t RGBA_data[]; };
-layout (binding = 5) readonly buffer matix_y2r { float convert_matix_y2r[]; };
-sfpmat3 matix_mat_y2r = {
-    {sfp(convert_matix_y2r[0]), sfp(convert_matix_y2r[3]), sfp(convert_matix_y2r[6])},
-    {sfp(convert_matix_y2r[1]), sfp(convert_matix_y2r[4]), sfp(convert_matix_y2r[7])},
-    {sfp(convert_matix_y2r[2]), sfp(convert_matix_y2r[5]), sfp(convert_matix_y2r[8])},
-};
-layout (push_constant) uniform parameter
-{
-    int w;
-    int h;
-    int cstep;
-    int in_format;
-    int in_space;
-    int in_range;
-    float in_scale;
-    int out_rgba;
-} p;
-sfpvec3 yuv_to_rgb(sfpvec3 yuv)
-{
-    sfpvec3 rgb;
-    sfpvec3 yuv_offset = {sfp(0.f), sfp(0.5f), sfp(0.5f)};
-    if (p.in_range == 1)
-        yuv_offset.x = sfp(16.0f / 255.0f);
-    rgb = matix_mat_y2r * (yuv - yuv_offset);
-    return clamp(rgb, sfp(0.f), sfp(1.f));
-}
-sfpvec3 load_src_yuv(int x, int y, int z)
-{
-    sfpvec3 yuv_in = {sfp(0.f), sfp(0.5f), sfp(0.5f)};
-    int uv_scale_w = p.in_format == YUV420 || p.in_format == YUV422 ? 2 : 1;
-    int uv_scale_h = p.in_format == YUV420 || p.in_format == NV12 ? 2 : 1;
-    int y_offset = y * p.w + x;
-    int u_offset = (y / uv_scale_h) * p.w / uv_scale_w + x / uv_scale_w;
-    int v_offset = (y / uv_scale_h) * p.w / uv_scale_w + x / uv_scale_w;
-    ivec2 uv_offset = ((y / 2) * p.w / 2 + x / 2) * 2 + ivec2(0, 1);
-    yuv_in.x = sfp(uint(Y_data[y_offset])) / sfp(p.in_scale);
-    if (p.in_format == NV12)
-    {
-        yuv_in.y = sfp(uint(U_data[uv_offset.x])) / sfp(p.in_scale);
-        yuv_in.z = sfp(uint(U_data[uv_offset.y])) / sfp(p.in_scale);
-    }
-    else
-    {
-        yuv_in.y = sfp(uint(U_data[u_offset])) / sfp(p.in_scale);
-        yuv_in.z = sfp(uint(V_data[v_offset])) / sfp(p.in_scale);
-    }
-    return yuv_in;
-}
-void store_dst_rgb(int x, int y, int z, sfpvec3 rgb)
-{
-    if (p.out_rgba == 1)
-    {
-        ivec4 o_offset = (y * p.w + x) * p.cstep + ivec4(0, 1, 2, 3);
-        RGBA_data[o_offset.r] = uint8_t(clamp(uint(floor(rgb.r * sfp(255.0))), 0, 255));
-        RGBA_data[o_offset.g] = uint8_t(clamp(uint(floor(rgb.g * sfp(255.0))), 0, 255));
-        RGBA_data[o_offset.b] = uint8_t(clamp(uint(floor(rgb.b * sfp(255.0))), 0, 255));
-        RGBA_data[o_offset.a] = uint8_t(255);
-    }
-    else
-    {
-        ivec4 v_offset = (y * p.w + x) + ivec4(0, 1, 2, 3) * (p.w * p.h);
-        buffer_st1(Out_data, v_offset.r, float(clamp(rgb.r, sfp(0.f), sfp(1.f))));
-        buffer_st1(Out_data, v_offset.g, float(clamp(rgb.g, sfp(0.f), sfp(1.f))));
-        buffer_st1(Out_data, v_offset.b, float(clamp(rgb.b, sfp(0.f), sfp(1.f))));
-        buffer_st1(Out_data, v_offset.a, 1.f);
-    }
-}
-void main()
-{
-    int gx = int(gl_GlobalInvocationID.x);
-    int gy = int(gl_GlobalInvocationID.y);
-    int gz = int(gl_GlobalInvocationID.z);
-    sfpvec3 rgb = yuv_to_rgb(load_src_yuv(gx, gy, gz));
-    store_dst_rgb(gx, gy, gz, rgb);
-}
-)";
-#endif
-
 class Example
 {
 public:
     Example() 
     {
+        // set ffmpeg log level
+        av_log_set_level(AV_LOG_QUIET);
         // load file dialog resource
         std::string bookmark_path = std::string(DEFAULT_CONFIG_PATH) + "bookmark.ini";
         prepare_file_dialog_demo_window(&filedialog, bookmark_path.c_str());
@@ -442,28 +256,8 @@ public:
         memset(&packet, 0, sizeof(packet));
 
 #ifdef IMGUI_VULKAN_SHADER
-        vkdev = ImVulkan::get_gpu_device(0);
-        blob_allocator = vkdev->acquire_blob_allocator();
-        staging_allocator = vkdev->acquire_staging_allocator();
-        opt.blob_vkallocator = blob_allocator;
-        opt.staging_vkallocator = staging_allocator;
-        opt.use_image_storage = true;
-        opt.use_fp16_arithmetic = true;
-        //opt.use_fp16_packed = true;
-        //opt.use_fp16_storage = true;
-        cmd = new ImVulkan::VkCompute(vkdev);
-        std::vector<ImVulkan::vk_specialization_type> specializations(0);
-        static std::vector<uint32_t> spirv_8;
-        ImVulkan::compile_spirv_module(YUV2RGB8_data, opt, spirv_8);
-        pipeline_8 = new ImVulkan::Pipeline(vkdev);
-        pipeline_8->set_optimal_local_size_xyz(8, 8, 4);
-        pipeline_8->create(spirv_8.data(), spirv_8.size() * 4, specializations);
-        static std::vector<uint32_t> spirv_16;
-        ImVulkan::compile_spirv_module(YUV2RGB16_data, opt, spirv_16);
-        pipeline_16 = new ImVulkan::Pipeline(vkdev);
-        pipeline_16->set_optimal_local_size_xyz(8, 8, 4);
-        pipeline_16->create(spirv_16.data(), spirv_16.size() * 4, specializations);
-        cmd->reset();
+        yuv2rgb = new ImVulkan::ColorConvert_vulkan(0);
+        resize = new ImVulkan::Resize_vulkan(0);
 #endif
     }
     ~Example() 
@@ -473,14 +267,8 @@ public:
         end_file_dialog_demo_window(&filedialog, bookmark_path.c_str());
         CloseMedia();
 #ifdef IMGUI_VULKAN_SHADER
-        if (vkdev)
-        {
-            if (pipeline_8) { delete pipeline_8; pipeline_8 = nullptr; }
-            if (pipeline_16) { delete pipeline_16; pipeline_16 = nullptr; }
-            if (cmd) { delete cmd; cmd = nullptr; }
-            if (blob_allocator) { vkdev->reclaim_blob_allocator(blob_allocator); blob_allocator = nullptr; }
-            if (staging_allocator) { vkdev->reclaim_staging_allocator(staging_allocator); staging_allocator = nullptr; }
-        }
+        if (yuv2rgb) { delete yuv2rgb; yuv2rgb = nullptr; }
+        if (resize) { delete resize; resize = nullptr; }
 #endif
     }
     void CloseMedia()
@@ -690,121 +478,42 @@ public:
 #ifdef IMGUI_VULKAN_SHADER
             const AVPixFmtDescriptor *desc = av_pix_fmt_desc_get((AVPixelFormat)tmp_frame->format);
             int video_shift = desc->comp[0].depth + desc->comp[0].shift;
-            bool using_vkimage = true;
-            if (video_width > (int)vkdev->info.max_image_dimension_3d() || video_height > (int)vkdev->info.max_image_dimension_3d() || video_depth > (int)vkdev->info.max_image_dimension_3d())
-            {
-                using_vkimage = false;
-            }
-            ImVulkan::ColorSpace color_space;
-            switch (video_color_space)
-            {
-                case AVCOL_SPC_BT470BG:
-                case AVCOL_SPC_SMPTE170M:
-                case AVCOL_SPC_SMPTE240M:
-                    color_space = ImVulkan::BT601;
-                break;
-                case AVCOL_SPC_BT709:
-                    color_space = ImVulkan::BT709;
-                break;
-                case AVCOL_SPC_BT2020_NCL:
-                case AVCOL_SPC_BT2020_CL:
-                    color_space = ImVulkan::BT2020;
-                break;
-                default:
-                    color_space = ImVulkan::BT709;
-                    break;
-            }
-            ImVulkan::ColorRange color_range;
-            switch (video_color_range)
-            {
-                case AVCOL_RANGE_MPEG:
-                    color_range = ImVulkan::NARROW_RANGE;
-                break;
-                case AVCOL_RANGE_JPEG:
-                    color_range = ImVulkan::FULL_RANGE;
-                break;
-                default:
-                    color_range = ImVulkan::NARROW_RANGE;
-                break;
-            }
-            if (matix_y2r_gpu.empty())
-            {
-                const ImVulkan::ImageBuffer conv_mat_y2r = *ImVulkan::color_table[0][color_range][color_space];
-                cmd->record_clone(conv_mat_y2r, matix_y2r_gpu, opt);
-                cmd->submit_and_wait();
-                cmd->flash();
-            }
-            ImVulkan::ImageBuffer im_Y, im_U, im_V, im_RGB;
-            ImVulkan::VkImageBuffer vk_Y, vk_U, vk_V, vk_RGB;
-            if (using_vkimage)
-            {
-                vk_RGB.create_type(video_width, video_height, 4, ImVulkan::FLOAT32, blob_allocator);
-            }
-            else
-            {
-                im_RGB.create_type(video_width, video_height, 4, ImVulkan::INT8);
-                vk_RGB.create_like(im_RGB, blob_allocator);
-            }
+            ImVulkan::ColorSpace color_space =  video_color_space == AVCOL_SPC_BT470BG ||
+                                                video_color_space == AVCOL_SPC_SMPTE170M ||
+                                                video_color_space == AVCOL_SPC_BT470BG ? ImVulkan::BT601 :
+                                                video_color_space == AVCOL_SPC_BT709 ? ImVulkan::BT709 :
+                                                video_color_space == AVCOL_SPC_BT2020_NCL ||
+                                                video_color_space == AVCOL_SPC_BT2020_CL ? ImVulkan::BT2020 : ImVulkan::BT709;
+            ImVulkan::ColorRange color_range =  video_color_range == AVCOL_RANGE_MPEG ? ImVulkan::NARROW_RANGE :
+                                                video_color_range == AVCOL_RANGE_JPEG ? ImVulkan::FULL_RANGE : ImVulkan::NARROW_RANGE;
+            ImVulkan::ColorFormat color_format = ISYUV420P(tmp_frame->format) ? ImVulkan::YUV420 :
+                                                ISYUV422P(tmp_frame->format) ? ImVulkan::YUV422 :
+                                                ISYUV444P(tmp_frame->format) ? ImVulkan::YUV444 :
+                                                ISNV12(tmp_frame->format) ? ImVulkan::NV12 : ImVulkan::YUV420;
+            
+            ImVulkan::ImageBuffer im_Y, im_U, im_V;
             int UV_shift_w = ISYUV420P(tmp_frame->format) || ISYUV422P(tmp_frame->format) ? 1 : 0;
-            int UV_shift_h = ISYUV420P(tmp_frame->format) || ISNV12(tmp_frame->format) ? 1 : 0; 
-            im_Y.create_type(tmp_frame->width, tmp_frame->height, 1, tmp_frame->data[0], video_depth == 8 ? ImVulkan::INT8 : ImVulkan::INT16);
-            cmd->record_clone(im_Y, vk_Y, opt);
-            im_U.create_type(tmp_frame->width >> UV_shift_w, tmp_frame->height >> UV_shift_h, 1, tmp_frame->data[1], video_depth == 8 ? ImVulkan::INT8 : ImVulkan::INT16);
-            cmd->record_clone(im_U, vk_U, opt);
+            int UV_shift_h = ISYUV420P(tmp_frame->format) || ISNV12(tmp_frame->format) ? 1 : 0;
+            im_Y.create_type(tmp_frame->linesize[0], tmp_frame->height, 1, tmp_frame->data[0], video_depth == 8 ? ImVulkan::INT8 : ImVulkan::INT16);
+            im_U.create_type(tmp_frame->linesize[1] >> UV_shift_w, tmp_frame->height >> UV_shift_h, 1, tmp_frame->data[1], video_depth == 8 ? ImVulkan::INT8 : ImVulkan::INT16);
             if (!ISNV12(tmp_frame->format))
             {
-                im_V.create_type(tmp_frame->width >> UV_shift_w, tmp_frame->height >> UV_shift_h, 1, tmp_frame->data[2], video_depth == 8 ? ImVulkan::INT8 : ImVulkan::INT16);
-                cmd->record_clone(im_V, vk_V, opt);
+                im_V.create_type(tmp_frame->linesize[2] >> UV_shift_w, tmp_frame->height >> UV_shift_h, 1, tmp_frame->data[2], video_depth == 8 ? ImVulkan::INT8 : ImVulkan::INT16);
             }
-
-            std::vector<ImVulkan::VkImageBuffer> bindings(6);
-            bindings[0] = vk_Y;
-            bindings[1] = vk_U;
-            if (!ISNV12(tmp_frame->format))
-                bindings[2] = vk_V;
-            if (using_vkimage)
-                bindings[3] = vk_RGB;
-            else
-                bindings[4] = vk_RGB;
-            bindings[5] = matix_y2r_gpu;
-            std::vector<ImVulkan::vk_constant_type> constants(8);
-            constants[0].i = vk_RGB.w;
-            constants[1].i = vk_RGB.h;
-            constants[2].i = vk_RGB.c;
-            constants[3].i =    ISYUV420P(tmp_frame->format) ? ImVulkan::YUV420 :
-                                ISYUV422P(tmp_frame->format) ? ImVulkan::YUV422 :
-                                ISYUV444P(tmp_frame->format) ? ImVulkan::YUV444 :
-                                ISNV12(tmp_frame->format) ? ImVulkan::NV12 : ImVulkan::YUV420;
-            constants[4].i = color_space;
-            constants[5].i = color_range;
-            constants[6].f = (float)(1 << video_shift);
-            constants[7].i = using_vkimage ? 0 : 1;
-            if (video_depth == 8)
+            if (video_width > 1920 || video_height > 1920 || video_depth > 1920)
             {
-                cmd->record_pipeline(pipeline_8, bindings, constants, vk_RGB);
+                float frame_scale = 1920.f / (float)video_width;
+                ImVulkan::VkImageBuffer im_RGB;
+                yuv2rgb->YUV2RGBA(im_Y, im_U, im_V, im_RGB, color_format, color_space, color_range, video_depth, video_shift);
+                resize->Resize(im_RGB, vkimage, frame_scale, 0.f, ImVulkan::INTERPOLATE_AREA);
             }
             else
-            {
-                cmd->record_pipeline(pipeline_16, bindings, constants, vk_RGB);
-            }
-            if (using_vkimage)
-                cmd->record_buffer_to_image(vk_RGB, vkimage, opt);
-            else
-                cmd->record_clone(vk_RGB, im_RGB, opt);
-
-            cmd->submit_and_wait();
-            cmd->flash();
-            if (using_vkimage)
-            {
-                if (!video_texture) video_texture = ImGui::ImCreateTexture(vkimage);
-            }
-            else
-            {
-                ImGui::ImGenerateOrUpdateTexture(video_texture, video_width, video_height, 4, (const unsigned char *)im_RGB.data);
-            }
+                yuv2rgb->YUV2RGBA(im_Y, im_U, im_V, vkimage, color_format, color_space, color_range, video_depth, video_shift);
+            if (!video_texture) video_texture = ImGui::ImCreateTexture(vkimage);
 #else
             if (video_pfmt != tmp_frame->format)
             {
+                // TODO::Dicky if linesize != width will cause video oblique stroke
                 img_convert_ctx = sws_getCachedContext(
                                             img_convert_ctx,
                                             tmp_frame->width,
@@ -940,15 +649,9 @@ public:
     // init video texture
     ImTextureID video_texture = nullptr;
 #ifdef IMGUI_VULKAN_SHADER
-    ImVulkan::VulkanDevice* vkdev = nullptr;
-    ImVulkan::VkAllocator* blob_allocator = nullptr;
-    ImVulkan::VkAllocator* staging_allocator = nullptr;
-    ImVulkan::Option opt;
-    ImVulkan::Pipeline * pipeline_8 = nullptr;
-    ImVulkan::Pipeline * pipeline_16 = nullptr;
-    ImVulkan::VkCompute * cmd = nullptr;
+    ImVulkan::ColorConvert_vulkan * yuv2rgb = nullptr;
+    ImVulkan::Resize_vulkan * resize = nullptr;
     ImVulkan::VkImageMat vkimage;
-    ImVulkan::VkImageBuffer matix_y2r_gpu;
 #endif
 public:
     // video info

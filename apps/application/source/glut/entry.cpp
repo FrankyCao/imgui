@@ -6,6 +6,7 @@
 #else
     #include <GL/freeglut.h>
 #endif
+#include <string>
 #include "application.h"
 
 #ifdef _MSC_VER

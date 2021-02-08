@@ -1697,6 +1697,7 @@ void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, const void * pixels, 
         return;
     ImGui_ImplVulkan_InitInfo* v = &g_VulkanInitInfo;
     VkDeviceSize imageSize = width * height * 4;
+    
     // create staging buffer
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;

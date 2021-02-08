@@ -14,6 +14,8 @@
 #else
     #include <GL/freeglut.h>
 #endif
+#include <string>
+#include "Config.h"
 
 #ifdef _MSC_VER
 #pragma warning (disable: 4505) // unreferenced local function has been removed

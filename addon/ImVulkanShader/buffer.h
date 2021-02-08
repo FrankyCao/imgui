@@ -45,6 +45,16 @@ enum ColorFormat {
     NV12,
 };
 
+enum InterpolateMode {
+    INTERPOLATE_NEAREST = 0,
+    INTERPOLATE_BILINEAR,
+    INTERPOLATE_BICUBIC,
+    INTERPOLATE_AREA,
+    INTERPOLATE_TRILINEAR,
+    INTERPOLATE_TETRAHEDRAL,
+    NB_INTERP_MODE
+};
+
 #define ESIZE(a)  (a == ImVulkan::INT8 ? (size_t)1u : (a == ImVulkan::INT16 || a == ImVulkan::FLOAT16) ? (size_t)2u : (a == ImVulkan::INT32 || a == ImVulkan::FLOAT32) ? (size_t)4u : (a == ImVulkan::INT64 || a == ImVulkan::FLOAT64) ? (size_t)8u : (size_t)0u)
 #define ISMONO(a) (a == ImVulkan::GRAY)
 #define ISRGB(a) (a == ImVulkan::BGR || a == ImVulkan::RGB)
@@ -222,6 +232,7 @@ public:
     // 2 = BT709
     // 3 = BT2020
     ColorSpace color_space;
+    // format
     // 0 = GRAY
     // 1 = BGR
     // 2 = RGB
@@ -230,6 +241,7 @@ public:
     // 5 = YUV444
     // 6 = NV12
     ColorFormat color_format;
+    // range
     // 0 = FULL_RANGE
     // 1 = NARROW_RANGE
     ColorRange color_range;
@@ -370,6 +382,7 @@ public:
     // 2 = BT709
     // 3 = BT2020
     ColorSpace color_space;
+    // format
     // 0 = GRAY
     // 1 = BGR
     // 2 = RGB
@@ -378,6 +391,7 @@ public:
     // 5 = YUV444
     // 6 = NV12
     ColorFormat color_format;
+    // range
     // 0 = FULL_RANGE
     // 1 = NARROW_RANGE
     ColorRange color_range;
@@ -509,6 +523,7 @@ public:
     // 2 = BT709
     // 3 = BT2020
     ColorSpace color_space;
+    // format
     // 0 = GRAY
     // 1 = BGR
     // 2 = RGB
@@ -517,6 +532,7 @@ public:
     // 5 = YUV444
     // 6 = NV12
     ColorFormat color_format;
+    // range
     // 0 = FULL_RANGE
     // 1 = NARROW_RANGE
     ColorRange color_range;
@@ -543,6 +559,10 @@ union vk_constant_type
 inline ImageBuffer::ImageBuffer()
     : data(0), refcount(0), elemsize(0), elempack(0), allocator(0), dims(0), w(0), h(0), c(0), cstep(0)
 {
+    type = FLOAT32;
+    color_format = GRAY;
+    color_space = SRGB;
+    color_range = FULL_RANGE;
 }
 
 inline ImageBuffer::ImageBuffer(int _w, size_t _elemsize, Allocator* _allocator)
@@ -595,36 +615,62 @@ inline ImageBuffer::ImageBuffer(int _w, void* _data, size_t _elemsize, Allocator
     : data(_data), refcount(0), elemsize(_elemsize), elempack(1), allocator(_allocator), dims(1), w(_w), h(1), c(1)
 {
     cstep = w;
+    type = _elemsize == 1 ? INT8 : _elemsize == 2 ? INT16 : FLOAT32;
+    color_space = SRGB;
+    color_format = GRAY;
+    color_range = FULL_RANGE;
+
 }
 
 inline ImageBuffer::ImageBuffer(int _w, int _h, void* _data, size_t _elemsize, Allocator* _allocator)
     : data(_data), refcount(0), elemsize(_elemsize), elempack(1), allocator(_allocator), dims(2), w(_w), h(_h), c(1)
 {
     cstep = (size_t)w * h;
+    type = _elemsize == 1 ? INT8 : _elemsize == 2 ? INT16 : FLOAT32;
+    color_space = SRGB;
+    color_format = GRAY;
+    color_range = FULL_RANGE;
 }
 
 inline ImageBuffer::ImageBuffer(int _w, int _h, int _c, void* _data, size_t _elemsize, Allocator* _allocator)
     : data(_data), refcount(0), elemsize(_elemsize), elempack(1), allocator(_allocator), dims(3), w(_w), h(_h), c(_c)
 {
     cstep = alignSize((size_t)w * h * elemsize, 16) / elemsize;
+    type = _elemsize == 1 ? INT8 : _elemsize == 2 ? INT16 : FLOAT32;
+    color_space = SRGB;
+    color_format = c == 1 ? GRAY : RGB;
+    color_range = FULL_RANGE;
 }
 
 inline ImageBuffer::ImageBuffer(int _w, void* _data, size_t _elemsize, int _elempack, Allocator* _allocator)
     : data(_data), refcount(0), elemsize(_elemsize), elempack(_elempack), allocator(_allocator), dims(1), w(_w), h(1), c(1)
 {
     cstep = w;
+    type = _elemsize == 1 ? INT8 : _elemsize == 2 ? INT16 : FLOAT32;
+    color_space = SRGB;
+    color_format = GRAY;
+    color_range = FULL_RANGE;
+
 }
 
 inline ImageBuffer::ImageBuffer(int _w, int _h, void* _data, size_t _elemsize, int _elempack, Allocator* _allocator)
     : data(_data), refcount(0), elemsize(_elemsize), elempack(_elempack), allocator(_allocator), dims(2), w(_w), h(_h), c(1)
 {
     cstep = (size_t)w * h;
+    type = _elemsize == 1 ? INT8 : _elemsize == 2 ? INT16 : FLOAT32;
+    color_space = SRGB;
+    color_format = GRAY;
+    color_range = FULL_RANGE;
 }
 
 inline ImageBuffer::ImageBuffer(int _w, int _h, int _c, void* _data, size_t _elemsize, int _elempack, Allocator* _allocator)
     : data(_data), refcount(0), elemsize(_elemsize), elempack(_elempack), allocator(_allocator), dims(3), w(_w), h(_h), c(_c)
 {
     cstep = alignSize((size_t)w * h * elemsize, 16) / elemsize;
+    type = _elemsize == 1 ? INT8 : _elemsize == 2 ? INT16 : FLOAT32;
+    color_space = SRGB;
+    color_format = c == 1 ? GRAY : RGB;
+    color_range = FULL_RANGE;
 }
 
 inline ImageBuffer::~ImageBuffer()
@@ -732,7 +778,7 @@ inline ImageBuffer ImageBuffer::reshape(int _w, Allocator* _allocator) const
     m.c = 1;
 
     m.cstep = _w;
-
+    m.color_format = GRAY;
     return m;
 }
 
@@ -763,6 +809,7 @@ inline ImageBuffer ImageBuffer::reshape(int _w, int _h, Allocator* _allocator) c
     m.w = _w;
     m.h = _h;
     m.c = 1;
+    m.color_format = GRAY;
 
     m.cstep = (size_t)_w * _h;
 
@@ -805,7 +852,7 @@ inline ImageBuffer ImageBuffer::reshape(int _w, int _h, int _c, Allocator* _allo
     m.w = _w;
     m.h = _h;
     m.c = _c;
-
+    m.color_format = _c == 1 ? GRAY : RGB;
     m.cstep = alignSize((size_t)_w * _h * elemsize, 16) / elemsize;
 
     return m;
@@ -896,7 +943,7 @@ inline void ImageBuffer::create(int _w, int _h, int _c, size_t _elemsize, Alloca
     c = _c;
     type = _elemsize == 1 ? INT8 : _elemsize == 2 ? INT16 : FLOAT32;
     color_space = SRGB;
-    color_format = GRAY;
+    color_format = c == 1 ? GRAY : RGB;
     color_range = FULL_RANGE;
 
     cstep = alignSize((size_t)w * h * elemsize, 16) / elemsize;
@@ -998,7 +1045,7 @@ inline void ImageBuffer::create(int _w, int _h, int _c, size_t _elemsize, int _e
     c = _c;
     type = _elemsize == 1 ? INT8 : _elemsize == 2 ? INT16 : FLOAT32;
     color_space = SRGB;
-    color_format = GRAY;
+    color_format = c == 1 ? GRAY : RGB;
     color_range = FULL_RANGE;
 
 
@@ -1116,7 +1163,7 @@ inline void ImageBuffer::create_type(int _w, int _h, int _c, DataType _t, Alloca
     cstep = alignSize((size_t)w * h * elemsize, 4) / elemsize;
     type = _t;
     color_space = SRGB;
-    color_format = BGR;
+    color_format = c == 1 ? GRAY : RGB;
     color_range = FULL_RANGE;
 
     if (total() > 0)
@@ -1198,7 +1245,7 @@ inline void ImageBuffer::create_type(int _w, int _h, int _c, void* _data, DataTy
     cstep = alignSize((size_t)w * h * elemsize, 4) / elemsize;
     type = _t;
     color_space = SRGB;
-    color_format = BGR;
+    color_format = c == 1 ? GRAY : RGB;
     color_range = FULL_RANGE;
     data = _data;
 }
@@ -1387,6 +1434,10 @@ inline const float& ImageBuffer::operator[](size_t i) const
 inline VkImageBuffer::VkImageBuffer()
     : data(0), refcount(0), elemsize(0), elempack(0), allocator(0), dims(0), w(0), h(0), c(0), cstep(0)
 {
+    type = FLOAT32;
+    color_format = GRAY;
+    color_space = SRGB;
+    color_range = FULL_RANGE;
 }
 
 inline VkImageBuffer::VkImageBuffer(int _w, size_t _elemsize, VkAllocator* _allocator)
@@ -1441,36 +1492,60 @@ inline VkImageBuffer::VkImageBuffer(int _w, VkBufferMemory* _data, size_t _elems
     : data(_data), refcount(0), elemsize(_elemsize), elempack(1), allocator(_allocator), dims(1), w(_w), h(1), c(1)
 {
     cstep = w;
+    type = _elemsize == 1 ? INT8 : _elemsize == 2 ? INT16 : FLOAT32;
+    color_space = SRGB;
+    color_format = GRAY;
+    color_range = FULL_RANGE;
 }
 
 inline VkImageBuffer::VkImageBuffer(int _w, int _h, VkBufferMemory* _data, size_t _elemsize, VkAllocator* _allocator)
     : data(_data), refcount(0), elemsize(_elemsize), elempack(1), allocator(_allocator), dims(2), w(_w), h(_h), c(1)
 {
     cstep = w * h;
+    type = _elemsize == 1 ? INT8 : _elemsize == 2 ? INT16 : FLOAT32;
+    color_space = SRGB;
+    color_format = GRAY;
+    color_range = FULL_RANGE;
 }
 
 inline VkImageBuffer::VkImageBuffer(int _w, int _h, int _c, VkBufferMemory* _data, size_t _elemsize, VkAllocator* _allocator)
     : data(_data), refcount(0), elemsize(_elemsize), elempack(1), allocator(_allocator), dims(3), w(_w), h(_h), c(_c)
 {
     cstep = alignSize(w * h * elemsize, 16) / elemsize;
+    type = _elemsize == 1 ? INT8 : _elemsize == 2 ? INT16 : FLOAT32;
+    color_space = SRGB;
+    color_format = c == 1 ? GRAY : RGB;
+    color_range = FULL_RANGE;
 }
 
 inline VkImageBuffer::VkImageBuffer(int _w, VkBufferMemory* _data, size_t _elemsize, int _elempack, VkAllocator* _allocator)
     : data(_data), refcount(0), elemsize(_elemsize), elempack(_elempack), allocator(_allocator), dims(1), w(_w), h(1), c(1)
 {
     cstep = w;
+    type = _elemsize == 1 ? INT8 : _elemsize == 2 ? INT16 : FLOAT32;
+    color_space = SRGB;
+    color_format = GRAY;
+    color_range = FULL_RANGE;
 }
 
 inline VkImageBuffer::VkImageBuffer(int _w, int _h, VkBufferMemory* _data, size_t _elemsize, int _elempack, VkAllocator* _allocator)
     : data(_data), refcount(0), elemsize(_elemsize), elempack(_elempack), allocator(_allocator), dims(2), w(_w), h(_h), c(1)
 {
     cstep = w * h;
+    type = _elemsize == 1 ? INT8 : _elemsize == 2 ? INT16 : FLOAT32;
+    color_space = SRGB;
+    color_format = GRAY;
+    color_range = FULL_RANGE;
 }
 
 inline VkImageBuffer::VkImageBuffer(int _w, int _h, int _c, VkBufferMemory* _data, size_t _elemsize, int _elempack, VkAllocator* _allocator)
     : data(_data), refcount(0), elemsize(_elemsize), elempack(_elempack), allocator(_allocator), dims(3), w(_w), h(_h), c(_c)
 {
     cstep = alignSize(w * h * elemsize, 16) / elemsize;
+    type = _elemsize == 1 ? INT8 : _elemsize == 2 ? INT16 : FLOAT32;
+    color_space = SRGB;
+    color_format = c == 1 ? GRAY : RGB;
+    color_range = FULL_RANGE;
 }
 
 inline VkImageBuffer::~VkImageBuffer()
@@ -1592,7 +1667,7 @@ inline void VkImageBuffer::create(int _w, int _h, int _c, size_t _elemsize, VkAl
     c = _c;
     type = _elemsize == 1 ? INT8 : _elemsize == 2 ? INT16 : FLOAT32;
     color_space = SRGB;
-    color_format = GRAY;
+    color_format = c == 1 ? GRAY : RGB;
     color_range = FULL_RANGE;
 
     cstep = alignSize(w * h * elemsize, 16) / elemsize;
@@ -1691,7 +1766,7 @@ inline void VkImageBuffer::create(int _w, int _h, int _c, size_t _elemsize, int 
     c = _c;
     type = _elemsize == 1 ? INT8 : _elemsize == 2 ? INT16 : FLOAT32;
     color_space = SRGB;
-    color_format = GRAY;
+    color_format = c == 1 ? GRAY : RGB;
     color_range = FULL_RANGE;
 
     cstep = alignSize(w * h * elemsize, 16) / elemsize;
@@ -1725,6 +1800,10 @@ inline void VkImageBuffer::create_type(int _w, DataType _t, VkAllocator* _alloca
     c = 1;
 
     cstep = w;
+    type = _t;
+    color_space = SRGB;
+    color_format = GRAY;
+    color_range = FULL_RANGE;
 
     if (total() > 0)
     {
@@ -1735,10 +1814,6 @@ inline void VkImageBuffer::create_type(int _w, DataType _t, VkAllocator* _alloca
         refcount = (int*)((unsigned char*)data + offsetof(VkBufferMemory, refcount));
         *refcount = 1;
     }
-    type = _t;
-    color_space = SRGB;
-    color_format = GRAY;
-    color_range = FULL_RANGE;
 }
 
 inline void VkImageBuffer::create_type(int _w, int _h, DataType _t, VkAllocator* _allocator)
@@ -1759,6 +1834,10 @@ inline void VkImageBuffer::create_type(int _w, int _h, DataType _t, VkAllocator*
     c = 1;
 
     cstep = w * h;
+    type = _t;
+    color_space = SRGB;
+    color_format = GRAY;
+    color_range = FULL_RANGE;
 
     if (total() > 0)
     {
@@ -1769,10 +1848,6 @@ inline void VkImageBuffer::create_type(int _w, int _h, DataType _t, VkAllocator*
         refcount = (int*)((unsigned char*)data + offsetof(VkBufferMemory, refcount));
         *refcount = 1;
     }
-    type = _t;
-    color_space = SRGB;
-    color_format = GRAY;
-    color_range = FULL_RANGE;
 }
 
 inline void VkImageBuffer::create_type(int _w, int _h, int _c, DataType _t, VkAllocator* _allocator)
@@ -1793,6 +1868,10 @@ inline void VkImageBuffer::create_type(int _w, int _h, int _c, DataType _t, VkAl
     c = _c;
 
     cstep = alignSize(w * h * elemsize, 16) / elemsize;
+    type = _t;
+    color_space = SRGB;
+    color_format = c == 1 ? GRAY : RGB;
+    color_range = FULL_RANGE;
 
     if (total() > 0)
     {
@@ -1803,10 +1882,6 @@ inline void VkImageBuffer::create_type(int _w, int _h, int _c, DataType _t, VkAl
         refcount = (int*)((unsigned char*)data + offsetof(VkBufferMemory, refcount));
         *refcount = 1;
     }
-    type = _t;
-    color_space = SRGB;
-    color_format = GRAY;
-    color_range = FULL_RANGE;
 }
 
 inline void VkImageBuffer::create_like(const ImageBuffer& m, VkAllocator* _allocator)
@@ -1963,6 +2038,10 @@ inline size_t VkImageBuffer::buffer_capacity() const
 inline VkImageMat::VkImageMat()
     : data(0), refcount(0), elemsize(0), elempack(0), allocator(0), dims(0), w(0), h(0), c(0)
 {
+    type = FLOAT32;
+    color_format = GRAY;
+    color_space = SRGB;
+    color_range = FULL_RANGE;
 }
 
 inline VkImageMat::VkImageMat(int _w, size_t _elemsize, VkAllocator* _allocator)
@@ -2010,31 +2089,55 @@ inline VkImageMat::VkImageMat(const VkImageMat& m)
 inline VkImageMat::VkImageMat(int _w, VkImageMemory* _data, size_t _elemsize, VkAllocator* _allocator)
     : data(_data), refcount(0), elemsize(_elemsize), elempack(1), allocator(_allocator), dims(1), w(_w), h(1), c(1)
 {
+    type = _elemsize == 1 ? INT8 : _elemsize == 2 ? INT16 : FLOAT32;
+    color_space = SRGB;
+    color_format = GRAY;
+    color_range = FULL_RANGE;
 }
 
 inline VkImageMat::VkImageMat(int _w, int _h, VkImageMemory* _data, size_t _elemsize, VkAllocator* _allocator)
     : data(_data), refcount(0), elemsize(_elemsize), elempack(1), allocator(_allocator), dims(2), w(_w), h(_h), c(1)
 {
+    type = _elemsize == 1 ? INT8 : _elemsize == 2 ? INT16 : FLOAT32;
+    color_space = SRGB;
+    color_format = GRAY;
+    color_range = FULL_RANGE;
 }
 
 inline VkImageMat::VkImageMat(int _w, int _h, int _c, VkImageMemory* _data, size_t _elemsize, VkAllocator* _allocator)
     : data(_data), refcount(0), elemsize(_elemsize), elempack(1), allocator(_allocator), dims(3), w(_w), h(_h), c(_c)
 {
+    type = _elemsize == 1 ? INT8 : _elemsize == 2 ? INT16 : FLOAT32;
+    color_space = SRGB;
+    color_format = c == 1 ? GRAY : RGB;
+    color_range = FULL_RANGE;
 }
 
 inline VkImageMat::VkImageMat(int _w, VkImageMemory* _data, size_t _elemsize, int _elempack, VkAllocator* _allocator)
     : data(_data), refcount(0), elemsize(_elemsize), elempack(_elempack), allocator(_allocator), dims(1), w(_w), h(1), c(1)
 {
+    type = _elemsize == 1 ? INT8 : _elemsize == 2 ? INT16 : FLOAT32;
+    color_space = SRGB;
+    color_format = GRAY;
+    color_range = FULL_RANGE;
 }
 
 inline VkImageMat::VkImageMat(int _w, int _h, VkImageMemory* _data, size_t _elemsize, int _elempack, VkAllocator* _allocator)
     : data(_data), refcount(0), elemsize(_elemsize), elempack(_elempack), allocator(_allocator), dims(2), w(_w), h(_h), c(1)
 {
+    type = _elemsize == 1 ? INT8 : _elemsize == 2 ? INT16 : FLOAT32;
+    color_space = SRGB;
+    color_format = GRAY;
+    color_range = FULL_RANGE;
 }
 
 inline VkImageMat::VkImageMat(int _w, int _h, int _c, VkImageMemory* _data, size_t _elemsize, int _elempack, VkAllocator* _allocator)
     : data(_data), refcount(0), elemsize(_elemsize), elempack(_elempack), allocator(_allocator), dims(3), w(_w), h(_h), c(_c)
 {
+    type = _elemsize == 1 ? INT8 : _elemsize == 2 ? INT16 : FLOAT32;
+    color_space = SRGB;
+    color_format = c == 1 ? GRAY : RGB;
+    color_range = FULL_RANGE;
 }
 
 inline VkImageMat::~VkImageMat()
@@ -2061,6 +2164,10 @@ inline VkImageMat& VkImageMat::operator=(const VkImageMat& m)
     w = m.w;
     h = m.h;
     c = m.c;
+    type = m.type;
+    color_format = m.color_format;
+    color_space = m.color_space;
+    color_range = m.color_range;
 
     return *this;
 }
@@ -2080,6 +2187,10 @@ inline void VkImageMat::create(int _w, size_t _elemsize, VkAllocator* _allocator
     w = _w;
     h = 1;
     c = 1;
+    type = _elemsize == 1 ? INT8 : _elemsize == 2 ? INT16 : FLOAT32;
+    color_space = SRGB;
+    color_format = GRAY;
+    color_range = FULL_RANGE;
 
     if (total() > 0)
     {
@@ -2107,6 +2218,10 @@ inline void VkImageMat::create(int _w, int _h, size_t _elemsize, VkAllocator* _a
     w = _w;
     h = _h;
     c = 1;
+    type = _elemsize == 1 ? INT8 : _elemsize == 2 ? INT16 : FLOAT32;
+    color_space = SRGB;
+    color_format = GRAY;
+    color_range = FULL_RANGE;
 
     if (total() > 0)
     {
@@ -2134,6 +2249,10 @@ inline void VkImageMat::create(int _w, int _h, int _c, size_t _elemsize, VkAlloc
     w = _w;
     h = _h;
     c = _c;
+    type = _elemsize == 1 ? INT8 : _elemsize == 2 ? INT16 : FLOAT32;
+    color_space = SRGB;
+    color_format = c == 1 ? GRAY : RGB;
+    color_range = FULL_RANGE;
 
     if (total() > 0)
     {
@@ -2161,6 +2280,10 @@ inline void VkImageMat::create(int _w, size_t _elemsize, int _elempack, VkAlloca
     w = _w;
     h = 1;
     c = 1;
+    type = _elemsize == 1 ? INT8 : _elemsize == 2 ? INT16 : FLOAT32;
+    color_space = SRGB;
+    color_format = GRAY;
+    color_range = FULL_RANGE;
 
     if (total() > 0)
     {
@@ -2188,6 +2311,10 @@ inline void VkImageMat::create(int _w, int _h, size_t _elemsize, int _elempack, 
     w = _w;
     h = _h;
     c = 1;
+    type = _elemsize == 1 ? INT8 : _elemsize == 2 ? INT16 : FLOAT32;
+    color_space = SRGB;
+    color_format = GRAY;
+    color_range = FULL_RANGE;
 
     if (total() > 0)
     {
@@ -2215,6 +2342,10 @@ inline void VkImageMat::create(int _w, int _h, int _c, size_t _elemsize, int _el
     w = _w;
     h = _h;
     c = _c;
+    type = _elemsize == 1 ? INT8 : _elemsize == 2 ? INT16 : FLOAT32;
+    color_space = SRGB;
+    color_format = c == 1 ? GRAY : RGB;
+    color_range = FULL_RANGE;
 
     if (total() > 0)
     {
@@ -2309,6 +2440,10 @@ inline void VkImageMat::release()
     w = 0;
     h = 0;
     c = 0;
+    type = FLOAT32;
+    color_space = SRGB;
+    color_format = GRAY;
+    color_range = FULL_RANGE;
 
     refcount = 0;
 }
