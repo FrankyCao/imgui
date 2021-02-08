@@ -241,6 +241,9 @@ static inline enum AVPixelFormat get_hw_format(AVCodecContext *ctx, const enum A
          format == AV_PIX_FMT_NV42 || \
          format == AV_PIX_FMT_NV20)
 
+#define AUDIO_INBUF_SIZE 20480
+#define AUDIO_REFILL_THRESH 4096
+
 class Example
 {
 public:
@@ -248,6 +251,7 @@ public:
     {
         // set ffmpeg log level
         av_log_set_level(AV_LOG_QUIET);
+        //av_log_set_level(AV_LOG_DEBUG);
         // load file dialog resource
         std::string bookmark_path = std::string(DEFAULT_CONFIG_PATH) + "bookmark.ini";
         prepare_file_dialog_demo_window(&filedialog, bookmark_path.c_str());
@@ -278,6 +282,7 @@ public:
         if (fmt_ctx) { avformat_close_input(&fmt_ctx); fmt_ctx = nullptr; }
         if (video_texture) { ImGui::ImDestroyTexture(video_texture); video_texture = nullptr; }
         if (picture) { av_frame_free(&picture); picture = nullptr; }
+        if (audio_frame) { av_frame_free(&audio_frame); audio_frame = nullptr; }
         if (packet.data) { av_packet_unref(&packet); packet.data = nullptr; }
         if (img_convert_ctx) { sws_freeContext(img_convert_ctx); img_convert_ctx = nullptr; }
         if (hw_device_ctx) { av_buffer_unref(&hw_device_ctx); hw_device_ctx = nullptr; }
@@ -360,6 +365,7 @@ public:
             audio_depth = audio_dec_ctx->bits_per_coded_sample;
             avcodec_string(buf, sizeof(buf), audio_dec_ctx, 0);
             audio_codec_name = std::string(buf);
+            audio_frame = av_frame_alloc();
         }
         if (!audio_stream && !video_stream)
         {
@@ -392,13 +398,14 @@ public:
     }
     void SeekMedia(float sec)
     {
+        int stream_index = -1;
         if (!video_stream || !video_dec_ctx || video_fps == 0 || video_frames <= 0)
             return;
         int delta = 16;
         int64_t _frame_number = (int64_t)(sec * video_fps + 0.5);
         _frame_number = std::min(_frame_number, (int64_t)video_frames);
         if (first_frame_number < 0 && video_frames > 1)
-            grabFrame(false);
+            grabFrame(stream_index, false);
         for(;;)
         {
             int64_t _frame_number_temp = std::max(_frame_number - delta, (int64_t)0);
@@ -411,7 +418,7 @@ public:
             avcodec_flush_buffers(video_dec_ctx);
             if (_frame_number > 0)
             {
-                grabFrame(false);
+                grabFrame(stream_index, false);
                 if (_frame_number > 1)
                 {
                     frame_number = dts_to_frame_number(picture_pts) - first_frame_number;
@@ -427,7 +434,7 @@ public:
                         bool decode = false;
                         if (frame_number == _frame_number - 2)
                             decode = true;
-                        if (!grabFrame(decode))
+                        if (!grabFrame(stream_index, decode))
                             break;
                     }
                     frame_number++;
@@ -448,111 +455,350 @@ public:
     }
     void PlayMedia()
     {
-        if (grabFrame())
+        int stream_index = -1;
+        if (grabFrame(stream_index, true))
         {
-            int ret = 0;
-            AVFrame *tmp_frame = nullptr;
-            AVFrame *sw_frame = av_frame_alloc();
-            if (!sw_frame)
+        }
+    }
+public:
+    // init icon
+    ImTextureID icon_play_texture = nullptr;
+    ImTextureID icon_pause_texture = nullptr;
+    // init file dialog
+    ImGuiFileDialog filedialog;
+
+    // init input
+    AVFormatContext *fmt_ctx = nullptr;
+    AVCodecContext *video_dec_ctx = nullptr;
+    AVBufferRef *hw_device_ctx = nullptr;
+    AVCodecContext *audio_dec_ctx = nullptr;
+    AVStream *video_stream = nullptr;
+    AVStream *audio_stream = nullptr;
+    int video_stream_idx = -1;
+    int audio_stream_idx = -1;
+
+    AVInterruptCallbackMetadata interrupt_metadata;
+    struct SwsContext *img_convert_ctx = nullptr;
+    // init video texture
+    ImTextureID video_texture = nullptr;
+#ifdef IMGUI_VULKAN_SHADER
+    ImVulkan::ColorConvert_vulkan * yuv2rgb = nullptr;
+    ImVulkan::Resize_vulkan * resize = nullptr;
+    ImVulkan::VkImageMat vkimage;
+#endif
+public:
+    // video info
+    std::string video_codec_name;
+    enum AVPixelFormat video_pfmt = AV_PIX_FMT_NONE;
+    enum AVColorSpace video_color_space = AVCOL_SPC_UNSPECIFIED;
+    enum AVColorRange video_color_range = AVCOL_RANGE_UNSPECIFIED;
+    float video_fps = 0;
+    int video_frames = 0;
+    float play_time = 0;
+    float total_time = 0;
+    int video_width = 0;
+    int video_height = 0;
+    int video_depth = 0;
+    float video_aspect_ratio = 1.f;
+    // audio info
+    std::string audio_codec_name;
+    enum AVSampleFormat audio_sfmt = AV_SAMPLE_FMT_NONE;
+    int audio_channels = 0;
+    int audio_sample_rate = 0;
+    int audio_depth = 0;
+
+    // play status
+    AVPacket packet;
+    AVFrame* picture = nullptr;
+    AVFrame* audio_frame = nullptr;
+    bool is_playing = false;
+    bool is_opened = false;
+    int64_t frame_number = 0;
+    int64_t first_frame_number = -1;
+    int64_t picture_pts = AV_NOPTS_VALUE;
+    int64_t audio_pts = AV_NOPTS_VALUE;
+
+private:
+    double r2d(AVRational r) const
+    {
+        return r.num == 0 || r.den == 0 ? 0. : (double)r.num / (double)r.den;
+    }
+    int64_t dts_to_frame_number(int64_t dts)
+    {
+        double sec = dts_to_sec(video_stream, dts);
+        return (int64_t)(video_fps * sec + 0.5);
+    }
+    double dts_to_sec(AVStream *stream, int64_t dts) const
+    {
+        return (double)(dts - stream->start_time) * r2d(stream->time_base);
+    }
+    int decode(AVCodecContext *avctx, int *got_data_ptr, AVPacket *packet, AVFrame * frame)
+    {
+        int ret = 0;
+        *got_data_ptr = 0;
+        if (!frame)
+            return -1;
+        ret = avcodec_send_packet(avctx, packet);
+        if (ret < 0) 
+        {
+            fprintf(stderr, "Error during decoding %d\n", ret);
+            return ret;
+        }
+        while (ret >= 0) 
+        {
+            ret = avcodec_receive_frame(avctx, frame);
+            if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) 
             {
-                fprintf(stderr, "Can not alloc frame\n");
+                return ret;
+            }
+            else if (ret < 0)
+            {
+                fprintf(stderr, "Error while decoding %d\n", ret);
+                return ret;
+            }
+            else
+            {
+                *got_data_ptr = 1;
+                return 0;
+            }
+        }
+        return 0;
+    }
+    bool grabFrame(int& stream_index, bool is_decode = true)
+    {
+        bool valid = false;
+        int got_picture;
+        AVCodecContext * dec = nullptr;
+        AVFrame * frame = nullptr;
+
+        int count_errs = 0;
+        const int max_number_of_attempts = 1 << 9;
+
+        if( !fmt_ctx)  return false;
+        if( video_stream_idx == -1 && audio_stream_idx == -1 )
+            return false;
+        if( video_stream->nb_frames > 0 && frame_number > video_stream->nb_frames )
+            return false;
+
+        picture_pts = AV_NOPTS_VALUE;
+        audio_pts = AV_NOPTS_VALUE;
+            
+        // activate interrupt callback
+        get_monotonic_time(&interrupt_metadata.value);
+        interrupt_metadata.timeout_after_ms = LIBAVFORMAT_INTERRUPT_READ_TIMEOUT_MS;
+
+        while (!valid)
+        {
+            av_packet_unref(&packet);
+            if (interrupt_metadata.timeout)
+            {
+                valid = false;
+                break;
+            }
+            int ret = av_read_frame(fmt_ctx, &packet);
+            if (packet.stream_index == video_stream_idx)
+            {
+                dec = video_dec_ctx;
+                frame = picture;
+                stream_index = video_stream_idx;
+            }
+            else if (packet.stream_index == audio_stream_idx)
+            {
+                dec = audio_dec_ctx;
+                frame = audio_frame;
+                stream_index = audio_stream_idx;
+            }
+            else
+            {
+                fprintf(stderr, "Unknown stream\n");
+                continue;
+            }
+            if (ret == AVERROR(EAGAIN))
+                continue;
+            if (ret == AVERROR_EOF)
+            {
+                // flush cached frames from video decoder
+                dec = audio_dec_ctx;
+                frame = audio_frame;
+                packet.data = NULL;
+                packet.size = 0;
+                packet.stream_index = video_stream_idx;
+            }
+            //if (packet.stream_index != video_stream_idx)
+            if ((packet.stream_index != video_stream_idx && packet.stream_index != audio_stream_idx) || !frame || !dec)
+            {
+                av_packet_unref(&packet);
+                count_errs++;
+                if (count_errs > max_number_of_attempts)
+                    break;
+                continue;
+            }
+            if (!is_decode)
+            {
+                if (packet.stream_index == video_stream_idx)
+                {
+                    picture_pts = packet.pts != AV_NOPTS_VALUE ? packet.pts : packet.dts;
+                }
+                if (packet.stream_index == audio_stream_idx)
+                {
+                    audio_pts = packet.pts != AV_NOPTS_VALUE ? packet.pts : packet.dts;
+                }
+                av_packet_unref(&packet);
+                valid = true;
+                break;
+            }
+            ret = decode(dec, &got_picture, &packet, frame);
+            // Did we get a frame?
+            if (got_picture)
+            {
+                if (packet.stream_index == video_stream_idx)
+                {
+                    if (picture_pts == AV_NOPTS_VALUE)
+                        picture_pts = picture->pts != AV_NOPTS_VALUE && picture->pts != 0 ? picture->pts : picture->pkt_dts;
+                    render_video_frame();
+                    valid = true;
+                }
+                else if (packet.stream_index == audio_stream_idx)
+                {
+                    if (audio_pts == AV_NOPTS_VALUE)
+                        audio_pts = audio_frame->pts != AV_NOPTS_VALUE && audio_frame->pts != 0 ? audio_frame->pts : audio_frame->pkt_dts;
+                    render_audio_frame();
+                    valid = false;
+                }
+            }
+            else
+            {
+                count_errs++;
+                if (count_errs > max_number_of_attempts)
+                    break;
+            }
+            if (packet.size == 0 && ret < 0)
+            {
+                is_playing = false;
+                SeekMedia(0);
+            }
+            av_frame_unref(frame);
+        }
+
+        if (valid && stream_index == video_stream_idx)
+        {
+            frame_number++;
+            play_time = dts_to_sec(video_stream, picture_pts) * 1000.0;
+        }
+
+        if (valid && first_frame_number < 0 && stream_index == video_stream_idx)
+            first_frame_number = dts_to_frame_number(picture_pts);
+
+        interrupt_metadata.timeout_after_ms = 0;
+        return valid;
+    }
+    void render_video_frame()
+    {
+        int ret = 0;
+        AVFrame *tmp_frame = nullptr;
+        AVFrame *sw_frame = av_frame_alloc();
+        if (!sw_frame)
+        {
+            fprintf(stderr, "Can not alloc frame\n");
+            return;
+        }
+        if (picture->format == hw_pix_fmt) 
+        {
+            /* retrieve data from GPU to CPU */
+            if ((ret = av_hwframe_transfer_data(sw_frame, picture, 0)) < 0) 
+            {
+                fprintf(stderr, "Error transferring the data to system memory\n");
+                av_frame_unref(sw_frame);
                 return;
             }
-            if (picture->format == hw_pix_fmt) 
-            {
-                /* retrieve data from GPU to CPU */
-                if ((ret = av_hwframe_transfer_data(sw_frame, picture, 0)) < 0) 
-                {
-                    fprintf(stderr, "Error transferring the data to system memory\n");
-                    av_frame_unref(sw_frame);
-                    return;
-                }
-                else
-                {
-                    tmp_frame = sw_frame;
-                }
-            }
             else
-                tmp_frame = picture;
+            {
+                tmp_frame = sw_frame;
+            }
+        }
+        else
+            tmp_frame = picture;
 
 #ifdef IMGUI_VULKAN_SHADER
-            const AVPixFmtDescriptor *desc = av_pix_fmt_desc_get((AVPixelFormat)tmp_frame->format);
-            int video_shift = desc->comp[0].depth + desc->comp[0].shift;
-            ImVulkan::ColorSpace color_space =  video_color_space == AVCOL_SPC_BT470BG ||
-                                                video_color_space == AVCOL_SPC_SMPTE170M ||
-                                                video_color_space == AVCOL_SPC_BT470BG ? ImVulkan::BT601 :
-                                                video_color_space == AVCOL_SPC_BT709 ? ImVulkan::BT709 :
-                                                video_color_space == AVCOL_SPC_BT2020_NCL ||
-                                                video_color_space == AVCOL_SPC_BT2020_CL ? ImVulkan::BT2020 : ImVulkan::BT709;
-            ImVulkan::ColorRange color_range =  video_color_range == AVCOL_RANGE_MPEG ? ImVulkan::NARROW_RANGE :
-                                                video_color_range == AVCOL_RANGE_JPEG ? ImVulkan::FULL_RANGE : ImVulkan::NARROW_RANGE;
-            ImVulkan::ColorFormat color_format = ISYUV420P(tmp_frame->format) ? ImVulkan::YUV420 :
-                                                ISYUV422P(tmp_frame->format) ? ImVulkan::YUV422 :
-                                                ISYUV444P(tmp_frame->format) ? ImVulkan::YUV444 :
-                                                ISNV12(tmp_frame->format) ? ImVulkan::NV12 : ImVulkan::YUV420;
-            
-            ImVulkan::ImageBuffer im_Y, im_U, im_V;
-            int UV_shift_w = ISYUV420P(tmp_frame->format) || ISYUV422P(tmp_frame->format) ? 1 : 0;
-            int UV_shift_h = ISYUV420P(tmp_frame->format) || ISNV12(tmp_frame->format) ? 1 : 0;
-            im_Y.create_type(tmp_frame->linesize[0], tmp_frame->height, 1, tmp_frame->data[0], video_depth == 8 ? ImVulkan::INT8 : ImVulkan::INT16);
-            im_U.create_type(tmp_frame->linesize[1] >> UV_shift_w, tmp_frame->height >> UV_shift_h, 1, tmp_frame->data[1], video_depth == 8 ? ImVulkan::INT8 : ImVulkan::INT16);
-            if (!ISNV12(tmp_frame->format))
-            {
-                im_V.create_type(tmp_frame->linesize[2] >> UV_shift_w, tmp_frame->height >> UV_shift_h, 1, tmp_frame->data[2], video_depth == 8 ? ImVulkan::INT8 : ImVulkan::INT16);
-            }
-            if (video_width > 1920 || video_height > 1920 || video_depth > 1920)
-            {
-                float frame_scale = 1920.f / (float)video_width;
-                ImVulkan::VkImageBuffer im_RGB;
-                yuv2rgb->YUV2RGBA(im_Y, im_U, im_V, im_RGB, color_format, color_space, color_range, video_depth, video_shift);
-                resize->Resize(im_RGB, vkimage, frame_scale, 0.f, ImVulkan::INTERPOLATE_AREA);
-            }
-            else
-                yuv2rgb->YUV2RGBA(im_Y, im_U, im_V, vkimage, color_format, color_space, color_range, video_depth, video_shift);
-            if (!video_texture) video_texture = ImGui::ImCreateTexture(vkimage);
-#else
-            if (video_pfmt != tmp_frame->format)
-            {
-                // TODO::Dicky if linesize != width will cause video oblique stroke
-                img_convert_ctx = sws_getCachedContext(
-                                            img_convert_ctx,
-                                            tmp_frame->width,
-                                            tmp_frame->height,
-                                            (AVPixelFormat)tmp_frame->format,
-                                            video_width,
-                                            video_height,
-                                            AV_PIX_FMT_RGBA,
-                                            SWS_BICUBIC,
-                                            NULL, NULL, NULL);
-                if (!img_convert_ctx)
-                {
-                    av_frame_unref(sw_frame);
-                    return;
-                }
-                video_pfmt = (AVPixelFormat)tmp_frame->format;
-            }
-            AVFrame rgb_picture;
-            memset(&rgb_picture, 0, sizeof(rgb_picture));
-            rgb_picture.format = AV_PIX_FMT_RGBA;
-            rgb_picture.width = video_width;
-            rgb_picture.height = video_height;
-            ret = av_frame_get_buffer(&rgb_picture, 64);
-            if (ret == 0)
-            {
-                sws_scale(
-                    img_convert_ctx,
-                    tmp_frame->data,
-                    tmp_frame->linesize,
-                    0, video_dec_ctx->height,
-                    rgb_picture.data,
-                    rgb_picture.linesize
-                );
-                ImGui::ImGenerateOrUpdateTexture(video_texture, video_width, video_height, 4, rgb_picture.data[0]);
-                av_frame_unref(&rgb_picture);
-            }
-#endif
-            av_frame_unref(sw_frame);
+        const AVPixFmtDescriptor *desc = av_pix_fmt_desc_get((AVPixelFormat)tmp_frame->format);
+        int video_shift = desc->comp[0].depth + desc->comp[0].shift;
+        ImVulkan::ColorSpace color_space =  video_color_space == AVCOL_SPC_BT470BG ||
+                                            video_color_space == AVCOL_SPC_SMPTE170M ||
+                                            video_color_space == AVCOL_SPC_BT470BG ? ImVulkan::BT601 :
+                                            video_color_space == AVCOL_SPC_BT709 ? ImVulkan::BT709 :
+                                            video_color_space == AVCOL_SPC_BT2020_NCL ||
+                                            video_color_space == AVCOL_SPC_BT2020_CL ? ImVulkan::BT2020 : ImVulkan::BT709;
+        ImVulkan::ColorRange color_range =  video_color_range == AVCOL_RANGE_MPEG ? ImVulkan::NARROW_RANGE :
+                                            video_color_range == AVCOL_RANGE_JPEG ? ImVulkan::FULL_RANGE : ImVulkan::NARROW_RANGE;
+        ImVulkan::ColorFormat color_format = ISYUV420P(tmp_frame->format) ? ImVulkan::YUV420 :
+                                            ISYUV422P(tmp_frame->format) ? ImVulkan::YUV422 :
+                                            ISYUV444P(tmp_frame->format) ? ImVulkan::YUV444 :
+                                            ISNV12(tmp_frame->format) ? ImVulkan::NV12 : ImVulkan::YUV420;
+        
+        ImVulkan::ImageBuffer im_Y, im_U, im_V;
+        int UV_shift_w = ISYUV420P(tmp_frame->format) || ISYUV422P(tmp_frame->format) ? 1 : 0;
+        int UV_shift_h = ISYUV420P(tmp_frame->format) || ISNV12(tmp_frame->format) ? 1 : 0;
+        im_Y.create_type(tmp_frame->linesize[0], tmp_frame->height, 1, tmp_frame->data[0], video_depth == 8 ? ImVulkan::INT8 : ImVulkan::INT16);
+        im_U.create_type(tmp_frame->linesize[1] >> UV_shift_w, tmp_frame->height >> UV_shift_h, 1, tmp_frame->data[1], video_depth == 8 ? ImVulkan::INT8 : ImVulkan::INT16);
+        if (!ISNV12(tmp_frame->format))
+        {
+            im_V.create_type(tmp_frame->linesize[2] >> UV_shift_w, tmp_frame->height >> UV_shift_h, 1, tmp_frame->data[2], video_depth == 8 ? ImVulkan::INT8 : ImVulkan::INT16);
         }
+        if (video_width > 1920 || video_height > 1920 || video_depth > 1920)
+        {
+            float frame_scale = 1920.f / (float)video_width;
+            ImVulkan::VkImageBuffer im_RGB;
+            yuv2rgb->YUV2RGBA(im_Y, im_U, im_V, im_RGB, color_format, color_space, color_range, video_depth, video_shift);
+            resize->Resize(im_RGB, vkimage, frame_scale, 0.f, ImVulkan::INTERPOLATE_AREA);
+        }
+        else
+            yuv2rgb->YUV2RGBA(im_Y, im_U, im_V, vkimage, color_format, color_space, color_range, video_depth, video_shift);
+        if (!video_texture) video_texture = ImGui::ImCreateTexture(vkimage);
+#else
+        if (video_pfmt != tmp_frame->format)
+        {
+            // TODO::Dicky if linesize != width will cause video oblique stroke
+            img_convert_ctx = sws_getCachedContext(
+                                        img_convert_ctx,
+                                        tmp_frame->width,
+                                        tmp_frame->height,
+                                        (AVPixelFormat)tmp_frame->format,
+                                        video_width,
+                                        video_height,
+                                        AV_PIX_FMT_RGBA,
+                                        SWS_BICUBIC,
+                                        NULL, NULL, NULL);
+            if (!img_convert_ctx)
+            {
+                av_frame_unref(sw_frame);
+                return;
+            }
+            video_pfmt = (AVPixelFormat)tmp_frame->format;
+        }
+        AVFrame rgb_picture;
+        memset(&rgb_picture, 0, sizeof(rgb_picture));
+        rgb_picture.format = AV_PIX_FMT_RGBA;
+        rgb_picture.width = video_width;
+        rgb_picture.height = video_height;
+        ret = av_frame_get_buffer(&rgb_picture, 64);
+        if (ret == 0)
+        {
+            sws_scale(
+                img_convert_ctx,
+                tmp_frame->data,
+                tmp_frame->linesize,
+                0, video_dec_ctx->height,
+                rgb_picture.data,
+                rgb_picture.linesize
+            );
+            ImGui::ImGenerateOrUpdateTexture(video_texture, video_width, video_height, 4, rgb_picture.data[0]);
+            av_frame_unref(&rgb_picture);
+        }
+#endif
+        av_frame_unref(sw_frame);
+    }
+    void render_audio_frame()
+    {
     }
     int hw_decoder_init(AVCodecContext *ctx, const enum AVHWDeviceType type)
     {
@@ -611,7 +857,7 @@ public:
             }
 
             /* Init hw decoders */
-            if (hw_pix_fmt != AV_PIX_FMT_NONE)
+            if (type == AVMEDIA_TYPE_VIDEO && hw_pix_fmt != AV_PIX_FMT_NONE)
             {
                 (*dec_ctx)->get_format = get_hw_format;
                 if ((ret = hw_decoder_init(*dec_ctx, hw_type)) < 0)
@@ -626,193 +872,6 @@ public:
             *stream_idx = stream_index;
         }
         return 0;
-    }
-public:
-    // init icon
-    ImTextureID icon_play_texture = nullptr;
-    ImTextureID icon_pause_texture = nullptr;
-    // init file dialog
-    ImGuiFileDialog filedialog;
-
-    // init input
-    AVFormatContext *fmt_ctx = nullptr;
-    AVCodecContext *video_dec_ctx = nullptr;
-    AVBufferRef *hw_device_ctx = nullptr;
-    AVCodecContext *audio_dec_ctx = nullptr;
-    AVStream *video_stream = nullptr;
-    AVStream *audio_stream = nullptr;
-    int video_stream_idx = -1;
-    int audio_stream_idx = -1;
-
-    AVInterruptCallbackMetadata interrupt_metadata;
-    struct SwsContext *img_convert_ctx = nullptr;
-    // init video texture
-    ImTextureID video_texture = nullptr;
-#ifdef IMGUI_VULKAN_SHADER
-    ImVulkan::ColorConvert_vulkan * yuv2rgb = nullptr;
-    ImVulkan::Resize_vulkan * resize = nullptr;
-    ImVulkan::VkImageMat vkimage;
-#endif
-public:
-    // video info
-    std::string video_codec_name;
-    enum AVPixelFormat video_pfmt = AV_PIX_FMT_NONE;
-    enum AVColorSpace video_color_space = AVCOL_SPC_UNSPECIFIED;
-    enum AVColorRange video_color_range = AVCOL_RANGE_UNSPECIFIED;
-    float video_fps = 0;
-    int video_frames = 0;
-    float play_time = 0;
-    float total_time = 0;
-    int video_width = 0;
-    int video_height = 0;
-    int video_depth = 0;
-    float video_aspect_ratio = 1.f;
-    // audio info
-    std::string audio_codec_name;
-    enum AVSampleFormat audio_sfmt = AV_SAMPLE_FMT_NONE;
-    int audio_channels = 0;
-    int audio_sample_rate = 0;
-    int audio_depth = 0;
-
-    // play status
-    AVPacket packet;
-    AVFrame* picture = nullptr;
-    bool is_playing = false;
-    bool is_opened = false;
-    int64_t frame_number = 0;
-    int64_t first_frame_number = -1;
-    int64_t picture_pts = AV_NOPTS_VALUE;
-    int64_t audio_pts = AV_NOPTS_VALUE;
-
-private:
-    double r2d(AVRational r) const
-    {
-        return r.num == 0 || r.den == 0 ? 0. : (double)r.num / (double)r.den;
-    }
-    int64_t dts_to_frame_number(int64_t dts)
-    {
-        double sec = dts_to_sec(video_stream, dts);
-        return (int64_t)(video_fps * sec + 0.5);
-    }
-    double dts_to_sec(AVStream *stream, int64_t dts) const
-    {
-        return (double)(dts - stream->start_time) * r2d(stream->time_base);
-    }
-    int video_decode(AVCodecContext *avctx, int *got_picture_ptr, AVPacket *packet)
-    {
-        int ret = 0;
-        *got_picture_ptr = 0;
-        if (!picture)
-            return -1;
-        ret = avcodec_send_packet(avctx, packet);
-        if (ret < 0) 
-        {
-            fprintf(stderr, "Error during decoding %d\n", ret);
-            return ret;
-        }
-        while (ret >= 0) 
-        {
-            ret = avcodec_receive_frame(avctx, picture);
-            if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) 
-            {
-                return ret;
-            }
-            else if (ret < 0)
-            {
-                fprintf(stderr, "Error while decoding %d\n", ret);
-                return ret;
-            }
-            else
-            {
-                *got_picture_ptr = 1;
-                return 0;
-            }
-        }
-        return 0;
-    }
-    bool grabFrame(bool decode = true)
-    {
-        bool valid = false;
-        int got_picture;
-
-        int count_errs = 0;
-        const int max_number_of_attempts = 1 << 9;
-
-        if( !fmt_ctx || !video_stream )  return false;
-        if( video_stream->nb_frames > 0 && frame_number > video_stream->nb_frames )
-            return false;
-
-        picture_pts = AV_NOPTS_VALUE;
-            
-        // activate interrupt callback
-        get_monotonic_time(&interrupt_metadata.value);
-        interrupt_metadata.timeout_after_ms = LIBAVFORMAT_INTERRUPT_READ_TIMEOUT_MS;
-
-        while (!valid)
-        {
-            av_packet_unref(&packet);
-            if (interrupt_metadata.timeout)
-            {
-                valid = false;
-                break;
-            }
-            int ret = av_read_frame(fmt_ctx, &packet);
-            if (ret == AVERROR(EAGAIN))
-                continue;
-            if (ret == AVERROR_EOF)
-            {
-                // flush cached frames from video decoder
-                packet.data = NULL;
-                packet.size = 0;
-                packet.stream_index = video_stream_idx;
-            }
-            if( packet.stream_index != video_stream_idx )
-            {
-                av_packet_unref(&packet);
-                count_errs++;
-                if (count_errs > max_number_of_attempts)
-                    break;
-                continue;
-            }
-            if (!decode)
-            {
-                picture_pts = packet.pts != AV_NOPTS_VALUE ? packet.pts : packet.dts;
-                break;
-            }
-            // Decode video frame
-            ret = video_decode(video_dec_ctx, &got_picture, &packet);
-            // Did we get a video frame?
-            if (got_picture)
-            {
-                if (picture_pts == AV_NOPTS_VALUE)
-                    picture_pts = picture->pts != AV_NOPTS_VALUE && picture->pts != 0 ? picture->pts : picture->pkt_dts;
-
-                valid = true;
-            }
-            else
-            {
-                count_errs++;
-                if (count_errs > max_number_of_attempts)
-                    break;
-            }
-            if (packet.size == 0 && ret < 0)
-            {
-                is_playing = false;
-                SeekMedia(0);
-            }
-        }
-
-        if (valid)
-        {
-            frame_number++;
-            play_time = dts_to_sec(video_stream, picture_pts) * 1000.0;
-        }
-
-        if (valid && first_frame_number < 0)
-            first_frame_number = dts_to_frame_number(picture_pts);
-
-        interrupt_metadata.timeout_after_ms = 0;
-        return valid;
     }
 };
 
