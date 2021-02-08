@@ -289,7 +289,14 @@ bool ImGui::SliderBehavior(const ImRect& bb, ImGuiID id, ImGuiDataType data_type
     return false;
 }
 
-void ImGui::UvMeter(char const *label, ImVec2 const &size, int *value, int v_min, int v_max)
+void ImGui::UvMeter(char const *label, ImVec2 const &size, int *value, int v_min, int v_max, int steps)
+{
+    float fvalue = (float)*value;
+    UvMeter(label, size, &fvalue, (float)v_min, (float)v_max, steps);
+    *value = (int)fvalue;
+}
+
+void ImGui::UvMeter(char const *label, ImVec2 const &size, float *value, float v_min, float v_max, int steps)
 {
     ImDrawList *draw_list = ImGui::GetWindowDrawList();
 
@@ -299,29 +306,35 @@ void ImGui::UvMeter(char const *label, ImVec2 const &size, int *value, int v_min
 
     if (size.y > size.x)
     {
-        float stepHeight = (v_max - v_min + 1) / size.y;
+        float stepHeight = size.y / (v_max - v_min + 1);
+        float steps_size = (v_max - v_min) / (float)steps;
         auto y = pos.y + size.y;
         auto hue = 0.4f;
         auto sat = 0.6f;
-        for (int i = v_min; i <= v_max; i += 5)
+        auto lum = 0.6f;
+        for (float i = v_min; i <= v_max; i += steps_size)
         {
-            hue = 0.4f - (static_cast<float>(i) / static_cast<float>(v_max - v_min)) / 2.0f;
+            hue = 0.4f - (i / (v_max - v_min)) / 2.0f;
             sat = (*value < i ? 0.0f : 0.6f);
-            draw_list->AddRectFilled(ImVec2(pos.x, y), ImVec2(pos.x + size.x, y - (stepHeight * 4)), static_cast<ImU32>(ImColor::HSV(hue, sat, 0.6f)));
+            lum = (*value < i ? 0.0f : 0.6f);
+            draw_list->AddRectFilled(ImVec2(pos.x, y), ImVec2(pos.x + size.x, y - (stepHeight * steps_size - 1)), static_cast<ImU32>(ImColor::HSV(hue, sat, lum)));
             y = pos.y + size.y - (i * stepHeight);
         }
     }
     else
     {
-        float stepWidth = (v_max - v_min + 1) / size.x;
+        float stepWidth = size.x / (v_max - v_min + 1);
+        float steps_size = (v_max - v_min) / (float)steps;
         auto x = pos.x;
         auto hue = 0.4f;
         auto sat = 0.6f;
-        for (int i = v_min; i <= v_max; i += 5)
+        auto lum = 0.6f;
+        for (float i = v_min; i <= v_max; i += steps_size)
         {
-            hue = 0.4f - (static_cast<float>(i) / static_cast<float>(v_max - v_min)) / 2.0f;
+            hue = 0.4f - (i / (v_max - v_min)) / 2.0f;
             sat = (*value < i ? 0.0f : 0.6f);
-            draw_list->AddRectFilled(ImVec2(x, pos.y), ImVec2(x + (stepWidth * 4), pos.y + size.y), static_cast<ImU32>(ImColor::HSV(hue, sat, 0.6f)));
+            lum = (*value < i ? 0.0f : 0.6f);
+            draw_list->AddRectFilled(ImVec2(x, pos.y), ImVec2(x + (stepWidth * steps_size - 1), pos.y + size.y), static_cast<ImU32>(ImColor::HSV(hue, sat, lum)));
             x = pos.x + (i * stepWidth);
         }
     }

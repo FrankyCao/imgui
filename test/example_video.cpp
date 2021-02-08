@@ -312,6 +312,8 @@ public:
         frame_number = 0;
         picture_pts = AV_NOPTS_VALUE;
         audio_pts = AV_NOPTS_VALUE;
+        audio_left_channel_level = 0.f;
+        audio_right_channel_level = 0.f;
     }
     int OpenMediaFile(std::string filepath)
     {
@@ -481,6 +483,10 @@ public:
     struct SwsContext *img_convert_ctx = nullptr;
     // init video texture
     ImTextureID video_texture = nullptr;
+    // init audio level
+    int audio_left_channel_level = 0;
+    int audio_right_channel_level = 0;
+
 #ifdef IMGUI_VULKAN_SHADER
     ImVulkan::ColorConvert_vulkan * yuv2rgb = nullptr;
     ImVulkan::Resize_vulkan * resize = nullptr;
@@ -799,6 +805,36 @@ private:
     }
     void render_audio_frame()
     {
+        double sum_left = 0;
+        double sum_right = 0;
+        float left_data;
+        float right_data;
+        int date_size = ImMin(audio_frame->nb_samples, 1024);
+        for (int i = 0; i < date_size; i++)
+        {
+            if (audio_frame->format == AV_SAMPLE_FMT_FLTP)
+            {
+                left_data = *((float *)audio_frame->data[0] + i);
+                sum_left += left_data * left_data;
+                if (audio_frame->channels > 1)
+                {
+                    right_data = *((float *)audio_frame->data[1] + i);
+                    sum_right += right_data * right_data;
+                }
+            }
+            else if (audio_frame->format == AV_SAMPLE_FMT_S16P)
+            {
+                left_data = *((short *)audio_frame->data[0] + i) / (float)(1 << 15);
+                sum_left += left_data * left_data;
+                if (audio_frame->channels > 1)
+                {
+                    right_data = *((float *)audio_frame->data[1] + i) / (float)(1 << 15);
+                    sum_right += right_data * right_data;
+                }
+            }
+        }
+        audio_left_channel_level = 91 + 10 * log10(sum_left);
+        audio_right_channel_level = 91 + 10 * log10(sum_right);
     }
     int hw_decoder_init(AVCodecContext *ctx, const enum AVHWDeviceType type)
     {
@@ -968,17 +1004,15 @@ bool Application_Frame(void* handle)
     }
 
     // load video texture
-
     if (example->is_playing && example->is_opened)
     {
         example->PlayMedia();
     }
-
     // load video end
 
     // Show PlayControl panel
     ImVec2 center(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.9f);
-    ImVec2 panel_size(io.DisplaySize.x - 20.0, 96);
+    ImVec2 panel_size(io.DisplaySize.x - 20.0, 120);
     ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     ImGui::SetNextWindowSize(panel_size, ImGuiCond_Always);
     ImGui::SetNextWindowBgAlpha(0.5);
@@ -994,6 +1028,9 @@ bool Application_Frame(void* handle)
                 example->is_playing = !example->is_playing;
         }
         ImGui::Unindent((i - 32.0f) * 0.5f);
+        ImGui::Separator();
+        ImGui::UvMeter("##lhuvr", ImVec2(panel_size.x, 10), &example->audio_left_channel_level, 0, 100, 200); ImGui::ShowTooltipOnHover("Left Uv meters.");
+        ImGui::UvMeter("##rhuvr", ImVec2(panel_size.x, 10), &example->audio_right_channel_level, 0, 100, 200); ImGui::ShowTooltipOnHover("Right Uv meters.");
         // add slider bar
         ImGui::Separator();
         if (example->total_time > 0)
