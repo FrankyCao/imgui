@@ -108,6 +108,10 @@ struct OptionalIndex
 
     inline bool operator==(const int rhs) const { return m_index == rhs; }
 
+    inline bool operator!=(const OptionalIndex& rhs) const { return m_index != rhs.m_index; }
+
+    inline bool operator!=(const int rhs) const { return m_index != rhs; }
+
     static const int invalid_index = -1;
 
 private:
@@ -985,15 +989,13 @@ ImVec2 get_screen_space_pin_coordinates(const EditorContext& editor, const PinDa
     return get_screen_space_pin_coordinates(parent_node_rect, pin.attribute_rect, pin.type);
 }
 
-// These functions are here, and not members of the BoxSelector struct, because
-// implementing a C API in C++ is frustrating. EditorContext has a BoxSelector
-// field, but the state changes depend on the editor. So, these are implemented
-// as C-style free functions so that the code is not too much of a mish-mash of
-// C functions and C++ method definitions.
-
 bool mouse_in_canvas()
 {
-    return g.canvas_rect_screen_space.Contains(ImGui::GetMousePos()) && ImGui::IsWindowHovered();
+    // This flag should be true either when hovering or clicking something in the canvas.
+    const bool is_window_hovered_or_focused = ImGui::IsWindowHovered() || ImGui::IsWindowFocused();
+
+    return is_window_hovered_or_focused &&
+           g.canvas_rect_screen_space.Contains(ImGui::GetMousePos());
 }
 
 void begin_node_selection(EditorContext& editor, const int node_idx)
@@ -1782,8 +1784,8 @@ void draw_node(EditorContext& editor, const int node_idx)
     if (node_hovered)
     {
         g.hovered_node_idx = node_idx;
-        const bool node_ui_interaction = g.interactive_node_idx == node_idx;
-        if (g.left_mouse_clicked && !node_ui_interaction)
+        const bool node_free_to_move = g.interactive_node_idx != node_idx;
+        if (g.left_mouse_clicked && node_free_to_move)
         {
             begin_node_selection(editor, node_idx);
         }

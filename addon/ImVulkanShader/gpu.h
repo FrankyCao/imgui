@@ -114,6 +114,7 @@ public:
     // bug is not feature
     bool bug_storage_buffer_no_l1() const;
     bool bug_corrupted_online_pipeline_cache() const;
+    bool bug_buffer_image_load_zero() const;
     bool bug_storage_image() const;
 
     // but sometimes bug is a feature

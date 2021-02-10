@@ -446,7 +446,27 @@ void VkCompute::record_upload(const ImageBuffer& src, VkImageMat& dst, const Opt
         dst_elempack = elemcount % 4 == 0 ? 4 : 1;
 
     // gpu cast to fp16 on the fly (integrated gpu)
-    vkdev->convert_packing(dst_staging, dst, dst_elempack, *this, opt);
+    if (vkdev->info.bug_buffer_image_load_zero())
+    {
+        // clone buffer to bridge image
+        VkImageMat dst_image;
+        record_clone(dst_staging, dst_image, opt);
+        if (dst_image.empty())
+            return;
+
+        vkdev->convert_packing(dst_image, dst, dst_elempack, *this, opt);
+
+        // image and imageview can not be destroyed until command execution ends
+        _XADD(&dst_image.data->command_refcount, 1);
+        d->image_blocks_to_destroy.push_back(dst_image.data);
+
+        submit_and_wait();
+        reset();
+    }
+    else
+    {
+        vkdev->convert_packing(dst_staging, dst, dst_elempack, *this, opt);
+    }
 }
 
 void VkCompute::record_download(const VkImageBuffer& src, ImageBuffer& dst, const Option& opt)
@@ -471,17 +491,13 @@ void VkCompute::record_download(const VkImageBuffer& src, ImageBuffer& dst, cons
         opt_staging.use_fp16_packed = false;
         opt_staging.use_fp16_storage = false;
     }
-
-    VkImageBuffer dst_staging;
-    if (opt_staging.blob_vkallocator->mappable)
-    {
-        vkdev->convert_packing(src, dst_staging, dst_elempack, *this, opt_staging);
-    }
-    else
+    if (!opt_staging.blob_vkallocator->mappable)
     {
         opt_staging.blob_vkallocator = opt.staging_vkallocator;
-        vkdev->convert_packing(src, dst_staging, dst_elempack, *this, opt_staging);
     }
+
+    VkImageBuffer dst_staging;
+    vkdev->convert_packing(src, dst_staging, dst_elempack, *this, opt_staging);
 
     // barrier device any @ compute to host-read @ compute
     if (dst_staging.data->access_flags & VK_ACCESS_HOST_WRITE_BIT || dst_staging.data->stage_flags != VK_PIPELINE_STAGE_HOST_BIT)
@@ -597,17 +613,33 @@ void VkCompute::record_download(const VkImageMat& src, ImageBuffer& dst, const O
         opt_staging.use_fp16_packed = false;
         opt_staging.use_fp16_storage = false;
     }
+    if (!opt_staging.blob_vkallocator->mappable)
+    {
+        opt_staging.blob_vkallocator = opt.staging_vkallocator;
+    }
 
     VkImageBuffer dst_staging;
-    if (opt_staging.blob_vkallocator->mappable)
+    if (vkdev->info.bug_buffer_image_load_zero())
     {
-        vkdev->convert_packing(src, dst_staging, dst_elempack, *this, opt_staging);
+        VkImageMat src_image;
+        vkdev->convert_packing(src, src_image, dst_elempack, *this, opt);
+        if (src_image.empty())
+            return;
+
+        record_clone(src_image, dst_staging, opt_staging);
+
+        // image and imageview can not be destroyed until command execution ends
+        _XADD(&src_image.data->command_refcount, 1);
+        d->image_blocks_to_destroy.push_back(src_image.data);
     }
     else
     {
-        opt_staging.blob_vkallocator = opt.staging_vkallocator;
         vkdev->convert_packing(src, dst_staging, dst_elempack, *this, opt_staging);
     }
+
+    // image and imageview can not be destroyed until command execution ends
+    _XADD(&src.data->command_refcount, 1);
+    d->image_blocks_to_destroy.push_back(src.data);
 
     // barrier device any @ compute to host-read @ compute
     if (dst_staging.data->access_flags & VK_ACCESS_HOST_WRITE_BIT || dst_staging.data->stage_flags != VK_PIPELINE_STAGE_HOST_BIT)
@@ -716,7 +748,24 @@ void VkCompute::record_buffer_to_image(const VkImageBuffer& src, VkImageMat& dst
     else
         dst_elempack = elemcount % 4 == 0 ? 4 : 1;
 
-    vkdev->convert_packing(src, dst, dst_elempack, *this, opt);
+    if (vkdev->info.bug_buffer_image_load_zero())
+    {
+        // clone buffer to bridge image
+        VkImageMat src_image;
+        record_clone(src, src_image, opt);
+        if (src_image.empty())
+            return;
+
+        vkdev->convert_packing(src_image, dst, dst_elempack, *this, opt);
+
+        // image and imageview can not be destroyed until command execution ends
+        _XADD(&src_image.data->command_refcount, 1);
+        d->image_blocks_to_destroy.push_back(src_image.data);
+    }
+    else
+    {
+        vkdev->convert_packing(src, dst, dst_elempack, *this, opt);
+    }
 }
 
 void VkCompute::record_image_to_buffer(const VkImageMat& src, VkImageBuffer& dst, const Option& opt)
@@ -734,7 +783,29 @@ void VkCompute::record_image_to_buffer(const VkImageMat& src, VkImageBuffer& dst
     else
         dst_elempack = elemcount % 4 == 0 ? 4 : 1;
 
-    vkdev->convert_packing(src, dst, dst_elempack, *this, opt);
+    if (vkdev->info.bug_buffer_image_load_zero())
+    {
+        VkImageMat src_image;
+        Option opt_image = opt;
+        opt_image.blob_vkallocator = src.allocator;
+        vkdev->convert_packing(src, src_image, dst_elempack, *this, opt_image);
+        if (src_image.empty())
+            return;
+
+        record_clone(src_image, dst, opt);
+
+        // image and imageview can not be destroyed until command execution ends
+        _XADD(&src_image.data->command_refcount, 1);
+        d->image_blocks_to_destroy.push_back(src_image.data);
+    }
+    else
+    {
+        vkdev->convert_packing(src, dst, dst_elempack, *this, opt);
+    }
+
+    // image and imageview can not be destroyed until command execution ends
+    _XADD(&src.data->command_refcount, 1);
+    d->image_blocks_to_destroy.push_back(src.data);
 }
 
 void VkCompute::record_clone(const ImageBuffer& src, VkImageBuffer& dst, const Option& opt)
