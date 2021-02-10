@@ -1,6 +1,6 @@
 #include "Resize_vulkan.h"
 #include "Resize_shader.h"
-
+#include "ImVulkanShader.h"
 namespace ImVulkan 
 {
 Resize_vulkan::Resize_vulkan(int gpu)

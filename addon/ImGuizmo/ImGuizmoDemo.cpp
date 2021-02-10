@@ -1,10 +1,16 @@
 #include "imgui.h"
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
+#endif
+#include "imgui_internal.h"
 #include "ImGuizmo.h"
 #include "ImSequencer.h"
 #include "ImZoomSlider.h"
 #include "ImCurveEdit.h"
-#include "imgui_internal.h"
-
+#include "ImGuiHelper.h"
+#include "Splitter.h"
+#include <string>
+#include <vector>
 namespace ImGui
 {
 static int gizmoCount = 1;

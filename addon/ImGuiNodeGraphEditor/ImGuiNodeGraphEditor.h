@@ -8,7 +8,7 @@
 #ifndef IMGUI_API
 #include <imgui.h>
 #endif //IMGUI_API
-
+#include <string>
 /*
  *   // Basic usage:
     // Here we create a window (please skip if already in a window)

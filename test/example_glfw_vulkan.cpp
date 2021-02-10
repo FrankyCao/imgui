@@ -12,6 +12,20 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_vulkan.h"
+#ifdef IMGUI_ADDONS
+#include "implot.h"
+#include "imgui_markdown.h"
+#include "imgui_node_editor.h"
+#include "imgui_memory_editor.h"
+#include "imnodes.h"
+#include "ImGuiNodeGraphEditor.h"
+#include "TextEditor.h"
+#include "ImGuiFileDialog.h"
+#include "ImGuiFileSystem.h"
+#include "imgui_dock.h"
+#include "HotKey.h"
+#include "addon/addons_demo.h"
+#endif
 #include <stdio.h>          // printf, fprintf
 #include <stdlib.h>         // abort
 #define GLFW_INCLUDE_NONE

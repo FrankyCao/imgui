@@ -68,6 +68,7 @@ SOFTWARE.
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif // IMGUI_DEFINE_MATH_OPERATORS
 #include "imgui_internal.h"
+#include "Splitter.h"
 
 #include <cstdlib>
 #include <algorithm>

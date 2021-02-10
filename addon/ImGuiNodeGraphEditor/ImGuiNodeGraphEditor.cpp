@@ -3,9 +3,10 @@
 #undef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
+#include "ImGuiHelper.h"
 
 #include <stdlib.h> // qsort
-
+#include <string>
 
 #if !defined(alloca)
 #	if defined(__GLIBC__) || defined(__sun) || defined(__APPLE__) || defined(__NEWLIB__)

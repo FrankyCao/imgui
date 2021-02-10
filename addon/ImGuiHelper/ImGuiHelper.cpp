@@ -24,7 +24,9 @@ struct IUnknown;
 #endif //_WIN32
 
 #include <imgui_internal.h>
-
+#ifdef IMGUI_VULKAN_SHADER
+#include "ImVulkanShader.h"
+#endif
 #ifdef IMGUI_OPENGL
 // About Desktop OpenGL function loaders:
 //  Modern desktop OpenGL doesn't have a standard portable header file to load OpenGL function pointers.

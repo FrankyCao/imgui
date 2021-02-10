@@ -6,6 +6,19 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#ifdef IMGUI_ADDONS
+#include "implot.h"
+#include "imgui_markdown.h"
+#include "imgui_memory_editor.h"
+#include "imnodes.h"
+#include "ImGuiNodeGraphEditor.h"
+#include "TextEditor.h"
+#include "ImGuiFileDialog.h"
+#include "ImGuiFileSystem.h"
+#include "imgui_dock.h"
+#include "HotKey.h"
+#include "addon/addons_demo.h"
+#endif
 #include <stdio.h>
 #include <fstream>
 #include <sstream>

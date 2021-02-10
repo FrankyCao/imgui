@@ -1,5 +1,6 @@
 #include "ColorConvert_vulkan.h"
 #include "ColorConvert_shader.h"
+#include "ImVulkanShader.h"
 
 namespace ImVulkan 
 {

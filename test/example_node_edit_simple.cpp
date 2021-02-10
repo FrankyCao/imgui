@@ -3,6 +3,7 @@
 # include <imgui_internal.h>
 # include <imgui_node_editor.h>
 # include <application.h>
+# include <string> 
 # include "Config.h"
 
 namespace ed = ax::NodeEditor;

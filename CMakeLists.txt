@@ -84,7 +84,7 @@ _OPTION(IMGUI_DX10               "Build ImGui Direct10 backends(Windows only)" O
 _OPTION(IMGUI_DX11               "Build ImGui Direct11 backends(Windows only)" ON IF WIN32)
 _OPTION(IMGUI_DX12               "Build ImGui Direct12 backends(Windows only)" ON IF WIN32)
 _OPTION(IMGUI_FREETYPE           "Build ImGui with FreeType support" ON)
-_OPTION(IMGUI_FONTS              "Internal Fonts build in library" ON)
+_OPTION(IMGUI_FONTS              "Internal Fonts build in library" OFF)
 _OPTION(IMGUI_ICONS              "Internal Icons build in library" ON)
 _OPTION(IMGUI_ADDONS             "build addons base on imgui" OFF)
 _OPTION(IMGUI_APPS               "build apps base on imgui" ON)

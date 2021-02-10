@@ -3,6 +3,8 @@
 # include <imgui_internal.h>
 # include <imgui_canvas.h>
 # include <application.h>
+# include "Splitter.h"
+# include <string> 
 # include "Config.h"
 
 static std::string ini_file = std::string(DEFAULT_CONFIG_PATH) + "Canvas.ini";

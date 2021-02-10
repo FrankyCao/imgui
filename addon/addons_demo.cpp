@@ -1,5 +1,17 @@
 #include "addons_demo.h"
 #include "NumberTexture.h"
+#include "ImGuiHelper.h"
+#include "ImGuiVariousControls.h"
+#include "ImGuiDateChooser.h"
+#include "ProgressIndicators.h"
+#include "Timeline.h"
+#include "imgui_knob.h"
+#include "Splitter.h"
+#include "imgui_dock.h"
+#include "ImGuiTabWindow.h"
+#ifdef IMGUI_VULKAN_SHADER
+#include "ImVulkanShader.h"
+#endif
 
 ImTextureID ImageTextureNumber = 0;
 

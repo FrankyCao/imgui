@@ -1,7 +1,13 @@
-# include <imgui.h>
-# define IMGUI_DEFINE_MATH_OPERATORS
-# include <imgui_internal.h>
-# include <application.h>
+#include <imgui.h>
+#define IMGUI_DEFINE_MATH_OPERATORS
+#include <imgui_internal.h>
+#include <application.h>
+#include "ImGuiHelper.h"
+#include "ImGuiFileDialog.h"
+#include "imgui_knob.h"
+#ifdef IMGUI_VULKAN_SHADER
+#include "ImVulkanShader.h"
+#endif
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -815,26 +821,28 @@ private:
             if (audio_frame->format == AV_SAMPLE_FMT_FLTP)
             {
                 left_data = *((float *)audio_frame->data[0] + i);
-                sum_left += left_data * left_data;
+                sum_left += fabs(left_data);//left_data * left_data;
                 if (audio_frame->channels > 1)
                 {
                     right_data = *((float *)audio_frame->data[1] + i);
-                    sum_right += right_data * right_data;
+                    sum_right += fabs(right_data);//right_data * right_data;
                 }
             }
             else if (audio_frame->format == AV_SAMPLE_FMT_S16P)
             {
                 left_data = *((short *)audio_frame->data[0] + i) / (float)(1 << 15);
-                sum_left += left_data * left_data;
+                sum_left += fabs(sum_left);//left_data * left_data;
                 if (audio_frame->channels > 1)
                 {
                     right_data = *((float *)audio_frame->data[1] + i) / (float)(1 << 15);
-                    sum_right += right_data * right_data;
+                    sum_right += fabs(right_data);//right_data * right_data;
                 }
             }
         }
-        audio_left_channel_level = 91 + 10 * log10(sum_left);
-        audio_right_channel_level = 91 + 10 * log10(sum_right);
+        //audio_left_channel_level = 91 + 10 * log10(sum_left);
+        //audio_right_channel_level = 91 + 10 * log10(sum_right);
+        audio_left_channel_level = 90.3 + 20.0 * log10(sum_left / date_size);
+        audio_right_channel_level = 90.3 + 20.0 * log10(sum_right / date_size);
     }
     int hw_decoder_init(AVCodecContext *ctx, const enum AVHWDeviceType type)
     {
@@ -1029,8 +1037,8 @@ bool Application_Frame(void* handle)
         }
         ImGui::Unindent((i - 32.0f) * 0.5f);
         ImGui::Separator();
-        ImGui::UvMeter("##lhuvr", ImVec2(panel_size.x, 10), &example->audio_left_channel_level, 0, 100, 200); ImGui::ShowTooltipOnHover("Left Uv meters.");
-        ImGui::UvMeter("##rhuvr", ImVec2(panel_size.x, 10), &example->audio_right_channel_level, 0, 100, 200); ImGui::ShowTooltipOnHover("Right Uv meters.");
+        ImGui::UvMeter("##lhuvr", ImVec2(panel_size.x, 10), &example->audio_left_channel_level, 0, 90, 200); ImGui::ShowTooltipOnHover("Left Uv meters.");
+        ImGui::UvMeter("##rhuvr", ImVec2(panel_size.x, 10), &example->audio_right_channel_level, 0, 90, 200); ImGui::ShowTooltipOnHover("Right Uv meters.");
         // add slider bar
         ImGui::Separator();
         if (example->total_time > 0)
