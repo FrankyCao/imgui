@@ -720,16 +720,19 @@ private:
             if ((ret = av_hwframe_transfer_data(sw_frame, picture, 0)) < 0) 
             {
                 fprintf(stderr, "Error transferring the data to system memory\n");
-                av_frame_unref(sw_frame);
+                av_frame_free(&sw_frame);
                 return;
             }
             else
             {
                 tmp_frame = sw_frame;
             }
+            av_frame_unref(picture);
         }
         else
+        {
             tmp_frame = picture;
+        }
 
 #ifdef IMGUI_VULKAN_SHADER
         const AVPixFmtDescriptor *desc = av_pix_fmt_desc_get((AVPixelFormat)tmp_frame->format);
@@ -756,6 +759,7 @@ private:
         {
             im_V.create_type(tmp_frame->linesize[2] >> UV_shift_w, tmp_frame->height >> UV_shift_h, 1, tmp_frame->data[2], video_depth == 8 ? ImVulkan::INT8 : ImVulkan::INT16);
         }
+
         if (video_width > 1920 || video_height > 1920 || video_depth > 1920)
         {
             float frame_scale = 1920.f / (float)video_width;
@@ -764,7 +768,9 @@ private:
             resize->Resize(im_RGB, vkimage, frame_scale, 0.f, ImVulkan::INTERPOLATE_AREA);
         }
         else
+        {
             yuv2rgb->YUV2RGBA(im_Y, im_U, im_V, vkimage, color_format, color_space, color_range, video_depth, video_shift);
+        }
         if (!video_texture) video_texture = ImGui::ImCreateTexture(vkimage);
 #else
         if (video_pfmt != tmp_frame->format)
@@ -807,7 +813,7 @@ private:
             av_frame_unref(&rgb_picture);
         }
 #endif
-        av_frame_unref(sw_frame);
+        av_frame_free(&sw_frame);
     }
     void render_audio_frame()
     {
@@ -815,27 +821,27 @@ private:
         double sum_right = 0;
         float left_data;
         float right_data;
-        int date_size = ImMin(audio_frame->nb_samples, 1024);
+        int date_size = ImMin(audio_frame->nb_samples, 256);
         for (int i = 0; i < date_size; i++)
         {
             if (audio_frame->format == AV_SAMPLE_FMT_FLTP)
             {
                 left_data = *((float *)audio_frame->data[0] + i);
-                sum_left += fabs(left_data);//left_data * left_data;
+                sum_left += fabs(left_data);
                 if (audio_frame->channels > 1)
                 {
                     right_data = *((float *)audio_frame->data[1] + i);
-                    sum_right += fabs(right_data);//right_data * right_data;
+                    sum_right += fabs(right_data);
                 }
             }
             else if (audio_frame->format == AV_SAMPLE_FMT_S16P)
             {
                 left_data = *((short *)audio_frame->data[0] + i) / (float)(1 << 15);
-                sum_left += fabs(sum_left);//left_data * left_data;
+                sum_left += fabs(sum_left);
                 if (audio_frame->channels > 1)
                 {
                     right_data = *((float *)audio_frame->data[1] + i) / (float)(1 << 15);
-                    sum_right += fabs(right_data);//right_data * right_data;
+                    sum_right += fabs(right_data);
                 }
             }
         }

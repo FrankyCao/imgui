@@ -23,6 +23,8 @@ struct IUnknown;
 #include <stdlib.h> // system
 #endif //_WIN32
 
+#include <vector>
+
 #include <imgui_internal.h>
 #ifdef IMGUI_VULKAN_SHADER
 #include "ImVulkanShader.h"

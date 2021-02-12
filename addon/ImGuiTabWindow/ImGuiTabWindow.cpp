@@ -2410,8 +2410,8 @@ void TabWindow::render()
             IM_ASSERT(dd.draggingTabImGuiWindowSrc);
             const ImVec2& mp = ImGui::GetIO().MousePos;
             const ImVec2 wp = dd.draggingTabImGuiWindowSrc->Pos;
-            ImDrawList* drawList = //ImGui::GetWindowDrawList();    // This draws the dragging tab under the other tabs, and has OTHER problems with: e.g.: ImGui::GetStyle().Colors[ImGuiCol_ChildWindowBg]=ImVec4(0.4,0.4,0.4,1);ImGui::GetStyle().Alpha = 1.f;
-                    &g.ForegroundDrawList;  // wrong, but it works as expected! [Maybe we can use ChannelsSplit(),ChannelsSetCurrent(),ChannelsMerge(), but that would require modifying code in various spots and it's more error prone]
+            ImDrawList* drawList = ImGui::GetWindowDrawList();    // This draws the dragging tab under the other tabs, and has OTHER problems with: e.g.: ImGui::GetStyle().Colors[ImGuiCol_ChildWindowBg]=ImVec4(0.4,0.4,0.4,1);ImGui::GetStyle().Alpha = 1.f;
+                    //&g.ForegroundDrawList;  // wrong, but it works as expected! [Maybe we can use ChannelsSplit(),ChannelsSetCurrent(),ChannelsMerge(), but that would require modifying code in various spots and it's more error prone]
 
 
             const ImGuiWindow* hoveredWindow = g.HoveredWindow;
@@ -3113,8 +3113,8 @@ bool TabLabels(int numTabs, const char** tabLabels, int& selectedIndex, const ch
             const ImVec2& mp = ImGui::GetIO().MousePos;
             ImVec2 start(wp.x+mp.x-draggingTabOffset.x-draggingTabSize.x*0.5f,wp.y+mp.y-draggingTabOffset.y-draggingTabSize.y*0.5f);
             //const ImVec2 end(start.x+draggingTabSize.x,start.y+draggingTabSize.y);
-            ImDrawList* drawList = //ImGui::GetWindowDrawList();
-                    &GImGui->ForegroundDrawList;
+            ImDrawList* drawList = ImGui::GetWindowDrawList();
+                    //&GImGui->ForegroundDrawList;
             const TabLabelStyle& tabStyle = TabLabelStyleGetMergedWithAlphaForOverlayUsage();
             ImFont* fontOverride = (ImFont*) (draggingTabWasSelected ? TabLabelStyle::ImGuiFonts[tabStyle.fontStyles[TabLabelStyle::TAB_STATE_SELECTED]] : TabLabelStyle::ImGuiFonts[tabStyle.fontStyles[TabLabelStyle::TAB_STATE_NORMAL]]);
             ImGui::TabButton(tabLabels[pOptionalItemOrdering[draggingTabIndex]],draggingTabWasSelected,allowTabClosing ? &mustCloseTab : NULL,NULL,NULL,&tabStyle,fontOverride,&start,drawList,false,true);
@@ -3563,8 +3563,8 @@ bool TabLabelsVertical(bool textIsRotatedCCW, int numTabs, const char** tabLabel
             const ImVec2& mp = ImGui::GetIO().MousePos;
             ImVec2 start(wp.x+mp.x-draggingTabOffset.x-draggingTabSize.x*0.5f,wp.y+mp.y-draggingTabOffset.y-draggingTabSize.y*0.5f);
             //const ImVec2 end(start.x+draggingTabSize.x,start.y+draggingTabSize.y);
-            ImDrawList* drawList = //ImGui::GetWindowDrawList();
-                    &GImGui->ForegroundDrawList;
+            ImDrawList* drawList = ImGui::GetWindowDrawList();
+                    //&GImGui->ForegroundDrawList;
             const TabLabelStyle& tabStyle = TabLabelStyleGetMergedWithAlphaForOverlayUsage();
             ImFont* fontOverride = (ImFont*) (draggingTabWasSelected ? TabLabelStyle::ImGuiFonts[tabStyle.fontStyles[TabLabelStyle::TAB_STATE_SELECTED]] : TabLabelStyle::ImGuiFonts[tabStyle.fontStyles[TabLabelStyle::TAB_STATE_NORMAL]]);
             ImGui::TabButtonVertical(textIsRotatedCCW,tabLabels[pOptionalItemOrdering[draggingTabIndex]],draggingTabWasSelected,allowTabClosing ? &mustCloseTab : NULL,NULL,NULL,&tabStyle,fontOverride,&start,drawList,false,true,invertRounding);

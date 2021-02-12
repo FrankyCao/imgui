@@ -157,7 +157,7 @@ void Resize_vulkan::Resize(const VkImageBuffer& src, VkImageMat& dst, float fx, 
         cmd->record_pipeline(pipeline_rgb_8, bindings, constants, dst_buffer);
     cmd->record_buffer_to_image(dst_buffer, dst, opt);
     cmd->submit_and_wait();
-    cmd->flash();
+    cmd->reset();
 }
 
 // input CPU Buffer and output to GPU Image3D
@@ -189,7 +189,7 @@ void Resize_vulkan::Resize(const ImageBuffer& src, VkImageMat& dst, float fx, fl
         cmd->record_pipeline(pipeline_rgb_8, bindings, constants, dst_buffer);
     cmd->record_buffer_to_image(dst_buffer, dst, opt);
     cmd->submit_and_wait();
-    cmd->flash();
+    cmd->reset();
 }
 
 } //namespace ImVulkan 
