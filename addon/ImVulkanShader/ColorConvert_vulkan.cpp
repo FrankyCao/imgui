@@ -68,13 +68,13 @@ void ColorConvert_vulkan::YUV2RGBA(const ImageBuffer& im_Y, const ImageBuffer& i
     constants[5].i = color_range;
     constants[6].f = (float)(1 << video_shift);
     constants[7].i = 1;
-    if (video_depth == 8)
+    if (video_depth > 8)
     {
-        cmd->record_pipeline(pipeline_yuv_rgb_8, bindings, constants, vk_RGB);
+        cmd->record_pipeline(pipeline_yuv_rgb_16, bindings, constants, vk_RGB);
     }
     else
     {
-        cmd->record_pipeline(pipeline_yuv_rgb_16, bindings, constants, vk_RGB);
+        cmd->record_pipeline(pipeline_yuv_rgb_8, bindings, constants, vk_RGB);
     }
     cmd->record_clone(vk_RGB, im_RGB, opt);
     cmd->submit_and_wait();
@@ -110,13 +110,13 @@ void ColorConvert_vulkan::YUV2RGBA(const ImageBuffer& im_Y, const ImageBuffer& i
     constants[5].i = color_range;
     constants[6].f = (float)(1 << video_shift);
     constants[7].i = 0;
-    if (video_depth == 8)
+    if (video_depth > 8)
     {
-        cmd->record_pipeline(pipeline_yuv_rgb_8, bindings, constants, im_RGB);
+        cmd->record_pipeline(pipeline_yuv_rgb_16, bindings, constants, im_RGB);
     }
     else
     {
-        cmd->record_pipeline(pipeline_yuv_rgb_16, bindings, constants, im_RGB);
+        cmd->record_pipeline(pipeline_yuv_rgb_8, bindings, constants, im_RGB);
     }
     cmd->submit_and_wait();
     cmd->flash();
@@ -152,13 +152,13 @@ void ColorConvert_vulkan::YUV2RGBA(const ImageBuffer& im_Y, const ImageBuffer& i
     constants[5].i = color_range;
     constants[6].f = (float)(1 << video_shift);
     constants[7].i = 0;
-    if (video_depth == 8)
+    if (video_depth > 8)
     {
-        cmd->record_pipeline(pipeline_yuv_rgb_8, bindings, constants, vk_RGB);
+        cmd->record_pipeline(pipeline_yuv_rgb_16, bindings, constants, vk_RGB);
     }
     else
     {
-        cmd->record_pipeline(pipeline_yuv_rgb_16, bindings, constants, vk_RGB);
+        cmd->record_pipeline(pipeline_yuv_rgb_8, bindings, constants, vk_RGB);
     }
     cmd->record_buffer_to_image(vk_RGB, im_RGB, opt);
     cmd->submit_and_wait();

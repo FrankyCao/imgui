@@ -751,13 +751,14 @@ private:
                                             ISNV12(tmp_frame->format) ? ImVulkan::NV12 : ImVulkan::YUV420;
         
         ImVulkan::ImageBuffer im_Y, im_U, im_V;
+        int data_shift = video_depth > 8 ? 1 : 0;
         int UV_shift_w = ISYUV420P(tmp_frame->format) || ISYUV422P(tmp_frame->format) ? 1 : 0;
         int UV_shift_h = ISYUV420P(tmp_frame->format) || ISNV12(tmp_frame->format) ? 1 : 0;
-        im_Y.create_type(tmp_frame->linesize[0], tmp_frame->height, 1, tmp_frame->data[0], video_depth == 8 ? ImVulkan::INT8 : ImVulkan::INT16);
-        im_U.create_type(tmp_frame->linesize[1] >> UV_shift_w, tmp_frame->height >> UV_shift_h, 1, tmp_frame->data[1], video_depth == 8 ? ImVulkan::INT8 : ImVulkan::INT16);
+        im_Y.create_type(tmp_frame->linesize[0] >> data_shift, tmp_frame->height, 1, tmp_frame->data[0], video_depth > 8 ? ImVulkan::INT16 : ImVulkan::INT8);
+        im_U.create_type(tmp_frame->linesize[1] >> (UV_shift_w + data_shift), tmp_frame->height >> UV_shift_h, 1, tmp_frame->data[1], video_depth > 8 ? ImVulkan::INT16 : ImVulkan::INT8);
         if (!ISNV12(tmp_frame->format))
         {
-            im_V.create_type(tmp_frame->linesize[2] >> UV_shift_w, tmp_frame->height >> UV_shift_h, 1, tmp_frame->data[2], video_depth == 8 ? ImVulkan::INT8 : ImVulkan::INT16);
+            im_V.create_type(tmp_frame->linesize[2] >> (UV_shift_w + data_shift), tmp_frame->height >> UV_shift_h, 1, tmp_frame->data[2], video_depth > 8 ? ImVulkan::INT16 : ImVulkan::INT8);
         }
 
         if (video_width > 1920 || video_height > 1920 || video_depth > 1920)
