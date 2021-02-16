@@ -79,19 +79,20 @@
 #define tableHeaderDescendingIcon "D|"
 #endif
 #define tableHeaderFileNameString " File name"
+//#define tableHeaderFileTypeString " Type"
 #define tableHeaderFileSizeString " Size"
 #define tableHeaderFileDateTimeString " Date"
 
 #define USE_BOOKMARK
 //#define bookmarkPaneWith 150.0f
 //#define IMGUI_TOGGLE_BUTTON ToggleButton
-//#define bookmarksButtonHelpString "bookmark"
 #ifdef IMGUI_INTERNAL_ICONS
 #define bookmarksButtonString ICON_IGFD_BOOKMARK
 #define addBookmarkButtonString ICON_IGFD_ADD
 #define removeBookmarkButtonString ICON_IGFD_REMOVE
 #else
 #define bookmarksButtonString "Bookmark"
+#define bookmarksButtonHelpString "Bookmark"
 #define addBookmarkButtonString "+"
 #define removeBookmarkButtonString "-"
 #endif

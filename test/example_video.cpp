@@ -5,6 +5,7 @@
 #include "ImGuiHelper.h"
 #include "ImGuiFileDialog.h"
 #include "imgui_knob.h"
+#include "implot.h"
 #ifdef IMGUI_VULKAN_SHADER
 #include "ImVulkanShader.h"
 #endif
@@ -264,6 +265,10 @@ public:
 
         // init code
         memset(&packet, 0, sizeof(packet));
+        audio_left_channel_level = 0.f;
+        audio_right_channel_level = 0.f;
+        memset(audio_left_data, 0, sizeof(float) * audio_data_size);
+        memset(audio_right_data, 0, sizeof(float) * audio_data_size);
 
 #ifdef IMGUI_VULKAN_SHADER
         yuv2rgb = new ImVulkan::ColorConvert_vulkan(0);
@@ -320,6 +325,8 @@ public:
         audio_pts = AV_NOPTS_VALUE;
         audio_left_channel_level = 0.f;
         audio_right_channel_level = 0.f;
+        memset(audio_left_data, 0, sizeof(float) * audio_data_size);
+        memset(audio_right_data, 0, sizeof(float) * audio_data_size);
     }
     int OpenMediaFile(std::string filepath)
     {
@@ -490,8 +497,11 @@ public:
     // init video texture
     ImTextureID video_texture = nullptr;
     // init audio level
+    static const int audio_data_size = 1024;
     int audio_left_channel_level = 0;
     int audio_right_channel_level = 0;
+    float audio_left_data[audio_data_size];
+    float audio_right_data[audio_data_size];
 
 #ifdef IMGUI_VULKAN_SHADER
     ImVulkan::ColorConvert_vulkan * yuv2rgb = nullptr;
@@ -822,34 +832,36 @@ private:
         double sum_right = 0;
         float left_data;
         float right_data;
-        int date_size = ImMin(audio_frame->nb_samples, 256);
-        for (int i = 0; i < date_size; i++)
+        int data_len = ImMin(audio_frame->nb_samples, audio_data_size);
+        for (int i = 0; i < data_len; i++)
         {
             if (audio_frame->format == AV_SAMPLE_FMT_FLTP)
             {
                 left_data = *((float *)audio_frame->data[0] + i);
                 sum_left += fabs(left_data);
+                audio_left_data[i] = left_data;
                 if (audio_frame->channels > 1)
                 {
                     right_data = *((float *)audio_frame->data[1] + i);
                     sum_right += fabs(right_data);
+                    audio_right_data[i] = right_data;
                 }
             }
             else if (audio_frame->format == AV_SAMPLE_FMT_S16P)
             {
                 left_data = *((short *)audio_frame->data[0] + i) / (float)(1 << 15);
                 sum_left += fabs(sum_left);
+                audio_left_data[i] = left_data;
                 if (audio_frame->channels > 1)
                 {
                     right_data = *((float *)audio_frame->data[1] + i) / (float)(1 << 15);
                     sum_right += fabs(right_data);
+                    audio_right_data[i] = right_data;
                 }
             }
         }
-        //audio_left_channel_level = 91 + 10 * log10(sum_left);
-        //audio_right_channel_level = 91 + 10 * log10(sum_right);
-        audio_left_channel_level = 90.3 + 20.0 * log10(sum_left / date_size);
-        audio_right_channel_level = 90.3 + 20.0 * log10(sum_right / date_size);
+        audio_left_channel_level = 90.3 + 20.0 * log10(sum_left / data_len);
+        audio_right_channel_level = 90.3 + 20.0 * log10(sum_right / data_len);
     }
     int hw_decoder_init(AVCodecContext *ctx, const enum AVHWDeviceType type)
     {
@@ -935,6 +947,7 @@ void Application_Initialize(void** handle)
 {
     *handle = new Example();
     Example * example = (Example *)*handle;
+    ImPlot::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.IniFilename = ini_file.c_str();
     io.DeltaTime = 1.0f / 30.f;
@@ -949,6 +962,7 @@ void Application_Finalize(void** handle)
         delete example;
         *handle = nullptr;
     }
+    ImPlot::DestroyContext();
 }
 
 bool Application_Frame(void* handle)
@@ -1033,8 +1047,32 @@ bool Application_Frame(void* handle)
     ImGui::SetNextWindowBgAlpha(0.5);
     if (ImGui::Begin("Control", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoResize))
     {
-        // add button
         int i = ImGui::FindWindowByName("Control")->Size.x;
+        // add wave plots
+        ImPlot::PushStyleVar(ImPlotStyleVar_PlotBorderSize, 0.f);
+        ImPlot::PushStyleVar(ImPlotStyleVar_PlotPadding, ImVec2(0.f, 0.f));
+        ImPlot::SetNextPlotLimits(0,example->audio_data_size,-1,1);
+        if (ImPlot::BeginPlot("##Audio wave left", NULL, NULL, ImVec2(256,36), 
+                            ImPlotFlags_CanvasOnly | ImPlotFlags_NoChild,
+                            ImPlotAxisFlags_NoDecorations | ImPlotAxisFlags_LockMin | ImPlotAxisFlags_LockMax,
+                            ImPlotAxisFlags_NoDecorations | ImPlotAxisFlags_LockMin | ImPlotAxisFlags_LockMax)) 
+        {
+            ImPlot::PlotLine("##lwave", example->audio_left_data, example->audio_data_size);
+            ImPlot::EndPlot();
+        }
+        ImGui::SameLine();
+        ImPlot::SetNextPlotLimits(0,example->audio_data_size,-1,1);
+        if (ImPlot::BeginPlot("##Audio wave right", NULL, NULL, ImVec2(256,36), 
+                            ImPlotFlags_CanvasOnly | ImPlotFlags_NoChild,
+                            ImPlotAxisFlags_NoDecorations | ImPlotAxisFlags_LockMin | ImPlotAxisFlags_LockMax,
+                            ImPlotAxisFlags_NoDecorations | ImPlotAxisFlags_LockMin | ImPlotAxisFlags_LockMax)) 
+        {
+            ImPlot::PlotLine("##rwave", example->audio_right_data, example->audio_data_size);
+            ImPlot::EndPlot();
+        }
+        ImGui::SameLine();
+        ImPlot::PopStyleVar(2);
+        // add button
         ImGui::Indent((i - 32.0f) * 0.5f);
         ImVec2 size = ImVec2(32.0f, 32.0f); // Size of the image we want to make visible
         if (ImGui::Button(example->is_playing ? ICON_FAD_PAUSE: ICON_FAD_PLAY, size))
@@ -1044,10 +1082,11 @@ bool Application_Frame(void* handle)
         }
         ImGui::Unindent((i - 32.0f) * 0.5f);
         ImGui::Separator();
+        // add audio meter bar
         ImGui::UvMeter("##lhuvr", ImVec2(panel_size.x, 10), &example->audio_left_channel_level, 0, 90, 200); ImGui::ShowTooltipOnHover("Left Uv meters.");
         ImGui::UvMeter("##rhuvr", ImVec2(panel_size.x, 10), &example->audio_right_channel_level, 0, 90, 200); ImGui::ShowTooltipOnHover("Right Uv meters.");
-        // add slider bar
         ImGui::Separator();
+        // add slider bar
         if (example->total_time > 0)
         {
             float time = example->play_time;

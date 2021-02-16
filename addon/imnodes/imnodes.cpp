@@ -1114,10 +1114,7 @@ void begin_canvas_interaction(EditorContext& editor)
         return;
     }
 
-    const bool started_panning =
-        g.io.emulate_three_button_mouse.enabled
-            ? (g.left_mouse_clicked && *g.io.emulate_three_button_mouse.modifier)
-            : g.middle_mouse_clicked;
+    const bool started_panning = g.middle_mouse_clicked;
 
     if (started_panning)
     {
@@ -1421,10 +1418,7 @@ void click_interaction_update(EditorContext& editor)
     break;
     case ClickInteractionType_Panning:
     {
-        const bool dragging =
-            g.io.emulate_three_button_mouse.enabled
-                ? (g.left_mouse_dragging && (*g.io.emulate_three_button_mouse.modifier))
-                : g.middle_mouse_dragging;
+        const bool dragging = g.middle_mouse_dragging;
 
         if (dragging)
         {
@@ -1446,19 +1440,24 @@ void click_interaction_update(EditorContext& editor)
 
 OptionalIndex resolve_hovered_node(const EditorContext& editor)
 {
-    if (g.node_indices_overlapping_with_mouse.Size == 0)
+    if (g.node_indices_overlapping_with_mouse.size() == 0)
     {
         return OptionalIndex();
+    }
+
+    if (g.node_indices_overlapping_with_mouse.size() == 1)
+    {
+        return OptionalIndex(g.node_indices_overlapping_with_mouse[0]);
     }
 
     int largest_depth_idx = -1;
     int node_idx_on_top = -1;
 
     const ImVector<int>& depth_stack = editor.node_depth_order;
-    for (int i = 0; i < g.node_indices_overlapping_with_mouse.Size; ++i)
+    for (int i = 0; i < g.node_indices_overlapping_with_mouse.size(); ++i)
     {
         const int node_idx = g.node_indices_overlapping_with_mouse[i];
-        for (int depth_idx = 0; depth_idx < depth_stack.Size; ++depth_idx)
+        for (int depth_idx = 0; depth_idx < depth_stack.size(); ++depth_idx)
         {
             if (depth_stack[depth_idx] == node_idx && (depth_idx > largest_depth_idx))
             {
@@ -2094,9 +2093,13 @@ void BeginNodeEditor()
     g.mouse_pos = ImGui::GetIO().MousePos;
     g.left_mouse_clicked = ImGui::IsMouseClicked(0);
     g.left_mouse_released = ImGui::IsMouseReleased(0);
-    g.middle_mouse_clicked = ImGui::IsMouseClicked(2);
+    g.middle_mouse_clicked = (g.io.emulate_three_button_mouse.enabled && g.left_mouse_clicked &&
+                              *g.io.emulate_three_button_mouse.modifier) ||
+                             ImGui::IsMouseClicked(2);
     g.left_mouse_dragging = ImGui::IsMouseDragging(0, 0.0f);
-    g.middle_mouse_dragging = ImGui::IsMouseDragging(2, 0.0f);
+    g.middle_mouse_dragging = (g.io.emulate_three_button_mouse.enabled && g.left_mouse_dragging &&
+                               (*g.io.emulate_three_button_mouse.modifier)) ||
+                              ImGui::IsMouseDragging(2, 0.0f);
 
     g.active_attribute = false;
 
