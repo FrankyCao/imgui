@@ -24,6 +24,9 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+#ifdef IMGUI_SDL2
+#include <SDL2/SDL.h>
+#endif
 #include "Config.h"
 
 #if defined _MSC_VER && _MSC_VER >= 1200
@@ -248,8 +251,7 @@ static inline enum AVPixelFormat get_hw_format(AVCodecContext *ctx, const enum A
          format == AV_PIX_FMT_NV42 || \
          format == AV_PIX_FMT_NV20)
 
-#define AUDIO_INBUF_SIZE 20480
-#define AUDIO_REFILL_THRESH 4096
+static void fill_audio(void *udata,Uint8 *stream,int len);
 
 class Example
 {
@@ -267,12 +269,14 @@ public:
         memset(&packet, 0, sizeof(packet));
         audio_left_channel_level = 0.f;
         audio_right_channel_level = 0.f;
-        memset(audio_left_data, 0, sizeof(float) * audio_data_size);
-        memset(audio_right_data, 0, sizeof(float) * audio_data_size);
+        memset(audio_data, 0, sizeof(float) * audio_data_size);
 
 #ifdef IMGUI_VULKAN_SHADER
         yuv2rgb = new ImVulkan::ColorConvert_vulkan(0);
         resize = new ImVulkan::Resize_vulkan(0);
+#endif
+#ifdef IMGUI_SDL2
+        SDL_Init(SDL_INIT_AUDIO | SDL_INIT_TIMER);
 #endif
     }
     ~Example() 
@@ -284,6 +288,9 @@ public:
 #ifdef IMGUI_VULKAN_SHADER
         if (yuv2rgb) { delete yuv2rgb; yuv2rgb = nullptr; }
         if (resize) { delete resize; resize = nullptr; }
+#endif
+#ifdef IMGUI_SDL2
+        SDL_Quit();
 #endif
     }
     void CloseMedia()
@@ -325,8 +332,22 @@ public:
         audio_pts = AV_NOPTS_VALUE;
         audio_left_channel_level = 0.f;
         audio_right_channel_level = 0.f;
-        memset(audio_left_data, 0, sizeof(float) * audio_data_size);
-        memset(audio_right_data, 0, sizeof(float) * audio_data_size);
+        memset(audio_data, 0, sizeof(float) * audio_data_size);
+#ifdef IMGUI_SDL2
+        if (sdl_inited)
+        {
+            SDL_PauseAudio(1);
+            SDL_AudioStatus status = SDL_GetAudioStatus();
+            while (status != SDL_AUDIO_STOPPED && status != SDL_AUDIO_PAUSED)
+            {
+                SDL_Delay(1);
+                status = SDL_GetAudioStatus();
+            }
+            SDL_AudioQuit();
+            SDL_CloseAudio();
+            sdl_inited = false;
+        }
+#endif
     }
     int OpenMediaFile(std::string filepath)
     {
@@ -370,6 +391,16 @@ public:
             avcodec_string(buf, sizeof(buf), video_dec_ctx, 0);
             video_codec_name = std::string(buf);
             picture = av_frame_alloc();
+            img_convert_ctx = sws_getCachedContext(
+                                            img_convert_ctx,
+                                            video_dec_ctx->coded_width,
+                                            video_dec_ctx->coded_height,
+                                            video_pfmt,
+                                            video_width,
+                                            video_height,
+                                            AV_PIX_FMT_RGBA,
+                                            SWS_BICUBIC,
+                                            NULL, NULL, NULL);
         }
         if (open_codec_context(&audio_stream_idx, &audio_dec_ctx, AVMEDIA_TYPE_AUDIO) >= 0)
         {
@@ -381,6 +412,24 @@ public:
             avcodec_string(buf, sizeof(buf), audio_dec_ctx, 0);
             audio_codec_name = std::string(buf);
             audio_frame = av_frame_alloc();
+#ifdef IMGUI_SDL2
+            wanted_spec.freq = audio_sample_rate; 
+            wanted_spec.format = AUDIO_F32SYS; 
+            wanted_spec.channels = audio_channels; 
+            wanted_spec.silence = 0; 
+            wanted_spec.samples = audio_dec_ctx->frame_size; 
+            wanted_spec.callback = fill_audio; 
+            wanted_spec.userdata = this;
+            if (SDL_OpenAudio(&wanted_spec, NULL)<0)
+            {
+                fprintf(stderr, "can't open audio.\n"); 
+                sdl_inited = false; 
+            }
+            else
+            {
+                sdl_inited = true;
+            }
+#endif
         }
         if (!audio_stream && !video_stream)
         {
@@ -398,17 +447,6 @@ public:
         }
         /* interrupt callback */
         interrupt_metadata.timeout_after_ms = 0;
-        img_convert_ctx = sws_getCachedContext(
-                                            img_convert_ctx,
-                                            video_dec_ctx->coded_width,
-                                            video_dec_ctx->coded_height,
-                                            video_pfmt,
-                                            video_width,
-                                            video_height,
-                                            AV_PIX_FMT_RGBA,
-                                            SWS_BICUBIC,
-                                            NULL, NULL, NULL);
-
         return 0;
     }
     void SeekMedia(float sec)
@@ -497,16 +535,20 @@ public:
     // init video texture
     ImTextureID video_texture = nullptr;
     // init audio level
-    static const int audio_data_size = 1024;
+    static const int audio_data_size = 4096;
     int audio_left_channel_level = 0;
     int audio_right_channel_level = 0;
-    float audio_left_data[audio_data_size];
-    float audio_right_data[audio_data_size];
+    float audio_data[audio_data_size];
+    int audio_len = 0;
+    SDL_AudioSpec wanted_spec;
 
 #ifdef IMGUI_VULKAN_SHADER
     ImVulkan::ColorConvert_vulkan * yuv2rgb = nullptr;
     ImVulkan::Resize_vulkan * resize = nullptr;
     ImVulkan::VkImageMat vkimage;
+#endif
+#ifdef IMGUI_SDL2
+    bool sdl_inited = false;
 #endif
 public:
     // video info
@@ -828,6 +870,17 @@ private:
     }
     void render_audio_frame()
     {
+#ifdef IMGUI_SDL2
+        if (sdl_inited && is_playing)
+        {
+            while (audio_len > 0)
+            {
+                if (!is_playing || !sdl_inited)
+                    break;
+                SDL_Delay(5);
+            }
+        }
+#endif
         double sum_left = 0;
         double sum_right = 0;
         float left_data;
@@ -837,31 +890,36 @@ private:
         {
             if (audio_frame->format == AV_SAMPLE_FMT_FLTP)
             {
-                left_data = *((float *)audio_frame->data[0] + i);
+                float* p_left_data = (float*)audio_frame->extended_data[0];
+                left_data = p_left_data[i];
                 sum_left += fabs(left_data);
-                audio_left_data[i] = left_data;
+                audio_data[i * audio_frame->channels + 0] = left_data;
                 if (audio_frame->channels > 1)
                 {
-                    right_data = *((float *)audio_frame->data[1] + i);
+                    float* p_right_data = (float*)audio_frame->extended_data[1];
+                    right_data = p_right_data[i];
                     sum_right += fabs(right_data);
-                    audio_right_data[i] = right_data;
+                    audio_data[i * audio_frame->channels + 1] = right_data;
                 }
             }
             else if (audio_frame->format == AV_SAMPLE_FMT_S16P)
             {
-                left_data = *((short *)audio_frame->data[0] + i) / (float)(1 << 15);
+                int16_t* p_left_data = (int16_t*)audio_frame->extended_data[0];
+                left_data = p_left_data[i] / (float)(1 << 15);
                 sum_left += fabs(sum_left);
-                audio_left_data[i] = left_data;
+                audio_data[i * audio_frame->channels + 0] = left_data;
                 if (audio_frame->channels > 1)
                 {
-                    right_data = *((float *)audio_frame->data[1] + i) / (float)(1 << 15);
+                    int16_t* p_right_data = (int16_t*)audio_frame->extended_data[1];
+                    right_data = p_right_data[i] / (float)(1 << 15);
                     sum_right += fabs(right_data);
-                    audio_right_data[i] = right_data;
+                    audio_data[i * audio_frame->channels + 1] = right_data;
                 }
             }
         }
         audio_left_channel_level = 90.3 + 20.0 * log10(sum_left / data_len);
         audio_right_channel_level = 90.3 + 20.0 * log10(sum_right / data_len);
+        audio_len = data_len * audio_frame->channels * sizeof(float);
     }
     int hw_decoder_init(AVCodecContext *ctx, const enum AVHWDeviceType type)
     {
@@ -937,6 +995,20 @@ private:
         return 0;
     }
 };
+
+#ifdef IMGUI_SDL2
+static void fill_audio(void *udata,Uint8 *stream,int len)
+{
+    Example * example = (Example *)udata;
+    SDL_memset(stream, 0, len);
+    if (example == nullptr || example->audio_len==0)
+        return;
+    len = (len > example->audio_len ? example->audio_len : len);
+    SDL_MixAudio(stream, (const Uint8 *)example->audio_data, len, SDL_MIX_MAXVOLUME);
+    //audio_pos += len;
+    example->audio_len -= len;
+}
+#endif
 
 const char* Application_GetName(void* handle)
 {
@@ -1048,11 +1120,12 @@ bool Application_Frame(void* handle)
     if (ImGui::Begin("Control", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoResize))
     {
         int i = ImGui::FindWindowByName("Control")->Size.x;
+        /*
         // add wave plots
         ImPlot::PushStyleVar(ImPlotStyleVar_PlotBorderSize, 0.f);
         ImPlot::PushStyleVar(ImPlotStyleVar_PlotPadding, ImVec2(0.f, 0.f));
         ImPlot::SetNextPlotLimits(0,example->audio_data_size,-1,1);
-        if (ImPlot::BeginPlot("##Audio wave left", NULL, NULL, ImVec2(256,36), 
+        if (ImPlot::BeginPlot("##Audio wave left", NULL, NULL, ImVec2(64,36), 
                             ImPlotFlags_CanvasOnly | ImPlotFlags_NoChild,
                             ImPlotAxisFlags_NoDecorations | ImPlotAxisFlags_LockMin | ImPlotAxisFlags_LockMax,
                             ImPlotAxisFlags_NoDecorations | ImPlotAxisFlags_LockMin | ImPlotAxisFlags_LockMax)) 
@@ -1062,7 +1135,7 @@ bool Application_Frame(void* handle)
         }
         ImGui::SameLine();
         ImPlot::SetNextPlotLimits(0,example->audio_data_size,-1,1);
-        if (ImPlot::BeginPlot("##Audio wave right", NULL, NULL, ImVec2(256,36), 
+        if (ImPlot::BeginPlot("##Audio wave right", NULL, NULL, ImVec2(64,36), 
                             ImPlotFlags_CanvasOnly | ImPlotFlags_NoChild,
                             ImPlotAxisFlags_NoDecorations | ImPlotAxisFlags_LockMin | ImPlotAxisFlags_LockMax,
                             ImPlotAxisFlags_NoDecorations | ImPlotAxisFlags_LockMin | ImPlotAxisFlags_LockMax)) 
@@ -1072,6 +1145,7 @@ bool Application_Frame(void* handle)
         }
         ImGui::SameLine();
         ImPlot::PopStyleVar(2);
+        */
         // add button
         ImGui::Indent((i - 32.0f) * 0.5f);
         ImVec2 size = ImVec2(32.0f, 32.0f); // Size of the image we want to make visible
@@ -1079,6 +1153,12 @@ bool Application_Frame(void* handle)
         {
             if (example->is_opened)
                 example->is_playing = !example->is_playing;
+#ifdef IMGUI_SDL2
+            if (example->is_playing)
+                SDL_PauseAudio(0);
+            else
+                SDL_PauseAudio(1);
+#endif
         }
         ImGui::Unindent((i - 32.0f) * 0.5f);
         ImGui::Separator();
@@ -1123,6 +1203,12 @@ bool Application_Frame(void* handle)
     {
         if (example->is_opened)
             example->is_playing = !example->is_playing;
+#ifdef IMGUI_SDL2
+        if (example->is_playing)
+            SDL_PauseAudio(0);
+        else
+            SDL_PauseAudio(1);
+#endif
     }
 
     if (!io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape), false))
