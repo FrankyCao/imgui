@@ -1209,18 +1209,36 @@ if (IMGUI_APPS)
         imgui
         ${LINK_LIBS}
     )
-    if (FFMPEG_FOUND AND IMGUI_ADDONS)
+    if (FFMPEG_FOUND AND IMGUI_ADDONS AND IMGUI_SDL2 AND SDL2_FOUND)
         add_executable(
-            example_video
-            test/example_video.cpp
+            media_player
+            apps/MediaPlayer/clock.cpp
+            apps/MediaPlayer/clock.h
+            apps/MediaPlayer/demux.cpp
+            apps/MediaPlayer/demux.h
+            apps/MediaPlayer/decoder.cpp
+            apps/MediaPlayer/decoder.h
+            apps/MediaPlayer/packet.cpp
+            apps/MediaPlayer/packet.h
+            apps/MediaPlayer/frame.cpp
+            apps/MediaPlayer/frame.h
+            apps/MediaPlayer/audio.cpp
+            apps/MediaPlayer/audio.h
+            apps/MediaPlayer/video.cpp
+            apps/MediaPlayer/video.h
+            apps/MediaPlayer/subtitle.cpp
+            apps/MediaPlayer/subtitle.h
+            apps/MediaPlayer/player.cpp
+            apps/MediaPlayer/media_player.h
+            apps/MediaPlayer/media_player.cpp
             ${IMGUI_APP_SRC}
         )
         target_link_libraries(
-            example_video
+            media_player
             imgui
             ${LINK_LIBS}
         )
-    endif(FFMPEG_FOUND AND IMGUI_ADDONS)
+    endif(FFMPEG_FOUND AND IMGUI_ADDONS AND IMGUI_SDL2 AND SDL2_FOUND)
 endif(IMGUI_APPS)
 
 get_directory_property(hasParent PARENT_DIRECTORY)
