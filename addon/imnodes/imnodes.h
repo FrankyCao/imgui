@@ -2,6 +2,7 @@
 
 #include <stddef.h>
 
+struct ImGuiContext;
 struct ImVec2;
 
 namespace imnodes
@@ -165,6 +166,10 @@ void EditorContextMoveToNode(const int node_id);
 // Initialize the node editor system.
 void Initialize();
 void Shutdown();
+
+// Call this function if you are compiling imnodes in to a dll, separate from ImGui. Calling this
+// function sets the GImGui global variable, which is not shared across dll boundaries.
+void SetImGuiContext(ImGuiContext* ctx);
 
 IO& GetIO();
 
