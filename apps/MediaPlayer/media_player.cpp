@@ -388,8 +388,14 @@ bool Application_Frame(void* handle)
                 ImGuiWindowFlags_NoSavedSettings |
                 ImGuiWindowFlags_NoInputs;
         ImVec2 window_size = io.DisplaySize;
-        float adj_x = is->video_width > is->video_height ? window_size.x : window_size.y * is->video_aspect_ratio;
-        float adj_y = is->video_width > is->video_height ? window_size.x / is->video_aspect_ratio : window_size.y;
+        bool bViewisLandscape = window_size.x >= window_size.y ? true : false;
+        bool bRenderisLandscape = is->video_width >= is->video_height ? true : false;
+        bool bNeedChangeScreenInfo = bViewisLandscape ^ bRenderisLandscape;
+        float adj_w = bNeedChangeScreenInfo ? window_size.y : window_size.x;
+        float adj_h = bNeedChangeScreenInfo ? window_size.x : window_size.y;
+        float adj_x = adj_h * is->video_aspect_ratio;
+        float adj_y = adj_h;
+        if (adj_x > adj_w) { adj_y *= adj_w / adj_x; adj_x = adj_w; }
         float offset_x = (window_size.x - adj_x) / 2.0;
         float offset_y = (window_size.y - adj_y) / 2.0;
         ImGui::SetNextWindowSize(ImVec2(adj_x, adj_y), ImGuiCond_Always);
@@ -398,7 +404,7 @@ bool Application_Frame(void* handle)
         {
             ImVec2 content_region = ImGui::GetContentRegionAvail();
             ImGui::Image((void *)(intptr_t)is->video_texture, content_region,
-                        ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f), ImVec4(1.0, 1.0, 1.0, 1.0));
+                        ImVec2(0.0f, 0.0f), ImVec2(is->video_clip, 1.0f), ImVec4(1.0, 1.0, 1.0, 1.0));
             ImGui::End();
         }
     }

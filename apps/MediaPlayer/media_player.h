@@ -299,6 +299,7 @@ typedef struct VideoState {
     int video_height = 0;
     int video_depth = 0;
     float video_aspect_ratio = 1.f;
+    float video_clip = 1.f;
     enum AVPixelFormat hw_pix_fmt = AV_PIX_FMT_NONE;
     enum AVHWDeviceType hw_type = AV_HWDEVICE_TYPE_NONE;
 

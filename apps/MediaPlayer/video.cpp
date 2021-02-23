@@ -129,6 +129,7 @@ static void video_image_display(VideoState *is)
     
     ImVulkan::ImageBuffer im_Y, im_U, im_V;
     int data_shift = is->video_depth > 8 ? 1 : 0;
+    is->video_clip = (float)is->video_width / (float)(tmp_frame->linesize[0] >> data_shift);
     int UV_shift_w = ISYUV420P(tmp_frame->format) || ISYUV422P(tmp_frame->format) ? 1 : 0;
     int UV_shift_h = ISYUV420P(tmp_frame->format) || ISNV12(tmp_frame->format) ? 1 : 0;
     im_Y.create_type(tmp_frame->linesize[0] >> data_shift, tmp_frame->height, 1, tmp_frame->data[0], is->video_depth > 8 ? ImVulkan::INT16 : ImVulkan::INT8);
@@ -151,16 +152,19 @@ static void video_image_display(VideoState *is)
     }
     if (!is->video_texture) is->video_texture = ImGui::ImCreateTexture(is->vkimage);
 #else
+    int data_shift = is->video_depth > 8 ? 1 : 0;
+    int out_w = tmp_frame->linesize[0] >> data_shift;
+    int out_h = tmp_frame->height;
+    is->video_clip = (float)is->video_width / (float)(tmp_frame->linesize[0] >> data_shift);
     if (is->video_pfmt != tmp_frame->format)
     {
-        // TODO::Dicky if linesize != width will cause video oblique stroke
         is->img_convert_ctx = sws_getCachedContext(
                                     is->img_convert_ctx,
-                                    tmp_frame->width,
-                                    tmp_frame->height,
+                                    out_w,
+                                    out_h,
                                     (AVPixelFormat)tmp_frame->format,
-                                    is->video_width,
-                                    is->video_height,
+                                    out_w,
+                                    out_h,
                                     AV_PIX_FMT_RGBA,
                                     SWS_BICUBIC,
                                     NULL, NULL, NULL);
@@ -174,8 +178,8 @@ static void video_image_display(VideoState *is)
     AVFrame rgb_picture;
     memset(&rgb_picture, 0, sizeof(rgb_picture));
     rgb_picture.format = AV_PIX_FMT_RGBA;
-    rgb_picture.width = is->video_width;
-    rgb_picture.height = is->video_height;
+    rgb_picture.width = out_w;
+    rgb_picture.height = out_h;
     ret = av_frame_get_buffer(&rgb_picture, 64);
     if (ret == 0)
     {
@@ -183,11 +187,11 @@ static void video_image_display(VideoState *is)
             is->img_convert_ctx,
             tmp_frame->data,
             tmp_frame->linesize,
-            0, is->video_height,
+            0, out_h,
             rgb_picture.data,
             rgb_picture.linesize
         );
-        ImGui::ImGenerateOrUpdateTexture(is->video_texture, is->video_width, is->video_height, 4, rgb_picture.data[0]);
+        ImGui::ImGenerateOrUpdateTexture(is->video_texture, out_w, out_h, 4, rgb_picture.data[0]);
         av_frame_unref(&rgb_picture);
     }
 #endif
@@ -341,8 +345,8 @@ display:
                         aqsize / 1024,
                         vqsize / 1024,
                         sqsize,
-                        is->video_st ? is->viddec.avctx->pts_correction_num_faulty_dts : 0,
-                        is->video_st ? is->viddec.avctx->pts_correction_num_faulty_pts : 0);
+                        (is->video_st && is->viddec.avctx) ? is->viddec.avctx->pts_correction_num_faulty_dts : 0,
+                        (is->video_st && is->viddec.avctx) ? is->viddec.avctx->pts_correction_num_faulty_pts : 0);
             is->stats_string = std::string(buf.str);
             av_bprint_finalize(&buf, NULL);
 
