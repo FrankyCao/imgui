@@ -38,13 +38,16 @@ static int stream_has_enough_packets(AVStream *st, int stream_id, PacketQueue *q
 
 static enum AVPixelFormat get_hw_format(AVCodecContext *ctx, const enum AVPixelFormat *pix_fmts)
 {
+    VideoState *is = (VideoState *)ctx->opaque;
+    if (!is)
+        return AV_PIX_FMT_NONE;
     const enum AVPixelFormat *p;
     for (p = pix_fmts; *p != -1; p++) {
-        if (*p == ctx->pix_fmt)
+        if (*p == is->hw_pix_fmt)
             return *p;
     }
     av_log(NULL, AV_LOG_WARNING, "Failed to get HW surface format.");
-    return AV_PIX_FMT_NONE;
+    return ctx->pix_fmt;//AV_PIX_FMT_NONE;
 }
 
 static int hw_decoder_init(AVCodecContext *ctx, const enum AVHWDeviceType type)
@@ -82,6 +85,7 @@ static int stream_component_open(VideoState *is, int stream_index)
     avctx = avcodec_alloc_context3(NULL);
     if (!avctx)
         return AVERROR(ENOMEM);
+    avctx->opaque = is;
 
     ret = avcodec_parameters_to_context(avctx, ic->streams[stream_index]->codecpar);
     if (ret < 0)
@@ -143,7 +147,6 @@ static int stream_component_open(VideoState *is, int stream_index)
     // init hw codec
     if (avctx->codec_type == AVMEDIA_TYPE_VIDEO && is->hw_pix_fmt != AV_PIX_FMT_NONE)
     {
-        avctx->pix_fmt = is->hw_pix_fmt;
         avctx->get_format = get_hw_format;
         if ((ret = hw_decoder_init(avctx, is->hw_type)) < 0)
             return ret;
@@ -479,16 +482,21 @@ int read_thread(void *arg)
             int64_t seek_max    = is->seek_rel < 0 ? seek_target - is->seek_rel - 2: INT64_MAX;
 
             ret = avformat_seek_file(is->ic, -1, seek_min, seek_target, seek_max, is->seek_flags);
-            //ret = av_seek_frame(is->ic, -1, seek_target, is->seek_flags);
             if (ret < 0) {
                 av_log(NULL, AV_LOG_ERROR, "%s: error while seeking\n", is->ic->url);
             } else {
                 if (is->audio_stream >= 0)
+                {
                     packet_queue_flush(&is->audioq);
+                }
                 if (is->subtitle_stream >= 0)
+                {
                     packet_queue_flush(&is->subtitleq);
+                }
                 if (is->video_stream >= 0)
+                {
                     packet_queue_flush(&is->videoq);
+                }
                 if (is->seek_flags & AVSEEK_FLAG_BYTE) {
                     set_clock(&is->extclk, NAN, 0);
                 } else {

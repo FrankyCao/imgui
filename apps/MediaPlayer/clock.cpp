@@ -2,8 +2,8 @@
 
 double get_clock(Clock *c)
 {
-    if (*c->queue_serial != c->serial)
-        return NAN;
+    //if (*c->queue_serial != c->serial)
+    //    return NAN;
     if (c->paused) {
         return c->pts;
     } else {

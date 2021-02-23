@@ -109,6 +109,10 @@ static void video_image_display(VideoState *is)
     }
 #ifdef IMGUI_VULKAN_SHADER
     const AVPixFmtDescriptor *desc = av_pix_fmt_desc_get((AVPixelFormat)tmp_frame->format);
+    if (is->video_depth == 0)
+    {
+        is->video_depth = desc->comp[0].depth;
+    }
     int video_shift = desc->comp[0].depth + desc->comp[0].shift;
     ImVulkan::ColorSpace color_space =  is->video_color_space == AVCOL_SPC_BT470BG ||
                                         is->video_color_space == AVCOL_SPC_SMPTE170M ||

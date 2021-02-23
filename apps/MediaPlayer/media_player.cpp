@@ -21,9 +21,8 @@ static ImGuiFileDialog filedialog;
 
 int audio_disable = 0;
 int video_disable = 0;
-int subtitle_disable = 1;
+int subtitle_disable = 0;
 int display_disable = 0;
-double rdftspeed = 0.02;
 int loop = 0;
 int framedrop = 1;
 int decoder_reorder_pts = -1;
@@ -74,7 +73,7 @@ void Application_Initialize(void** handle)
     prepare_file_dialog_demo_window(&filedialog, bookmark_path.c_str());
     // init ffmpeg
     av_log_set_level(AV_LOG_QUIET);
-    //av_log_set_level(AV_LOG_DEBUG);
+    //av_log_set_level(AV_LOG_WARNING);
     avformat_network_init();
     init_opts();
 }
@@ -268,9 +267,12 @@ bool Application_Frame(void* handle)
             if (ImGui::SliderFloat("time", &time, 0, is->total_time, "%.2f", flags))
             {
                 float incr = time - oldtime;
-                if (is->ic->start_time != AV_NOPTS_VALUE && time < is->ic->start_time / (double)AV_TIME_BASE)
-                            time = is->ic->start_time / (double)AV_TIME_BASE;
-                stream_seek(is, (int64_t)(time * AV_TIME_BASE), (int64_t)(incr * AV_TIME_BASE), 0);
+                if (fabs(incr) > 1.0)
+                {
+                    if (is->ic->start_time != AV_NOPTS_VALUE && time < is->ic->start_time / (double)AV_TIME_BASE)
+                                time = is->ic->start_time / (double)AV_TIME_BASE;
+                    stream_seek(is, (int64_t)(time * AV_TIME_BASE), (int64_t)(incr * AV_TIME_BASE), 0);
+                }
             }
             ImGui::SameLine();
             int hours = time / 60 / 60; time -= hours * 60 * 60;

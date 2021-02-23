@@ -16,5 +16,5 @@ void frame_queue_push(FrameQueue *f);
 void frame_queue_next(FrameQueue *f);
 int frame_queue_nb_remaining(FrameQueue *f);
 int64_t frame_queue_last_pos(FrameQueue *f);
-
+int frame_queue_flash(FrameQueue *f);
 #endif

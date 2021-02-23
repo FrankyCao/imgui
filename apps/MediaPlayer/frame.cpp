@@ -133,3 +133,12 @@ int64_t frame_queue_last_pos(FrameQueue *f)
     else
         return -1;
 }
+
+int frame_queue_flash(FrameQueue *f)
+{
+    while (frame_queue_nb_remaining(f) > 0) 
+    {
+        frame_queue_next(f);
+    }
+    return 0;
+}
