@@ -51,6 +51,7 @@ AVDictionary *format_opts, *codec_opts, *resample_opts;
 SDL_AudioDeviceID audio_dev;
 
 static VideoState * is = nullptr;
+static bool show_info = false;
 
 static inline int compute_mod(int a, int b)
 {
@@ -101,7 +102,9 @@ bool Application_Frame(void* handle)
             ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
             if (ImGui::BeginPopupModal("关于", NULL, ImGuiWindowFlags_AlwaysAutoResize))
             {
-                ImGui::Text("ImGUI Video\n\n");
+                ImGui::Text("ImGUI Media Player\n\n");
+                ImGui::Separator();
+                ImGui::Text("Dicky 2021\n\n");
                 ImGui::Separator();
                 int i = ImGui::GetCurrentWindow()->ContentSize.x;
                 ImGui::Indent((i - 40.0f) * 0.5f);
@@ -242,6 +245,17 @@ bool Application_Frame(void* handle)
         {
             if (is) toggle_pause(is);
         }
+        ImGui::SameLine();
+        if (ImGui::Button(!is ? ICON_FA5_VOLUME_UP : is->muted ? ICON_FA5_VOLUME_MUTE : ICON_FA5_VOLUME_UP, size))
+        {
+            if (is) toggle_mute(is);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(ICON_FK_TAG , size))
+        {
+            if (is) show_info = !show_info;
+        }
+
         ImGui::Unindent((i - 32.0f) * 0.5f);
         ImGui::Separator();
         // add audio meter bar
@@ -270,7 +284,7 @@ bool Application_Frame(void* handle)
                 if (fabs(incr) > 1.0)
                 {
                     if (is->ic->start_time != AV_NOPTS_VALUE && time < is->ic->start_time / (double)AV_TIME_BASE)
-                                time = is->ic->start_time / (double)AV_TIME_BASE;
+                        time = is->ic->start_time / (double)AV_TIME_BASE;
                     stream_seek(is, (int64_t)(time * AV_TIME_BASE), (int64_t)(incr * AV_TIME_BASE), 0);
                 }
             }
@@ -406,7 +420,7 @@ bool Application_Frame(void* handle)
     }
 
     // Show Media Info
-    if (is && is->ic)
+    if (is && is->ic && show_info)
     {
         const float DISTANCE = 40.0f;
         static int corner = 0;
@@ -421,64 +435,58 @@ bool Application_Frame(void* handle)
         ImGui::SetNextWindowBgAlpha(0.35f); // Transparent background
         if (ImGui::Begin("Media Info", nullptr, window_flags))
         {
-            ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-            if (ImGui::TreeNode("Media Info"))
+            ImGui::Text("  Media name: %s", is->ic->url);
+            ImGui::Text("Media format: %s", is->ic->iformat->long_name);
+            float ftime = is->total_time * 1000.0f;
+            int hours = ftime / 1000 / 60 / 60; ftime -= hours * 60 * 60 * 1000;
+            int mins = ftime / 1000 / 60; ftime -= mins * 60 * 1000;
+            int secs = ftime / 1000; ftime -= secs * 1000;
+            int ms = ftime;
+            ImGui::Text("  Media time: %02d:%02d:%02d.%03d", hours, mins, secs, ms);
+            ImGui::Separator();
+
+            if (is->video_st)
             {
-                ImGui::Separator();
-                ImGui::Text("  Media name: %s", is->ic->url);
-                ImGui::Text("Media format: %s", is->ic->iformat->long_name);
-                float ftime = is->total_time * 1000.0f;
-                int hours = ftime / 1000 / 60 / 60; ftime -= hours * 60 * 60 * 1000;
-                int mins = ftime / 1000 / 60; ftime -= mins * 60 * 1000;
-                int secs = ftime / 1000; ftime -= secs * 1000;
-                int ms = ftime;
-                ImGui::Text("  Media time: %02d:%02d:%02d.%03d", hours, mins, secs, ms);
-                ImGui::Separator();
+                ImGui::Text("Video Stream");
+                ImGui::Text("     Codec: %s", is->video_codec_name.c_str());
+                ImGui::Text("    Format: %s", av_get_pix_fmt_name(is->video_pfmt));
+                ImGui::Text("     Depth: %d", is->video_depth);
+                ImGui::Text("     Width: %d", is->video_width);
+                ImGui::Text("    Height: %d", is->video_height);
+                ImGui::Text("       FPS: %.2f", is->video_fps);
+                ImGui::Text("    Frames: %d", is->video_frames);
+                if (is->video_color_space != AVCOL_SPC_UNSPECIFIED)
+                {
+                    ImGui::Text("ColorSpace: %s", av_color_space_name(is->video_color_space));
+                    ImGui::Text("ColorRange: %s", av_color_range_name(is->video_color_range));
+                }
+                else
+                    ImGui::Text("ColorSpace: %s", av_get_colorspace_name(is->video_color_space));
 
-                if (is->video_st)
-                {
-                    ImGui::Text("Video Stream");
-                    ImGui::Text("     Codec: %s", is->video_codec_name.c_str());
-                    ImGui::Text("    Format: %s", av_get_pix_fmt_name(is->video_pfmt));
-                    ImGui::Text("     Depth: %d", is->video_depth);
-                    ImGui::Text("     Width: %d", is->video_width);
-                    ImGui::Text("    Height: %d", is->video_height);
-                    ImGui::Text("       FPS: %.2f", is->video_fps);
-                    ImGui::Text("    Frames: %d", is->video_frames);
-                    if (is->video_color_space != AVCOL_SPC_UNSPECIFIED)
-                    {
-                        ImGui::Text("ColorSpace: %s", av_color_space_name(is->video_color_space));
-                        ImGui::Text("ColorRange: %s", av_color_range_name(is->video_color_range));
-                    }
-                    else
-                        ImGui::Text("ColorSpace: %s", av_get_colorspace_name(is->video_color_space));
-
-                    ImGui::Separator();
-                }
-                if (is->audio_st)
-                {
-                    ImGui::Text("Audio Stream");
-                    ImGui::Text("     Codec: %s", is->audio_codec_name.c_str());
-                    ImGui::Text("    Format: %s", av_get_sample_fmt_name(is->audio_sfmt));
-                    ImGui::Text("     Depth: %d", is->audio_depth);
-                    ImGui::Text("      Rate: %d", is->audio_sample_rate);
-                    ImGui::Text("  Channels: %d", is->audio_channels);
-                }
-                if (is->subtitle_st)
-                {
-                    ImGui::Text("Subtitle Stream");
-                    ImGui::Text("     Codec: %s", is->subtitle_codec_name.c_str());
-                }
-                if (ImGui::BeginPopupContextWindow())
-                {
-                    if (ImGui::MenuItem("Custom",       NULL, corner == -1)) corner = -1;
-                    if (ImGui::MenuItem("Top-left",     NULL, corner == 0)) corner = 0;
-                    if (ImGui::MenuItem("Top-right",    NULL, corner == 1)) corner = 1;
-                    if (ImGui::MenuItem("Bottom-left",  NULL, corner == 2)) corner = 2;
-                    if (ImGui::MenuItem("Bottom-right", NULL, corner == 3)) corner = 3;
-                    ImGui::EndPopup();
-                }
-                ImGui::TreePop();
+                ImGui::Separator();
+            }
+            if (is->audio_st)
+            {
+                ImGui::Text("Audio Stream");
+                ImGui::Text("     Codec: %s", is->audio_codec_name.c_str());
+                ImGui::Text("    Format: %s", av_get_sample_fmt_name(is->audio_sfmt));
+                ImGui::Text("     Depth: %d", is->audio_depth);
+                ImGui::Text("      Rate: %d", is->audio_sample_rate);
+                ImGui::Text("  Channels: %d", is->audio_channels);
+            }
+            if (is->subtitle_st)
+            {
+                ImGui::Text("Subtitle Stream");
+                ImGui::Text("     Codec: %s", is->subtitle_codec_name.c_str());
+            }
+            if (ImGui::BeginPopupContextWindow())
+            {
+                if (ImGui::MenuItem("Custom",       NULL, corner == -1)) corner = -1;
+                if (ImGui::MenuItem("Top-left",     NULL, corner == 0)) corner = 0;
+                if (ImGui::MenuItem("Top-right",    NULL, corner == 1)) corner = 1;
+                if (ImGui::MenuItem("Bottom-left",  NULL, corner == 2)) corner = 2;
+                if (ImGui::MenuItem("Bottom-right", NULL, corner == 3)) corner = 3;
+                ImGui::EndPopup();
             }
         }
         ImGui::End();
