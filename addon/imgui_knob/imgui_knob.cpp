@@ -289,25 +289,46 @@ bool ImGui::SliderBehavior(const ImRect& bb, ImGuiID id, ImGuiDataType data_type
     return false;
 }
 
-void ImGui::UvMeter(char const *label, ImVec2 const &size, int *value, int v_min, int v_max, int steps)
+void ImGui::UvMeter(char const *label, ImVec2 const &size, int *value, int v_min, int v_max, int steps, int* stack, int* count)
 {
     float fvalue = (float)*value;
-    UvMeter(label, size, &fvalue, (float)v_min, (float)v_max, steps);
+    float *fstack = nullptr;
+    float _f = 0.f;
+    if (stack) { fstack = &_f; *fstack = (float)*stack; }
+    UvMeter(label, size, &fvalue, (float)v_min, (float)v_max, steps, fstack, count);
     *value = (int)fvalue;
+    if (stack) *stack = (int)*fstack;
 }
 
-void ImGui::UvMeter(char const *label, ImVec2 const &size, float *value, float v_min, float v_max, int steps)
+void ImGui::UvMeter(char const *label, ImVec2 const &size, float *value, float v_min, float v_max, int steps, float* stack, int* count)
 {
     ImDrawList *draw_list = ImGui::GetWindowDrawList();
 
     ImVec2 pos = ImGui::GetCursorScreenPos();
 
     ImGui::InvisibleButton(label, size);
+    float steps_size = (v_max - v_min) / (float)steps;
+    if (stack && count)
+    {
+        if (*value > *stack) 
+        {
+            *stack = *value;
+            *count = 0;
+        }
+        else
+        {
+            *(count) += 1;
+            if (*count > 10)
+            {
+                *stack -= steps_size / 2;
+                if (*stack < v_min) *stack = v_min;
+            }
+        }
+    }
 
     if (size.y > size.x)
     {
         float stepHeight = size.y / (v_max - v_min + 1);
-        float steps_size = (v_max - v_min) / (float)steps;
         auto y = pos.y + size.y;
         auto hue = 0.4f;
         auto sat = 0.6f;
@@ -320,11 +341,14 @@ void ImGui::UvMeter(char const *label, ImVec2 const &size, float *value, float v
             draw_list->AddRectFilled(ImVec2(pos.x, y), ImVec2(pos.x + size.x, y - (stepHeight * steps_size - 1)), static_cast<ImU32>(ImColor::HSV(hue, sat, lum)));
             y = pos.y + size.y - (i * stepHeight);
         }
+        if (stack && count)
+        {
+            draw_list->AddLine(ImVec2(pos.x, pos.y + size.y - (*stack * stepHeight)), ImVec2(pos.x + size.x, pos.y + size.y - (*stack * stepHeight)), IM_COL32_WHITE, 2.f);
+        }
     }
     else
     {
         float stepWidth = size.x / (v_max - v_min + 1);
-        float steps_size = (v_max - v_min) / (float)steps;
         auto x = pos.x;
         auto hue = 0.4f;
         auto sat = 0.6f;
@@ -336,6 +360,10 @@ void ImGui::UvMeter(char const *label, ImVec2 const &size, float *value, float v
             lum = (*value < i ? 0.0f : 0.6f);
             draw_list->AddRectFilled(ImVec2(x, pos.y), ImVec2(x + (stepWidth * steps_size - 1), pos.y + size.y), static_cast<ImU32>(ImColor::HSV(hue, sat, lum)));
             x = pos.x + (i * stepWidth);
+        }
+        if (stack && count)
+        {
+            draw_list->AddLine(ImVec2(pos.x + (*stack * stepWidth), pos.y), ImVec2(pos.x + (*stack * stepWidth), pos.y + size.y), IM_COL32_WHITE, 2.f);
         }
     }
 }

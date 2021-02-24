@@ -495,8 +495,10 @@ void ShowAddonsDemoWindowWidgets()
         int idb = val * 80;
         ImGui::Fader("##mastervol", ImVec2(20, 80), &idb, 0, 80, "%d", 1.0f); ImGui::ShowTooltipOnHover("Slide.");
         ImGui::SameLine();
+        static int stack = 0;
+        static int count = 0;
         ImGui::UvMeter("##vuvr", ImVec2(10, 80), &idb, 0, 80, 20); ImGui::ShowTooltipOnHover("Vertical Uv meters.");
-        ImGui::UvMeter("##huvr", ImVec2(80, 10), &idb, 0, 80, 20); ImGui::ShowTooltipOnHover("Horizon Uv meters.");
+        ImGui::UvMeter("##huvr", ImVec2(80, 10), &idb, 0, 80, 20, &stack, &count); ImGui::ShowTooltipOnHover("Horizon Uv meters width stack effect.");
 
         ImGui::TreePop();
     }

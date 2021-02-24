@@ -189,16 +189,20 @@ bool Application_Frame(void* handle)
         ImGui::Unindent((i - 32.0f) * 0.5f);
         ImGui::Separator();
         // add audio meter bar
+        static int left_stack = 0;
+        static int left_count = 0;
+        static int right_stack = 0;
+        static int right_count = 0;
         if (is)
         {
-            ImGui::UvMeter("##lhuvr", ImVec2(panel_size.x, 10), &is->audio_left_channel_level, 0, 90, 200);
-            ImGui::UvMeter("##rhuvr", ImVec2(panel_size.x, 10), &is->audio_right_channel_level, 0, 90, 200);
+            ImGui::UvMeter("##lhuvr", ImVec2(panel_size.x, 10), &is->audio_left_channel_level, 0, 96, 200, &left_stack, &left_count);
+            ImGui::UvMeter("##rhuvr", ImVec2(panel_size.x, 10), &is->audio_right_channel_level, 0, 96, 200, &right_stack, &right_count);
         }
         else
         {
             int zero_channel_level = 0;
-            ImGui::UvMeter("##lhuvr", ImVec2(panel_size.x, 10), &zero_channel_level, 0, 90, 200); // ImGui::ShowTooltipOnHover("Left Uv meters.");
-            ImGui::UvMeter("##rhuvr", ImVec2(panel_size.x, 10), &zero_channel_level, 0, 90, 200); // ImGui::ShowTooltipOnHover("Right Uv meters.");
+            ImGui::UvMeter("##lhuvr", ImVec2(panel_size.x, 10), &zero_channel_level, 0, 96, 200);
+            ImGui::UvMeter("##rhuvr", ImVec2(panel_size.x, 10), &zero_channel_level, 0, 96, 200);
         }
         ImGui::Separator();
         // add slider bar
