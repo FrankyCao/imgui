@@ -308,7 +308,6 @@ display:
             video_image_display(is);
     }
     is->force_refresh = 0;
-
     if (show_status) {
         AVBPrint buf;
         static int64_t last_time;
@@ -450,16 +449,11 @@ static int video_playing_thread(void *arg)
 {
     VideoState *is = (VideoState *)arg;
     double remaining_time = 0.0;
-
     while (1)
     {
         if (is->abort_request)
         {
             break;
-        }
-        if (is->seek_req) 
-        {
-            continue;
         }
         if (remaining_time > 0.0)
         {
