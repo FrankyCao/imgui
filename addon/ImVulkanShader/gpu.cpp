@@ -701,7 +701,7 @@ static uint32_t find_device_compute_queue(const std::vector<VkQueueFamilyPropert
     }
 
 #if DEBUG_INFO
-    fprintf(stderr, "no compute queue");
+    fprintf(stderr, "no compute queue\n");
 #endif
     return -1;
 }
@@ -744,7 +744,7 @@ static uint32_t find_device_graphics_queue(const std::vector<VkQueueFamilyProper
     }
 
 #if DEBUG_INFO
-    fprintf(stderr, "no graphics queue");
+    fprintf(stderr, "no graphics queue\n");
 #endif
     return -1;
 }
@@ -790,7 +790,7 @@ static uint32_t find_device_transfer_queue(const std::vector<VkQueueFamilyProper
     }
 
 #if DEBUG_INFO
-    fprintf(stderr, "no transfer queue");
+    fprintf(stderr, "no transfer queue\n");
 #endif
     return -1;
 }
@@ -816,7 +816,7 @@ static int find_default_vulkan_device_index()
         return 0;
 
 #if DEBUG_INFO
-    fprintf(stderr, "no vulkan device");
+    fprintf(stderr, "no vulkan device\n");
 #endif
     return -1;
 }
@@ -855,7 +855,7 @@ int create_gpu_instance()
     {
         const VkLayerProperties& lp = instanceLayerProperties[i];
 #if DEBUG_INFO
-        fprintf(stderr, "instance layer %s = %u", lp.layerName, lp.implementationVersion);
+        fprintf(stderr, "instance layer %s = %u\n", lp.layerName, lp.implementationVersion);
 #endif
         if (strcmp(lp.layerName, "VK_LAYER_LUNARG_standard_validation") == 0)
         {
@@ -901,7 +901,7 @@ int create_gpu_instance()
     {
         const VkExtensionProperties& exp = instanceExtensionProperties[j];
 #if DEBUG_INFO
-        fprintf(stderr, "instance extension %s = %u", exp.extensionName, exp.specVersion);
+        fprintf(stderr, "instance extension %s = %u\n", exp.extensionName, exp.specVersion);
 #endif
 
         if (strcmp(exp.extensionName, "VK_KHR_external_memory_capabilities") == 0)
@@ -951,7 +951,7 @@ int create_gpu_instance()
     }
 
 #if DEBUG_INFO
-    fprintf(stderr, "instance apiVersion = %u.%u.%u", VK_VERSION_MAJOR(instance_api_version), VK_VERSION_MINOR(instance_api_version), VK_VERSION_PATCH(instance_api_version));
+    fprintf(stderr, "instance apiVersion = %u.%u.%u\n", VK_VERSION_MAJOR(instance_api_version), VK_VERSION_MINOR(instance_api_version), VK_VERSION_PATCH(instance_api_version));
 #endif
 
     VkApplicationInfo applicationInfo;
@@ -1037,15 +1037,15 @@ int create_gpu_instance()
         vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProperties);
 
 #if DEBUG_INFO
-        fprintf(stderr, "[%u] apiVersion = %u.%u.%u", i, VK_VERSION_MAJOR(physicalDeviceProperties.apiVersion),
+        fprintf(stderr, "[%u] apiVersion = %u.%u.%u\n", i, VK_VERSION_MAJOR(physicalDeviceProperties.apiVersion),
                 VK_VERSION_MINOR(physicalDeviceProperties.apiVersion), VK_VERSION_PATCH(physicalDeviceProperties.apiVersion));
-        fprintf(stderr, "[%u] driverVersion = %u.%u.%u", i, VK_VERSION_MAJOR(physicalDeviceProperties.driverVersion),
+        fprintf(stderr, "[%u] driverVersion = %u.%u.%u\n", i, VK_VERSION_MAJOR(physicalDeviceProperties.driverVersion),
                 VK_VERSION_MINOR(physicalDeviceProperties.driverVersion), VK_VERSION_PATCH(physicalDeviceProperties.driverVersion));
-        fprintf(stderr, "[%u] vendorID = %x", i, physicalDeviceProperties.vendorID);
-        fprintf(stderr, "[%u] deviceID = %x", i, physicalDeviceProperties.deviceID);
-        fprintf(stderr, "[%u] deviceType = %x", i, physicalDeviceProperties.deviceType);
-        fprintf(stderr, "[%u] deviceName = %s", i, physicalDeviceProperties.deviceName);
-        fprintf(stderr, "[%u] pipelineCacheUUID = %lu", i, (unsigned long)physicalDeviceProperties.pipelineCacheUUID);
+        fprintf(stderr, "[%u] vendorID = %x\n", i, physicalDeviceProperties.vendorID);
+        fprintf(stderr, "[%u] deviceID = %x\n", i, physicalDeviceProperties.deviceID);
+        fprintf(stderr, "[%u] deviceType = %x\n", i, physicalDeviceProperties.deviceType);
+        fprintf(stderr, "[%u] deviceName = %s\n", i, physicalDeviceProperties.deviceName);
+        fprintf(stderr, "[%u] pipelineCacheUUID = %lu\n", i, (unsigned long)physicalDeviceProperties.pipelineCacheUUID);
 #endif
 
         // mali
@@ -1172,12 +1172,12 @@ int create_gpu_instance()
         gpu_info.timestamp_period = physicalDeviceProperties.limits.timestampPeriod;
 
 #if DEBUG_INFO
-        fprintf(stderr, "[%u] max_shared_memory_size = %u", i, gpu_info.max_shared_memory_size);
-        fprintf(stderr, "[%u] max_workgroup_count = %u %u %u", i, gpu_info.max_workgroup_count_x, gpu_info.max_workgroup_count_y, gpu_info.max_workgroup_count_z);
-        fprintf(stderr, "[%u] max_workgroup_invocations = %u", i, gpu_info.max_workgroup_invocations);
-        fprintf(stderr, "[%u] max_workgroup_size = %u %u %u", i, gpu_info.max_workgroup_size_x, gpu_info.max_workgroup_size_y, gpu_info.max_workgroup_size_z);
-        fprintf(stderr, "[%u] memory_map_alignment = %lu", i, gpu_info.memory_map_alignment);
-        fprintf(stderr, "[%u] buffer_offset_alignment = %lu", i, gpu_info.buffer_offset_alignment);
+        fprintf(stderr, "[%u] max_shared_memory_size = %u\n", i, gpu_info.max_shared_memory_size);
+        fprintf(stderr, "[%u] max_workgroup_count = %u %u %u\n", i, gpu_info.max_workgroup_count_x, gpu_info.max_workgroup_count_y, gpu_info.max_workgroup_count_z);
+        fprintf(stderr, "[%u] max_workgroup_invocations = %u\n", i, gpu_info.max_workgroup_invocations);
+        fprintf(stderr, "[%u] max_workgroup_size = %u %u %u\n", i, gpu_info.max_workgroup_size_x, gpu_info.max_workgroup_size_y, gpu_info.max_workgroup_size_z);
+        fprintf(stderr, "[%u] memory_map_alignment = %lu\n", i, gpu_info.memory_map_alignment);
+        fprintf(stderr, "[%u] buffer_offset_alignment = %lu\n", i, gpu_info.buffer_offset_alignment);
 #endif
 
         // find compute queue
@@ -1299,7 +1299,7 @@ int create_gpu_instance()
         {
             const VkExtensionProperties& exp = deviceExtensionProperties[j];
 #if DEBUG_INFO
-            fprintf(stderr, "device extension %s = %u", exp.extensionName, exp.specVersion);
+            fprintf(stderr, "device extension %s = %u\n", exp.extensionName, exp.specVersion);
 #endif
             if (strcmp(exp.extensionName, "VK_KHR_8bit_storage") == 0)
                 gpu_info.support_VK_KHR_8bit_storage = exp.specVersion;
@@ -1448,19 +1448,19 @@ int create_gpu_instance()
         }
 
 #if DEBUG_INFO
-        fprintf(stderr, "[%u %s]  queueC=%u[%u]  queueG=%u[%u]  queueT=%u[%u]", i, physicalDeviceProperties.deviceName,
+        fprintf(stderr, "[%u %s]  queueC=%u[%u]  queueG=%u[%u]  queueT=%u[%u]\n", i, physicalDeviceProperties.deviceName,
                 gpu_info.compute_queue_family_index, gpu_info.compute_queue_count,
                 gpu_info.graphics_queue_family_index, gpu_info.graphics_queue_count,
                 gpu_info.transfer_queue_family_index, gpu_info.transfer_queue_count);
 
-        fprintf(stderr, "[%u %s]  bugsbn1=%d  bugbilz=%d  bugcopc=%d  bugihfa=%d bugsi=%d", i, physicalDeviceProperties.deviceName,
+        fprintf(stderr, "[%u %s]  bugsbn1=%d  bugbilz=%d  bugcopc=%d  bugihfa=%d bugsi=%d\n", i, physicalDeviceProperties.deviceName,
                   gpu_info.bug_storage_buffer_no_l1, gpu_info.bug_buffer_image_load_zero, gpu_info.bug_corrupted_online_pipeline_cache, gpu_info.bug_implicit_fp16_arithmetic, gpu_info.bug_storage_image);
 
-        fprintf(stderr, "[%u %s]  fp16-p/s/a=%d/%d/%d  int8-p/s/a=%d/%d/%d", i, physicalDeviceProperties.deviceName,
+        fprintf(stderr, "[%u %s]  fp16-p/s/a=%d/%d/%d  int8-p/s/a=%d/%d/%d\n", i, physicalDeviceProperties.deviceName,
                 gpu_info.support_fp16_packed, gpu_info.support_fp16_storage, gpu_info.support_fp16_arithmetic,
                 gpu_info.support_int8_packed, gpu_info.support_int8_storage, gpu_info.support_int8_arithmetic);
 
-        fprintf(stderr, "[%u %s]  subgroup=%u  basic=%d  vote=%d  ballot=%d  shuffle=%d", i, physicalDeviceProperties.deviceName,
+        fprintf(stderr, "[%u %s]  subgroup=%u  basic=%d  vote=%d  ballot=%d  shuffle=%d\n", i, physicalDeviceProperties.deviceName,
                 gpu_info.subgroup_size, gpu_info.support_subgroup_basic, gpu_info.support_subgroup_vote,
                 gpu_info.support_subgroup_ballot, gpu_info.support_subgroup_shuffle);
 #endif

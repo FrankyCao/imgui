@@ -48,7 +48,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debug_report(VkDebugReportFlagsEXT flags, 
 }
 #endif // IMGUI_VULKAN_DEBUG_REPORT
 
-static void SetupVulkan(const char** extensions, uint32_t extensions_count)
+static void SetupVulkan(const char** extensions, uint32_t extensions_count, int gpu = 0)
 {
     VkResult err;
 
@@ -110,7 +110,8 @@ static void SetupVulkan(const char** extensions, uint32_t extensions_count)
         // If a number >1 of GPUs got reported, you should find the best fit GPU for your purpose
         // e.g. VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU if available, or with the greatest memory available, etc.
         // for sake of simplicity we'll just take the first one, assuming it has a graphics queue family.
-        g_PhysicalDevice = gpus[0];
+        if (gpu >= gpu_count) gpu = gpu_count - 1;
+        g_PhysicalDevice = gpus[gpu];
         free(gpus);
     }
 
