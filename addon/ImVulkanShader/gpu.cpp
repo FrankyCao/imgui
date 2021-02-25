@@ -16,7 +16,7 @@
 // upstream fix https://github.com/KhronosGroup/Vulkan-Loader/pull/539
 #define ENABLE_VALIDATION_LAYER 0
 
-#define DEBUG_INFO  0
+#define DEBUG_INFO  1
 
 namespace ImVulkan 
 {
@@ -1173,9 +1173,9 @@ int create_gpu_instance()
 
 #if DEBUG_INFO
         fprintf(stderr, "[%u] max_shared_memory_size = %u", i, gpu_info.max_shared_memory_size);
-        fprintf(stderr, "[%u] max_workgroup_count = %u %u %u", i, gpu_info.max_workgroup_count[0], gpu_info.max_workgroup_count[1], gpu_info.max_workgroup_count[2]);
+        fprintf(stderr, "[%u] max_workgroup_count = %u %u %u", i, gpu_info.max_workgroup_count_x, gpu_info.max_workgroup_count_y, gpu_info.max_workgroup_count_z);
         fprintf(stderr, "[%u] max_workgroup_invocations = %u", i, gpu_info.max_workgroup_invocations);
-        fprintf(stderr, "[%u] max_workgroup_size = %u %u %u", i, gpu_info.max_workgroup_size[0], gpu_info.max_workgroup_size[1], gpu_info.max_workgroup_size[2]);
+        fprintf(stderr, "[%u] max_workgroup_size = %u %u %u", i, gpu_info.max_workgroup_size_x, gpu_info.max_workgroup_size_y, gpu_info.max_workgroup_size_z);
         fprintf(stderr, "[%u] memory_map_alignment = %lu", i, gpu_info.memory_map_alignment);
         fprintf(stderr, "[%u] buffer_offset_alignment = %lu", i, gpu_info.buffer_offset_alignment);
 #endif
