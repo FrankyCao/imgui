@@ -423,6 +423,10 @@ VideoState *stream_open(const char *filename, AVInputFormat *iformat)
     is->audio_volume = startup_volume;
     is->muted = 0;
     is->av_sync_type = av_sync_type;
+#ifdef IMGUI_VULKAN_SHADER
+    is->yuv2rgb = new ImVulkan::ColorConvert_vulkan(0);
+    is->resize = new ImVulkan::Resize_vulkan(0);
+#endif
     is->read_tid     = SDL_CreateThread(read_thread, "read_thread", is);
     if (!is->read_tid) {
         av_log(NULL, AV_LOG_FATAL, "SDL_CreateThread(): %s\n", SDL_GetError());
@@ -437,10 +441,6 @@ fail:
         av_log(NULL, AV_LOG_FATAL, "(Did you set the DISPLAY variable?)\n");
         return NULL;
     }
-#endif
-#ifdef IMGUI_VULKAN_SHADER
-    is->yuv2rgb = new ImVulkan::ColorConvert_vulkan(0);
-    is->resize = new ImVulkan::Resize_vulkan(0);
 #endif
     return is;
 }
