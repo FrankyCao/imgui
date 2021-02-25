@@ -11,6 +11,7 @@
 #include "Splitter.h"
 #include <string>
 #include <vector>
+#include <algorithm>
 namespace ImGui
 {
 static int gizmoCount = 1;

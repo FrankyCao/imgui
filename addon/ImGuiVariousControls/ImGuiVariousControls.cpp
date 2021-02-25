@@ -3,7 +3,6 @@
 #undef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
-#include "ImGuiHelper.h"
 //-----------------------------------------------------------------------------------------------------------------
 
 #include "ImGuiVariousControls.h"

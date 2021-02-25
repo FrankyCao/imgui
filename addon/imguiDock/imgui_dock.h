@@ -76,7 +76,8 @@ SOFTWARE.
 #ifndef IMGUI_API
 #include <imgui.h>
 #endif //IMGUI_API
- 
+#include "ImGuiHelper.h"
+
 typedef enum ImGuiDockSlot {
     ImGuiDockSlot_Left=0,
     ImGuiDockSlot_Right,

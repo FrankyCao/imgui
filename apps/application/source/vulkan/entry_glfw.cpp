@@ -29,17 +29,6 @@ int main(int, char**)
     int window_width = 1440;
     int window_height = 960;
     float window_scale = 1;
-#ifdef __linux__
-    GLFWmonitor * main_monitor = glfwGetPrimaryMonitor();
-    float xscale = 0, yscale = 0;
-    glfwGetMonitorContentScale(main_monitor, &xscale, &yscale);
-    if (xscale != 0 && yscale != 0)
-    {
-        window_width *= xscale;
-        window_height *= yscale;
-        window_scale = xscale;
-    }
-#endif
     std::string title = Application_GetName(user_handle);
     title += " Vulkan GLFW";
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);

@@ -3,6 +3,7 @@
 #include "option.h"
 #include "platform.h"
 #include <vulkan/vulkan.h>
+#include <string.h>
 
 namespace ImVulkan 
 {

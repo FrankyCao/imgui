@@ -24,6 +24,7 @@ struct IUnknown;
 #endif //_WIN32
 
 #include <vector>
+#include <algorithm>
 
 #include <imgui_internal.h>
 #ifdef IMGUI_VULKAN_SHADER

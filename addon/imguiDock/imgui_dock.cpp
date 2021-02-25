@@ -34,6 +34,7 @@ SOFTWARE.
 #include <imgui_internal.h>
 //-----------------------------------------------------------------------------------------------------------------
 #include "ImGuiHelper.h"
+#include "ImGuiTabWindow.h"
 #include "imgui_dock.h"
 
 bool gImGuiDockReuseTabWindowTextureIfAvailable = true;

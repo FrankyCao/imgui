@@ -92,21 +92,7 @@ int main(int, char**)
     int window_width = 1440;
     int window_height = 960;
     float window_scale = 1.0;
-#ifdef __linux__
-    // Query default monitor resolution
-    SDL_Rect display_bounds;
-    if (SDL_GetDisplayBounds(0, &display_bounds) != 0)
-    {
-        fprintf(stderr, "Failed to obtain bounds of display 0: %s\n", SDL_GetError());
-        return -1;
-    }
-    if (display_bounds.w > 1920)
-    {
-        window_width *= 2;
-        window_height *= 2;
-        window_scale *= 2;
-    }
-#endif
+
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
