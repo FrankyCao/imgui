@@ -157,7 +157,7 @@ static void video_image_display(VideoState *is)
     int out_w = tmp_frame->linesize[0] >> data_shift;
     int out_h = tmp_frame->height;
     is->video_clip = (float)is->video_width / (float)(tmp_frame->linesize[0] >> data_shift);
-    if (is->video_pfmt != tmp_frame->format)
+    if (!is->img_convert_ctx || is->video_pfmt != tmp_frame->format)
     {
         is->img_convert_ctx = sws_getCachedContext(
                                     is->img_convert_ctx,

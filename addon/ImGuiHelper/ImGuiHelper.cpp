@@ -349,7 +349,7 @@ ImTextureID ImCreateTexture(const void* data, int width, int height)
     texture.Width  = width;
     texture.Height = height;
 
-    return reinterpret_cast<ImTextureID>(static_cast<std::intptr_t>(texture.TextureID));
+    return reinterpret_cast<ImTextureID>(static_cast<intptr_t>(texture.TextureID));
 #else
     return nullptr;
 #endif
@@ -376,7 +376,7 @@ static std::vector<ImTexture>::iterator ImFindTexture(ImTextureID texture)
 #elif   defined(IMGUI_DX9)
     auto textureID = reinterpret_cast<LPDIRECT3DTEXTURE9>(texture);
 #elif   defined(IMGUI_OPENGL)
-    auto textureID = static_cast<GLuint>(reinterpret_cast<std::intptr_t>(texture));
+    auto textureID = static_cast<GLuint>(reinterpret_cast<intptr_t>(texture));
 #else
     int textureID = -1;
 #endif
