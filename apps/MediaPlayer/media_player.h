@@ -32,6 +32,9 @@ extern "C" {
 #ifdef IMGUI_VULKAN_SHADER
 #include "ImVulkanShader.h"
 #endif
+#ifdef IMGUI_GLFW
+#include <GLFW/glfw3.h>
+#endif
 #include <string>
 
 #define ISYUV420P(format)   \
@@ -325,6 +328,13 @@ typedef struct VideoState {
     ImVulkan::ColorConvert_vulkan * yuv2rgb = nullptr;
     ImVulkan::Resize_vulkan * resize = nullptr;
     ImVulkan::VkImageMat vkimage;
+#endif
+#ifdef IMGUI_APPLICATION_GLFW
+    GLFWwindow* current_window = nullptr;
+#endif
+#ifdef IMGUI_APPLICATION_SDL
+    SDL_Window* current_window = nullptr;
+    SDL_GLContext current_glcontext = nullptr;
 #endif
 } VideoState;
 

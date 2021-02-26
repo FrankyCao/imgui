@@ -913,7 +913,7 @@ static void ShowDemoWindowWidgets()
             // so you can safely copy & paste garbled characters into another application.
             ImGui::TextWrapped(
                 "CJK text will only appears if the font was loaded with the appropriate CJK character ranges. "
-                "Call io.Font->AddFontFromFileTTF() manually to load extra character ranges. "
+                "Call io.Fonts->AddFontFromFileTTF() manually to load extra character ranges. "
                 "Read docs/FONTS.md for details.");
             ImGui::Text(u8"字体测试"); // Normally we would use u8"blah blah" with the proper characters directly in the string.
             ImGui::Text(u8"UTF-8 字体");

@@ -176,6 +176,8 @@ void ImGenerateOrUpdateTexture(ImTextureID& imtexid,int width,int height,int cha
     }
     texid->UnlockRect(0);
 #elif   defined(IMGUI_OPENGL)
+    GLint last_texture = 0;
+    glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture);
     GLuint& texid = reinterpret_cast<GLuint&>(imtexid);
     if (texid==0) 
     {
@@ -219,7 +221,7 @@ void ImGenerateOrUpdateTexture(ImTextureID& imtexid,int width,int height,int cha
     if (minFilterNearest) glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, useMipmapsIfPossible ? GL_LINEAR_MIPMAP_NEAREST : GL_NEAREST);
     else glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, useMipmapsIfPossible ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
 
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    //glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     //glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 
     GLenum luminanceAlphaEnum = 0x190A; // 0x190A -> GL_LUMINANCE_ALPHA [Note that we're FORCING this definition even if when it's not defined! What should we use for 2 channels?]
@@ -246,6 +248,7 @@ void ImGenerateOrUpdateTexture(ImTextureID& imtexid,int width,int height,int cha
         ifmt = channels==1 ? GL_COMPRESSED_ALPHA : channels==2 ? compressedLuminanceAlphaEnum : channels==3 ? GL_COMPRESSED_RGB : GL_COMPRESSED_RGBA;  // channels == 1 could be GL_COMPRESSED_LUMINANCE, GL_COMPRESSED_ALPHA, GL_COMPRESSED_RED ...
     }
 #   endif //IMIMPL_USE_ARB_TEXTURE_COMPRESSION_TO_COMPRESS_FONT_TEXTURE
+
     glTexImage2D(GL_TEXTURE_2D, 0, ifmt, width, height, 0, fmt, GL_UNSIGNED_BYTE, potImageBuffer ? potImageBuffer : pixels);
 
 #   ifdef IMIMPL_USE_ARB_TEXTURE_COMPRESSION_TO_COMPRESS_FONT_TEXTURE
@@ -262,6 +265,7 @@ void ImGenerateOrUpdateTexture(ImTextureID& imtexid,int width,int height,int cha
 #   ifndef NO_IMGUI_OPENGL_GLGENERATEMIPMAP
     if (useMipmapsIfPossible) glGenerateMipmap(GL_TEXTURE_2D);
 #   endif //NO_IMGUI_OPENGL_GLGENERATEMIPMAP
+    glBindTexture(GL_TEXTURE_2D, last_texture);
 #endif
 }
 

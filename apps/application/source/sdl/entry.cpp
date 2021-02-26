@@ -36,14 +36,31 @@ using namespace gl;
 #include IMGUI_IMPL_OPENGL_LOADER_CUSTOM
 #endif
 
+#include <mutex>
+static std::mutex app_mtx;
 static void * user_handle = nullptr;
+
+bool Application_try_lock()
+{
+    return app_mtx.try_lock();
+}
+
+void Application_lock()
+{
+    app_mtx.lock();
+}
+
+void Application_unlock()
+{
+    app_mtx.unlock();
+}
 
 int main(int, char**)
 {
     // Setup SDL
     // (Some versions of SDL before <2.0.10 appears to have performance/stalling issues on a minority of Windows systems,
     // depending on whether SDL_INIT_GAMECONTROLLER is enabled or disabled.. updating to latest version of SDL is recommended!)
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0)
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0)
     {
         printf("Error: %s\n", SDL_GetError());
         return -1;
@@ -176,11 +193,14 @@ int main(int, char**)
 
         // Rendering
         ImGui::Render();
+        Application_lock();
+        SDL_GL_MakeCurrent(window, gl_context);
         glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
         glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         SDL_GL_SwapWindow(window);
+        Application_unlock();
     }
 
     Application_Finalize(&user_handle);

@@ -427,6 +427,12 @@ VideoState *stream_open(const char *filename, AVInputFormat *iformat)
     is->yuv2rgb = new ImVulkan::ColorConvert_vulkan(0);
     is->resize = new ImVulkan::Resize_vulkan(0);
 #endif
+#ifdef IMGUI_APPLICATION_GLFW
+    is->current_window = glfwGetCurrentContext();
+#elif IMGUI_APPLICATION_SDL
+    is->current_window = SDL_GL_GetCurrentWindow();
+    is->current_glcontext = SDL_GL_GetCurrentContext();
+#endif
     is->read_tid     = SDL_CreateThread(read_thread, "read_thread", is);
     if (!is->read_tid) {
         av_log(NULL, AV_LOG_FATAL, "SDL_CreateThread(): %s\n", SDL_GetError());

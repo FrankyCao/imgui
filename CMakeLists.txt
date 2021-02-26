@@ -116,13 +116,13 @@ if(PKG_CONFIG_FOUND)
         pkg_search_module(SDL2 REQUIRED sdl2)
         pkg_search_module(SDL2_IMAGE REQUIRED SDL2_image>=2.0.0)
     endif(IMGUI_SDL2)
-    if(NOT VULKAN_FOUND)
+    if(IMGUI_VULKAN AND NOT VULKAN_FOUND)
         pkg_search_module(VULKAN REQUIRED vulkan)
         if (VULKAN_FOUND)
             message("vulkan found")
             set (Vulkan_LIBRARY vulkan)
-        endif()
-    endif()
+        endif(VULKAN_FOUND)
+    endif(IMGUI_VULKAN AND NOT VULKAN_FOUND)
     if(NOT OPENGL_FOUND)
         pkg_search_module(OPENGL REQUIRED gl)
         if (OPENGL_FOUND)
@@ -894,38 +894,45 @@ endif(IMGUI_ADDONS)
 set(IMGUI_APP_SRC)
 if (IMGUI_APPS)
     if(VULKAN_FOUND AND IMGUI_VULKAN AND SDL2_FOUND AND IMGUI_SDL2)
+        add_definitions(-DIMGUI_APPLICATION_VULKAN_SDL)
         set(IMGUI_APP_SRC
             ${IMGUI_APP_SRC}
             apps/application/source/vulkan/entry_sdl.cpp
         )
     elseif(VULKAN_FOUND AND IMGUI_VULKAN AND GLFW_FOUND AND IMGUI_GLFW)
+        add_definitions(-DIMGUI_APPLICATION_VULKAN_GLFW)
         set(IMGUI_APP_SRC
             ${IMGUI_APP_SRC}
             apps/application/source/vulkan/entry_glfw.cpp
         )
     elseif (WIN32 AND (IMGUI_DX11 OR IMGUI_DX9))
         if (IMGUI_DX11)
+            add_definitions(-DIMGUI_APPLICATION_DX11)
             set(IMGUI_APP_SRC
                 ${IMGUI_APP_SRC}
                 apps/application/source/dx11/entry.cpp
             )
         else(IMGUI_DX11)
+            add_definitions(-DIMGUI_APPLICATION_DX9)
             set(IMGUI_APP_SRC
                 ${IMGUI_APP_SRC}
                 apps/application/source/dx9/entry.cpp
             )
         endif(IMGUI_DX11)
+    elseif(SDL2_FOUND AND IMGUI_SDL2 AND OPENGL_FOUND)
+        add_definitions(-DIMGUI_APPLICATION_SDL)
+        set(IMGUI_APP_SRC
+            ${IMGUI_APP_SRC}
+            apps/application/source/sdl/entry.cpp
+        )    
     elseif(GLFW_FOUND AND IMGUI_GLFW)
+        add_definitions(-DIMGUI_APPLICATION_GLFW)
         set(IMGUI_APP_SRC
             ${IMGUI_APP_SRC}
             apps/application/source/glfw/entry.cpp
         )
-    elseif(SDL2_FOUND AND IMGUI_SDL2 AND IMGUI_OPENGL)
-        set(IMGUI_APP_SRC
-            ${IMGUI_APP_SRC}
-            apps/application/source/sdl/entry.cpp
-        )
     elseif(GLUT_FOUND AND IMGUI_GLUT)
+        add_definitions(-DIMGUI_APPLICATION_GLUT)
         set(IMGUI_APP_SRC
             ${IMGUI_APP_SRC}
             apps/application/source/glut/entry.cpp
@@ -1230,7 +1237,7 @@ if (IMGUI_APPS)
         imgui
         ${LINK_LIBS}
     )
-    if (FFMPEG_FOUND AND IMGUI_ADDONS AND IMGUI_SDL2 AND SDL2_FOUND)
+    if (FFMPEG_FOUND AND IMGUI_ADDONS AND  SDL2_FOUND)
         add_executable(
             media_player
             apps/MediaPlayer/clock.cpp
@@ -1257,9 +1264,10 @@ if (IMGUI_APPS)
         target_link_libraries(
             media_player
             imgui
+            ${SDL2_STATIC_LDFLAGS}
             ${LINK_LIBS}
         )
-    endif(FFMPEG_FOUND AND IMGUI_ADDONS AND IMGUI_SDL2 AND SDL2_FOUND)
+    endif(FFMPEG_FOUND AND IMGUI_ADDONS AND  SDL2_FOUND)
 endif(IMGUI_APPS)
 
 get_directory_property(hasParent PARENT_DIRECTORY)
