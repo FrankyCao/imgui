@@ -818,7 +818,7 @@ if(IMGUI_ADDONS)
             endif()
             include("${GLSLANG_TARGET_DIR}/glslangTargets.cmake")
             include("${GLSLANG_TARGET_DIR}/SPIRVTargets.cmake")
-
+ 
             if (NOT TARGET glslang OR NOT TARGET SPIRV)
                 message(WARNING "glslang or SPIRV target not found! IMGUI_VULKAN_SHADER will be turned off.")
                 set(IMGUI_VULKAN_SHADER OFF)
@@ -870,6 +870,8 @@ if(IMGUI_ADDONS)
                 set(LINK_LIBS
                     glslang
                     SPIRV
+                    SPIRV-Tools
+                    SPIRV-Tools-opt
                     ${LINK_LIBS}
                 )
             endif()
