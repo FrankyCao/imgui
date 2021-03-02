@@ -872,7 +872,7 @@ if(IMGUI_ADDONS)
                 set(LINK_LIBS
                     glslang
                     SPIRV
-                    SPIRV-Tools-static
+                    SPIRV-Tools
                     SPIRV-Tools-opt
                     ${LINK_LIBS}
                 )
