@@ -12,6 +12,19 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#ifdef IMGUI_ADDONS
+#include "implot.h"
+#include "imgui_markdown.h"
+#include "imgui_node_editor.h"
+#include "imgui_memory_editor.h"
+#include "imnodes.h"
+#include "ImGuiNodeGraphEditor.h"
+#include "TextEditor.h"
+#include "ImGuiFileDialog.h"
+#include "ImGuiFileSystem.h"
+#include "HotKey.h"
+#include "addon/addons_demo.h"
+#endif
 #include "Config.h"
 
 // Data
