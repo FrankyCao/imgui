@@ -147,7 +147,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     // Initialize Direct3D
     if (CreateDeviceD3D(hwnd) < 0)
     {
-         CleanupDeviceD3D();
+        CleanupDeviceD3D();
         ::UnregisterClass(wc.lpszClassName, wc.hInstance);
         return 1;
     }
@@ -167,7 +167,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
     ImGui::StyleColorsDark();
 
-    ImVec4 backgroundColor = ImColor(32, 32, 32, 255);//style.Colors[ImGuiCol_TitleBg];
+    ImVec4 clear_color = ImColor(32, 32, 32, 255);//style.Colors[ImGuiCol_TitleBg];
 
     Application_Initialize(&user_handle);
     bool done = false;

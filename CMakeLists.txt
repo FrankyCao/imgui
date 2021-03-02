@@ -991,6 +991,7 @@ if (SDL2_FOUND AND IMGUI_SDL2)
         imgui
         ${LINK_LIBS}
     )
+    if (NOT WIN32)
     add_executable(
         example_sdl_opengl3
         test/example_sdl_opengl3.cpp
@@ -1000,6 +1001,7 @@ if (SDL2_FOUND AND IMGUI_SDL2)
         imgui
         ${LINK_LIBS}
     )
+    endif(NOT WIN32)
     if(IMGUI_ADDONS)
         add_executable(
             example_sdl_rendering
@@ -1061,7 +1063,7 @@ if (IMGUI_GLUT AND GLUT_FOUND)
     )
 endif(IMGUI_GLUT AND GLUT_FOUND)
 
-if (GLFW_FOUND AND IMGUI_GLFW)
+if (GLFW_FOUND AND IMGUI_GLFW AND NOT WIN32)
     add_executable(
         example_glfw_opengl3
         test/example_glfw_opengl3.cpp
@@ -1071,7 +1073,7 @@ if (GLFW_FOUND AND IMGUI_GLFW)
         imgui
         ${LINK_LIBS}
     )
-endif(GLFW_FOUND AND IMGUI_GLFW)
+endif(GLFW_FOUND AND IMGUI_GLFW AND NOT WIN32)
 
 if (APPLE AND IMGUI_MATAL)
     if (IMGUI_APPLE_APP)

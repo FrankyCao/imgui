@@ -35,7 +35,7 @@
 #include <d3dcompiler.h>
 #ifdef _MSC_VER
 #pragma comment(lib, "d3dcompiler") // Automatically link with d3dcompiler.lib as we are using D3DCompile() below.
-
+#endif
 // DirectX data
 static ID3D10Device*            g_pd3dDevice = NULL;
 static IDXGIFactory*            g_pFactory = NULL;
@@ -533,4 +533,4 @@ void ImGui_ImplDX10_NewFrame()
     if (!g_pFontSampler)
         ImGui_ImplDX10_CreateDeviceObjects();
 }
-#endif
+

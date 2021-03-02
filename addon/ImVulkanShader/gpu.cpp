@@ -1045,7 +1045,7 @@ int create_gpu_instance()
         fprintf(stderr, "[%u] deviceID = %x\n", i, physicalDeviceProperties.deviceID);
         fprintf(stderr, "[%u] deviceType = %x\n", i, physicalDeviceProperties.deviceType);
         fprintf(stderr, "[%u] deviceName = %s\n", i, physicalDeviceProperties.deviceName);
-        fprintf(stderr, "[%u] pipelineCacheUUID = %lu\n", i, (unsigned long)physicalDeviceProperties.pipelineCacheUUID);
+        fprintf(stderr, "[%u] pipelineCacheUUID = %llu\n", i, (unsigned long long)physicalDeviceProperties.pipelineCacheUUID);
 #endif
 
         // mali

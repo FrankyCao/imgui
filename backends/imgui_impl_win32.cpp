@@ -500,7 +500,6 @@ float ImGui_ImplWin32_GetDpiScaleForHwnd(void* hwnd)
 
 #if defined(_MSC_VER)
 #pragma comment(lib, "dwmapi")  // Link with dwmapi.lib. MinGW will require linking with '-ldwmapi'
-#endif
 
 // [experimental]
 // Borrowed from GLFW's function updateFramebufferTransparency() in src/win32_window.c
@@ -533,5 +532,6 @@ void ImGui_ImplWin32_EnableAlphaCompositing(void* hwnd)
         ::DwmEnableBlurBehindWindow((HWND)hwnd, &bb);
     }
 }
+#endif
 
 //---------------------------------------------------------------------------------------------------------

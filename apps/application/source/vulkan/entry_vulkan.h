@@ -35,8 +35,10 @@ static void check_vk_result(VkResult err)
     if (err == 0)
         return;
     fprintf(stderr, "[vulkan] Error: VkResult = %d\n", err);
+#if defined(_DEBUG) || defined(DEBUG)
     if (err < 0)
         abort();
+#endif
 }
 
 #ifdef IMGUI_VULKAN_DEBUG_REPORT

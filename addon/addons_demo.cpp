@@ -12,6 +12,9 @@
 #ifdef IMGUI_VULKAN_SHADER
 #include "ImVulkanShader.h"
 #endif
+#ifdef _WIN32
+#include <time.h>
+#endif
 
 ImTextureID ImageTextureNumber = 0;
 
