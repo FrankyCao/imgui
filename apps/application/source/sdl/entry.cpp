@@ -162,6 +162,7 @@ int main(int, char**)
                 done = true;
             if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(window))
                 done = true;
+
             if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_SHOWN)
             {
                 show = true;
@@ -170,9 +171,14 @@ int main(int, char**)
             {
                 show = false;
             }
+            if (event.type == SDL_WINDOWEVENT && (event.window.event == SDL_WINDOWEVENT_EXPOSED || event.window.event == SDL_WINDOWEVENT_RESTORED))
+            {
+                show = true;
+            }
         }
         if (!show)
         {
+            SDL_Delay(10);
             continue;
         }
         // Start the Dear ImGui frame

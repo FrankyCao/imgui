@@ -795,14 +795,14 @@ if(IMGUI_ADDONS)
 
     if (IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
         if(WIN32)
-            set(GLSLANG_TARGET_DIR "C:\\msys64\\mingw64\\lib\\cmake" CACHE PATH "Absolute path to glslangTargets.cmake directory")
+            set(GLSLANG_TARGET_DIR "C:\\msys64\\mingw64\\lib\\cmake")
         elseif(LINUX AND NOT APPLE)
             set(GLSLANG_TARGET_DIR "/usr/lib/x86_64-linux-gnu/cmake/glslang")
         elseif(DEFINED ENV{PREFIX})
-            set(GLSLANG_TARGET_DIR $ENV{PREFIX}/lib/cmake CACHE PATH "Absolute path to glslangTargets.cmake directory")
+            set(GLSLANG_TARGET_DIR $ENV{PREFIX}/lib/cmake)
             message(STATUS "found ENV at ${GLSLANG_TARGET_DIR}")
         else()
-            set(GLSLANG_TARGET_DIR "/usr/local/lib/cmake" CACHE PATH "Absolute path to glslangTargets.cmake directory")
+            set(GLSLANG_TARGET_DIR "/usr/local/lib/cmake")
         endif()
         if(NOT GLSLANG_TARGET_DIR AND NOT DEFINED ENV{GLSLANG_TARGET_DIR})
             message(WARNING "GLSLANG_TARGET_DIR must be defined! IMGUI_VULKAN_SHADER will be turned off.")
@@ -817,8 +817,10 @@ if(IMGUI_ADDONS)
                 include("${GLSLANG_TARGET_DIR}/HLSLTargets.cmake")
             endif()
             include("${GLSLANG_TARGET_DIR}/glslangTargets.cmake")
+            include("${GLSLANG_TARGET_DIR}/SPIRV-Tools/SPIRV-ToolsTarget.cmake")
+            include("${GLSLANG_TARGET_DIR}/SPIRV-Tools-opt/SPIRV-Tools-optTargets.cmake")
             include("${GLSLANG_TARGET_DIR}/SPIRVTargets.cmake")
- 
+
             if (NOT TARGET glslang OR NOT TARGET SPIRV)
                 message(WARNING "glslang or SPIRV target not found! IMGUI_VULKAN_SHADER will be turned off.")
                 set(IMGUI_VULKAN_SHADER OFF)
@@ -870,7 +872,7 @@ if(IMGUI_ADDONS)
                 set(LINK_LIBS
                     glslang
                     SPIRV
-                    SPIRV-Tools
+                    SPIRV-Tools-static
                     SPIRV-Tools-opt
                     ${LINK_LIBS}
                 )
