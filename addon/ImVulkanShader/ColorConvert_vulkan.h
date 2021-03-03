@@ -7,7 +7,7 @@ namespace ImVulkan
 class ColorConvert_vulkan
 {
 public:
-    ColorConvert_vulkan(int gpu = 0);
+    ColorConvert_vulkan(int gpu = -1);
     ~ColorConvert_vulkan();
 
     // input from CPU buffer and output to RGBA8888 CPU buffer

@@ -7,7 +7,7 @@ namespace ImVulkan
 class Resize_vulkan
 {
 public:
-    Resize_vulkan(int gpu = 0);
+    Resize_vulkan(int gpu = -1);
     ~Resize_vulkan();
 
     // input CPU Buffer and output to RGBA8888 CPU buffer

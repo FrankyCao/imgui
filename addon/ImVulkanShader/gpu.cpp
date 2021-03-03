@@ -2940,6 +2940,21 @@ VulkanDevice* get_gpu_device(int device_index)
 {
     try_create_gpu_instance();
 
+    if (device_index == -1)
+    {
+        // try to select discrete gpu
+        for (int i = 0; i < g_gpu_count; i++)
+        {
+            const GpuInfo& info = get_gpu_info(i);
+            if (info.type() == 0)
+            {
+                device_index = i;
+                break;
+            }
+        }
+        if (device_index == -1) device_index = 0;
+    }
+
     if (device_index < 0 || device_index >= g_gpu_count)
         return 0;
 

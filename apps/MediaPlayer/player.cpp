@@ -425,8 +425,8 @@ VideoState *stream_open(const char *filename, AVInputFormat *iformat)
     is->muted = 0;
     is->av_sync_type = av_sync_type;
 #ifdef IMGUI_VULKAN_SHADER
-    is->yuv2rgb = new ImVulkan::ColorConvert_vulkan(0);
-    is->resize = new ImVulkan::Resize_vulkan(0);
+    is->yuv2rgb = new ImVulkan::ColorConvert_vulkan();
+    is->resize = new ImVulkan::Resize_vulkan();
 #endif
 #ifdef IMGUI_APPLICATION_GLFW
     is->current_window = glfwGetCurrentContext();
