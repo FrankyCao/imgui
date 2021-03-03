@@ -212,6 +212,13 @@ set(IMGUI_INCS
     misc/stb_image_write.h
 )
 
+if(WIN32)
+    set(IMGUI_INCS
+        ${IMGUI_INCS}
+        misc/dirent_portable.h
+    )
+endif(WIN32)
+
 # Android
 if(ANDROID AND IMGUI_GLES)
     set(IMGUI_SRC
@@ -509,7 +516,6 @@ if(IMGUI_ADDONS)
     set(IMGUI_INCS
         ${IMGUI_INCS}
         addon/ImGuiFileSystem/ImGuiFileSystem.h
-        addon/ImGuiFileSystem/dirent_portable.h
     )
 
     if (NOT WIN32)

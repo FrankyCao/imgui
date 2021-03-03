@@ -40,17 +40,42 @@ SOFTWARE.
 #include <sys/stat.h>
 #include <stdio.h>
 #include <errno.h>
+#include <limits.h>
 #if defined (__EMSCRIPTEN__) // EMSCRIPTEN
 #include <emscripten.h>
 #endif // EMSCRIPTEN
 #if defined(__WIN32__) || defined(_WIN32)
+#include <windows.h>
 #ifndef WIN32
 #define WIN32
 #endif // WIN32
 #define stat _stat
 #define stricmp _stricmp
 #include <cctype>
-#include "dirent_win32.h"
+
+#ifdef IMGUIFILESYSTEM_USE_ASCII_SHORT_PATHS_ON_WINDOWS
+#undef DIRENT_USE_ASCII_SHORT_PATHS_ON_WINDOWS
+#define DIRENT_USE_ASCII_SHORT_PATHS_ON_WINDOWS
+#endif //IMGUIFILESYSTEM_USE_ASCII_SHORT_PATHS_ON_WINDOWS
+#include "dirent_portable.h"
+// Convert a wide Unicode string to an UTF8 string
+inline static void wide_to_utf8(const wchar_t* wstr,char* rv)    {
+    rv[0]='\0';
+    if (!wstr) return;
+    int size_needed = WideCharToMultiByte(CP_UTF8, 0, wstr, -1, NULL, 0, NULL, NULL);
+    WideCharToMultiByte                  (CP_UTF8, 0, wstr, -1, &rv[0], size_needed, NULL, NULL);
+    //rv[size_needed]='\0';              // If the parameter after wstr is -1, the function processes the entire input string, including the terminating null character. Therefore, the resulting character string has a terminating null character, and the length returned by the function includes this character.
+    return ;
+}
+// Convert an UTF8 string to a wide Unicode String
+inline static void utf8_to_wide(const char* str,wchar_t* rv)    {
+    rv[0]=L'\0';
+    if (!str) return;
+    int size_needed = MultiByteToWideChar(CP_UTF8, 0, str, -1, NULL, 0);
+    MultiByteToWideChar                  (CP_UTF8, 0, str, -1, &rv[0], size_needed);
+    //rv[size_needed]=L'\0';            // // If the parameter after str is -1, the function processes the entire input string, including the terminating null character. Therefore, the resulting character string has a terminating null character, and the length returned by the function includes this character.
+    return;
+}
 #define PATH_SEP '\\'
 #ifndef PATH_MAX
 #define PATH_MAX 260
@@ -236,43 +261,6 @@ namespace IGFD
 		return strcoll((*a)->d_name, (*b)->d_name);
 	}
 
-#ifdef WIN32
-	inline bool wreplaceString(std::wstring& str, const std::wstring& oldStr, const std::wstring& newStr)
-	{
-		bool found = false;
-		size_t pos = 0;
-		while ((pos = str.find(oldStr, pos)) != std::wstring::npos)
-		{
-			found = true;
-			str.replace(pos, oldStr.length(), newStr);
-			pos += newStr.length();
-		}
-		return found;
-	}
-
-	inline std::vector<std::wstring> wsplitStringToVector(const std::wstring& text, char delimiter, bool pushEmpty)
-	{
-		std::vector<std::wstring> arr;
-		if (!text.empty())
-		{
-			std::wstring::size_type start = 0;
-			std::wstring::size_type end = text.find(delimiter, start);
-			while (end != std::wstring::npos)
-			{
-				std::wstring token = text.substr(start, end - start);
-				if (!token.empty() || (token.empty() && pushEmpty)) //-V728
-					arr.push_back(token);
-				start = end + 1;
-				end = text.find(delimiter, start);
-			}
-			std::wstring token = text.substr(start);
-			if (!token.empty() || (token.empty() && pushEmpty)) //-V728
-				arr.push_back(token);
-		}
-		return arr;
-	}
-#endif
-
 	inline bool replaceString(std::string& str, const std::string& oldStr, const std::string& newStr)
 	{
 		bool found = false;
@@ -347,20 +335,6 @@ namespace IGFD
 		return bExists;    // this is not a directory!
 	}
 
-#ifdef WIN32
-	inline std::wstring wGetString(const char* str)
-	{
-		std::wstring ret;
-		size_t sz;
-		if (!dirent_mbstowcs_s(&sz, nullptr, 0, str, 0))
-		{
-			ret.resize(sz);
-			dirent_mbstowcs_s(nullptr, (wchar_t*)ret.data(), sz, str, sz - 1);
-		}
-		return ret;
-	}
-#endif
-
 	inline bool CreateDirectoryIfNotExist(const std::string& name)
 	{
 		bool res = false;
@@ -370,8 +344,9 @@ namespace IGFD
 			if (!IsDirectoryExist(name))
 			{
 #ifdef WIN32
-				std::wstring wname = wGetString(name.c_str());
-				if (CreateDirectoryW(wname.c_str(), nullptr))
+				static wchar_t wname[PATH_MAX+1];
+				utf8_to_wide(name.c_str(), wname);
+				if (CreateDirectoryW(wname, nullptr))
 				{
 					res = true;
 				}
@@ -1372,7 +1347,6 @@ namespace IGFD
 						if (i < 0) continue;
 
 						const FileInfoStruct& infos = m_FilteredFileList[i];
-
 						ImVec4 c;
 						std::string icon;
 						bool showTypeColor = GetTypeInfos(std::to_string(infos.type), &c, &icon);
@@ -2272,7 +2246,7 @@ namespace IGFD
 		if (s_fs_root == path)
 			path += PATH_SEP;
 #endif // WIN32
-		char real_path[PATH_MAX];
+		char real_path[PATH_MAX] = {0};
 		DIR* dir = opendir(path.c_str());
 		if (dir == nullptr)
 		{
@@ -2284,17 +2258,11 @@ namespace IGFD
 		{
 #ifdef WIN32
 			DWORD numchar = 0;
-			//			numchar = GetFullPathNameA(path.c_str(), PATH_MAX, real_path, nullptr);
-			std::wstring wpath = wGetString(path.c_str());
-			numchar = GetFullPathNameW(wpath.c_str(), 0, nullptr, nullptr);
-			std::wstring fpath(numchar, 0);
-			GetFullPathNameW(wpath.c_str(), numchar, (wchar_t*)fpath.data(), nullptr);
-			int error = dirent_wcstombs_s(nullptr, real_path, PATH_MAX, fpath.c_str(), PATH_MAX - 1);
-			if (error)numchar = 0;
-			if (!numchar)
-			{
-				std::cout << "fail to obtain FullPathName " << path << std::endl;
-			}
+			static wchar_t wpath[PATH_MAX+1];
+			static wchar_t buffer[PATH_MAX+1];
+			utf8_to_wide(path.c_str(), wpath);
+			numchar = GetFullPathNameW(&wpath[0], PATH_MAX+1, &buffer[0], NULL);
+			wide_to_utf8(&buffer[0], real_path);
 #elif defined(UNIX) // UNIX is LINUX or APPLE
 			char* numchar = realpath(path.c_str(), real_path);
 #endif // defined(UNIX)
