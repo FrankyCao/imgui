@@ -21,7 +21,7 @@ static void glfw_error_callback(int error, const char* description)
 
 int main(int, char**)
 {
-        // Setup window
+    // Setup window
     glfwSetErrorCallback(glfw_error_callback);
     if (!glfwInit())
         return 1;
@@ -33,7 +33,12 @@ int main(int, char**)
     title += " Vulkan GLFW";
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     GLFWwindow* window = glfwCreateWindow(window_width, window_height, title.c_str(), NULL, NULL);
-    
+    float x_scale, y_scale;
+    glfwGetWindowContentScale(window, &x_scale, &y_scale);
+    if (x_scale != 1.0 || y_scale != 1.0)
+    {
+        window_scale = x_scale == 1.0 ? x_scale : y_scale;
+    }
     // Setup Vulkan
     if (!glfwVulkanSupported())
     {

@@ -112,10 +112,6 @@ if(PKG_CONFIG_FOUND)
     if(IMGUI_GLUT)
         pkg_search_module(GLUT REQUIRED glut)
     endif(IMGUI_GLUT)
-    if(IMGUI_SDL2)
-        pkg_search_module(SDL2 REQUIRED sdl2)
-        pkg_search_module(SDL2_IMAGE REQUIRED SDL2_image>=2.0.0)
-    endif(IMGUI_SDL2)
     if(IMGUI_VULKAN AND NOT VULKAN_FOUND)
         pkg_search_module(VULKAN REQUIRED vulkan)
         if (VULKAN_FOUND)
@@ -135,6 +131,8 @@ if(PKG_CONFIG_FOUND)
             message("freetype found")
         endif()
     endif()
+    pkg_search_module(SDL2 REQUIRED sdl2)
+    pkg_search_module(SDL2_IMAGE REQUIRED SDL2_image>=2.0.0)
     pkg_check_modules(FFMPEG IMPORTED_TARGET
         libavcodec
         libavformat
@@ -258,8 +256,7 @@ if(FREETYPE_FOUND)
 endif(FREETYPE_FOUND)
 
 # SDL2 support
-if (IMGUI_SDL2 AND SDL2_FOUND)
-    add_definitions(-DIMGUI_SDL2)
+if (SDL2_FOUND)
     set(IMGUI_INC_DIRS
         ${IMGUI_INC_DIRS}
         ${SDL2_INCLUDE_DIRS}
@@ -269,6 +266,10 @@ if (IMGUI_SDL2 AND SDL2_FOUND)
         ${SDL2_STATIC_LDFLAGS}
         ${SDL2_IMAGE_STATIC_LDFLAGS}
     )
+endif(SDL2_FOUND)
+
+if (IMGUI_SDL2 AND SDL2_FOUND)
+    add_definitions(-DIMGUI_SDL2)
     set(IMGUI_SRC
         ${IMGUI_SRC}
         backends/imgui_impl_sdl.cpp
