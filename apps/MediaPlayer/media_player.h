@@ -372,7 +372,7 @@ extern SDL_AudioDeviceID audio_dev;
 void init_opts(void);
 void uninit_opts(void);
 AVDictionary *filter_codec_opts(AVDictionary *opts, enum AVCodecID codec_id,
-                                AVFormatContext *s, AVStream *st, AVCodec *codec);
+                                AVFormatContext *s, AVStream *st, const AVCodec *codec);
 AVDictionary **setup_find_stream_info_opts(AVFormatContext *s, AVDictionary *codec_opts);
 int opt_add_vfilter(void *optctx, const char *opt, const char *arg);
 int configure_audio_filters(VideoState *is, const char *afilters, int force_output_format);
