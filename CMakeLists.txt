@@ -875,11 +875,24 @@ if(IMGUI_ADDONS)
                     ${IMGUI_INC_DIRS}
                     ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImVulkanShader
                 )
-                set(LINK_LIBS
+                set(GLSLANG_LIBRARY
                     glslang
                     SPIRV
-                    SPIRV-Tools
                     SPIRV-Tools-opt
+                )
+                if(WIN32)
+                    set(GLSLANG_LIBRARY
+                        ${GLSLANG_LIBRARY}
+                        SPIRV-Tools
+                    )
+                else()
+                    set(GLSLANG_LIBRARY
+                        ${GLSLANG_LIBRARY}
+                        SPIRV-Tools-static
+                    )
+                endif(WIN32)
+                set(LINK_LIBS
+                    ${GLSLANG_LIBRARY}
                     ${LINK_LIBS}
                 )
             endif()
