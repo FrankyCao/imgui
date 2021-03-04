@@ -372,7 +372,7 @@ void stream_close(VideoState *is)
 #endif
     if (is->video_texture) { ImGui::ImDestroyTexture(is->video_texture); is->video_texture = nullptr; }
     av_free(is);
-#ifndef IMGUI_SDL2
+#if !defined(IMGUI_APPLICATION_SDL) && !defined(IMGUI_APPLICATION_VULKAN_SDL)
     SDL_Quit();
 #endif
 }
@@ -441,7 +441,7 @@ fail:
         stream_close(is);
         return NULL;
     }
-#ifndef IMGUI_SDL2
+#if !defined(IMGUI_APPLICATION_SDL) && !defined(IMGUI_APPLICATION_VULKAN_SDL)
     if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_TIMER))
     {
         av_log(NULL, AV_LOG_FATAL, "Could not initialize SDL - %s\n", SDL_GetError());

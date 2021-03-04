@@ -94,8 +94,10 @@ static void VideoRendering()
         {
             ImVec2 content_region = ImGui::GetContentRegionAvail();
             ImGui::PushStyleColor(ImGuiCol_WindowBg, 0);
+            Application_lock();
             ImGui::Image((void *)(intptr_t)is->video_texture, content_region,
                         ImVec2(0.0f, 0.0f), ImVec2(is->video_clip, 1.0f));
+            Application_unlock();
             ImGui::PopStyleColor(1);
             ImGui::End();
         }

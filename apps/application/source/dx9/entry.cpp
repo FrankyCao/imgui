@@ -11,6 +11,8 @@
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
 #include <tchar.h>
+#include <mutex>
+static std::mutex app_mtx;
 
 // Data
 LPDIRECT3DDEVICE9        g_pd3dDevice = NULL;
@@ -18,6 +20,21 @@ static LPDIRECT3D9              g_pD3D = NULL;
 static D3DPRESENT_PARAMETERS    g_d3dpp = {};
 
 static void * user_handle = nullptr;
+
+bool Application_try_lock()
+{
+    return app_mtx.try_lock();
+}
+
+void Application_lock()
+{
+    app_mtx.lock();
+}
+
+void Application_unlock()
+{
+    app_mtx.unlock();
+}
 
 # if defined(_UNICODE)
 std::wstring widen(const std::string& str)
@@ -134,7 +151,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     ImGui_ImplDX9_Init(g_pd3dDevice);
 
     ImGui::StyleColorsDark();
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    ImVec4 clear_color = ImVec4(0.f, 0.f, 0.f, 1.00f);
 
     Application_Initialize(&user_handle);
 
@@ -167,6 +184,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
         // Rendering
         ImGui::EndFrame();
+        Application_lock();
         g_pd3dDevice->SetRenderState(D3DRS_ZENABLE, FALSE);
         g_pd3dDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
         g_pd3dDevice->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
@@ -183,6 +201,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
         // Handle loss of D3D9 device
         if (result == D3DERR_DEVICELOST && g_pd3dDevice->TestCooperativeLevel() == D3DERR_DEVICENOTRESET)
             ResetDevice();
+        Application_unlock();
     }
 
     Application_Finalize(&user_handle);

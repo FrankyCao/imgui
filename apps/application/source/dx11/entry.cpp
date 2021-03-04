@@ -13,6 +13,8 @@ struct IUnknown;
 #include <dinput.h>
 #include <tchar.h>
 #include <string>
+#include <mutex>
+static std::mutex app_mtx;
 
 // Data
 ID3D11Device*            g_pd3dDevice = nullptr;
@@ -21,6 +23,21 @@ static IDXGISwapChain*          g_pSwapChain = nullptr;
 static ID3D11RenderTargetView*  g_mainRenderTargetView = nullptr;
 
 static void * user_handle = nullptr;
+
+bool Application_try_lock()
+{
+    return app_mtx.try_lock();
+}
+
+void Application_lock()
+{
+    app_mtx.lock();
+}
+
+void Application_unlock()
+{
+    app_mtx.unlock();
+}
 
 static void CreateRenderTarget()
 {
@@ -193,11 +210,13 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
         // Rendering
         ImGui::Render();
+        Application_lock();
         const float clear_color_with_alpha[4] = { clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w };
         g_pd3dDeviceContext->OMSetRenderTargets(1, &g_mainRenderTargetView, NULL);
         g_pd3dDeviceContext->ClearRenderTargetView(g_mainRenderTargetView, clear_color_with_alpha);
         ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
         g_pSwapChain->Present(1, 0);
+        Application_unlock();
     };
 
     frame();
