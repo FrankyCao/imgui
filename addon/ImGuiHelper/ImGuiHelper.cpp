@@ -57,6 +57,7 @@ using namespace gl;
 #else
 #include IMGUI_IMPL_OPENGL_LOADER_CUSTOM
 #endif
+#include <imgui_impl_opengl3.h>
 #endif
 
 #ifndef NO_IMGUIHELPER_DRAW_METHODS
@@ -79,7 +80,6 @@ using namespace gl;
 #ifdef IMGUI_VULKAN
 #include <imgui_impl_vulkan.h>
 #endif
-
 
 #if     defined(IMGUI_VULKAN)
 struct ImTexture
@@ -121,6 +121,112 @@ struct ImTexture
 #endif
 
 namespace ImGui {
+
+// ImGui Info
+void ShowImGuiInfo()
+{
+    ImGuiIO& io = ImGui::GetIO();
+    ImGuiStyle& style = ImGui::GetStyle();
+    ImGui::Text("Dear ImGui %s (%d)", IMGUI_VERSION, IMGUI_VERSION_NUM);
+    ImGui::Text("define: __cplusplus = %d", (int)__cplusplus);
+    ImGui::Separator();
+#ifdef IMGUI_DISABLE_OBSOLETE_FUNCTIONS
+    ImGui::Text("define: IMGUI_DISABLE_OBSOLETE_FUNCTIONS");
+#endif
+#ifdef IMGUI_DISABLE_WIN32_DEFAULT_CLIPBOARD_FUNCTIONS
+    ImGui::Text("define: IMGUI_DISABLE_WIN32_DEFAULT_CLIPBOARD_FUNCTIONS");
+#endif
+#ifdef IMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCTIONS
+    ImGui::Text("define: IMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCTIONS");
+#endif
+#ifdef IMGUI_DISABLE_WIN32_FUNCTIONS
+    ImGui::Text("define: IMGUI_DISABLE_WIN32_FUNCTIONS");
+#endif
+#ifdef IMGUI_DISABLE_DEFAULT_FORMAT_FUNCTIONS
+    ImGui::Text("define: IMGUI_DISABLE_DEFAULT_FORMAT_FUNCTIONS");
+#endif
+#ifdef IMGUI_DISABLE_DEFAULT_MATH_FUNCTIONS
+    ImGui::Text("define: IMGUI_DISABLE_DEFAULT_MATH_FUNCTIONS");
+#endif
+#ifdef IMGUI_DISABLE_DEFAULT_FILE_FUNCTIONS
+    ImGui::Text("define: IMGUI_DISABLE_DEFAULT_FILE_FUNCTIONS");
+#endif
+#ifdef IMGUI_DISABLE_FILE_FUNCTIONS
+    ImGui::Text("define: IMGUI_DISABLE_FILE_FUNCTIONS");
+#endif
+#ifdef IMGUI_DISABLE_DEFAULT_ALLOCATORS
+    ImGui::Text("define: IMGUI_DISABLE_DEFAULT_ALLOCATORS");
+#endif
+#ifdef IMGUI_USE_BGRA_PACKED_COLOR
+    ImGui::Text("define: IMGUI_USE_BGRA_PACKED_COLOR");
+#endif
+#ifdef _WIN32
+    ImGui::Text("define: _WIN32");
+#endif
+#ifdef _WIN64
+    ImGui::Text("define: _WIN64");
+#endif
+#ifdef __linux__
+    ImGui::Text("define: __linux__");
+#endif
+#ifdef __APPLE__
+    ImGui::Text("define: __APPLE__");
+#endif
+#ifdef _MSC_VER
+    ImGui::Text("define: _MSC_VER=%d", _MSC_VER);
+#endif
+#ifdef _MSVC_LANG
+    ImGui::Text("define: _MSVC_LANG=%d", (int)_MSVC_LANG);
+#endif
+#ifdef __MINGW32__
+    ImGui::Text("define: __MINGW32__");
+#endif
+#ifdef __MINGW64__
+    ImGui::Text("define: __MINGW64__");
+#endif
+#ifdef __GNUC__
+    ImGui::Text("define: __GNUC__ = %d", (int)__GNUC__);
+#endif
+#ifdef __clang_version__
+    ImGui::Text("define: __clang_version__ = %s", __clang_version__);
+#endif
+    ImGui::Separator();
+    ImGui::Text("Backend Platform Name: %s", io.BackendPlatformName ? io.BackendPlatformName : "NULL");
+    ImGui::Text("Backend Renderer Name: %s", io.BackendRendererName ? io.BackendRendererName : "NULL");
+#ifdef IMGUI_VULKAN
+    ImGui::Text("Backend GPU: %s", ImGui_ImplVulkan_GetDeviceName().c_str());
+    ImGui::Text("Backend Vulkan API: %s", ImGui_ImplVulkan_GetApiVersion().c_str());
+    ImGui::Text("Backend Vulkan Drv: %s", ImGui_ImplVulkan_GetDrvVersion().c_str());
+    ImGui::Separator();
+#elif defined(IMGUI_OPENGL)
+    ImGui::Text("Gl Loader: %s", ImGui_ImplOpenGL3_GLLoaderName().c_str());
+    ImGui::Text("GL Version: %s", ImGui_ImplOpenGL3_GetVerion().c_str());
+#endif
+#ifdef IMGUI_VULKAN_SHADER
+    ImGui::Text("Vulkan Shader:");
+    int count = ImVulkan::get_gpu_count();
+    for (int i = 0; i < count; i++)
+    {
+        const ImVulkan::GpuInfo& info = ImVulkan::get_gpu_info(i);
+        ImGui::Text("  %s:", info.device_name());
+        ImGui::Text("    bugs: sbn1=%d bilz=%d copc=%d ihfa=%d si=%d", 
+                    info.bug_storage_buffer_no_l1(), info.bug_buffer_image_load_zero(), info.bug_corrupted_online_pipeline_cache(), info.bug_implicit_fp16_arithmetic(), info.bug_storage_image()); 
+        ImGui::Text("    fp16: p=%d/s=%d/a=%d int8: p=%d/s=%d/a=%d", 
+                    info.support_fp16_packed(), info.support_fp16_storage(), info.support_fp16_arithmetic(), 
+                    info.support_int8_packed(), info.support_int8_storage(), info.support_int8_arithmetic());
+        ImGui::Text("      sg: subgroup=%u basic=%d vote=%d ballot=%d shuffle=%d",
+                    info.subgroup_size(), info.support_subgroup_basic(), info.support_subgroup_vote(),
+                    info.support_subgroup_ballot(), info.support_subgroup_shuffle());
+    }
+    ImGui::Separator();
+#endif
+    ImGui::Text("Flash Timer: %.1f", io.ConfigMemoryCompactTimer >= 0.0f ? io.ConfigMemoryCompactTimer : 0);
+    ImGui::Separator();
+    ImGui::Text("Fonts: %d fonts", io.Fonts->Fonts.Size);
+    ImGui::Text("Texure Size: %d x %d", io.Fonts->TexWidth, io.Fonts->TexHeight); 
+    ImGui::Text("Display Size: %.2f x %.2f", io.DisplaySize.x, io.DisplaySize.y);
+    ImGui::Text("Display Framebuffer Scale: %.2f %.2f", io.DisplayFramebufferScale.x, io.DisplayFramebufferScale.y);
+}
 // Image Load
 static std::vector<ImTexture> g_Textures;
 

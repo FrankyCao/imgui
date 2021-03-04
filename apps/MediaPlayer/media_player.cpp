@@ -59,6 +59,50 @@ static inline int compute_mod(int a, int b)
     return a < 0 ? a%b + b : a%b;
 }
 
+static void VideoRendering()
+{
+    auto& io = ImGui::GetIO();
+    // Video texture display
+    if (is)
+    {
+        ImGuiWindowFlags flags = 
+                ImGuiWindowFlags_NoFocusOnAppearing |
+                ImGuiWindowFlags_NoBackground |
+                ImGuiWindowFlags_NoMove | 
+                //ImGuiWindowFlags_NoBringToFrontOnFocus |
+                ImGuiWindowFlags_NoDecoration |
+                ImGuiWindowFlags_NoSavedSettings |
+                ImGuiWindowFlags_NoInputs |
+                ImGuiWindowFlags_None
+        ;
+        ImVec2 window_size = io.DisplaySize;
+        bool bViewisLandscape = window_size.x >= window_size.y ? true : false;
+        bool bRenderisLandscape = is->video_width >= is->video_height ? true : false;
+        bool bNeedChangeScreenInfo = bViewisLandscape ^ bRenderisLandscape;
+        float adj_w = bNeedChangeScreenInfo ? window_size.y : window_size.x;
+        float adj_h = bNeedChangeScreenInfo ? window_size.x : window_size.y;
+        float adj_x = adj_h * is->video_aspect_ratio;
+        float adj_y = adj_h;
+        if (adj_x > adj_w) { adj_y *= adj_w / adj_x; adj_x = adj_w; }
+        float offset_x = (window_size.x - adj_x) / 2.0;
+        float offset_y = (window_size.y - adj_y) / 2.0;
+        ImGui::SetNextWindowSize(ImVec2(adj_x, adj_y), ImGuiCond_Always);
+        ImGui::SetNextWindowPos(ImVec2(offset_x, offset_y), ImGuiCond_Always);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
+        if (is->video_texture && ImGui::Begin("video", nullptr, flags)) 
+        {
+            ImVec2 content_region = ImGui::GetContentRegionAvail();
+            ImGui::PushStyleColor(ImGuiCol_WindowBg, 0);
+            ImGui::Image((void *)(intptr_t)is->video_texture, content_region,
+                        ImVec2(0.0f, 0.0f), ImVec2(is->video_clip, 1.0f));
+            ImGui::PopStyleColor(1);
+            ImGui::End();
+        }
+        ImGui::PopStyleVar(2);
+    }
+}
+
 // Application Framework Functions
 const char* Application_GetName(void* handle)
 {
@@ -93,106 +137,6 @@ bool Application_Frame(void* handle)
 {
     bool done = false;
     auto& io = ImGui::GetIO();
-    if (ImGui::BeginMainMenuBar())
-    {
-        if (ImGui::BeginMenu("文件")) 
-        {
-            if (ImGui::Button("关于..."))
-                ImGui::OpenPopup("关于");
-            ImVec2 center(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f);
-            ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-            if (ImGui::BeginPopupModal("关于", NULL, ImGuiWindowFlags_AlwaysAutoResize))
-            {
-                ImGui::Text("ImGUI Media Player\n\n");
-                ImGui::Separator();
-                ImGui::Text("Dicky 2021\n\n");
-                ImGui::Separator();
-                int i = ImGui::GetCurrentWindow()->ContentSize.x;
-                ImGui::Indent((i - 40.0f) * 0.5f);
-                if (ImGui::Button("OK", ImVec2(40, 0))) { ImGui::CloseCurrentPopup(); }
-                ImGui::SetItemDefaultFocus();
-                ImGui::EndPopup();
-            }
-            ImGui::Separator();
-            if (ImGui::Button("打开文件"))
-            {
-                const char *filters = "视频文件(*.mp4 *.mov *.mkv *.avi){.mp4,.mov,.mkv,.avi,.MP4,.MOV,.MKV,.AVI},.*";
-				filedialog.OpenModal("ChooseFileDlgKey",
-                                    ICON_IGFD_FOLDER_OPEN " 打开视频文件", filters, ".");
-            }
-            ImGui::Separator();
-            if (ImGui::Button("退出")) 
-            {
-                if (is) stream_close(is);
-                is = nullptr;
-                done = true;
-            }
-
-            ImGui::EndMenu();
-        }
-        ImGui::EndMainMenuBar();
-    }
-    ImVec2 maxSize = ImVec2((float)io.DisplaySize.x, (float)io.DisplaySize.y);
-	ImVec2 minSize = maxSize * 0.5f;
-    if (filedialog.Display("ChooseFileDlgKey", ImGuiWindowFlags_NoCollapse, minSize, maxSize))
-	{
-        if (filedialog.IsOk())
-		{
-            std::string filePathName = filedialog.GetFilePathName();
-            if (is != nullptr)
-            {
-                if (is) stream_close(is);
-                is = nullptr;
-            }
-            is = stream_open(filePathName.c_str(), nullptr);
-            if (is == nullptr)
-            {
-                ImGui::OpenPopup("Open Error?");
-            }
-        }
-        filedialog.Close();
-    }
-
-    // Video texture display
-    if (is && is->video_texture)
-    {
-        ImGuiWindowFlags flags = 
-                ImGuiWindowFlags_NoFocusOnAppearing |
-                ImGuiWindowFlags_NoBackground |
-                ImGuiWindowFlags_NoMove | 
-                //ImGuiWindowFlags_NoBringToFrontOnFocus |
-                ImGuiWindowFlags_NoDecoration |
-                ImGuiWindowFlags_NoSavedSettings |
-                ImGuiWindowFlags_NoInputs |
-                ImGuiWindowFlags_None
-        ;
-        ImVec2 window_size = io.DisplaySize;
-        bool bViewisLandscape = window_size.x >= window_size.y ? true : false;
-        bool bRenderisLandscape = is->video_width >= is->video_height ? true : false;
-        bool bNeedChangeScreenInfo = bViewisLandscape ^ bRenderisLandscape;
-        float adj_w = bNeedChangeScreenInfo ? window_size.y : window_size.x;
-        float adj_h = bNeedChangeScreenInfo ? window_size.x : window_size.y;
-        float adj_x = adj_h * is->video_aspect_ratio;
-        float adj_y = adj_h;
-        if (adj_x > adj_w) { adj_y *= adj_w / adj_x; adj_x = adj_w; }
-        float offset_x = (window_size.x - adj_x) / 2.0;
-        float offset_y = (window_size.y - adj_y) / 2.0;
-        ImGui::SetNextWindowSize(ImVec2(adj_x, adj_y), ImGuiCond_Always);
-        ImGui::SetNextWindowPos(ImVec2(offset_x, offset_y), ImGuiCond_Always);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
-        if (ImGui::Begin("video", nullptr, flags)) 
-        {
-            ImVec2 content_region = ImGui::GetContentRegionAvail();
-            ImGui::PushStyleColor(ImGuiCol_WindowBg, 0);
-            ImGui::Image((void *)(intptr_t)is->video_texture, content_region,
-                        ImVec2(0.0f, 0.0f), ImVec2(is->video_clip, 1.0f));
-            ImGui::PopStyleColor(1);
-            ImGui::End();
-        }
-        ImGui::PopStyleVar(2);
-    }
-
     // Show PlayControl panel
     ImVec2 center(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.9f);
     ImVec2 panel_size(io.DisplaySize.x - 20.0, show_status ? 140 : 120);
@@ -202,31 +146,77 @@ bool Application_Frame(void* handle)
     if (ImGui::Begin("Control", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoResize))
     {
         int i = ImGui::FindWindowByName("Control")->Size.x;
-        // add button
-        ImGui::Indent((i - 32.0f) * 0.5f);
+        ImGui::Indent((i - 32.0f) * 0.4f);
         ImVec2 size = ImVec2(32.0f, 32.0f); // Size of the image we want to make visible
+        ImFont* font = ImGui::GetFont();
+        float org_scale = font->Scale;
+        // add open button
+        ImGui::SetWindowFontScale(org_scale * 1.2);
+        if (ImGui::Button(ICON_IGFD_FOLDER_OPEN, size))
+        {
+            //ImGui::ShowTooltipOnHover("Open Media File.");
+            const char *filters = "视频文件(*.mp4 *.mov *.mkv *.avi){.mp4,.mov,.mkv,.avi,.MP4,.MOV,.MKV,.AVI},.*";
+			filedialog.OpenModal("ChooseFileDlgKey", ICON_IGFD_FOLDER_OPEN " 打开视频文件", filters, ".");
+        }
+        ImGui::ShowTooltipOnHover("Open Media File.");
+        // add play button
+        ImGui::SameLine();
+        ImGui::SetWindowFontScale(org_scale * 1.5);
         if (ImGui::Button(!is ? ICON_FAD_PLAY : is->paused ? ICON_FAD_PLAY : ICON_FAD_PAUSE, size))
         {
             if (is) toggle_pause(is);
         }
+        ImGui::ShowTooltipOnHover("Toggle Play/Pause.");
+        // add mute button
         ImGui::SameLine();
         if (ImGui::Button(!is ? ICON_FA5_VOLUME_UP : is->muted ? ICON_FA5_VOLUME_MUTE : ICON_FA5_VOLUME_UP, size))
         {
             if (is) toggle_mute(is);
         }
+        ImGui::ShowTooltipOnHover("Toggle Audio Mute.");
+        // add info button
         ImGui::SameLine();
-        if (ImGui::Button(ICON_FK_TAG , size))
+        if (ImGui::Button(ICON_FK_INDENT, size))
         {
             if (is) show_info = !show_info;
         }
+        ImGui::ShowTooltipOnHover("Media Info.");
+        // add waveform button
         ImGui::SameLine();
         if (ImGui::Button(ICON_FAD_WAVEFORM , size))
         {
             if (is) show_wavefrom = !show_wavefrom;
         }
+        ImGui::ShowTooltipOnHover("Audio Waveform.");
+        // add about button
+        ImGui::SameLine();
+        if (ImGui::Button(ICON_FK_TAG, size))
+        {
+            ImGui::OpenPopup("##about", ImGuiPopupFlags_AnyPopup);
+        }
+        ImGui::ShowTooltipOnHover("Show About.");
+        ImGui::SetWindowFontScale(org_scale);
+        ImVec2 center(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.4f);
+        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+        if (ImGui::BeginPopupModal("##about", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::Text("ImGUI Media Player");
+            ImGui::Separator();
+            ImGui::Text("Dicky 2021");
+            ImGui::Separator();
+#ifdef IMGUI_ADDONS
+            ImGui::ShowImGuiInfo();
+            ImGui::Separator();
+#endif
+            int i = ImGui::GetCurrentWindow()->ContentSize.x;
+            ImGui::Indent((i - 40.0f) * 0.5f);
+            if (ImGui::Button("OK", ImVec2(40, 0))) { ImGui::CloseCurrentPopup(); }
+            ImGui::SetItemDefaultFocus();
+            ImGui::EndPopup();
+        }
         // add button end
 
-        ImGui::Unindent((i - 32.0f) * 0.5f);
+        ImGui::Unindent((i - 32.0f) * 0.4f);
         ImGui::Separator();
         // add audio meter bar
         static int left_stack = 0;
@@ -353,8 +343,28 @@ bool Application_Frame(void* handle)
     }
 
     // Message Boxes
-    // Always center this window when appearing
     ImVec2 modal_center(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f);
+    ImVec2 maxSize = ImVec2((float)io.DisplaySize.x, (float)io.DisplaySize.y);
+	ImVec2 minSize = maxSize * 0.5f;
+    if (filedialog.Display("ChooseFileDlgKey", ImGuiWindowFlags_NoCollapse, minSize, maxSize))
+	{
+        if (filedialog.IsOk())
+		{
+            std::string filePathName = filedialog.GetFilePathName();
+            if (is != nullptr)
+            {
+                if (is) stream_close(is);
+                is = nullptr;
+            }
+            is = stream_open(filePathName.c_str(), nullptr);
+            if (is == nullptr)
+            {
+                ImGui::OpenPopup("Open Error?");
+            }
+        }
+        filedialog.Close();
+    }
+
     ImGui::SetNextWindowPos(modal_center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
     if (ImGui::BeginPopupModal("Open Error?", NULL, ImGuiWindowFlags_AlwaysAutoResize))
     {
@@ -555,6 +565,8 @@ bool Application_Frame(void* handle)
     {
         ImGui::BringWindowToDisplayFront(control_windows);
     }
+
+    VideoRendering(); // must put it after open/reopen in case media re-open rendering crush
 
     return done;
 }

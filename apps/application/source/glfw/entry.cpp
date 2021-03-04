@@ -94,6 +94,7 @@ int main(int, char**)
     int window_width = 1440;
     int window_height = 960;
     float window_scale = 1;
+    ImVec2 display_scale = ImVec2(1.0, 1.0);
 
     std::string title = Application_GetName(user_handle);
     title += " GLFW";
@@ -123,12 +124,21 @@ int main(int, char**)
         fprintf(stderr, "Failed to initialize OpenGL loader!\n");
         return 1;
     }
-
+#if !defined(__APPLE__)
+    float x_scale, y_scale;
+    glfwGetWindowContentScale(window, &x_scale, &y_scale);
+    if (x_scale != 1.0 || y_scale != 1.0)
+    {
+        window_scale = x_scale == 1.0 ? x_scale : y_scale;
+        display_scale = ImVec2(x_scale, y_scale);
+    }
+#endif
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.FontGlobalScale = window_scale;
+    io.DisplayFramebufferScale = display_scale;
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();

@@ -916,6 +916,7 @@ endif(IMGUI_ADDONS)
 
 # Application Framework
 set(IMGUI_APP_SRC)
+
 if (IMGUI_APPS)
     if(VULKAN_FOUND AND IMGUI_VULKAN AND SDL2_FOUND AND IMGUI_SDL2)
         add_definitions(-DIMGUI_APPLICATION_VULKAN_SDL)
@@ -961,6 +962,9 @@ if (IMGUI_APPS)
             ${IMGUI_APP_SRC}
             apps/application/source/glut/entry.cpp
         )
+    else()
+        message(WARNING "No Application Backend Found! IMGUI_APPS will be turned off.")
+        set(IMGUI_APPS OFF)
     endif()
     set(IMGUI_INCS
         ${IMGUI_INCS}
@@ -1150,7 +1154,7 @@ if (APPLE AND IMGUI_MATAL)
         endif()
     endif(IMGUI_APPLE_APP)
 
-    if (GLFW_FOUND)
+    if (IMGUI_GLFW AND GLFW_FOUND)
         add_executable(
             example_glfw_metal
             test/example_glfw_metal.mm
@@ -1168,7 +1172,7 @@ if (APPLE AND IMGUI_MATAL)
             "-framework Cocoa"
             "-framework QuartzCore"
         )
-    endif(GLFW_FOUND)
+    endif(IMGUI_GLFW AND GLFW_FOUND)
 endif(APPLE AND IMGUI_MATAL)
 
 if(WIN32)

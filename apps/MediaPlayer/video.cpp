@@ -151,7 +151,9 @@ static void video_image_display(VideoState *is)
     {
         is->yuv2rgb->YUV2RGBA(im_Y, im_U, im_V, is->vkimage, color_format, color_space, color_range, is->video_depth, video_shift);
     }
+    Application_lock();
     if (!is->video_texture) is->video_texture = ImGui::ImCreateTexture(is->vkimage);
+    Application_unlock();
 #else
     int data_shift = is->video_depth > 8 ? 1 : 0;
     int out_w = tmp_frame->linesize[0] >> data_shift;
@@ -192,10 +194,10 @@ static void video_image_display(VideoState *is)
             rgb_picture.data,
             rgb_picture.linesize
         );
+        Application_lock();
 #if defined(IMGUI_APPLICATION_GLFW) || defined(IMGUI_APPLICATION_SDL)
         if (is->current_window)
         {
-            Application_lock();
 #if defined(IMGUI_APPLICATION_GLFW)
             glfwMakeContextCurrent(is->current_window);
 #else
@@ -204,9 +206,9 @@ static void video_image_display(VideoState *is)
 #endif
         ImGui::ImGenerateOrUpdateTexture(is->video_texture, out_w, out_h, 4, rgb_picture.data[0]);
 #if defined(IMGUI_APPLICATION_GLFW) || defined(IMGUI_APPLICATION_SDL)
-            Application_unlock();
         }
 #endif
+        Application_unlock();
         av_frame_unref(&rgb_picture);
     }
 #endif

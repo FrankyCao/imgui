@@ -1454,7 +1454,7 @@ int create_gpu_instance()
                 gpu_info.transfer_queue_family_index, gpu_info.transfer_queue_count);
 
         fprintf(stderr, "[%u %s]  bugsbn1=%d  bugbilz=%d  bugcopc=%d  bugihfa=%d bugsi=%d\n", i, physicalDeviceProperties.deviceName,
-                  gpu_info.bug_storage_buffer_no_l1, gpu_info.bug_buffer_image_load_zero, gpu_info.bug_corrupted_online_pipeline_cache, gpu_info.bug_implicit_fp16_arithmetic, gpu_info.bug_storage_image);
+                gpu_info.bug_storage_buffer_no_l1, gpu_info.bug_buffer_image_load_zero, gpu_info.bug_corrupted_online_pipeline_cache, gpu_info.bug_implicit_fp16_arithmetic, gpu_info.bug_storage_image);
 
         fprintf(stderr, "[%u %s]  fp16-p/s/a=%d/%d/%d  int8-p/s/a=%d/%d/%d\n", i, physicalDeviceProperties.deviceName,
                 gpu_info.support_fp16_packed, gpu_info.support_fp16_storage, gpu_info.support_fp16_arithmetic,

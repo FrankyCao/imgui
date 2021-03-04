@@ -1789,3 +1789,37 @@ VkDescriptorSet ImGui_ImplVulkan_AddTexture(VkSampler sampler, VkImageView image
 
     return descriptor_set;
 }
+
+std::string ImGui_ImplVulkan_GetDeviceName()
+{
+    ImGui_ImplVulkan_InitInfo* v = &g_VulkanInitInfo;
+    if (!v || !v->PhysicalDevice)
+        return "Unknown";
+    VkPhysicalDeviceProperties physicalDeviceProperties;
+    vkGetPhysicalDeviceProperties(v->PhysicalDevice, &physicalDeviceProperties);
+    return std::string(physicalDeviceProperties.deviceName);
+}
+
+std::string ImGui_ImplVulkan_GetApiVersion()
+{
+    ImGui_ImplVulkan_InitInfo* v = &g_VulkanInitInfo;
+    if (!v || !v->PhysicalDevice)
+        return "Unknown";
+    VkPhysicalDeviceProperties physicalDeviceProperties;
+    vkGetPhysicalDeviceProperties(v->PhysicalDevice, &physicalDeviceProperties);
+    return  std::to_string(VK_VERSION_MAJOR(physicalDeviceProperties.apiVersion)) + "." +
+            std::to_string(VK_VERSION_MINOR(physicalDeviceProperties.apiVersion)) + "." +
+            std::to_string(VK_VERSION_PATCH(physicalDeviceProperties.apiVersion));
+}
+
+std::string ImGui_ImplVulkan_GetDrvVersion()
+{
+    ImGui_ImplVulkan_InitInfo* v = &g_VulkanInitInfo;
+    if (!v || !v->PhysicalDevice)
+        return "Unknown";
+    VkPhysicalDeviceProperties physicalDeviceProperties;
+    vkGetPhysicalDeviceProperties(v->PhysicalDevice, &physicalDeviceProperties);
+    return  std::to_string(VK_VERSION_MAJOR(physicalDeviceProperties.driverVersion)) + "." +
+            std::to_string(VK_VERSION_MINOR(physicalDeviceProperties.driverVersion)) + "." +
+            std::to_string(VK_VERSION_PATCH(physicalDeviceProperties.driverVersion));
+}

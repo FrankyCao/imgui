@@ -718,3 +718,32 @@ void    ImGui_ImplOpenGL3_DestroyDeviceObjects()
 
     ImGui_ImplOpenGL3_DestroyFontsTexture();
 }
+
+std::string ImGui_ImplOpenGL3_GetVerion()
+{
+    return std::to_string(g_GlVersion);
+}
+
+std::string ImGui_ImplOpenGL3_GLLoaderName()
+{
+    const char* gl_loader = "Unknown";
+    IM_UNUSED(gl_loader);
+#if defined(IMGUI_IMPL_OPENGL_LOADER_GL3W)
+    gl_loader = "GL3W";
+#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
+    gl_loader = "GLEW";
+#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLAD)
+    gl_loader = "GLAD";
+#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLAD2)
+    gl_loader = "GLAD2";
+#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLBINDING2)
+    gl_loader = "glbinding2";
+#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLBINDING3)
+    gl_loader = "glbinding3";
+#elif defined(IMGUI_IMPL_OPENGL_LOADER_CUSTOM)
+    gl_loader = "custom";
+#else
+    gl_loader = "none";
+#endif
+    return std::string(gl_loader);
+}

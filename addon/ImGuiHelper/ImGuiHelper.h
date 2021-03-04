@@ -9,6 +9,8 @@
 #endif
 
 namespace ImGui {
+// ImGui Info
+IMGUI_API void ShowImGuiInfo();
 // Image load
 IMGUI_API void ImGenerateOrUpdateTexture(ImTextureID& imtexid,int width,int height,int channels,const unsigned char* pixels,bool useMipmapsIfPossible,bool wraps,bool wrapt,bool minFilterNearest = false,bool magFilterNearest=false);
 IMGUI_API inline void ImGenerateOrUpdateTexture(ImTextureID& imtexid,int width,int height,int channels,const unsigned char* pixels) { ImGenerateOrUpdateTexture(imtexid, width, height, channels, pixels,false,false,false,false,false); };

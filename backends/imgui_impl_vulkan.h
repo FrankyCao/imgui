@@ -22,7 +22,7 @@
 
 #pragma once
 #include "imgui.h"      // IMGUI_IMPL_API
-
+#include <string>
 // [Configuration] in order to use a custom Vulkan function loader:
 // (1) You'll need to disable default Vulkan function prototypes.
 //     We provide a '#define IMGUI_IMPL_VULKAN_NO_PROTOTYPES' convenience configuration flag.
@@ -161,6 +161,9 @@ typedef struct ImTextureVK
 
 } *ImTextureVk;
 
+IMGUI_IMPL_API std::string  ImGui_ImplVulkan_GetDeviceName();
+IMGUI_IMPL_API std::string  ImGui_ImplVulkan_GetApiVersion();
+IMGUI_IMPL_API std::string  ImGui_ImplVulkan_GetDrvVersion();
 IMGUI_IMPL_API ImTextureID  ImGui_ImplVulkan_CreateTexture(const void * pixels, int width, int height);
 IMGUI_IMPL_API void         ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, const void * pixels, int width, int height);
 IMGUI_IMPL_API void         ImGui_ImplVulkan_DestroyTexture(ImTextureVk * texture);

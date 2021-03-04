@@ -29,16 +29,21 @@ int main(int, char**)
     int window_width = 1440;
     int window_height = 960;
     float window_scale = 1;
+    ImVec2 display_scale = ImVec2(1.0, 1.0);
+
     std::string title = Application_GetName(user_handle);
     title += " Vulkan GLFW";
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     GLFWwindow* window = glfwCreateWindow(window_width, window_height, title.c_str(), NULL, NULL);
+#if !defined(__APPLE__)
     float x_scale, y_scale;
     glfwGetWindowContentScale(window, &x_scale, &y_scale);
     if (x_scale != 1.0 || y_scale != 1.0)
     {
         window_scale = x_scale == 1.0 ? x_scale : y_scale;
+        display_scale = ImVec2(x_scale, y_scale);
     }
+#endif
     // Setup Vulkan
     if (!glfwVulkanSupported())
     {
@@ -66,6 +71,7 @@ int main(int, char**)
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.FontGlobalScale = window_scale;
+    io.DisplayFramebufferScale = display_scale;
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
 
@@ -118,8 +124,6 @@ int main(int, char**)
 
     Application_Initialize(&user_handle);
 
-    ImVec4 clear_color = ImVec4(0.f, 0.f, 0.f, 1.f);
-
     // Main loop
     bool done = false;
     while (!glfwWindowShouldClose(window) && !done)
@@ -148,17 +152,7 @@ int main(int, char**)
 
         // Rendering
         ImGui::Render();
-        ImDrawData* draw_data = ImGui::GetDrawData();
-        const bool is_minimized = (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f);
-        if (!is_minimized)
-        {
-            wd->ClearValue.color.float32[0] = clear_color.x * clear_color.w;
-            wd->ClearValue.color.float32[1] = clear_color.y * clear_color.w;
-            wd->ClearValue.color.float32[2] = clear_color.z * clear_color.w;
-            wd->ClearValue.color.float32[3] = clear_color.w;
-            FrameRender(wd, draw_data);
-            FramePresent(wd);
-        }
+        FrameRendering(wd);
     }
 
     Application_Finalize(&user_handle);
