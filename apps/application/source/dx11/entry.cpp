@@ -206,7 +206,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
         if (done)
             PostQuitMessage(0);
 
-        //ImGui::End();
+        ImGui::EndFrame();
 
         // Rendering
         ImGui::Render();

@@ -930,6 +930,12 @@ if (IMGUI_APPS)
             ${IMGUI_APP_SRC}
             apps/application/source/vulkan/entry_glfw.cpp
         )
+    elseif(VULKAN_FOUND AND IMGUI_VULKAN AND WIN32)
+        add_definitions(-DIMGUI_APPLICATION_VULKAN_WIN32)
+        set(IMGUI_APP_SRC
+            ${IMGUI_APP_SRC}
+            apps/application/source/vulkan/entry_win32.cpp
+        )
     elseif (WIN32 AND (IMGUI_DX11 OR IMGUI_DX9))
         if (IMGUI_DX11)
             add_definitions(-DIMGUI_APPLICATION_DX11)

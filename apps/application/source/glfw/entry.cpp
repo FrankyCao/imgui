@@ -175,6 +175,7 @@ int main(int, char**)
 
         ImGui::End();
 
+        ImGui::EndFrame();
         // Rendering
         ImGui::Render();
         Application_lock();

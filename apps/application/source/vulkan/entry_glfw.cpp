@@ -150,6 +150,7 @@ int main(int, char**)
 
         done = Application_Frame(user_handle);
 
+        ImGui::EndFrame();
         // Rendering
         ImGui::Render();
         FrameRendering(wd);
