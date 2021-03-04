@@ -35,7 +35,7 @@ int main(int, char**)
     title += " Vulkan GLFW";
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     GLFWwindow* window = glfwCreateWindow(window_width, window_height, title.c_str(), NULL, NULL);
-#if !defined(__APPLE__)
+#if !defined(__APPLE__) && GLFW_VERSION_MAJOR >= 3 && GLFW_VERSION_MINOR >=3
     float x_scale, y_scale;
     glfwGetWindowContentScale(window, &x_scale, &y_scale);
     if (x_scale != 1.0 || y_scale != 1.0)
