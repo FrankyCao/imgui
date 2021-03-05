@@ -292,6 +292,7 @@ void ImGenerateOrUpdateTexture(ImTextureID& imtexid,int width,int height,int cha
     }
     texid->UnlockRect(0);
 #elif   defined(IMGUI_OPENGL)
+    glEnable(GL_TEXTURE_2D);
     GLint last_texture = 0;
     glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture);
     GLuint& texid = reinterpret_cast<GLuint&>(imtexid);

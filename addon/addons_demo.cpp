@@ -948,7 +948,7 @@ static std::string print_result(float gflops)
 
 void PrepareVulkanDemo()
 {
-    g_vkdev = ImVulkan::get_gpu_device(0);
+    g_vkdev = ImVulkan::get_gpu_device(-1); // auto get gpu
     g_blob_allocator = g_vkdev->acquire_blob_allocator();
     g_staging_allocator = g_vkdev->acquire_staging_allocator();
     g_opt.blob_vkallocator = g_blob_allocator;
