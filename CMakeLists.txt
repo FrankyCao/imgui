@@ -1038,7 +1038,7 @@ if (IMGUI_APPS)
     elseif(BACKEND_RENDERING MATCHES OPENGL2)
         add_definitions(-DIMGUI_APPLICATION_RENDERING_GL2)
         if(SDL2_FOUND AND IMGUI_SDL2)
-            add_definitions(-DIMGUI_APPLICATION_PLATFORM_SDL)
+            add_definitions(-DIMGUI_APPLICATION_PLATFORM_SDL2)
             message(STATUS "    [ImGui application platform with SDL2]")
             set(IMGUI_APP_SRC
                 ${IMGUI_APP_SRC}

@@ -332,7 +332,7 @@ typedef struct VideoState {
 #ifdef IMGUI_APPLICATION_PLATFORM_GLFW
     GLFWwindow* current_window = nullptr;
 #endif
-#ifdef IMGUI_APPLICATION_PLATFORM_SDL
+#ifdef IMGUI_APPLICATION_PLATFORM_SDL2
     SDL_Window* current_window = nullptr;
     SDL_GLContext current_glcontext = nullptr;
 #endif

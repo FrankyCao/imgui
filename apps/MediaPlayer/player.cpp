@@ -372,7 +372,7 @@ void stream_close(VideoState *is)
 #endif
     if (is->video_texture) { ImGui::ImDestroyTexture(is->video_texture); is->video_texture = nullptr; }
     av_free(is);
-#if !defined(IMGUI_APPLICATION_PLATFORM_SDL)
+#if !defined(IMGUI_APPLICATION_PLATFORM_SDL2)
     SDL_Quit();
 #endif
 }

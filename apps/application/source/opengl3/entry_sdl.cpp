@@ -99,6 +99,7 @@ int main(int, char**)
         fprintf(stderr, "Failed to Create Window: %s\n", SDL_GetError());
         return -1;
     }
+    SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
     SDL_GLContext gl_context = SDL_GL_CreateContext(window);
     SDL_GL_MakeCurrent(window, gl_context);
     SDL_GL_SetSwapInterval(1); // Enable vsync
@@ -141,7 +142,7 @@ int main(int, char**)
     ImGui_ImplOpenGL3_Init(glsl_version);
 
     ImVec4 clear_color = ImVec4(0.f, 0.f, 0.f, 1.f);
-
+    user_handle = gl_context;
     Application_Initialize(&user_handle);
 
     // Main loop
