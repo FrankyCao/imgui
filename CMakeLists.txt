@@ -90,9 +90,7 @@ _OPTION(IMGUI_ADDONS             "build addons base on imgui" ON)
 _OPTION(IMGUI_APPS               "build apps base on imgui" ON)
 _OPTION(IMGUI_APPLE_APP          "build apple app base on imgui(Apple only)" OFF IF APPLE)
 
-if (IMGUI_GL2 OR IMGUI_GL3)
-    find_package(OpenGL)
-endif(IMGUI_GL2 OR IMGUI_GL3)
+find_package(OpenGL)
 
 if (IMGUI_VULKAN)
     find_package(Vulkan)
@@ -140,6 +138,9 @@ if(PKG_CONFIG_FOUND)
     endif()
     pkg_search_module(SDL2 REQUIRED sdl2)
     pkg_search_module(SDL2_IMAGE REQUIRED SDL2_image>=2.0.0)
+    if(SDL2_FOUND)
+        message("sdl2 found")
+    endif()
     pkg_check_modules(FFMPEG IMPORTED_TARGET
         libavcodec
         libavformat
@@ -160,6 +161,8 @@ set(IMGUI_INC_DIRS
 set(LINK_LIBS)
 
 if(OPENGL_FOUND)
+    add_definitions(-DIMGUI_OPENGL)
+    message(STATUS "    [ImGui with OpenGL support]")
     set(IMGUI_INC_DIRS
         ${IMGUI_INC_DIRS}
         ${OPENGL_INCLUDE_DIR}
@@ -224,33 +227,8 @@ if(WIN32)
     )
 endif(WIN32)
 
-# OpenGL
-if(OPENGL_FOUND)
-    add_definitions(-DIMGUI_OPENGL)
-    if(IMGUI_GL3)
-        add_definitions(-DIMGUI_RENDERING_OPENGL3)
-        set(IMGUI_SRC
-            ${IMGUI_SRC}
-            backends/imgui_impl_opengl3.cpp
-        )
-        set(IMGUI_INCS
-            ${IMGUI_INCS}
-            backends/imgui_impl_opengl3.h
-        )
-    else(IMGUI_GL3)
-        add_definitions(-DIMGUI_RENDERING_OPENGL2)
-        set(IMGUI_SRC
-            ${IMGUI_SRC}
-            backends/imgui_impl_opengl2.cpp
-        )
-        set(IMGUI_INCS
-            ${IMGUI_INCS}
-            backends/imgui_impl_opengl2.h
-        )
-    endif()
-endif(OPENGL_FOUND)
-
 if(FREETYPE_FOUND)
+    message(STATUS "    [ImGui with Freetype support]")
     set(IMGUI_SRC
         ${IMGUI_SRC}
         misc/freetype/imgui_freetype.cpp
@@ -261,34 +239,9 @@ if(FREETYPE_FOUND)
     )
 endif(FREETYPE_FOUND)
 
-# SDL2 support
-if (SDL2_FOUND)
-    add_definitions(-DIMGUI_SDL2)
-    set(IMGUI_INC_DIRS
-        ${IMGUI_INC_DIRS}
-        ${SDL2_INCLUDE_DIRS}
-    )
-    set(LINK_LIBS
-        ${LINK_LIBS}
-        ${SDL2_STATIC_LDFLAGS}
-        ${SDL2_IMAGE_STATIC_LDFLAGS}
-    )
-endif(SDL2_FOUND)
-
-if (IMGUI_SDL2 AND SDL2_FOUND)
-    add_definitions(-DIMGUI_PLATFORM_SDL2)
-    set(IMGUI_SRC
-        ${IMGUI_SRC}
-        backends/imgui_impl_sdl.cpp
-    )
-    set(IMGUI_INCS
-        ${IMGUI_INCS}
-        backends/imgui_impl_sdl.h
-    )
-endif(IMGUI_SDL2 AND SDL2_FOUND)
-
 # GLEW Loader support
 if (IMGUI_GLEW AND GLEW_FOUND)
+    message(STATUS "    [ImGui with GLEW support]")
     add_definitions(-DIMGUI_GLEW)
     add_definitions(-DIMGUI_IMPL_OPENGL_LOADER_GLEW)
     set(IMGUI_INC_DIRS
@@ -301,8 +254,187 @@ if (IMGUI_GLEW AND GLEW_FOUND)
     )
 endif(IMGUI_GLEW AND GLEW_FOUND)
 
+# SDL2 support
+if(SDL2_FOUND)
+    message(STATUS "    [ImGui with SDL2 support]")
+    add_definitions(-DIMGUI_SDL2)
+    set(IMGUI_INC_DIRS
+        ${IMGUI_INC_DIRS}
+        ${SDL2_INCLUDE_DIRS}
+    )
+    set(LINK_LIBS
+        ${LINK_LIBS}
+        ${SDL2_STATIC_LDFLAGS}
+        ${SDL2_IMAGE_STATIC_LDFLAGS}
+    )
+endif(SDL2_FOUND)
+
+# Find Backend Rendering
+set(BACKEND_RENDERING NONE)
+
+# Vulkan support
+if (IMGUI_VULKAN AND VULKAN_FOUND)
+    message(STATUS "    [ImGui backend rendering with Vulkan]")
+    add_definitions(-DIMGUI_RENDERING_VULKAN)
+    set(BACKEND_RENDERING VULKAN)
+    set(IMGUI_INC_DIRS
+        ${IMGUI_INC_DIRS}
+        ${Vulkan_INCLUDE_DIR}
+    )
+    set(LINK_LIBS
+        ${LINK_LIBS}
+        ${Vulkan_LIBRARY}
+    )
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
+        backends/imgui_impl_vulkan.cpp
+    )
+    set(IMGUI_INCS
+        ${IMGUI_INCS}
+        backends/imgui_impl_vulkan.h
+    )
+endif(IMGUI_VULKAN AND VULKAN_FOUND)
+
+# OpenGL
+if(OPENGL_FOUND AND BACKEND_RENDERING MATCHES NONE)
+    if(IMGUI_GL3)
+        message(STATUS "    [ImGui backend rendering with OpenGL3]")
+        add_definitions(-DIMGUI_RENDERING_OPENGL3)
+        set(BACKEND_RENDERING OPENGL3)
+        set(IMGUI_SRC
+            ${IMGUI_SRC}
+            backends/imgui_impl_opengl3.cpp
+        )
+        set(IMGUI_INCS
+            ${IMGUI_INCS}
+            backends/imgui_impl_opengl3.h
+        )
+    elseif(IMGUI_GL2)
+        message(STATUS "    [ImGui backend rendering with OpenGL2]")
+        add_definitions(-DIMGUI_RENDERING_OPENGL2)
+        set(BACKEND_RENDERING OPENGL2)
+        set(IMGUI_SRC
+            ${IMGUI_SRC}
+            backends/imgui_impl_opengl2.cpp
+        )
+        set(IMGUI_INCS
+            ${IMGUI_INCS}
+            backends/imgui_impl_opengl2.h
+        )
+    endif()
+endif()
+
+# DirectX support
+if(WIN32 AND BACKEND_RENDERING MATCHES NONE)
+    if(IMGUI_DX12)
+        message(STATUS "    [ImGui backend rendering with DX12]")
+        add_definitions(-DIMGUI_RENDERING_DX12)
+        set(BACKEND_RENDERING DX12)
+        set(LINK_LIBS
+            ${LINK_LIBS}
+            d3d12
+        )
+        set(IMGUI_SRC
+            ${IMGUI_SRC}
+            backends/imgui_impl_dx12.cpp
+        )
+        set(IMGUI_INCS
+            ${IMGUI_INCS}
+            backends/imgui_impl_dx12.h
+        )
+    elseif(IMGUI_DX11)
+        message(STATUS "    [ImGui backend rendering with DX11]")
+        add_definitions(-DIMGUI_RENDERING_DX11)
+        set(BACKEND_RENDERING DX11)
+        set(LINK_LIBS
+            ${LINK_LIBS}
+            d3d11
+        )
+        set(IMGUI_SRC
+            ${IMGUI_SRC}
+            backends/imgui_impl_dx11.cpp
+        )
+        set(IMGUI_INCS
+            ${IMGUI_INCS}
+            backends/imgui_impl_dx11.h
+        )
+    elseif(IMGUI_DX10)
+        message(STATUS "    [ImGui backend rendering with DX10]")
+        add_definitions(-DIMGUI_RENDERING_DX10)
+        set(BACKEND_RENDERING DX10)
+        set(LINK_LIBS
+            ${LINK_LIBS}
+            d3d10
+        )
+        set(IMGUI_SRC
+            ${IMGUI_SRC}
+            backends/imgui_impl_dx10.cpp
+        )
+        set(IMGUI_INCS
+            ${IMGUI_INCS}
+            backends/imgui_impl_dx10.h
+        )
+    elseif(IMGUI_DX9)
+        message(STATUS "    [ImGui backend rendering with DX9]")
+        add_definitions(-DIMGUI_RENDERING_DX9)
+        set(BACKEND_RENDERING DX9)
+        set(LINK_LIBS
+            ${LINK_LIBS}
+            d3d9
+        )
+        set(IMGUI_SRC
+            ${IMGUI_SRC}
+            backends/imgui_impl_dx9.cpp
+        )
+        set(IMGUI_INCS
+            ${IMGUI_INCS}
+            backends/imgui_impl_dx9.h
+        )
+    endif(IMGUI_DX12)
+    if(NOT BACKEND_RENDERING MATCHES NONE)
+        set(LINK_LIBS
+            ${LINK_LIBS}
+            d3dcompiler
+            dxgi
+        )
+    endif()
+endif()
+
+# Apple metal support
+if (APPLE AND IMGUI_MATAL AND BACKEND_RENDERING MATCHES NONE)
+    message(STATUS "    [ImGui backend rendering with Matal]")
+    add_definitions(-DIMGUI_RENDERING_MATAL)
+    set(BACKEND_RENDERING MATAL)
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
+        backends/imgui_impl_metal.mm
+        backends/imgui_impl_osx.mm
+    )
+    set(IMGUI_INCS
+        ${IMGUI_INCS}
+        backends/imgui_impl_metal.h
+        backends/imgui_impl_osx.h
+    )
+endif()
+
+# Find Backend platform
+# SDL2 Support 
+if (IMGUI_SDL2 AND SDL2_FOUND)
+    message(STATUS "    [ImGui backend platform with SDL2]")
+    add_definitions(-DIMGUI_PLATFORM_SDL2)
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
+        backends/imgui_impl_sdl.cpp
+    )
+    set(IMGUI_INCS
+        ${IMGUI_INCS}
+        backends/imgui_impl_sdl.h
+    )
+endif(IMGUI_SDL2 AND SDL2_FOUND)
+
 # GLFW support
 if (IMGUI_GLFW AND GLFW_FOUND)
+    message(STATUS "    [ImGui backend platform with GLFW]")
     add_definitions(-DIMGUI_PLATFORM_GLFW)
     set(IMGUI_INC_DIRS
         ${IMGUI_INC_DIRS}
@@ -324,6 +456,7 @@ endif(IMGUI_GLFW AND GLFW_FOUND)
 
 # GLUT support
 if (IMGUI_GLUT AND GLUT_FOUND)
+    message(STATUS "    [ImGui backend platform with GLUT]")
     add_definitions(-DIMGUI_PLATFORM_GLUT)
     set(IMGUI_INC_DIRS
         ${IMGUI_INC_DIRS}
@@ -350,106 +483,10 @@ if (IMGUI_GLUT AND GLUT_FOUND)
     )
 endif(IMGUI_GLUT AND GLUT_FOUND)
 
-# Vilkan support
-if (IMGUI_VULKAN AND VULKAN_FOUND)
-    add_definitions(-DIMGUI_RENDERING_VULKAN)
-    set(IMGUI_INC_DIRS
-        ${IMGUI_INC_DIRS}
-        ${Vulkan_INCLUDE_DIR}
-    )
-    set(LINK_LIBS
-        ${LINK_LIBS}
-        ${Vulkan_LIBRARY}
-    )
-    set(IMGUI_SRC
-        ${IMGUI_SRC}
-        backends/imgui_impl_vulkan.cpp
-    )
-    set(IMGUI_INCS
-        ${IMGUI_INCS}
-        backends/imgui_impl_vulkan.h
-    )
-endif(IMGUI_VULKAN AND VULKAN_FOUND)
-
-# Apple metal support
-if (APPLE AND IMGUI_MATAL)
-    add_definitions(-DIMGUI_RENDERING_MATAL)
-    set(IMGUI_SRC
-        ${IMGUI_SRC}
-        backends/imgui_impl_metal.mm
-        backends/imgui_impl_osx.mm
-    )
-    set(IMGUI_INCS
-        ${IMGUI_INCS}
-        backends/imgui_impl_metal.h
-        backends/imgui_impl_osx.h
-    )
-endif()
-
+# Win32 Support
 if(WIN32)
+    message(STATUS "    [ImGui backend platform with Win32]")
     add_definitions(-DIMGUI_PLATFORM_WIN32)
-    if(IMGUI_DX12)
-        add_definitions(-DIMGUI_RENDERING_DX12)
-        set(LINK_LIBS
-            ${LINK_LIBS}
-            d3d12
-        )
-        set(IMGUI_SRC
-            ${IMGUI_SRC}
-            backends/imgui_impl_dx12.cpp
-        )
-        set(IMGUI_INCS
-            ${IMGUI_INCS}
-            backends/imgui_impl_dx12.h
-        )
-    elseif(IMGUI_DX11)
-        add_definitions(-DIMGUI_RENDERING_DX11)
-        set(LINK_LIBS
-            ${LINK_LIBS}
-            d3d11
-        )
-        set(IMGUI_SRC
-            ${IMGUI_SRC}
-            backends/imgui_impl_dx11.cpp
-        )
-        set(IMGUI_INCS
-            ${IMGUI_INCS}
-            backends/imgui_impl_dx11.h
-        )
-    elseif(IMGUI_DX10)
-        add_definitions(-DIMGUI_RENDERING_DX10)
-        set(LINK_LIBS
-            ${LINK_LIBS}
-            d3d10
-        )
-        set(IMGUI_SRC
-            ${IMGUI_SRC}
-            backends/imgui_impl_dx10.cpp
-        )
-        set(IMGUI_INCS
-            ${IMGUI_INCS}
-            backends/imgui_impl_dx10.h
-        )
-    elseif(IMGUI_DX9)
-        add_definitions(-DIMGUI_RENDERING_DX9)
-        set(LINK_LIBS
-            ${LINK_LIBS}
-            d3d9
-        )
-        set(IMGUI_SRC
-            ${IMGUI_SRC}
-            backends/imgui_impl_dx9.cpp
-        )
-        set(IMGUI_INCS
-            ${IMGUI_INCS}
-            backends/imgui_impl_dx9.h
-        )
-    endif(IMGUI_DX12)
-    set(LINK_LIBS
-        ${LINK_LIBS}
-        d3dcompiler
-        dxgi
-    )
     set(IMGUI_SRC
         ${IMGUI_SRC}
         backends/imgui_impl_win32.cpp
@@ -460,6 +497,7 @@ if(WIN32)
     )
 endif(WIN32)
 
+# Add Fonts
 if (IMGUI_FONTS)
     add_definitions(-DIMGUI_INTERNAL_FONTS)
     set(IMGUI_SRC
@@ -471,6 +509,7 @@ if (IMGUI_FONTS)
     )
 endif(IMGUI_FONTS)
 
+# Add Icons
 if (IMGUI_ICONS)
     add_definitions(-DIMGUI_INTERNAL_ICONS)
     set(IMGUI_SRC
@@ -495,6 +534,7 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/misc/freetype
 )
 
+# Add Addons
 if(IMGUI_ADDONS)
     add_definitions(-DIMGUI_ADDONS)
     # ImGuiHelper
@@ -802,6 +842,7 @@ if(IMGUI_ADDONS)
         ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuizmo
     )
 
+    # Vulkan Shader/Glslang
     if (IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
         if(WIN32)
             set(GLSLANG_TARGET_DIR "C:\\msys64\\mingw64\\lib\\cmake")
@@ -923,98 +964,109 @@ endif(IMGUI_ADDONS)
 
 # Application Framework
 set(IMGUI_APP_SRC)
-
 if (IMGUI_APPS)
-    if(VULKAN_FOUND AND IMGUI_VULKAN AND SDL2_FOUND AND IMGUI_SDL2)
+    if(BACKEND_RENDERING MATCHES VULKAN AND SDL2_FOUND AND IMGUI_SDL2)
         add_definitions(-DIMGUI_APPLICATION_RENDERING_VULKAN)
         add_definitions(-DIMGUI_APPLICATION_PLATFORM_SDL2)
+        message(STATUS "    [ImGui application platform with SDL2]")
+        message(STATUS "    [ImGui application rendering with Vulkan]")
         set(IMGUI_APP_SRC
             ${IMGUI_APP_SRC}
             apps/application/source/vulkan/entry_sdl.cpp
         )
-    elseif(VULKAN_FOUND AND IMGUI_VULKAN AND GLFW_FOUND AND IMGUI_GLFW)
+    elseif(BACKEND_RENDERING MATCHES VULKAN AND GLFW_FOUND AND IMGUI_GLFW)
         add_definitions(-DIMGUI_APPLICATION_RENDERING_VULKAN)
         add_definitions(-DIMGUI_APPLICATION_PLATFORM_GLFW)
+        message(STATUS "    [ImGui application platform with GLFW]")
+        message(STATUS "    [ImGui application rendering with Vulkan]")
         set(IMGUI_APP_SRC
             ${IMGUI_APP_SRC}
             apps/application/source/vulkan/entry_glfw.cpp
         )
-    elseif(VULKAN_FOUND AND IMGUI_VULKAN AND WIN32)
+    elseif(BACKEND_RENDERING MATCHES VULKAN AND WIN32)
         add_definitions(-DIMGUI_APPLICATION_RENDERING_VULKAN)
         add_definitions(-DIMGUI_APPLICATION_PLATFORM_WIN32)
+        message(STATUS "    [ImGui application platform with Win32]")
+        message(STATUS "    [ImGui application rendering with Vulkan]")
         set(IMGUI_APP_SRC
             ${IMGUI_APP_SRC}
             apps/application/source/vulkan/entry_win32.cpp
         )
-    elseif (WIN32 AND (IMGUI_DX11 OR IMGUI_DX9 OR OPENGL_FOUND))
-        if (IMGUI_DX11)
-            add_definitions(-DIMGUI_APPLICATION_RENDERING_DX11)
-            add_definitions(-DIMGUI_APPLICATION_PLATFORM_WIN32)
-            set(IMGUI_APP_SRC
-                ${IMGUI_APP_SRC}
-                apps/application/source/dx11/entry.cpp
-            )
-        elseif(IMGUI_DX11)
-            add_definitions(-DIMGUI_APPLICATION_RENDERING_DX9)
-            add_definitions(-DIMGUI_APPLICATION_PLATFORM_WIN32)
-            set(IMGUI_APP_SRC
-                ${IMGUI_APP_SRC}
-                apps/application/source/dx9/entry.cpp
-            )
-        elseif(IMGUI_GL3)
-            add_definitions(-DIMGUI_APPLICATION_RENDERING_GL3)
-            add_definitions(-DIMGUI_APPLICATION_PLATFORM_WIN32)
-            set(IMGUI_APP_SRC
-                ${IMGUI_APP_SRC}
-                apps/application/source/opengl3/entry_win32.cpp
-            )
-        elseif(IMGUI_GL2)
-            add_definitions(-DIMGUI_APPLICATION_RENDERING_GL2)
-            add_definitions(-DIMGUI_APPLICATION_PLATFORM_WIN32)
-            set(IMGUI_APP_SRC
-                ${IMGUI_APP_SRC}
-                apps/application/source/opengl2/entry_win32.cpp
-            )
-        endif(IMGUI_DX11)
-    elseif(SDL2_FOUND AND IMGUI_SDL2 AND OPENGL_FOUND)
-        if (IMGUI_GL3)
-            add_definitions(-DIMGUI_APPLICATION_RENDERING_GL3)
-            add_definitions(-DIMGUI_APPLICATION_PLATFORM_SDL)
+    elseif(BACKEND_RENDERING MATCHES DX11)
+        add_definitions(-DIMGUI_APPLICATION_RENDERING_DX11)
+        add_definitions(-DIMGUI_APPLICATION_PLATFORM_WIN32)
+        message(STATUS "    [ImGui application platform with Win32]")
+        message(STATUS "    [ImGui application rendering with DX11]")
+        set(IMGUI_APP_SRC
+            ${IMGUI_APP_SRC}
+            apps/application/source/dx11/entry.cpp
+        )
+    elseif(BACKEND_RENDERING MATCHES DX9)
+        add_definitions(-DIMGUI_APPLICATION_RENDERING_DX9)
+        add_definitions(-DIMGUI_APPLICATION_PLATFORM_WIN32)
+        message(STATUS "    [ImGui application platform with Win32]")
+        message(STATUS "    [ImGui application rendering with Dx9]")
+        set(IMGUI_APP_SRC
+            ${IMGUI_APP_SRC}
+            apps/application/source/dx9/entry.cpp
+        )
+    elseif(BACKEND_RENDERING MATCHES OPENGL3)
+        add_definitions(-DIMGUI_APPLICATION_RENDERING_GL3)
+        if(IMGUI_SDL2 AND SDL2_FOUND)
+            add_definitions(-DIMGUI_APPLICATION_PLATFORM_SDL2)
+            message(STATUS "    [ImGui application platform with SDL2]")
             set(IMGUI_APP_SRC
                 ${IMGUI_APP_SRC}
                 apps/application/source/opengl3/entry_sdl.cpp
-            )   
-        else(IMGUI_GL3)
-            add_definitions(-DIMGUI_APPLICATION_RENDERING_GL2)
-            add_definitions(-DIMGUI_APPLICATION_PLATFORM_SDL)
-            set(IMGUI_APP_SRC
-                ${IMGUI_APP_SRC}
-                apps/application/source/opengl2/entry_sdl.cpp
-            )   
-        endif(IMGUI_GL3)
-    elseif(GLFW_FOUND AND IMGUI_GLFW AND OPENGL_FOUND)
-        if (IMGUI_GL3)
-            add_definitions(-DIMGUI_APPLICATION_RENDERING_GL3)
+            )
+        elseif(IMGUI_GLFW AND GLFW_FOUND)
             add_definitions(-DIMGUI_APPLICATION_PLATFORM_GLFW)
+            message(STATUS "    [ImGui application platform with GLFW]")
             set(IMGUI_APP_SRC
                 ${IMGUI_APP_SRC}
                 apps/application/source/opengl3/entry_glfw.cpp
             )
-        else(IMGUI_GL3)
-            add_definitions(-DIMGUI_APPLICATION_RENDERING_GL2)
+        elseif(WIN32)
+            add_definitions(-DIMGUI_APPLICATION_PLATFORM_WIN32)
+            message(STATUS "    [ImGui application platform with Win32]")
+            set(IMGUI_APP_SRC
+                ${IMGUI_APP_SRC}
+                apps/application/source/opengl3/entry_win32.cpp
+            )
+        endif()
+        message(STATUS "    [ImGui application rendering with OpenGL3]")
+    elseif(BACKEND_RENDERING MATCHES OPENGL2)
+        add_definitions(-DIMGUI_APPLICATION_RENDERING_GL2)
+        if(SDL2_FOUND AND IMGUI_SDL2)
+            add_definitions(-DIMGUI_APPLICATION_PLATFORM_SDL)
+            message(STATUS "    [ImGui application platform with SDL2]")
+            set(IMGUI_APP_SRC
+                ${IMGUI_APP_SRC}
+                apps/application/source/opengl2/entry_sdl.cpp
+            )   
+        elseif(IMGUI_GLFW AND GLFW_FOUND)
             add_definitions(-DIMGUI_APPLICATION_PLATFORM_GLFW)
+            message(STATUS "    [ImGui application platform with GLFW]")
             set(IMGUI_APP_SRC
                 ${IMGUI_APP_SRC}
                 apps/application/source/opengl2/entry_glfw.cpp
             )
-        endif(IMGUI_GL3)
-    elseif(GLUT_FOUND AND IMGUI_GLUT AND OPENGL_FOUND AND IMGUI_GL2 AND NOT IMGUI_GL3)
-        add_definitions(-DIMGUI_APPLICATION_RENDERING_GL2)
-        add_definitions(-DIMGUI_APPLICATION_PLATFORM_GLUT)
-        set(IMGUI_APP_SRC
-            ${IMGUI_APP_SRC}
-            apps/application/source/opengl2/entry_glut.cpp
-        )
+        elseif(WIN32)
+            add_definitions(-DIMGUI_APPLICATION_PLATFORM_WIN32)
+            message(STATUS "    [ImGui application platform with Win32]")
+            set(IMGUI_APP_SRC
+                ${IMGUI_APP_SRC}
+                apps/application/source/opengl2/entry_win32.cpp
+            )
+        elseif(IMGUI_GLUT AND GLUT_FOUND)
+            add_definitions(-DIMGUI_APPLICATION_PLATFORM_GLUT)
+            message(STATUS "    [ImGui application platform with GLUT]")
+            set(IMGUI_APP_SRC
+                ${IMGUI_APP_SRC}
+                apps/application/source/opengl2/entry_glut.cpp
+            )
+        endif()
+        message(STATUS "    [ImGui application rendering with OpenGL2]")
     else()
         message(WARNING "No Application Backend Found! IMGUI_APPS will be turned off.")
         set(IMGUI_APPS OFF)
@@ -1061,42 +1113,41 @@ if (SDL2_FOUND AND IMGUI_SDL2)
         ${LINK_LIBS}
     )
     # Build examples
-    if(OPENGL_FOUND)
-        if(IMGUI_GL3)
+    if(BACKEND_RENDERING MATCHES OPENGL3)
+        add_executable(
+            example_sdl_opengl3
+            test/example_sdl_opengl3.cpp
+        )
+        target_link_libraries(
+            example_sdl_opengl3
+            imgui
+            ${LINK_LIBS}
+        )
+        if(IMGUI_ADDONS)
             add_executable(
-                example_sdl_opengl3
-                test/example_sdl_opengl3.cpp
+                example_sdl_rendering
+                test/example_sdl_rendering.cpp
             )
             target_link_libraries(
-                example_sdl_opengl3
+                example_sdl_rendering
                 imgui
                 ${LINK_LIBS}
             )
-            if(IMGUI_ADDONS)
-                add_executable(
-                    example_sdl_rendering
-                    test/example_sdl_rendering.cpp
-                )
-                target_link_libraries(
-                    example_sdl_rendering
-                    imgui
-                    ${LINK_LIBS}
-                )
-            endif(IMGUI_ADDONS)
-        elseif(IMGUI_GL2)
-            add_executable(
-                example_sdl_opengl2
-                test/example_sdl_opengl2.cpp
-            )
-            target_link_libraries(
-                example_sdl_opengl2
-                imgui
-                ${LINK_LIBS}
-            )
-        endif(IMGUI_GL3)
-    endif(OPENGL_FOUND)
+        endif(IMGUI_ADDONS)
+    elseif(BACKEND_RENDERING MATCHES OPENGL2)
+        add_executable(
+            example_sdl_opengl2
+            test/example_sdl_opengl2.cpp
+        )
+        target_link_libraries(
+            example_sdl_opengl2
+            imgui
+            ${LINK_LIBS}
+        )
+    endif(BACKEND_RENDERING MATCHES OPENGL3)
+
     # Build Vulkan examples
-    if (VULKAN_FOUND AND IMGUI_VULKAN)
+    if (BACKEND_RENDERING MATCHES VULKAN)
         add_executable(
             example_sdl_vulkan
             test/example_sdl_vulkan.cpp
@@ -1106,10 +1157,10 @@ if (SDL2_FOUND AND IMGUI_SDL2)
             imgui
             ${LINK_LIBS}
         )
-    endif(VULKAN_FOUND AND IMGUI_VULKAN)
+    endif(BACKEND_RENDERING MATCHES VULKAN)
 endif(SDL2_FOUND AND IMGUI_SDL2)
 
-if (VULKAN_FOUND AND GLFW_FOUND AND IMGUI_GLFW)
+if (GLFW_FOUND AND IMGUI_GLFW AND BACKEND_RENDERING MATCHES VULKAN)
     add_executable(
         example_glfw_vulkan
         test/example_glfw_vulkan.cpp
@@ -1119,9 +1170,9 @@ if (VULKAN_FOUND AND GLFW_FOUND AND IMGUI_GLFW)
         imgui
         ${LINK_LIBS}
     )
-endif(VULKAN_FOUND AND GLFW_FOUND AND IMGUI_GLFW)
+endif(GLFW_FOUND AND IMGUI_GLFW AND BACKEND_RENDERING MATCHES VULKAN)
 
-if (IMGUI_GLUT AND GLUT_FOUND AND IMGUI_GL2 AND NOT IMGUI_GL3)
+if (IMGUI_GLUT AND GLUT_FOUND AND BACKEND_RENDERING MATCHES OPENGL2)
     add_executable(
         example_glut_opengl2
         test/example_glut_opengl2.cpp
@@ -1131,9 +1182,9 @@ if (IMGUI_GLUT AND GLUT_FOUND AND IMGUI_GL2 AND NOT IMGUI_GL3)
         imgui
         ${LINK_LIBS}
     )
-endif(IMGUI_GLUT AND GLUT_FOUND AND IMGUI_GL2 AND NOT IMGUI_GL3)
+endif(IMGUI_GLUT AND GLUT_FOUND AND BACKEND_RENDERING MATCHES OPENGL2)
 
-if (GLFW_FOUND AND IMGUI_GLFW AND OPENGL_FOUND AND IMGUI_GL3)
+if (GLFW_FOUND AND IMGUI_GLFW AND BACKEND_RENDERING MATCHES OPENGL3)
     add_executable(
         example_glfw_opengl3
         test/example_glfw_opengl3.cpp
@@ -1143,9 +1194,9 @@ if (GLFW_FOUND AND IMGUI_GLFW AND OPENGL_FOUND AND IMGUI_GL3)
         imgui
         ${LINK_LIBS}
     )
-endif(GLFW_FOUND AND IMGUI_GLFW AND OPENGL_FOUND AND IMGUI_GL3)
+endif(GLFW_FOUND AND IMGUI_GLFW AND BACKEND_RENDERING MATCHES OPENGL3)
 
-if (APPLE AND IMGUI_MATAL)
+if (APPLE AND IMGUI_MATAL AND BACKEND_RENDERING MATCHES MATAL)
     if (IMGUI_APPLE_APP)
         add_executable(
             example_apple_metal
@@ -1217,43 +1268,10 @@ if (APPLE AND IMGUI_MATAL)
             "-framework QuartzCore"
         )
     endif(IMGUI_GLFW AND GLFW_FOUND)
-endif(APPLE AND IMGUI_MATAL)
+endif(APPLE AND IMGUI_MATAL AND BACKEND_RENDERING MATCHES MATAL)
 
 if(WIN32)
-    if(IMGUI_DX9)
-        add_executable(
-            example_win32_directx9
-            test/example_win32_directx9.cpp
-        )
-        target_link_libraries(
-            example_win32_directx9
-            imgui
-            ${LINK_LIBS}
-        )
-    endif(IMGUI_DX9)
-    if(IMGUI_DX10)
-        add_executable(
-            example_win32_directx10
-            test/example_win32_directx10.cpp
-        )
-        target_link_libraries(
-            example_win32_directx10
-            imgui
-            ${LINK_LIBS}
-        )
-    endif(IMGUI_DX10)
-    if(IMGUI_DX11)
-        add_executable(
-            example_win32_directx11
-            test/example_win32_directx11.cpp
-        )
-        target_link_libraries(
-            example_win32_directx11
-            imgui
-            ${LINK_LIBS}
-        )
-    endif(IMGUI_DX11)
-    if(IMGUI_DX12)
+    if(BACKEND_RENDERING MATCHES DX12)
         add_executable(
             example_win32_directx12
             test/example_win32_directx12.cpp
@@ -1263,7 +1281,37 @@ if(WIN32)
             imgui
             ${LINK_LIBS}
         )
-    endif(IMGUI_DX12)
+    elseif(BACKEND_RENDERING MATCHES DX11)
+        add_executable(
+            example_win32_directx11
+            test/example_win32_directx11.cpp
+        )
+        target_link_libraries(
+            example_win32_directx11
+            imgui
+            ${LINK_LIBS}
+        )
+    elseif(BACKEND_RENDERING MATCHES DX10)
+        add_executable(
+            example_win32_directx10
+            test/example_win32_directx10.cpp
+        )
+        target_link_libraries(
+            example_win32_directx10
+            imgui
+            ${LINK_LIBS}
+        )
+    elseif(BACKEND_RENDERING MATCHES DX9)
+        add_executable(
+            example_win32_directx9
+            test/example_win32_directx9.cpp
+        )
+        target_link_libraries(
+            example_win32_directx9
+            imgui
+            ${LINK_LIBS}
+        )
+    endif()
 endif(WIN32)
 
 if (IMGUI_APPS)
@@ -1311,7 +1359,7 @@ if (IMGUI_APPS)
         imgui
         ${LINK_LIBS}
     )
-    if (FFMPEG_FOUND AND IMGUI_ADDONS AND  SDL2_FOUND)
+    if (FFMPEG_FOUND AND IMGUI_ADDONS AND SDL2_FOUND)
         add_executable(
             media_player
             apps/MediaPlayer/clock.cpp

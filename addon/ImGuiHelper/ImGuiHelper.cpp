@@ -59,7 +59,7 @@ using namespace gl;
 #endif
 #if defined(IMGUI_RENDERING_OPENGL3)
 #include <imgui_impl_opengl3.h>
-#else
+#elif defined(IMGUI_RENDERING_OPENGL2)
 #include <imgui_impl_opengl2.h>
 #endif
 #endif
@@ -206,7 +206,7 @@ void ShowImGuiInfo()
 #ifdef IMGUI_RENDERING_OPENGL3
     ImGui::Text("Gl Loader: %s", ImGui_ImplOpenGL3_GLLoaderName().c_str());
     ImGui::Text("GL Version: %s", ImGui_ImplOpenGL3_GetVerion().c_str());
-#else
+#elif defined(IMGUI_RENDERING_OPENGL2)
     ImGui::Text("Gl Loader: %s", ImGui_ImplOpenGL2_GLLoaderName().c_str());
     ImGui::Text("GL Version: %s", ImGui_ImplOpenGL2_GetVerion().c_str());
 #endif
