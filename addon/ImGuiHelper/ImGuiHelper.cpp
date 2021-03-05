@@ -11,10 +11,10 @@
 #include <windows.h>
 #include <shellapi.h>	// ShellExecuteA(...) - Shell32.lib
 #include <objbase.h>    // CoInitializeEx(...)  - ole32.lib
-#ifdef IMGUI_DX11
+#if defined(IMGUI_RENDERING_DX11)
 struct IUnknown;
 #include <d3d11.h>
-#elif defined(IMGUI_DX9)
+#elif defined(IMGUI_RENDERING_DX9)
 #include <d3d9.h>
 #endif
 #define DIRECTINPUT_VERSION 0x0800
@@ -57,7 +57,11 @@ using namespace gl;
 #else
 #include IMGUI_IMPL_OPENGL_LOADER_CUSTOM
 #endif
+#if defined(IMGUI_RENDERING_OPENGL3)
 #include <imgui_impl_opengl3.h>
+#else
+#include <imgui_impl_opengl2.h>
+#endif
 #endif
 
 #ifndef NO_IMGUIHELPER_DRAW_METHODS
@@ -77,18 +81,18 @@ using namespace gl;
 #endif //alloca
 #endif //NO_IMGUIHELPER_DRAW_METHODS
 
-#ifdef IMGUI_VULKAN
+#ifdef IMGUI_RENDERING_VULKAN
 #include <imgui_impl_vulkan.h>
 #endif
 
-#if     defined(IMGUI_VULKAN)
+#if     defined(IMGUI_RENDERING_VULKAN)
 struct ImTexture
 {
     ImTextureVk TextureID = nullptr;
     int     Width     = 0;
     int     Height    = 0;
 };
-#elif   defined(IMGUI_DX11)
+#elif   defined(IMGUI_RENDERING_DX11)
 extern ID3D11Device* g_pd3dDevice;
 struct ImTexture
 {
@@ -96,7 +100,7 @@ struct ImTexture
     int    Width     = 0;
     int    Height    = 0;
 };
-#elif defined(IMGUI_DX9)
+#elif defined(IMGUI_RENDERING_DX9)
 extern LPDIRECT3DDEVICE9 g_pd3dDevice;
 struct ImTexture
 {
@@ -193,14 +197,19 @@ void ShowImGuiInfo()
     ImGui::Separator();
     ImGui::Text("Backend Platform Name: %s", io.BackendPlatformName ? io.BackendPlatformName : "NULL");
     ImGui::Text("Backend Renderer Name: %s", io.BackendRendererName ? io.BackendRendererName : "NULL");
-#ifdef IMGUI_VULKAN
+#ifdef IMGUI_RENDERING_VULKAN
     ImGui::Text("Backend GPU: %s", ImGui_ImplVulkan_GetDeviceName().c_str());
     ImGui::Text("Backend Vulkan API: %s", ImGui_ImplVulkan_GetApiVersion().c_str());
     ImGui::Text("Backend Vulkan Drv: %s", ImGui_ImplVulkan_GetDrvVersion().c_str());
     ImGui::Separator();
 #elif defined(IMGUI_OPENGL)
+#ifdef IMGUI_RENDERING_OPENGL3
     ImGui::Text("Gl Loader: %s", ImGui_ImplOpenGL3_GLLoaderName().c_str());
     ImGui::Text("GL Version: %s", ImGui_ImplOpenGL3_GetVerion().c_str());
+#else
+    ImGui::Text("Gl Loader: %s", ImGui_ImplOpenGL2_GLLoaderName().c_str());
+    ImGui::Text("GL Version: %s", ImGui_ImplOpenGL2_GetVerion().c_str());
+#endif
 #endif
 #ifdef IMGUI_VULKAN_SHADER
     ImGui::Text("Vulkan Shader:");
@@ -234,7 +243,7 @@ void ImGenerateOrUpdateTexture(ImTextureID& imtexid,int width,int height,int cha
 {
     IM_ASSERT(pixels);
     IM_ASSERT(channels>0 && channels<=4);
-#if     defined(IMGUI_VULKAN)
+#if     defined(IMGUI_RENDERING_VULKAN)
     if (imtexid == 0)
     {
         g_Textures.resize(g_Textures.size() + 1);
@@ -246,7 +255,7 @@ void ImGenerateOrUpdateTexture(ImTextureID& imtexid,int width,int height,int cha
         return;
     }
     ImGui_ImplVulkan_UpdateTexture(imtexid, pixels, width, height);
-#elif   defined(IMGUI_DX11)
+#elif   defined(IMGUI_RENDERING_DX11)
     auto textureID = (ID3D11ShaderResourceView *)imtexid;
     if (textureID)
     {
@@ -254,7 +263,7 @@ void ImGenerateOrUpdateTexture(ImTextureID& imtexid,int width,int height,int cha
         textureID = nullptr;
     }
     imtexid = ImCreateTexture(pixels, width, height);
-#elif   defined(IMGUI_DX9)
+#elif   defined(IMGUI_RENDERING_DX9)
     LPDIRECT3DTEXTURE9& texid = reinterpret_cast<LPDIRECT3DTEXTURE9&>(imtexid);
     if (texid==0 && g_pd3dDevice->CreateTexture(width, height, useMipmapsIfPossible ? 0 : 1, 0, channels==1 ? D3DFMT_A8 : channels==2 ? D3DFMT_A8L8 : channels==3 ? D3DFMT_R8G8B8 : D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &texid, NULL) < 0) return;
 
@@ -378,14 +387,14 @@ void ImGenerateOrUpdateTexture(ImTextureID& imtexid,int width,int height,int cha
 
 ImTextureID ImCreateTexture(const void* data, int width, int height)
 {
-#if     defined(IMGUI_VULKAN)
+#if     defined(IMGUI_RENDERING_VULKAN)
     g_Textures.resize(g_Textures.size() + 1);
     ImTexture& texture = g_Textures.back();
     texture.TextureID = (ImTextureVk)ImGui_ImplVulkan_CreateTexture(data, width, height);
     texture.Width  = width;
     texture.Height = height;
     return (ImTextureID)texture.TextureID;
-#elif   defined(IMGUI_DX11)
+#elif   defined(IMGUI_RENDERING_DX11)
     if (!g_pd3dDevice)
         return nullptr;
     g_Textures.resize(g_Textures.size() + 1);
@@ -424,7 +433,7 @@ ImTextureID ImCreateTexture(const void* data, int width, int height)
     texture.Width  = width;
     texture.Height = height;
     return (ImTextureID)texture.TextureID;
-#elif   defined(IMGUI_DX9)
+#elif   defined(IMGUI_RENDERING_DX9)
     if (!g_pd3dDevice)
         return nullptr;
     g_Textures.resize(g_Textures.size() + 1);
@@ -476,11 +485,11 @@ ImTextureID ImCreateTexture(ImVulkan::VkImageMat & image)
 
 static std::vector<ImTexture>::iterator ImFindTexture(ImTextureID texture)
 {
-#if     defined(IMGUI_VULKAN)
+#if     defined(IMGUI_RENDERING_VULKAN)
     auto textureID = reinterpret_cast<ImTextureVk>(texture);
-#elif   defined(IMGUI_DX11)
+#elif   defined(IMGUI_RENDERING_DX11)
     auto textureID = (ID3D11ShaderResourceView *)texture;
-#elif   defined(IMGUI_DX9)
+#elif   defined(IMGUI_RENDERING_DX9)
     auto textureID = reinterpret_cast<LPDIRECT3DTEXTURE9>(texture);
 #elif   defined(IMGUI_OPENGL)
     auto textureID = static_cast<GLuint>(reinterpret_cast<intptr_t>(texture));
@@ -498,19 +507,19 @@ void ImDestroyTexture(ImTextureID texture)
     auto textureIt = ImFindTexture(texture);
     if (textureIt == g_Textures.end())
         return;
-#if     defined(IMGUI_VULKAN)
+#if     defined(IMGUI_RENDERING_VULKAN)
     if (textureIt->TextureID)
     {
         ImGui_ImplVulkan_DestroyTexture(&textureIt->TextureID);
         textureIt->TextureID = nullptr;
     }
-#elif   defined(IMGUI_DX11)
+#elif   defined(IMGUI_RENDERING_DX11)
     if (textureIt->TextureID)
     {
         textureIt->TextureID->Release();
         textureIt->TextureID = nullptr;
     }
-#elif   defined(IMGUI_DX9)
+#elif   defined(IMGUI_RENDERING_DX9)
     if (textureIt->TextureID)
     {
         textureIt->TextureID->Release();

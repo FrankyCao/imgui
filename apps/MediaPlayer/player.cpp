@@ -372,7 +372,7 @@ void stream_close(VideoState *is)
 #endif
     if (is->video_texture) { ImGui::ImDestroyTexture(is->video_texture); is->video_texture = nullptr; }
     av_free(is);
-#if !defined(IMGUI_APPLICATION_SDL) && !defined(IMGUI_APPLICATION_VULKAN_SDL)
+#if !defined(IMGUI_APPLICATION_PLATFORM_SDL)
     SDL_Quit();
 #endif
 }
@@ -428,9 +428,9 @@ VideoState *stream_open(const char *filename, AVInputFormat *iformat)
     is->yuv2rgb = new ImVulkan::ColorConvert_vulkan();
     is->resize = new ImVulkan::Resize_vulkan();
 #endif
-#ifdef IMGUI_APPLICATION_GLFW
+#ifdef IMGUI_APPLICATION_PLATFORM_GLFW
     is->current_window = glfwGetCurrentContext();
-#elif IMGUI_APPLICATION_SDL
+#elif IMGUI_APPLICATION_PLATFORM_SDL
     is->current_window = SDL_GL_GetCurrentWindow();
     is->current_glcontext = SDL_GL_GetCurrentContext();
 #endif
@@ -441,7 +441,7 @@ fail:
         stream_close(is);
         return NULL;
     }
-#if !defined(IMGUI_APPLICATION_SDL) && !defined(IMGUI_APPLICATION_VULKAN_SDL)
+#if !defined(IMGUI_APPLICATION_PLATFORM_SDL)
     if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_TIMER))
     {
         av_log(NULL, AV_LOG_FATAL, "Could not initialize SDL - %s\n", SDL_GetError());

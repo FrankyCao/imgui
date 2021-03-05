@@ -2,12 +2,16 @@
 #include "imgui_impl_glut.h"
 #include "imgui_impl_opengl2.h"
 #ifdef __APPLE__
+    #define GL_SILENCE_DEPRECATION
     #include <GLUT/glut.h>
 #else
     #include <GL/freeglut.h>
 #endif
 #include <string>
 #include "application.h"
+
+#include <mutex>
+static std::mutex app_mtx;
 
 #ifdef _MSC_VER
 #pragma warning (disable: 4505) // unreferenced local function has been removed
@@ -18,6 +22,21 @@ static void * user_handle = nullptr;
 static ImVec4 clear_color = ImVec4(0.f, 0.f, 0.f, 1.f);
 static bool done = false;
 
+bool Application_try_lock()
+{
+    return app_mtx.try_lock();
+}
+
+void Application_lock()
+{
+    app_mtx.lock();
+}
+
+void Application_unlock()
+{
+    app_mtx.unlock();
+}
+
 void glut_display_func()
 {
     ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -25,31 +44,26 @@ void glut_display_func()
     ImGui_ImplOpenGL2_NewFrame();
     ImGui_ImplGLUT_NewFrame();
 
-    ImGui::SetNextWindowPos(ImVec2(0, 0));
-    ImGui::SetNextWindowSize(io.DisplaySize);
-    ImGui::Begin("Content", nullptr,
-            ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-            ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoSavedSettings |
-            ImGuiWindowFlags_NoBringToFrontOnFocus);
-
     done = Application_Frame(user_handle);
 
-    ImGui::End();
+    ImGui::EndFrame();
     // Rendering
     ImGui::Render();
+
+    Application_lock();
     glViewport(0, 0, (GLsizei)io.DisplaySize.x, (GLsizei)io.DisplaySize.y);
     glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
     glClear(GL_COLOR_BUFFER_BIT);
     //glUseProgram(0); // You may want this if using this code in an OpenGL 3+ context where shaders may be bound, but prefer using the GL3+ code.
     ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
-
     glutSwapBuffers();
     glutPostRedisplay();
+    Application_unlock();
 }
 
 int main(int argc, char** argv)
 {
-        // Create GLUT window
+    // Create GLUT window
     glutInit(&argc, argv);
 #ifdef __FREEGLUT_EXT_H__
     glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS);
@@ -60,7 +74,7 @@ int main(int argc, char** argv)
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_DEPTH | GLUT_MULTISAMPLE);
     glutInitWindowSize(window_width, window_height);
     std::string title = Application_GetName(user_handle);
-    title += " GLUT";
+    title += " GLUT_GL2";
     glutCreateWindow(title.c_str());
     // Setup GLUT display function
     // We will also call ImGui_ImplGLUT_InstallFuncs() to get all the other functions installed for us,

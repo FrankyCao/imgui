@@ -195,13 +195,6 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
 
-        //ImGui::SetNextWindowPos(ImVec2(0, 0));
-        //ImGui::SetNextWindowSize(io.DisplaySize);
-        //ImGui::Begin("Content", nullptr,
-        //    ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-        //    ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoSavedSettings |
-        //    ImGuiWindowFlags_NoBringToFrontOnFocus);
-
         done = Application_Frame(user_handle);
         if (done)
             PostQuitMessage(0);

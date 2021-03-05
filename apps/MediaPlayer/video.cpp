@@ -195,17 +195,17 @@ static void video_image_display(VideoState *is)
             rgb_picture.linesize
         );
         Application_lock();
-#if defined(IMGUI_APPLICATION_GLFW) || defined(IMGUI_APPLICATION_SDL)
+#if defined(IMGUI_APPLICATION_PLATFORM_GLFW) || defined(IMGUI_APPLICATION_PLATFORM_SDL)
         if (is->current_window)
         {
-#if defined(IMGUI_APPLICATION_GLFW)
+#if defined(IMGUI_APPLICATION_PLATFORM_GLFW)
             glfwMakeContextCurrent(is->current_window);
 #else
             SDL_GL_MakeCurrent(is->current_window, is->current_glcontext);
 #endif
 #endif
         ImGui::ImGenerateOrUpdateTexture(is->video_texture, out_w, out_h, 4, rgb_picture.data[0]);
-#if defined(IMGUI_APPLICATION_GLFW) || defined(IMGUI_APPLICATION_SDL)
+#if defined(IMGUI_APPLICATION_PLATFORM_GLFW) || defined(IMGUI_APPLICATION_PLATFORM_SDL)
         }
 #endif
         Application_unlock();

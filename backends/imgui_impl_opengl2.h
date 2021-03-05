@@ -18,6 +18,7 @@
 
 #pragma once
 #include "imgui.h"      // IMGUI_IMPL_API
+#include <string>
 
 IMGUI_IMPL_API bool     ImGui_ImplOpenGL2_Init();
 IMGUI_IMPL_API void     ImGui_ImplOpenGL2_Shutdown();
@@ -29,3 +30,6 @@ IMGUI_IMPL_API bool     ImGui_ImplOpenGL2_CreateFontsTexture();
 IMGUI_IMPL_API void     ImGui_ImplOpenGL2_DestroyFontsTexture();
 IMGUI_IMPL_API bool     ImGui_ImplOpenGL2_CreateDeviceObjects();
 IMGUI_IMPL_API void     ImGui_ImplOpenGL2_DestroyDeviceObjects();
+
+IMGUI_IMPL_API std::string ImGui_ImplOpenGL2_GetVerion();
+IMGUI_IMPL_API std::string ImGui_ImplOpenGL2_GLLoaderName();

@@ -97,7 +97,7 @@ int main(int, char**)
     ImVec2 display_scale = ImVec2(1.0, 1.0);
 
     std::string title = Application_GetName(user_handle);
-    title += " GLFW";
+    title += " GLFW_GL3";
     GLFWwindow* window = glfwCreateWindow(window_width, window_height, title.c_str(), NULL, NULL);
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1); // Enable vsync
@@ -164,16 +164,7 @@ int main(int, char**)
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::SetNextWindowPos(ImVec2(0, 0));
-        ImGui::SetNextWindowSize(io.DisplaySize);
-        ImGui::Begin("Content", nullptr,
-            ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-            ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoSavedSettings |
-            ImGuiWindowFlags_NoBringToFrontOnFocus);
-
         done = Application_Frame(user_handle);
-
-        ImGui::End();
 
         ImGui::EndFrame();
         // Rendering

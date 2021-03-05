@@ -32,7 +32,7 @@ extern "C" {
 #ifdef IMGUI_VULKAN_SHADER
 #include "ImVulkanShader.h"
 #endif
-#ifdef IMGUI_GLFW
+#ifdef IMGUI_APPLICATION_PLATFORM_GLFW
 #include <GLFW/glfw3.h>
 #endif
 #include <string>
@@ -329,10 +329,10 @@ typedef struct VideoState {
     ImVulkan::Resize_vulkan * resize = nullptr;
     ImVulkan::VkImageMat vkimage;
 #endif
-#ifdef IMGUI_APPLICATION_GLFW
+#ifdef IMGUI_APPLICATION_PLATFORM_GLFW
     GLFWwindow* current_window = nullptr;
 #endif
-#ifdef IMGUI_APPLICATION_SDL
+#ifdef IMGUI_APPLICATION_PLATFORM_SDL
     SDL_Window* current_window = nullptr;
     SDL_GLContext current_glcontext = nullptr;
 #endif
