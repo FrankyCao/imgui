@@ -227,7 +227,7 @@ if(WIN32)
     )
 endif(WIN32)
 
-if(FREETYPE_FOUND)
+if(FREETYPE_FOUND AND IMGUI_FREETYPE)
     message(STATUS "    [ImGui with Freetype support]")
     set(IMGUI_SRC
         ${IMGUI_SRC}
@@ -237,7 +237,7 @@ if(FREETYPE_FOUND)
         ${IMGUI_INCS}
         misc/freetype/imgui_freetype.h
     )
-endif(FREETYPE_FOUND)
+endif(FREETYPE_FOUND AND IMGUI_FREETYPE)
 
 # GLEW Loader support
 if (IMGUI_GLEW AND GLEW_FOUND)
