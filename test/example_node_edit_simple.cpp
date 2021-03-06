@@ -36,6 +36,13 @@ bool Application_Frame(void* handle)
     bool done = false;
     auto& io = ImGui::GetIO();
 
+    ImGui::SetNextWindowPos(ImVec2(0, 0));
+    ImGui::SetNextWindowSize(io.DisplaySize);
+    ImGui::Begin("Content", nullptr,
+        ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+        ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoSavedSettings |
+        ImGuiWindowFlags_NoBringToFrontOnFocus);
+
     ImGui::Text("FPS: %.2f (%.2gms)", io.Framerate, io.Framerate ? 1000.0f / io.Framerate : 0.0f);
 
     ImGui::Separator();
@@ -56,6 +63,7 @@ bool Application_Frame(void* handle)
     ed::EndNode();
     ed::End();
     ed::SetCurrentEditor(nullptr);
+    ImGui::End();
     return done;
 }
 
