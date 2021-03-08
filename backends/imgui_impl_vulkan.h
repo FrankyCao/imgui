@@ -169,6 +169,7 @@ IMGUI_IMPL_API std::string  ImGui_ImplVulkan_GetApiVersion();
 IMGUI_IMPL_API std::string  ImGui_ImplVulkan_GetDrvVersion();
 IMGUI_IMPL_API ImTextureID  ImGui_ImplVulkan_CreateTexture(const void * pixels, int width, int height);
 IMGUI_IMPL_API void         ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, const void * pixels, int width, int height);
+IMGUI_IMPL_API void         ImGui_ImplVulkan_UpdateTexture1(ImTextureID textureid, VkBuffer stagingBuffer, int width, int height);
 IMGUI_IMPL_API void         ImGui_ImplVulkan_DestroyTexture(ImTextureVk * texture);
 IMGUI_IMPL_API VkDescriptorSet ImGui_ImplVulkan_AddTexture(VkSampler sampler, VkImageView image_view, VkImageLayout image_layout);
 

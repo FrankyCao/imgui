@@ -1691,6 +1691,37 @@ ImTextureID ImGui_ImplVulkan_CreateTexture(const void * pixels, int width, int h
     return (ImTextureID)texture;
 }
 
+void ImGui_ImplVulkan_UpdateTexture1(ImTextureID textureid, VkBuffer stagingBuffer, int width, int height)
+{
+    ImTextureVk texture = (ImTextureVk)textureid;
+    if (!texture)
+        return;
+    ImGui_ImplVulkan_InitInfo* v = &g_VulkanInitInfo;
+    VkDeviceSize imageSize = width * height * 4;
+    
+    // create staging buffer
+    VkCommandPool commandPool = VK_NULL_HANDLE;
+
+    VkCommandPoolCreateInfo poolInfo{};
+    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    poolInfo.queueFamilyIndex = v->QueueFamily;
+
+    if (vkCreateCommandPool(v->Device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create graphics command pool!");
+    }
+
+    transitionImageLayout(v, commandPool, texture->textureImage, 
+                        VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, 
+                        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    copyBufferToImage(v, commandPool, stagingBuffer, texture->textureImage, 
+                    static_cast<uint32_t>(width), static_cast<uint32_t>(height));
+    transitionImageLayout(v, commandPool, texture->textureImage, 
+                        VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 
+                        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+    vkDestroyCommandPool(v->Device, commandPool, nullptr);
+}
+
 void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, const void * pixels, int width, int height)
 {
     ImTextureVk texture = (ImTextureVk)textureid;

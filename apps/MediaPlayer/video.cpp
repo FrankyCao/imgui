@@ -5,6 +5,7 @@
 #include "decoder.h"
 #include "ImGuiHelper.h"
 #include "application.h"
+#include "imgui_impl_vulkan.h"
 
 static double compute_target_delay(double delay, VideoState *is)
 {
@@ -147,11 +148,37 @@ static void video_image_display(VideoState *is)
         is->yuv2rgb->YUV2RGBA(im_Y, im_U, im_V, im_RGB, color_format, color_space, color_range, is->video_depth, video_shift);
         is->resize->Resize(im_RGB, is->vkimage, frame_scale, 0.f, ImVulkan::INTERPOLATE_AREA);
     }
+    #if 0
     else
     {
         is->yuv2rgb->YUV2RGBA(im_Y, im_U, im_V, is->vkimage, color_format, color_space, color_range, is->video_depth, video_shift);
     }
     if (!is->video_texture) is->video_texture = ImGui::ImCreateTexture(is->vkimage);
+    #elif 1
+    else
+    {
+        ImVulkan::VkImageBuffer im_RGB;
+        is->yuv2rgb->YUV2RGBA(im_Y, im_U, im_V, im_RGB, color_format, color_space, color_range, is->video_depth, video_shift);
+        if(!is->video_texture)
+        {
+            is->video_texture = ImGui::ImCreateTexture((const unsigned char*)im_RGB.data, im_RGB.w, im_RGB.h);
+            VkBuffer buf = im_RGB.buffer();
+            ImGui_ImplVulkan_UpdateTexture1(is->video_texture, buf, im_RGB.w, im_RGB.h);
+        }
+        else
+        {
+            VkBuffer buf = im_RGB.buffer();
+            ImGui_ImplVulkan_UpdateTexture1(is->video_texture, buf, im_RGB.w, im_RGB.h);
+        }
+    }
+    #else
+    else
+    {
+        ImVulkan::ImageBuffer im_RGB;
+        is->yuv2rgb->YUV2RGBA(im_Y, im_U, im_V, im_RGB, color_format, color_space, color_range, is->video_depth, video_shift);
+        ImGui::ImGenerateOrUpdateTexture(is->video_texture, im_RGB.w, im_RGB.h, im_RGB.c, (const unsigned char*)im_RGB.data);
+    }
+    #endif
 #else
     int data_shift = is->video_depth > 8 ? 1 : 0;
     int out_w = tmp_frame->linesize[0] >> data_shift;

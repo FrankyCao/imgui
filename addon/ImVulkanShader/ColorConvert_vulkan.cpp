@@ -87,7 +87,7 @@ void ColorConvert_vulkan::YUV2RGBA(const ImageBuffer& im_Y, const ImageBuffer& i
     const ImageBuffer conv_mat_y2r = *color_table[0][color_range][color_space];
     cmd->record_clone(conv_mat_y2r, matix_y2r_gpu, opt);
     ImVulkan::VkImageBuffer vk_Y, vk_U, vk_V;
-    im_RGB.create_type(im_Y.w, im_Y.h, 4, ImVulkan::FLOAT32, opt.blob_vkallocator);
+    im_RGB.create_type(im_Y.w, im_Y.h, 4, ImVulkan::INT8, opt.blob_vkallocator);
     cmd->record_clone(im_Y, vk_Y, opt);
     cmd->record_clone(im_U, vk_U, opt);
     if (color_format != NV12)
@@ -99,7 +99,7 @@ void ColorConvert_vulkan::YUV2RGBA(const ImageBuffer& im_Y, const ImageBuffer& i
     bindings[1] = vk_U;
     if (color_format != NV12)
         bindings[2] = vk_V;
-    bindings[3] = im_RGB;
+    bindings[4] = im_RGB;
     bindings[5] = matix_y2r_gpu;
     std::vector<ImVulkan::vk_constant_type> constants(8);
     constants[0].i = im_RGB.w;
@@ -109,7 +109,7 @@ void ColorConvert_vulkan::YUV2RGBA(const ImageBuffer& im_Y, const ImageBuffer& i
     constants[4].i = color_space;
     constants[5].i = color_range;
     constants[6].f = (float)(1 << video_shift);
-    constants[7].i = 0;
+    constants[7].i = 1;
     if (video_depth > 8)
     {
         cmd->record_pipeline(pipeline_yuv_rgb_16, bindings, constants, im_RGB);
