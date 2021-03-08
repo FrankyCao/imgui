@@ -11,24 +11,7 @@
 #include <cerrno>
 #include "application.h"
 
-#include <mutex>
-static std::mutex app_mtx;
 static void * user_handle = nullptr;
-
-bool Application_try_lock()
-{
-    return app_mtx.try_lock();
-}
-
-void Application_lock()
-{
-    app_mtx.lock();
-}
-
-void Application_unlock()
-{
-    app_mtx.unlock();
-}
 
 int main(int, char**)
 {
@@ -129,14 +112,12 @@ int main(int, char**)
 
         // Rendering
         ImGui::Render();
-        Application_lock();
         SDL_GL_MakeCurrent(window, gl_context);
         glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
         glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
         SDL_GL_SwapWindow(window);
-        Application_unlock();
     }
 
     Application_Finalize(&user_handle);

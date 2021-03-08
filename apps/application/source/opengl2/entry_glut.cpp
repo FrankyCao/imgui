@@ -10,9 +10,6 @@
 #include <string>
 #include "application.h"
 
-#include <mutex>
-static std::mutex app_mtx;
-
 #ifdef _MSC_VER
 #pragma warning (disable: 4505) // unreferenced local function has been removed
 #endif
@@ -21,21 +18,6 @@ static void * user_handle = nullptr;
 
 static ImVec4 clear_color = ImVec4(0.f, 0.f, 0.f, 1.f);
 static bool done = false;
-
-bool Application_try_lock()
-{
-    return app_mtx.try_lock();
-}
-
-void Application_lock()
-{
-    app_mtx.lock();
-}
-
-void Application_unlock()
-{
-    app_mtx.unlock();
-}
 
 void glut_display_func()
 {
@@ -50,7 +32,6 @@ void glut_display_func()
     // Rendering
     ImGui::Render();
 
-    Application_lock();
     glViewport(0, 0, (GLsizei)io.DisplaySize.x, (GLsizei)io.DisplaySize.y);
     glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -58,7 +39,6 @@ void glut_display_func()
     ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
     glutSwapBuffers();
     glutPostRedisplay();
-    Application_unlock();
 }
 
 int main(int argc, char** argv)

@@ -3,7 +3,7 @@
 
 #include "media_player.h"
 int video_thread(void *arg);
-int open_video_render(VideoState *is);
+void video_refresh(void *opaque, double *remaining_time);
 
 #endif
 

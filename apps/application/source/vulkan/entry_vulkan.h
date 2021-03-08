@@ -1,8 +1,6 @@
 #pragma once
 #include "imgui_impl_vulkan.h"
 #include <vulkan/vulkan.h>
-#include <mutex>
-static std::mutex app_mtx;
 
 // [Win32] Our example includes a copy of glfw3.lib pre-compiled with VS2010 to maximize ease of testing and compatibility with old VS compilers.
 // To link with VS2010-era libraries, VS2015+ requires linking with legacy_stdio_definitions.lib, which we do using this pragma.
@@ -344,7 +342,6 @@ static void FramePresent(ImGui_ImplVulkanH_Window* wd)
 static void FrameRendering(ImGui_ImplVulkanH_Window* wd)
 {
     ImVec4 clear_color = ImVec4(0.f, 0.f, 0.f, 1.f);
-    Application_lock();
     ImDrawData* draw_data = ImGui::GetDrawData();
     const bool is_minimized = (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f);
     if (!is_minimized)
@@ -356,21 +353,4 @@ static void FrameRendering(ImGui_ImplVulkanH_Window* wd)
         FrameRender(wd, draw_data);
         FramePresent(wd);
     }
-    Application_unlock();
-
-}
-
-bool Application_try_lock()
-{
-    return app_mtx.try_lock();
-}
-
-void Application_lock()
-{
-    app_mtx.lock();
-}
-
-void Application_unlock()
-{
-    app_mtx.unlock();
 }

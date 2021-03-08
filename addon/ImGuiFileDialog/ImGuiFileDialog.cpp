@@ -663,7 +663,7 @@ namespace IGFD
 
 		m_ShowDialog = true;					// open dialog
 #ifdef USE_BOOKMARK
-		m_BookmarkPaneShown = false;
+		m_BookmarkPaneShown = vFlags & ImGuiFileDialogFlags_ShowBookmark ? true : false;
 #endif // USE_BOOKMARK
 	}
 
@@ -710,7 +710,7 @@ namespace IGFD
 
 		m_ShowDialog = true;
 #ifdef USE_BOOKMARK
-		m_BookmarkPaneShown = false;
+		m_BookmarkPaneShown = vFlags & ImGuiFileDialogFlags_ShowBookmark ? true : false;
 #endif // USE_BOOKMARK
 	}
 	
@@ -748,7 +748,7 @@ namespace IGFD
 
 		m_ShowDialog = true;					// open dialog
 #ifdef USE_BOOKMARK
-		m_BookmarkPaneShown = false;
+		m_BookmarkPaneShown = vFlags & ImGuiFileDialogFlags_ShowBookmark ? true : false;
 #endif // USE_BOOKMARK
 	}
 
@@ -798,7 +798,7 @@ namespace IGFD
 
 		m_ShowDialog = true;
 #ifdef USE_BOOKMARK
-		m_BookmarkPaneShown = false;
+		m_BookmarkPaneShown = vFlags & ImGuiFileDialogFlags_ShowBookmark ? true : false;
 #endif // USE_BOOKMARK
 	}
 

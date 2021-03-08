@@ -63,8 +63,17 @@ static void VideoRendering()
 {
     auto& io = ImGui::GetIO();
     // Video texture display
+    double remaining_time = 0.0;
     if (is)
     {
+        if (remaining_time > 0.0)
+        {
+            av_usleep((unsigned)(remaining_time * 1000000.0));
+        }
+        remaining_time = REFRESH_RATE;
+
+        if (!is->paused || is->force_refresh)
+            video_refresh(is, &remaining_time);
         ImGuiWindowFlags flags = 
                 ImGuiWindowFlags_NoFocusOnAppearing |
                 ImGuiWindowFlags_NoBackground |
@@ -94,10 +103,8 @@ static void VideoRendering()
         {
             ImVec2 content_region = ImGui::GetContentRegionAvail();
             ImGui::PushStyleColor(ImGuiCol_WindowBg, 0);
-            Application_lock();
             ImGui::Image((void *)(intptr_t)is->video_texture, content_region,
                         ImVec2(0.0f, 0.0f), ImVec2(is->video_clip, 1.0f));
-            Application_unlock();
             ImGui::PopStyleColor(1);
             ImGui::End();
         }
@@ -158,7 +165,7 @@ bool Application_Frame(void* handle)
         {
             //ImGui::ShowTooltipOnHover("Open Media File.");
             const char *filters = "视频文件(*.mp4 *.mov *.mkv *.avi){.mp4,.mov,.mkv,.avi,.MP4,.MOV,.MKV,.AVI},.*";
-			filedialog.OpenModal("ChooseFileDlgKey", ICON_IGFD_FOLDER_OPEN " 打开视频文件", filters, ".");
+			filedialog.OpenModal("ChooseFileDlgKey", ICON_IGFD_FOLDER_OPEN " 打开视频文件", filters, ".", 1, nullptr, ImGuiFileDialogFlags_ShowBookmark);
         }
         ImGui::ShowTooltipOnHover("Open Media File.");
         // add play button

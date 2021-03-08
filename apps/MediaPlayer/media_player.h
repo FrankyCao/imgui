@@ -329,13 +329,6 @@ typedef struct VideoState {
     ImVulkan::Resize_vulkan * resize = nullptr;
     ImVulkan::VkImageMat vkimage;
 #endif
-#ifdef IMGUI_APPLICATION_PLATFORM_GLFW
-    GLFWwindow* current_window = nullptr;
-#endif
-#ifdef IMGUI_APPLICATION_PLATFORM_SDL2
-    SDL_Window* current_window = nullptr;
-    SDL_GLContext current_glcontext = nullptr;
-#endif
 } VideoState;
 
 extern int audio_disable;

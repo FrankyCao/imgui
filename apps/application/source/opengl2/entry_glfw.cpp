@@ -14,8 +14,6 @@
 // Include glfw3.h after our OpenGL definitions
 #include <GLFW/glfw3.h>
 
-#include <mutex>
-static std::mutex app_mtx;
 // [Win32] Our example includes a copy of glfw3.lib pre-compiled with VS2010 to maximize ease of testing and compatibility with old VS compilers.
 // To link with VS2010-era libraries, VS2015+ requires linking with legacy_stdio_definitions.lib, which we do using this pragma.
 // Your own project should not be affected, as you are likely to link with a newer binary of GLFW that is adequate for your version of Visual Studio.
@@ -28,21 +26,6 @@ static void * user_handle = nullptr;
 static void error_callback(int error, const char* description)
 {
     fprintf(stderr, "Error %d: %s\n", error, description);
-}
-
-bool Application_try_lock()
-{
-    return app_mtx.try_lock();
-}
-
-void Application_lock()
-{
-    app_mtx.lock();
-}
-
-void Application_unlock()
-{
-    app_mtx.unlock();
 }
 
 int main(int, char**)
@@ -98,7 +81,6 @@ int main(int, char**)
         ImGui::EndFrame();
         // Rendering
         ImGui::Render();
-        Application_lock();
         glfwMakeContextCurrent(window);
         int display_w, display_h;
         glfwGetFramebufferSize(window, &display_w, &display_h);
@@ -107,7 +89,6 @@ int main(int, char**)
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window);
-        Application_unlock();
     }
 
     Application_Finalize(&user_handle);

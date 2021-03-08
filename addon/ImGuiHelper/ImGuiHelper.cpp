@@ -57,9 +57,9 @@ using namespace gl;
 #else
 #include IMGUI_IMPL_OPENGL_LOADER_CUSTOM
 #endif
-#if defined(IMGUI_RENDERING_OPENGL3)
+#if defined(IMGUI_RENDERING_GL3)
 #include <imgui_impl_opengl3.h>
-#elif defined(IMGUI_RENDERING_OPENGL2)
+#elif defined(IMGUI_RENDERING_GL2)
 #include <imgui_impl_opengl2.h>
 #endif
 #endif
@@ -203,10 +203,10 @@ void ShowImGuiInfo()
     ImGui::Text("Backend Vulkan Drv: %s", ImGui_ImplVulkan_GetDrvVersion().c_str());
     ImGui::Separator();
 #elif defined(IMGUI_OPENGL)
-#ifdef IMGUI_RENDERING_OPENGL3
+#if defined(IMGUI_RENDERING_GL3)
     ImGui::Text("Gl Loader: %s", ImGui_ImplOpenGL3_GLLoaderName().c_str());
     ImGui::Text("GL Version: %s", ImGui_ImplOpenGL3_GetVerion().c_str());
-#elif defined(IMGUI_RENDERING_OPENGL2)
+#elif defined(IMGUI_RENDERING_GL2)
     ImGui::Text("Gl Loader: %s", ImGui_ImplOpenGL2_GLLoaderName().c_str());
     ImGui::Text("GL Version: %s", ImGui_ImplOpenGL2_GetVerion().c_str());
 #endif

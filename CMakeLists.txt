@@ -299,7 +299,7 @@ endif(IMGUI_VULKAN AND VULKAN_FOUND)
 if(OPENGL_FOUND AND BACKEND_RENDERING MATCHES NONE)
     if(IMGUI_GL3)
         message(STATUS "    [ImGui backend rendering with OpenGL3]")
-        add_definitions(-DIMGUI_RENDERING_OPENGL3)
+        add_definitions(-DIMGUI_RENDERING_GL3)
         set(BACKEND_RENDERING OPENGL3)
         set(IMGUI_SRC
             ${IMGUI_SRC}
@@ -311,7 +311,7 @@ if(OPENGL_FOUND AND BACKEND_RENDERING MATCHES NONE)
         )
     elseif(IMGUI_GL2)
         message(STATUS "    [ImGui backend rendering with OpenGL2]")
-        add_definitions(-DIMGUI_RENDERING_OPENGL2)
+        add_definitions(-DIMGUI_RENDERING_GL2)
         set(BACKEND_RENDERING OPENGL2)
         set(IMGUI_SRC
             ${IMGUI_SRC}

@@ -247,8 +247,6 @@ static int stream_component_open(VideoState *is, int stream_index)
             goto fail;
         if ((ret = decoder_start(&is->viddec, video_thread, "video_decoder", is)) < 0)
             goto out;
-        if ((ret = open_video_render(is)) < 0)
-            goto out;
         is->queue_attachments_req = 1;
     }
         break;

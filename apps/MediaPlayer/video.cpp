@@ -151,9 +151,7 @@ static void video_image_display(VideoState *is)
     {
         is->yuv2rgb->YUV2RGBA(im_Y, im_U, im_V, is->vkimage, color_format, color_space, color_range, is->video_depth, video_shift);
     }
-    Application_lock();
     if (!is->video_texture) is->video_texture = ImGui::ImCreateTexture(is->vkimage);
-    Application_unlock();
 #else
     int data_shift = is->video_depth > 8 ? 1 : 0;
     int out_w = tmp_frame->linesize[0] >> data_shift;
@@ -194,26 +192,7 @@ static void video_image_display(VideoState *is)
             rgb_picture.data,
             rgb_picture.linesize
         );
-        Application_lock();
-#if defined(IMGUI_APPLICATION_PLATFORM_GLFW) || defined(IMGUI_APPLICATION_PLATFORM_SDL2)
-        if (is->current_window)
-        {
-#if defined(IMGUI_APPLICATION_PLATFORM_GLFW)
-            glfwMakeContextCurrent(is->current_window);
-#else
-            SDL_GL_MakeCurrent(is->current_window, is->current_glcontext);
-#endif
-#endif
         ImGui::ImGenerateOrUpdateTexture(is->video_texture, out_w, out_h, 4, rgb_picture.data[0]);
-#if defined(IMGUI_APPLICATION_PLATFORM_GLFW) || defined(IMGUI_APPLICATION_PLATFORM_SDL2)
-#if defined(IMGUI_APPLICATION_PLATFORM_GLFW)
-            glfwMakeContextCurrent(NULL);
-#else
-            SDL_GL_MakeCurrent(is->current_window, NULL);
-#endif
-        }
-#endif
-        Application_unlock();
         av_frame_unref(&rgb_picture);
     }
 #endif
@@ -221,7 +200,7 @@ static void video_image_display(VideoState *is)
 }
 
 /* called to display each frame */
-static void video_refresh(void *opaque, double *remaining_time)
+void video_refresh(void *opaque, double *remaining_time)
 {
     VideoState *is = (VideoState *)opaque;
     double time;
@@ -464,35 +443,5 @@ int video_thread(void *arg)
     }
 the_end:
     av_frame_free(&frame);
-    return 0;
-}
-
-static int video_playing_thread(void *arg)
-{
-    VideoState *is = (VideoState *)arg;
-    double remaining_time = 0.0;
-    while (1)
-    {
-        if (is->abort_request)
-        {
-            break;
-        }
-        if (remaining_time > 0.0)
-        {
-            av_usleep((unsigned)(remaining_time * 1000000.0));
-        }
-        remaining_time = REFRESH_RATE;
-
-        if (!is->paused || is->force_refresh)
-            video_refresh(is, &remaining_time);
-    }
-
-    return 0;
-}
-
-int open_video_render(VideoState *is)
-{
-    // 创建视频显示线程
-    is->render_tid = SDL_CreateThread(video_playing_thread, "video playing thread", is);
     return 0;
 }
