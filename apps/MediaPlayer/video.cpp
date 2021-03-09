@@ -148,13 +148,13 @@ static void video_image_display(VideoState *is)
         is->yuv2rgb->YUV2RGBA(im_Y, im_U, im_V, im_RGB, color_format, color_space, color_range, is->video_depth, video_shift);
         is->resize->Resize(im_RGB, is->vkimage, frame_scale, 0.f, ImVulkan::INTERPOLATE_AREA);
     }
-    #if 0
+#if 0 //defined(__APPLE__)
     else
     {
         is->yuv2rgb->YUV2RGBA(im_Y, im_U, im_V, is->vkimage, color_format, color_space, color_range, is->video_depth, video_shift);
     }
     if (!is->video_texture) is->video_texture = ImGui::ImCreateTexture(is->vkimage);
-    #elif 1
+#else
     else
     {
         ImVulkan::VkImageBuffer im_RGB;
@@ -167,15 +167,12 @@ static void video_image_display(VideoState *is)
         {
             ImGui_ImplVulkan_UpdateTexture(is->video_texture, im_RGB.buffer(), im_RGB.w, im_RGB.h);
         }
+        // Copy to CPU and render
+        //ImVulkan::ImageBuffer im_RGB;
+        //is->yuv2rgb->YUV2RGBA(im_Y, im_U, im_V, im_RGB, color_format, color_space, color_range, is->video_depth, video_shift);
+        //ImGui::ImGenerateOrUpdateTexture(is->video_texture, im_RGB.w, im_RGB.h, im_RGB.c, (const unsigned char*)im_RGB.data);
     }
-    #else
-    else
-    {
-        ImVulkan::ImageBuffer im_RGB;
-        is->yuv2rgb->YUV2RGBA(im_Y, im_U, im_V, im_RGB, color_format, color_space, color_range, is->video_depth, video_shift);
-        ImGui::ImGenerateOrUpdateTexture(is->video_texture, im_RGB.w, im_RGB.h, im_RGB.c, (const unsigned char*)im_RGB.data);
-    }
-    #endif
+#endif
 #else
     int data_shift = is->video_depth > 8 ? 1 : 0;
     int out_w = tmp_frame->linesize[0] >> data_shift;

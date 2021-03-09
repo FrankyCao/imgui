@@ -1350,15 +1350,24 @@ if (IMGUI_APPS)
             ${LINK_LIBS}
         )
 
-        #add_executable(
-        #    example_blueprints
-        #    addon/imgui_node_editor/demo/blueprints.cpp
-        #)
-        #target_link_libraries(
-        #    example_blueprints
-        #    imgui
-        #    ${LINK_LIBS}
-        #)
+        add_executable(
+            example_blueprints
+            addon/imgui_node_editor/demo/blueprints.cpp
+            addon/imgui_node_editor/demo/builders.cpp
+            addon/imgui_node_editor/demo/builders.h
+            addon/imgui_node_editor/demo/drawing.cpp
+            addon/imgui_node_editor/demo/drawing.h
+            addon/imgui_node_editor/demo/widgets.cpp
+            addon/imgui_node_editor/demo/widgets.h
+            addon/imgui_node_editor/demo/icons.cpp
+            addon/imgui_node_editor/demo/icons.h
+            ${IMGUI_APP_SRC}
+        )
+        target_link_libraries(
+            example_blueprints
+            imgui
+            ${LINK_LIBS}
+        )
     endif (IMGUI_ADDONS)
     add_executable(
         example_application

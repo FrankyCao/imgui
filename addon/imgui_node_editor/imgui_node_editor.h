@@ -1,4 +1,6 @@
 //------------------------------------------------------------------------------
+// VERSION 0.9.1
+//
 // LICENSE
 //   This software is dual-licensed to the public domain and under the following
 //   license: you are granted a perpetual, irrevocable license to copy, modify,
@@ -11,10 +13,12 @@
 # define __IMGUI_NODE_EDITOR_H__
 # pragma once
 
+
 //------------------------------------------------------------------------------
 # include <imgui.h>
 # include <cstdint> // std::uintXX_t
 # include <utility> // std::move
+
 
 //------------------------------------------------------------------------------
 namespace ax {
@@ -59,6 +63,10 @@ struct Config
     ConfigSaveNodeSettings  SaveNodeSettings;
     ConfigLoadNodeSettings  LoadNodeSettings;
     void*                   UserPointer;
+    int                     DragButtonIndex;        // Mouse button index drag action will react to (0-left, 1-right, 2-middle)
+    int                     SelectButtonIndex;      // Mouse button index select action will react to (0-left, 1-right, 2-middle)
+    int                     NavigateButtonIndex;    // Mouse button index navigate action will react to (0-left, 1-right, 2-middle)
+    int                     ContextMenuButtonIndex; // Mouse button index context menu action will react to (0-left, 1-right, 2-middle)
 
     Config()
         : SettingsFile("NodeEditor.json")
@@ -69,6 +77,10 @@ struct Config
         , SaveNodeSettings(nullptr)
         , LoadNodeSettings(nullptr)
         , UserPointer(nullptr)
+        , DragButtonIndex(0)
+        , SelectButtonIndex(0)
+        , NavigateButtonIndex(1)
+        , ContextMenuButtonIndex(1)
     {
     }
 };
@@ -274,11 +286,12 @@ void EndCreate();
 bool BeginDelete();
 bool QueryDeletedLink(LinkId* linkId, PinId* startId = nullptr, PinId* endId = nullptr);
 bool QueryDeletedNode(NodeId* nodeId);
-bool AcceptDeletedItem();
+bool AcceptDeletedItem(bool deleteDependencies = true);
 void RejectDeletedItem();
 void EndDelete();
 
 void SetNodePosition(NodeId nodeId, const ImVec2& editorPosition);
+void SetGroupSize(NodeId nodeId, const ImVec2& size);
 ImVec2 GetNodePosition(NodeId nodeId);
 ImVec2 GetNodeSize(NodeId nodeId);
 void CenterNodeOnScreen(NodeId nodeId);
@@ -295,6 +308,8 @@ bool HasSelectionChanged();
 int  GetSelectedObjectCount();
 int  GetSelectedNodes(NodeId* nodes, int size);
 int  GetSelectedLinks(LinkId* links, int size);
+bool IsNodeSelected(NodeId nodeId);
+bool IsLinkSelected(LinkId linkId);
 void ClearSelection();
 void SelectNode(NodeId nodeId, bool append = false);
 void SelectLink(LinkId linkId, bool append = false);
@@ -303,6 +318,11 @@ void DeselectLink(LinkId linkId);
 
 bool DeleteNode(NodeId nodeId);
 bool DeleteLink(LinkId linkId);
+
+bool HasAnyLinks(NodeId nodeId); // Returns true if node has any link connected
+bool HasAnyLinks(PinId pinId); // Return true if pin has any link connected
+int BreakLinks(NodeId nodeId); // Break all links connected to this node
+int BreakLinks(PinId pinId); // Break all links connected to this pin
 
 void NavigateToContent(float duration = -1);
 void NavigateToSelection(bool zoomIn = false, float duration = -1);
@@ -328,11 +348,16 @@ void EndShortcut();
 
 float GetCurrentZoom();
 
+NodeId GetHoveredNode();
+PinId GetHoveredPin();
+LinkId GetHoveredLink();
 NodeId GetDoubleClickedNode();
 PinId GetDoubleClickedPin();
 LinkId GetDoubleClickedLink();
 bool IsBackgroundClicked();
 bool IsBackgroundDoubleClicked();
+
+bool GetLinkPins(LinkId linkId, PinId* startPinId, PinId* endPinId); // pass nullptr if particular pin do not interest you
 
 bool PinHadAnyLinks(PinId pinId);
 

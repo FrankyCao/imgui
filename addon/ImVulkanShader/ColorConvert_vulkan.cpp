@@ -39,9 +39,6 @@ ColorConvert_vulkan::~ColorConvert_vulkan()
 void ColorConvert_vulkan::YUV2RGBA(const ImageBuffer& im_Y, const ImageBuffer& im_U, const ImageBuffer& im_V, ImageBuffer & im_RGB, ColorFormat color_format, ColorSpace color_space, ColorRange color_range, int video_depth, int video_shift) const
 {
     VkImageBuffer matix_y2r_gpu;
-    const ImageBuffer conv_mat_y2r = *color_table[0][color_range][color_space];
-    cmd->record_clone(conv_mat_y2r, matix_y2r_gpu, opt);
-
     ImVulkan::VkImageBuffer vk_Y, vk_U, vk_V;
     ImVulkan::VkImageBuffer vk_RGB;
     im_RGB.create_type(im_Y.w, im_Y.h, 4, ImVulkan::INT8);
@@ -52,6 +49,8 @@ void ColorConvert_vulkan::YUV2RGBA(const ImageBuffer& im_Y, const ImageBuffer& i
     {
         cmd->record_clone(im_V, vk_V, opt);
     }
+    const ImageBuffer conv_mat_y2r = *color_table[0][color_range][color_space];
+    cmd->record_clone(conv_mat_y2r, matix_y2r_gpu, opt);
     std::vector<ImVulkan::VkImageBuffer> bindings(6);
     bindings[0] = vk_Y;
     bindings[1] = vk_U;
@@ -125,8 +124,6 @@ void ColorConvert_vulkan::YUV2RGBA(const ImageBuffer& im_Y, const ImageBuffer& i
 void ColorConvert_vulkan::YUV2RGBA(const ImageBuffer& im_Y, const ImageBuffer& im_U, const ImageBuffer& im_V, VkImageMat & im_RGB, ColorFormat color_format, ColorSpace color_space, ColorRange color_range, int video_depth, int video_shift) const
 {
     VkImageBuffer matix_y2r_gpu;
-    const ImageBuffer conv_mat_y2r = *color_table[0][color_range][color_space];
-    cmd->record_clone(conv_mat_y2r, matix_y2r_gpu, opt);
     ImVulkan::VkImageBuffer vk_Y, vk_U, vk_V;
     ImVulkan::VkImageBuffer vk_RGB;
     vk_RGB.create_type(im_Y.w, im_Y.h, 4, ImVulkan::FLOAT32, opt.blob_vkallocator);
@@ -136,6 +133,8 @@ void ColorConvert_vulkan::YUV2RGBA(const ImageBuffer& im_Y, const ImageBuffer& i
     {
         cmd->record_clone(im_V, vk_V, opt);
     }
+    const ImageBuffer conv_mat_y2r = *color_table[0][color_range][color_space];
+    cmd->record_clone(conv_mat_y2r, matix_y2r_gpu, opt);
     std::vector<ImVulkan::VkImageBuffer> bindings(6);
     bindings[0] = vk_Y;
     bindings[1] = vk_U;
