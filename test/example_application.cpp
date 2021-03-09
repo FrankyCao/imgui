@@ -19,6 +19,7 @@
 #include "TextEditor.h"
 #include "ImGuiFileDialog.h"
 #include "ImGuiFileSystem.h"
+#include "tinyfiledialogs.h"
 #include "HotKey.h"
 #include "addon/addons_demo.h"
 #endif
@@ -119,6 +120,7 @@ public:
     bool show_implot_window = false;
     bool show_file_dialog_window = false;
     bool show_sample_file_dialog = false;
+    bool show_tiny_file_dialog = false;
     bool show_text_edit_window = false;
     bool show_markdown_window = false;
     bool show_dock_window = false;
@@ -127,7 +129,6 @@ public:
     bool show_node_edit_window = false;
     bool show_addon_widget = false;
     bool show_zmo_window = false;
-
 public:
     std::string get_file_contents(const char *filename);
     static ImGui::MarkdownImageData ImageCallback( ImGui::MarkdownLinkCallbackData data_ );
@@ -268,6 +269,7 @@ bool Application_Frame(void* handle)
         ImGui::Checkbox("ImPlot Window", &example->show_implot_window);
         ImGui::Checkbox("File Dialog Window", &example->show_file_dialog_window);
         ImGui::Checkbox("Sample File Dialog", &example->show_sample_file_dialog);
+        ImGui::Checkbox("Tiny File Dialog", &example->show_tiny_file_dialog);
         ImGui::Checkbox("Memory Edit Window", &example->mem_edit.Open);
         ImGui::Checkbox("Show Text Edit Window", &example->show_text_edit_window);
         ImGui::Checkbox("Show Markdown Window", &example->show_markdown_window);
@@ -333,7 +335,19 @@ bool Application_Frame(void* handle)
         example->show_sample_file_dialog = false;
     }
 
-    // 7. Show Memory Edit window
+    // 7. Show Tiny FileDialog
+    if (example->show_tiny_file_dialog)
+    {
+        const char* filterPatterns[1] = { "*.cpp" };
+        auto path = tinyfd_openFileDialog(
+            "Open Source Code...",
+            nullptr,
+            1, filterPatterns,
+            "Source Code Files (*.cpp)", 0);
+        example->show_tiny_file_dialog = false;
+    }
+
+    // 8. Show Memory Edit window
     if (example->mem_edit.Open)
     {
         ImGui::SetNextWindowSize(ImVec2(400, 768), ImGuiCond_FirstUseEver);
@@ -342,13 +356,13 @@ bool Application_Frame(void* handle)
         ImGui::End();
     }
 
-    // 8. Show Text Edit Window
+    // 9. Show Text Edit Window
     if (example->show_text_edit_window)
     {
         example->editor.text_edit_demo(&example->show_text_edit_window);
     }
 
-    // 9. Show Markdown Window
+    // 10. Show Markdown Window
     if (example->show_markdown_window)
     {
         ImGui::SetNextWindowSize(ImVec2(1024, 768), ImGuiCond_FirstUseEver);
@@ -367,7 +381,7 @@ bool Application_Frame(void* handle)
         ImGui::End();
     }
 
-    // 10. Show Dock Window
+    // 11. Show Dock Window
     if (example->show_dock_window)
     {
         ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
@@ -378,7 +392,7 @@ bool Application_Frame(void* handle)
         ImGui::End();
     }
 
-    // 11. Show Tab Window
+    // 12. Show Tab Window
     if (example->show_tab_window)
     {
         ImGui::SetNextWindowSize(ImVec2(700,600), ImGuiCond_FirstUseEver);
@@ -389,13 +403,13 @@ bool Application_Frame(void* handle)
         ImGui::End();
     }
 
-    // 12. Show Node Sample Window
+    // 13. Show Node Sample Window
     if (example->show_node_window)
     {
         imnodes_sample::NodeEditorShow(&example->show_node_window);
     }
 
-    // 13. Show Node Edit Window
+    // 14. Show Node Edit Window
     if (example->show_node_edit_window)
     {
         ImGui::SetNextWindowSize(ImVec2(700,600), ImGuiCond_FirstUseEver);
@@ -406,7 +420,7 @@ bool Application_Frame(void* handle)
         ImGui::End();
     }
 
-    // 14. Show Addon Widget.
+    // 15. Show Addon Widget.
     if (example->show_addon_widget)
     {
         ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
@@ -415,7 +429,7 @@ bool Application_Frame(void* handle)
         ImGui::End();
     }
 
-    // 15. Show Zmo Window
+    // 16. Show Zmo Window
     if (example->show_zmo_window)
     {
         ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
@@ -426,7 +440,7 @@ bool Application_Frame(void* handle)
     }
 
 #ifdef IMGUI_VULKAN_SHADER
-    // 16. Show Shader Window
+    // 17. Show Shader Window
     if (example->show_shader_window)
     {
         ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);

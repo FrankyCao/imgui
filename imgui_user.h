@@ -14,6 +14,7 @@ extern "C" {
 #endif
 #include "ImGuiHelper.h"
 #include "ImGuiFileSystem.h"
+#include "tinyfiledialogs.h"
 #include "imgui_memory_editor.h"
 #include "ImGuiFileDialog.h"
 #include "implot.h"

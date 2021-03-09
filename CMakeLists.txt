@@ -597,6 +597,20 @@ if(IMGUI_ADDONS)
         ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiFileDialog
     )
 
+    # TinyFileDialog
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
+        addon/tinyfiledialog/tinyfiledialogs.c
+        addon/tinyfiledialog/tinyfiledialogs.h
+    )
+    set(IMGUI_INCS
+        ${IMGUI_INCS}
+        addon/tinyfiledialog/tinyfiledialogs.h
+    )
+    set(IMGUI_INC_DIRS
+        ${IMGUI_INC_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/addon/tinyfiledialog
+    )
     # implot
     set(IMGUI_SRC
         ${IMGUI_SRC}
@@ -1368,6 +1382,7 @@ if (IMGUI_APPS)
             imgui
             ${LINK_LIBS}
         )
+
     endif (IMGUI_ADDONS)
     add_executable(
         example_application
