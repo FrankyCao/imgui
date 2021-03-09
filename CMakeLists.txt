@@ -960,6 +960,7 @@ if(IMGUI_ADDONS)
         addon/addons_demo.h
         addon/NumberTexture.h
     )
+
 endif(IMGUI_ADDONS)
 
 # Application Framework
@@ -1348,6 +1349,16 @@ if (IMGUI_APPS)
             imgui
             ${LINK_LIBS}
         )
+
+        #add_executable(
+        #    example_blueprints
+        #    addon/imgui_node_editor/demo/blueprints.cpp
+        #)
+        #target_link_libraries(
+        #    example_blueprints
+        #    imgui
+        #    ${LINK_LIBS}
+        #)
     endif (IMGUI_ADDONS)
     add_executable(
         example_application

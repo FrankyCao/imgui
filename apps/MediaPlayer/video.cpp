@@ -161,14 +161,11 @@ static void video_image_display(VideoState *is)
         is->yuv2rgb->YUV2RGBA(im_Y, im_U, im_V, im_RGB, color_format, color_space, color_range, is->video_depth, video_shift);
         if(!is->video_texture)
         {
-            is->video_texture = ImGui::ImCreateTexture((const unsigned char*)im_RGB.data, im_RGB.w, im_RGB.h);
-            VkBuffer buf = im_RGB.buffer();
-            ImGui_ImplVulkan_UpdateTexture1(is->video_texture, buf, im_RGB.w, im_RGB.h);
+            is->video_texture = ImGui_ImplVulkan_CreateTexture(im_RGB.buffer(), im_RGB.w, im_RGB.h);
         }
         else
         {
-            VkBuffer buf = im_RGB.buffer();
-            ImGui_ImplVulkan_UpdateTexture1(is->video_texture, buf, im_RGB.w, im_RGB.h);
+            ImGui_ImplVulkan_UpdateTexture(is->video_texture, im_RGB.buffer(), im_RGB.w, im_RGB.h);
         }
     }
     #else

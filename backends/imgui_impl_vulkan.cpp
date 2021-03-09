@@ -1691,7 +1691,44 @@ ImTextureID ImGui_ImplVulkan_CreateTexture(const void * pixels, int width, int h
     return (ImTextureID)texture;
 }
 
-void ImGui_ImplVulkan_UpdateTexture1(ImTextureID textureid, VkBuffer stagingBuffer, int width, int height)
+ImTextureID ImGui_ImplVulkan_CreateTexture(VkBuffer buffer, int width, int height)
+{
+    ImTextureVk texture = new ImTextureVK();
+    VkCommandPool commandPool = VK_NULL_HANDLE;
+    ImGui_ImplVulkan_InitInfo* v = &g_VulkanInitInfo;
+    VkDeviceSize imageSize = width * height * 4;
+
+    createImage(v, width,height,VK_FORMAT_R8G8B8A8_UNORM,
+                VK_IMAGE_TILING_OPTIMAL,
+                VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                texture->textureImage, texture->textureImageMemory);
+
+    createImageView(v, texture->textureImage, texture->textureView);
+    createImageSampler(v, texture->textureSampler);
+    VkCommandPoolCreateInfo poolInfo{};
+    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    poolInfo.queueFamilyIndex = v->QueueFamily;
+
+    if (vkCreateCommandPool(v->Device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create graphics command pool!");
+    }
+
+    transitionImageLayout(v, commandPool, texture->textureImage, 
+                        VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, 
+                        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    copyBufferToImage(v, commandPool, buffer, texture->textureImage, 
+                    static_cast<uint32_t>(width), static_cast<uint32_t>(height));
+    transitionImageLayout(v, commandPool, texture->textureImage, 
+                        VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 
+                        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+    vkDestroyCommandPool(v->Device, commandPool, nullptr);
+    texture->textureDescriptor = (VkDescriptorSet)ImGui_ImplVulkan_AddTexture(texture->textureSampler, texture->textureView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    return (ImTextureID)texture;
+}
+
+void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, VkBuffer stagingBuffer, int width, int height)
 {
     ImTextureVk texture = (ImTextureVk)textureid;
     if (!texture)
