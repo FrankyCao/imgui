@@ -15,10 +15,10 @@
 
 #define SHADER_MAT_Y2R \
 " \n\
-sfpmat3 matix_mat_y2r = { \n\
-    {sfp(convert_matix_y2r[0]), sfp(convert_matix_y2r[3]), sfp(convert_matix_y2r[6])}, \n\
-    {sfp(convert_matix_y2r[1]), sfp(convert_matix_y2r[4]), sfp(convert_matix_y2r[7])}, \n\
-    {sfp(convert_matix_y2r[2]), sfp(convert_matix_y2r[5]), sfp(convert_matix_y2r[8])}, \n\
+sfpmat3 matrix_mat_y2r = { \n\
+    {sfp(convert_matrix_y2r[0]), sfp(convert_matrix_y2r[3]), sfp(convert_matrix_y2r[6])}, \n\
+    {sfp(convert_matrix_y2r[1]), sfp(convert_matrix_y2r[4]), sfp(convert_matrix_y2r[7])}, \n\
+    {sfp(convert_matrix_y2r[2]), sfp(convert_matrix_y2r[5]), sfp(convert_matrix_y2r[8])}, \n\
 }; \
 "
 
@@ -44,7 +44,7 @@ sfpvec3 yuv_to_rgb(sfpvec3 yuv) \n\
     sfpvec3 yuv_offset = {sfp(0.f), sfp(0.5f), sfp(0.5f)}; \n\
     if (p.in_range == 1) \n\
         yuv_offset.x = sfp(16.0f / 255.0f); \n\
-    rgb = matix_mat_y2r * (yuv - yuv_offset); \n\
+    rgb = matrix_mat_y2r * (yuv - yuv_offset); \n\
     return clamp(rgb, sfp(0.f), sfp(1.f)); \n\
 }\n\
 "
@@ -118,7 +118,7 @@ layout (binding = 1) readonly buffer U { uint8_t U_data[]; };
 layout (binding = 2) readonly buffer V { uint8_t V_data[]; };
 layout (binding = 3) writeonly buffer Out { float Out_data[]; };
 layout (binding = 4) writeonly buffer RGBA { uint8_t RGBA_data[]; };
-layout (binding = 5) readonly buffer matix_y2r { float convert_matix_y2r[]; };
+layout (binding = 5) readonly buffer matrix_y2r { float convert_matrix_y2r[]; };
 )"
 SHADER_MAT_Y2R
 SHADER_PARAM_Y2R
@@ -136,7 +136,7 @@ layout (binding = 1) readonly buffer U { uint16_t U_data[]; };
 layout (binding = 2) readonly buffer V { uint16_t V_data[]; };
 layout (binding = 3) writeonly buffer Out { float Out_data[]; };
 layout (binding = 4) writeonly buffer RGBA { uint8_t RGBA_data[]; };
-layout (binding = 5) readonly buffer matix_y2r { float convert_matix_y2r[]; };
+layout (binding = 5) readonly buffer matrix_y2r { float convert_matrix_y2r[]; };
 )"
 SHADER_MAT_Y2R
 SHADER_PARAM_Y2R

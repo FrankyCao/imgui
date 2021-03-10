@@ -2921,7 +2921,7 @@ bool ImGui::SliderScalar(const char* label, ImGuiDataType data_type, void* p_dat
     const ImGuiID id = window->GetID(label);
     const float w = CalcItemWidth();
 
-    const ImVec2 label_size = (flags & ImGuiSliderFlags_NoLabel) ? ImVec2(0, 16) : CalcTextSize(label, NULL, true);
+    const ImVec2 label_size = (flags & ImGuiSliderFlags_NoLabel) ? ImVec2(0, 16) : CalcTextSize(label, NULL, true); // add by Dicky
     const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 2.0f));
     const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
 
@@ -5913,7 +5913,7 @@ void ImGui::TreePop()
     if (g.NavMoveDir == ImGuiDir_Left && g.NavWindow == window && NavMoveRequestButNoResultYet())
         if (g.NavIdIsAlive && (window->DC.TreeJumpToParentOnPopMask & tree_depth_mask))
         {
-            SetNavID(window->IDStack.back(), g.NavLayer, 0);
+            SetNavID(window->IDStack.back(), g.NavLayer, 0, ImRect());
             NavMoveRequestCancel();
         }
     window->DC.TreeJumpToParentOnPopMask &= tree_depth_mask - 1;
@@ -6101,8 +6101,8 @@ bool ImGui::Selectable(const char* label, bool selected, ImGuiSelectableFlags fl
     {
         if (!g.NavDisableMouseHover && g.NavWindow == window && g.NavLayer == window->DC.NavLayerCurrent)
         {
+            SetNavID(id, window->DC.NavLayerCurrent, window->DC.NavFocusScopeIdCurrent, ImRect(bb.Min - window->Pos, bb.Max - window->Pos));
             g.NavDisableHighlight = true;
-            SetNavID(id, window->DC.NavLayerCurrent, window->DC.NavFocusScopeIdCurrent);
         }
     }
     if (pressed)
@@ -6580,9 +6580,9 @@ void ImGui::EndMenuBar()
             const ImGuiNavLayer layer = ImGuiNavLayer_Menu;
             IM_ASSERT(window->DC.NavLayerActiveMaskNext & (1 << layer)); // Sanity check
             FocusWindow(window);
-            SetNavIDWithRectRel(window->NavLastIds[layer], layer, 0, window->NavRectRel[layer]);
-            g.NavLayer = layer;
+            SetNavID(window->NavLastIds[layer], layer, 0, window->NavRectRel[layer]);
             g.NavDisableHighlight = true; // Hide highlight for the current frame so we don't see the intermediary selection.
+            g.NavDisableMouseHover = g.NavMousePosDirty = true;
             g.NavMoveRequestForward = ImGuiNavForward_ForwardQueued;
             NavMoveRequestCancel();
         }
