@@ -5,7 +5,7 @@
 //
 // When you enter a canvas ImGui is moved to virtual space which mean:
 //   - ImGui::GetCursorScreenPos() return (0, 0) and which correspond to top left corner
-//     of the canvas on the screen (this can be changed using CanvasView()).
+//     of the canvas on the screen (this can be changed usign CanvasView()).
 //   - Mouse input is brought to canvas space, so widgets works as usual.
 //   - Everything you draw with ImDrawList will be in virtual space.
 //
@@ -23,7 +23,7 @@
 // as usual in ImGui.
 //
 // While drawing inside canvas you can translate position from world (usual ImGui space)
-// to virtual space and back using CanvasFromWorld()/CanvasToWorld().
+// to virtual space and back usign CanvasFromWorld()/CanvasToWorld().
 //
 // Canvas can be nested in each other (they are regular widgets after all). There
 // is a way to transform position between current and parent canvas with
@@ -34,8 +34,6 @@
 //
 // Note:
 //     It is not valid to call canvas API outside of BeginCanvas() / EndCanvas() scope.
-//
-// VERSION 0.1
 //
 // LICENSE
 //   This software is dual-licensed to the public domain and under the following
@@ -259,5 +257,28 @@ private:
 };
 
 } // namespace ImGuiEx
+
+// https://stackoverflow.com/a/36079786
+# define DECLARE_HAS_MEMBER(__trait_name__, __member_name__)                        \
+                                                                                    \
+    template <typename __boost_has_member_T__>                                      \
+    class __trait_name__                                                            \
+    {                                                                               \
+        using check_type = ::std::remove_const_t<__boost_has_member_T__>;           \
+        struct no_type {char x[2];};                                                \
+        using  yes_type = char;                                                     \
+                                                                                    \
+        struct  base { void __member_name__() {}};                                  \
+        struct mixin : public base, public check_type {};                           \
+                                                                                    \
+        template <void (base::*)()> struct aux {};                                  \
+                                                                                    \
+        template <typename U> static no_type  test(aux<&U::__member_name__>*);      \
+        template <typename U> static yes_type test(...);                            \
+                                                                                    \
+        public:                                                                     \
+                                                                                    \
+        static constexpr bool value = (sizeof(yes_type) == sizeof(test<mixin>(0))); \
+    }
 
 # endif // __IMGUI_EX_CANVAS_H__

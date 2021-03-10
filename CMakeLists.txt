@@ -1367,14 +1367,25 @@ if (IMGUI_APPS)
         add_executable(
             example_blueprints
             addon/imgui_node_editor/demo/blueprints.cpp
-            addon/imgui_node_editor/demo/builders.cpp
-            addon/imgui_node_editor/demo/builders.h
-            addon/imgui_node_editor/demo/drawing.cpp
-            addon/imgui_node_editor/demo/drawing.h
-            addon/imgui_node_editor/demo/widgets.cpp
-            addon/imgui_node_editor/demo/widgets.h
-            addon/imgui_node_editor/demo/icons.cpp
-            addon/imgui_node_editor/demo/icons.h
+            addon/imgui_node_editor/demo/blueprint_editor_document.cpp
+            addon/imgui_node_editor/demo/blueprint_editor_document.h
+            addon/imgui_node_editor/demo/blueprint_editor_icons.cpp
+            addon/imgui_node_editor/demo/blueprint_editor_icons.h
+            addon/imgui_node_editor/demo/blueprint_editor_utilities.cpp
+            addon/imgui_node_editor/demo/blueprint_editor_utilities.h
+            addon/imgui_node_editor/demo/crude_blueprint_library.cpp
+            addon/imgui_node_editor/demo/crude_blueprint_library.h
+            addon/imgui_node_editor/demo/crude_blueprint.cpp
+            addon/imgui_node_editor/demo/crude_blueprint.h
+            addon/imgui_node_editor/demo/crude_layout.cpp
+            addon/imgui_node_editor/demo/crude_layout.h
+            addon/imgui_node_editor/demo/crude_logger.cpp
+            addon/imgui_node_editor/demo/crude_logger.h
+            addon/imgui_node_editor/demo/imgui_extras.cpp
+            addon/imgui_node_editor/demo/imgui_extras.h
+            addon/imgui_node_editor/demo/span.hpp
+            addon/imgui_node_editor/demo/string_view.hpp
+            addon/imgui_node_editor/demo/variant.hpp
             ${IMGUI_APP_SRC}
         )
         target_link_libraries(
@@ -1382,7 +1393,24 @@ if (IMGUI_APPS)
             imgui
             ${LINK_LIBS}
         )
-
+        add_executable(
+            example_blueprints2
+            addon/imgui_node_editor/demo2/blueprints2.cpp
+            addon/imgui_node_editor/demo2/builders.cpp
+            addon/imgui_node_editor/demo2/builders.h
+            addon/imgui_node_editor/demo2/drawing.cpp
+            addon/imgui_node_editor/demo2/drawing.h
+            addon/imgui_node_editor/demo2/widgets.cpp
+            addon/imgui_node_editor/demo2/widgets.h
+            addon/imgui_node_editor/demo2/icons.cpp
+            addon/imgui_node_editor/demo2/icons.h
+            ${IMGUI_APP_SRC}
+        )
+        target_link_libraries(
+            example_blueprints2
+            imgui
+            ${LINK_LIBS}
+        )
     endif (IMGUI_ADDONS)
     add_executable(
         example_application

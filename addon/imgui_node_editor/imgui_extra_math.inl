@@ -1,6 +1,4 @@
 //------------------------------------------------------------------------------
-// VERSION 0.9.1
-//
 // LICENSE
 //   This software is dual-licensed to the public domain and under the following
 //   license: you are granted a perpetual, irrevocable license to copy, modify,
@@ -69,6 +67,14 @@ inline bool ImRect_IsEmpty(const ImRect& rect)
 {
     return rect.Min.x >= rect.Max.x
         || rect.Min.y >= rect.Max.y;
+}
+
+inline float ImRect_Area(const ImRect& rect)
+{
+    if (ImRect_IsEmpty(rect))
+        return 0.0f;
+    else
+        return rect.GetWidth() * rect.GetHeight();
 }
 
 inline ImVec2 ImRect_ClosestPoint(const ImRect& rect, const ImVec2& p, bool snap_to_edge)

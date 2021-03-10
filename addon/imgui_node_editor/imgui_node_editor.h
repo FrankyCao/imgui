@@ -1,6 +1,4 @@
 //------------------------------------------------------------------------------
-// VERSION 0.9.1
-//
 // LICENSE
 //   This software is dual-licensed to the public domain and under the following
 //   license: you are granted a perpetual, irrevocable license to copy, modify,
@@ -21,6 +19,12 @@
 
 
 //------------------------------------------------------------------------------
+namespace crude_json {
+struct value;
+} // crude_json
+
+
+//------------------------------------------------------------------------------
 namespace ax {
 namespace NodeEditor {
 
@@ -29,6 +33,44 @@ namespace NodeEditor {
 struct NodeId;
 struct LinkId;
 struct PinId;
+
+
+//------------------------------------------------------------------------------
+enum class TransactionAction: int32_t
+{
+    Unknown,
+    Navigation,
+    Drag,
+    ClearSelection,
+    Select,
+    Deselect,
+    ToggleSelect
+};
+
+const char* ToString(TransactionAction action);
+
+struct ITransaction
+{
+    virtual ~ITransaction() { }
+
+    virtual void AddAction(TransactionAction action, const char* name) {}
+    virtual void Commit() {}
+    virtual void Discard() {}
+
+    // Adds action that act on specific node
+    virtual void AddAction(TransactionAction action, LinkId linkId, const char* name); // implemented defaults to 'AddAction(action, name)'
+    virtual void AddAction(TransactionAction action, NodeId nodeId, const char* name); // implemented defaults to 'AddAction(action, name)'
+};
+
+using TransactionConstructor = ITransaction*(*)(const char* name, void* userPointer);  // Create new instance of the transaction
+using TransactionDestructor  = void(*)(ITransaction*, void* userPointer);              // Destroys instance if the transaction
+
+struct TransactionInterface
+{
+    TransactionConstructor  Constructor = nullptr;
+    TransactionDestructor   Destructor  = nullptr;
+    void*                   UserPointer = nullptr;
+};
 
 
 //------------------------------------------------------------------------------
@@ -51,35 +93,50 @@ using ConfigLoadSettings     = size_t (*)(char* data, void* userPointer);
 using ConfigSaveNodeSettings = bool   (*)(NodeId nodeId, const char* data, size_t size, SaveReasonFlags reason, void* userPointer);
 using ConfigLoadNodeSettings = size_t (*)(NodeId nodeId, char* data, void* userPointer);
 
+using ConfigSaveSettingsJson = bool              (*)(const crude_json::value&, SaveReasonFlags reason, void* userPointer);
+using ConfigLoadSettingsJson = crude_json::value (*)(void* userPointer);
+
+using ConfigSaveNodeSettingsJson = bool              (*)(NodeId nodeId, const crude_json::value& value, SaveReasonFlags reason, void* userPointer);
+using ConfigLoadNodeSettingsJson = crude_json::value (*)(NodeId nodeId, void* userPointer);
+
 using ConfigSession          = void   (*)(void* userPointer);
 
 struct Config
 {
-    const char*             SettingsFile;
-    ConfigSession           BeginSaveSession;
-    ConfigSession           EndSaveSession;
-    ConfigSaveSettings      SaveSettings;
-    ConfigLoadSettings      LoadSettings;
-    ConfigSaveNodeSettings  SaveNodeSettings;
-    ConfigLoadNodeSettings  LoadNodeSettings;
-    void*                   UserPointer;
-    int                     DragButtonIndex;        // Mouse button index drag action will react to (0-left, 1-right, 2-middle)
-    int                     SelectButtonIndex;      // Mouse button index select action will react to (0-left, 1-right, 2-middle)
-    int                     NavigateButtonIndex;    // Mouse button index navigate action will react to (0-left, 1-right, 2-middle)
-    int                     ContextMenuButtonIndex; // Mouse button index context menu action will react to (0-left, 1-right, 2-middle)
+    const char*                 SettingsFile;
+    ConfigSession               BeginSaveSession;
+    ConfigSession               EndSaveSession;
+    ConfigSaveSettings          SaveSettings;
+    ConfigLoadSettings          LoadSettings;
+    ConfigSaveNodeSettings      SaveNodeSettings;
+    ConfigLoadNodeSettings      LoadNodeSettings;
+    ConfigSaveSettingsJson      SaveSettingsJson;
+    ConfigLoadSettingsJson      LoadSettingsJson;
+    ConfigSaveNodeSettingsJson  SaveNodeSettingsJson;
+    ConfigLoadNodeSettingsJson  LoadNodeSettingsJson;
+    void*                       UserPointer;
+    int                         DragButtonIndex;        // Mouse button index drag action will react to (0-left, 1-right, 2-middle)
+    int                         SelectButtonIndex;      // Mouse button index select action will react to (0-left, 1-right, 2-middle)
+    int                         NavigateButtonIndex;    // Mouse button index navigate action will react to (0-left, 1-right, 2-middle)
+    int                         ContextMenuButtonIndex; // Mouse button index context menu action will react to (0-left, 1-right, 2-middle)
+    TransactionInterface        TransactionInterface;
 
     Config()
-        : SettingsFile("NodeEditor.json")
+        : SettingsFile(nullptr)
         , BeginSaveSession(nullptr)
         , EndSaveSession(nullptr)
         , SaveSettings(nullptr)
         , LoadSettings(nullptr)
         , SaveNodeSettings(nullptr)
         , LoadNodeSettings(nullptr)
+        , SaveSettingsJson(nullptr)
+        , LoadSettingsJson(nullptr)
+        , SaveNodeSettingsJson(nullptr)
+        , LoadNodeSettingsJson(nullptr)
         , UserPointer(nullptr)
         , DragButtonIndex(0)
         , SelectButtonIndex(0)
-        , NavigateButtonIndex(1)
+        , NavigateButtonIndex(2)
         , ContextMenuButtonIndex(1)
     {
     }
@@ -296,7 +353,33 @@ ImVec2 GetNodePosition(NodeId nodeId);
 ImVec2 GetNodeSize(NodeId nodeId);
 void CenterNodeOnScreen(NodeId nodeId);
 
+//void SaveState();
+//void RestoreState();
+
 void RestoreNodeState(NodeId nodeId);
+
+enum class StateType: int32_t
+{
+    All,
+    Node,
+    Nodes,
+    Selection,
+    View
+};
+
+bool              HasStateChanged(StateType stateType, const crude_json::value& state); // Returns true if state changed since last call to GetState()/GetStateString()
+bool              HasStateChanged(StateType stateType, NodeId nodeId, const crude_json::value& state);
+crude_json::value GetState(StateType stateType); // Return state serialized to json value.
+crude_json::value GetState(StateType stateType, NodeId nodeId);
+bool              ApplyState(StateType stateType, const crude_json::value& state); // Applies state serialized to json value.
+bool              ApplyState(StateType stateType, NodeId nodeId, const crude_json::value& state);
+
+bool        HasStateChangedString(StateType stateType, const char* state); // Returns true if state changed since last call to GetState()/GetStateString()
+bool        HasStateChangedString(StateType stateType, NodeId nodeId, const char* state);
+const char* GetStateString(StateType stateType); // Returns state serialized to string. String is valid until next call to GetStateString()
+const char* GetStateString(StateType stateType, NodeId nodeId);
+bool        ApplyStateString(StateType stateType, const char* state); // Applies serialized state string to the editor.
+bool        ApplyStateString(StateType stateType, NodeId nodeId, const char* state);
 
 void Suspend();
 void Resume();
@@ -316,8 +399,8 @@ void SelectLink(LinkId linkId, bool append = false);
 void DeselectNode(NodeId nodeId);
 void DeselectLink(LinkId linkId);
 
-bool DeleteNode(NodeId nodeId);
-bool DeleteLink(LinkId linkId);
+bool DeleteNode(NodeId nodeId); // Marks node for deletion in next BeginDelete() action
+bool DeleteLink(LinkId linkId); // Marks link for deletion in next BeginDelete() action
 
 bool HasAnyLinks(NodeId nodeId); // Returns true if node has any link connected
 bool HasAnyLinks(PinId pinId); // Return true if pin has any link connected
@@ -365,7 +448,7 @@ ImVec2 GetScreenSize();
 ImVec2 ScreenToCanvas(const ImVec2& pos);
 ImVec2 CanvasToScreen(const ImVec2& pos);
 
-
+ImVector<LinkId> FindLinksForNode(NodeId nodeId);
 
 
 

@@ -1,6 +1,4 @@
 //------------------------------------------------------------------------------
-// VERSION 0.9.1
-//
 // LICENSE
 //   This software is dual-licensed to the public domain and under the following
 //   license: you are granted a perpetual, irrevocable license to copy, modify,
@@ -28,6 +26,7 @@
 
 # include "crude_json.h"
 
+# include <map>
 # include <vector>
 # include <string>
 
@@ -35,6 +34,12 @@
 //------------------------------------------------------------------------------
 namespace ax {
 namespace NodeEditor {
+
+inline bool operator<(const NodeId& lhs, const NodeId& rhs) { return lhs.AsPointer() < rhs.AsPointer(); }
+inline bool operator<(const  PinId& lhs, const  PinId& rhs) { return lhs.AsPointer() < rhs.AsPointer(); }
+inline bool operator<(const LinkId& lhs, const LinkId& rhs) { return lhs.AsPointer() < rhs.AsPointer(); }
+
+
 namespace Detail {
 
 
@@ -44,6 +49,7 @@ namespace json = crude_json;
 
 
 //------------------------------------------------------------------------------
+using std::map;
 using std::vector;
 using std::string;
 
@@ -56,6 +62,9 @@ void Log(const char* fmt, ...);
 //inline ImRect ToRect(const ax::rectf& rect);
 //inline ImRect ToRect(const ax::rect& rect);
 inline ImRect ImGui_GetItemRect();
+
+inline bool operator==(const ImRect& lhs, const ImRect& rhs);
+inline bool operator!=(const ImRect& lhs, const ImRect& rhs);
 
 
 //------------------------------------------------------------------------------
@@ -129,6 +138,89 @@ private:
 
 
 //------------------------------------------------------------------------------
+struct NodeState;
+struct NodesState;
+struct SelectionState;
+struct ViewState;
+struct EditorState;
+struct ObjectId;
+
+namespace Serialization {
+
+bool Parse(const string& str, ObjectId& result, string* error = nullptr);
+bool Parse(const string& str, NodeId& result, string* error = nullptr);
+bool Parse(const string& str, json::value& result, string* error = nullptr);
+
+bool Parse(const json::value& v, float& result, string* error = nullptr);
+bool Parse(const json::value& v, ImVec2& result, string* error = nullptr);
+bool Parse(const json::value& v, ImRect& result, string* error = nullptr);
+bool Parse(const json::value& v, NodeState& result, string* error = nullptr);
+bool Parse(const json::value& v, NodesState& result, string* error = nullptr);
+bool Parse(const json::value& v, SelectionState& result, string* error = nullptr);
+bool Parse(const json::value& v, ViewState& result, string* error = nullptr);
+bool Parse(const json::value& v, EditorState& result, string* error = nullptr);
+bool Parse(const json::value& v, ObjectId& result, string* error = nullptr);
+
+template <typename T>
+bool Parse(const json::value& v, vector<T>& result, string* error = nullptr);
+
+template <typename K, typename V>
+bool Parse(const json::value& v, map<K, V>& result, string* error = nullptr);
+
+string ToString(const json::value& value);
+string ToString(const json::type_t& type);
+string ToString(const ObjectId& objectId);
+string ToString(const NodeId& nodeId);
+
+json::value ToJson(const string& value);
+json::value ToJson(const ImVec2& value);
+json::value ToJson(const ImRect& value);
+json::value ToJson(const NodeState& value);
+json::value ToJson(const NodesState& value);
+json::value ToJson(const SelectionState& value);
+json::value ToJson(const ViewState& value);
+json::value ToJson(const EditorState& value);
+json::value ToJson(const ObjectId& value);
+
+template <typename T>
+json::value ToJson(const vector<T>& value);
+
+template <typename K, typename V>
+json::value ToJson(const map<K, V>& value);
+
+} // namespace Serialization {
+
+
+//------------------------------------------------------------------------------
+struct EditorContext;
+
+
+//------------------------------------------------------------------------------
+struct Transaction
+{
+    Transaction() = default;
+    Transaction(EditorContext* editor, ITransaction* transaction);
+    Transaction(Transaction&& other);
+    Transaction(const Transaction&) = delete;
+    ~Transaction();
+
+    Transaction& operator=(Transaction&& other);
+    Transaction& operator=(const Transaction&) = delete;
+
+    void AddAction(TransactionAction action, const char* name = "");
+    void AddAction(TransactionAction action, ObjectId nodeId, const char* name = "");
+    void Commit();
+    void Discard();
+
+private:
+    EditorContext*  m_Editor = nullptr;
+    ITransaction*   m_Transaction = nullptr;
+    bool            m_IsDone = false;
+};
+
+
+
+//------------------------------------------------------------------------------
 enum class ObjectType
 {
     None,
@@ -173,8 +265,6 @@ struct ObjectId final: Details::SafePointerType<ObjectId>
 private:
     ObjectType m_Type;
 };
-
-struct EditorContext;
 
 struct Node;
 struct Pin;
@@ -475,24 +565,88 @@ struct Link final: Object
     virtual Link* AsLink() override final { return this; }
 };
 
-struct NodeSettings
+struct NodeState
 {
-    NodeId m_ID;
     ImVec2 m_Location;
     ImVec2 m_Size;
     ImVec2 m_GroupSize;
-    bool   m_WasUsed;
+
+    friend bool operator==(const NodeState& lhs, const NodeState& rhs)
+    {
+        return lhs.m_Location  == rhs.m_Location
+            && lhs.m_Size      == rhs.m_Size
+            && lhs.m_GroupSize == rhs.m_GroupSize;
+    }
+
+    friend bool operator!=(const NodeState& lhs, const NodeState& rhs) { return !(lhs == rhs); }
+};
+
+struct NodesState
+{
+    map<NodeId, NodeState> m_Nodes;
+
+    friend bool operator==(const NodesState& lhs, const NodesState& rhs)
+    {
+        return lhs.m_Nodes == rhs.m_Nodes;
+    }
+
+    friend bool operator!=(const NodesState& lhs, const NodesState& rhs) { return !(lhs == rhs); }
+};
+
+struct SelectionState
+{
+    vector<ObjectId> m_Selection;
+
+    friend bool operator==(const SelectionState& lhs, const SelectionState& rhs)
+    {
+        return lhs.m_Selection == rhs.m_Selection;
+    }
+
+    friend bool operator!=(const SelectionState& lhs, const SelectionState& rhs) { return !(lhs == rhs); }
+};
+
+struct ViewState
+{
+    ImVec2 m_ViewScroll;
+    float  m_ViewZoom;
+    ImRect m_VisibleRect;
+
+    friend bool operator==(const ViewState& lhs, const ViewState& rhs)
+    {
+        return lhs.m_ViewScroll  == rhs.m_ViewScroll
+            && lhs.m_ViewZoom    == rhs.m_ViewZoom
+            && lhs.m_VisibleRect == rhs.m_VisibleRect;
+    }
+
+    friend bool operator!=(const ViewState& lhs, const ViewState& rhs) { return !(lhs == rhs); }
+};
+
+struct EditorState
+{
+    NodesState      m_NodesState;
+    SelectionState  m_SelectionState;
+    ViewState       m_ViewState;
+
+    friend bool operator==(const EditorState& lhs, const EditorState& rhs)
+    {
+        return lhs.m_NodesState     == rhs.m_NodesState
+            && lhs.m_SelectionState == rhs.m_SelectionState
+            && lhs.m_ViewState      == rhs.m_ViewState;
+    }
+
+    friend bool operator!=(const EditorState& lhs, const EditorState& rhs) { return !(lhs == rhs); }
+};
+
+struct NodeSettings
+{
+    bool        m_WasUsed;
 
     bool            m_Saved;
     bool            m_IsDirty;
     SaveReasonFlags m_DirtyReason;
 
-    NodeSettings(NodeId id)
-        : m_ID(id)
-        , m_Location(0, 0)
-        , m_Size(0, 0)
-        , m_GroupSize(0, 0)
-        , m_WasUsed(false)
+    NodeSettings()
+        : m_WasUsed(false)
         , m_Saved(false)
         , m_IsDirty(false)
         , m_DirtyReason(SaveReasonFlags::None)
@@ -501,11 +655,6 @@ struct NodeSettings
 
     void ClearDirty();
     void MakeDirty(SaveReasonFlags reason);
-
-    json::value Serialize();
-
-    static bool Parse(const std::string& string, NodeSettings& settings);
-    static bool Parse(const json::value& data, NodeSettings& result);
 };
 
 struct Settings
@@ -513,18 +662,11 @@ struct Settings
     bool                 m_IsDirty;
     SaveReasonFlags      m_DirtyReason;
 
-    vector<NodeSettings> m_Nodes;
-    vector<ObjectId>     m_Selection;
-    ImVec2               m_ViewScroll;
-    float                m_ViewZoom;
-    ImRect               m_VisibleRect;
+    map<NodeId, NodeSettings> m_Nodes;
 
     Settings()
         : m_IsDirty(false)
         , m_DirtyReason(SaveReasonFlags::None)
-        , m_ViewScroll(0, 0)
-        , m_ViewZoom(1.0f)
-        , m_VisibleRect()
     {
     }
 
@@ -533,10 +675,6 @@ struct Settings
 
     void ClearDirty(Node* node = nullptr);
     void MakeDirty(SaveReasonFlags reason, Node* node = nullptr);
-
-    std::string Serialize();
-
-    static bool Parse(const std::string& string, Settings& settings);
 };
 
 struct Control
@@ -849,6 +987,8 @@ struct NavigateAction final: EditorAction
 
     void SetViewRect(const ImRect& rect);
     ImRect GetViewRect() const;
+
+    const char* Describe() const;
 
 private:
     ImGuiEx::Canvas&   m_Canvas;
@@ -1246,12 +1386,12 @@ struct Config: ax::NodeEditor::Config
 {
     Config(const ax::NodeEditor::Config* config);
 
-    std::string Load();
-    std::string LoadNode(NodeId nodeId);
+    json::value Load();
+    json::value LoadNode(NodeId nodeId);
 
     void BeginSave();
-    bool Save(const std::string& data, SaveReasonFlags flags);
-    bool SaveNode(NodeId nodeId, const std::string& data, SaveReasonFlags flags);
+    bool Save(const json::value& data, SaveReasonFlags flags);
+    bool SaveNode(NodeId nodeId, const json::value& data, SaveReasonFlags flags);
     void EndSave();
 };
 
@@ -1350,6 +1490,7 @@ struct EditorContext
     Link*   CreateLink(LinkId id);
 
     Node*   FindNode(NodeId id);
+    const Node* FindNode(NodeId id) const;
     Pin*    FindPin(PinId id);
     Link*   FindLink(LinkId id);
     Object* FindObject(ObjectId id);
@@ -1436,6 +1577,39 @@ struct EditorContext
 
     ImDrawList* GetDrawList() { return m_DrawList; }
 
+          EditorState& GetState()       { return m_State; }
+    const EditorState& GetState() const { return m_State; }
+
+    bool HasStateChanged(const Node* node, const NodeState& state) const;
+    bool ApplyState(Node* node, const NodeState& state);
+    void RecordState(const Node* node, NodeState& state) const;
+    bool HasStateChanged(NodeId nodeId, const NodeState& state) const;
+    bool ApplyState(NodeId nodeId, const NodeState& state);
+    void RecordState(NodeId nodeId, NodeState& state) const;
+    bool HasStateChanged(const NodesState& state) const;
+    bool ApplyState(const NodesState& state);
+    void RecordState(NodesState& state) const;
+    bool HasStateChanged(const SelectionState& state) const;
+    bool ApplyState(const SelectionState& state);
+    void RecordState(SelectionState& state) const;
+    bool HasStateChanged(const ViewState& state) const;
+    bool ApplyState(const ViewState& state);
+    void RecordState(ViewState& state) const;
+    bool HasStateChanged(const EditorState& state) const;
+    bool ApplyState(const EditorState& state);
+    void RecordState(EditorState& state) const;
+
+    //void SaveState();
+    //void RestoreState();
+
+    Transaction MakeTransaction(const char* name);
+    void DestroyTransaction(ITransaction* transaction);
+
+    void SetCurrentTransaction(Transaction* transaction) { m_Transaction = transaction; }
+    Transaction* GetCurrentTransaction() { return m_Transaction; }
+
+    string              m_CachedStateStringForPublicAPI;
+
 private:
     void LoadSettings();
     void SaveSettings();
@@ -1499,6 +1673,9 @@ private:
 
     bool                m_IsInitialized;
     Settings            m_Settings;
+    EditorState         m_State;
+
+    Transaction*        m_Transaction = nullptr;
 
     Config              m_Config;
 
