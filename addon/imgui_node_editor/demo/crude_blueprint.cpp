@@ -521,6 +521,11 @@ crude_blueprint::NodeType crude_blueprint::Node::GetType() const
     return GetTypeInfo().m_Type;
 }
 
+void crude_blueprint::Node::SetName(string_view name)
+{
+
+}
+
 crude_blueprint::LinkQueryResult crude_blueprint::Node::AcceptLink(const Pin& receiver, const Pin& provider) const
 {
     if (receiver.m_Node == provider.m_Node)
@@ -862,7 +867,7 @@ crude_blueprint::StepResult crude_blueprint::Context::SetStepResult(StepResult r
 crude_blueprint::NodeRegistry::NodeRegistry()
     : m_BuildInNodes(
         {
-            GroupNode::GetStaticTypeInfo(),
+            CommentNode::GetStaticTypeInfo(),
             ConstBoolNode::GetStaticTypeInfo(),
             ConstInt32Node::GetStaticTypeInfo(),
             ConstFloatNode::GetStaticTypeInfo(),
@@ -877,6 +882,9 @@ crude_blueprint::NodeRegistry::NodeRegistry()
             PrintNode::GetStaticTypeInfo(),
             EntryPointNode::GetStaticTypeInfo(),
             AddNode::GetStaticTypeInfo(),
+            SubNode::GetStaticTypeInfo(),
+            MulNode::GetStaticTypeInfo(),
+            DivNode::GetStaticTypeInfo(),
         })
 {
     RebuildTypes();

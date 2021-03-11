@@ -324,18 +324,35 @@ struct BlueprintEditorExample
         auto printNode1Node = m_Blueprint->CreateNode<PrintNode>();         ed::SetNodePosition(printNode1Node->m_Id, ImVec2(828, -1));
         auto flipFlopNode   = m_Blueprint->CreateNode<FlipFlopNode>();      ed::SetNodePosition(flipFlopNode->m_Id, ImVec2(408, -1));
         auto toStringNode   = m_Blueprint->CreateNode<ToStringNode>();      ed::SetNodePosition(toStringNode->m_Id, ImVec2(617, 111));
-        auto doNNode        = m_Blueprint->CreateNode<DoNNode>();           ed::SetNodePosition(doNNode->m_Id, ImVec2(168, 95));
-        auto addNode        = m_Blueprint->CreateNode<AddNode>();           ed::SetNodePosition(addNode->m_Id, ImVec2(404, 159));
-
+        auto doNNode        = m_Blueprint->CreateNode<DoNNode>();           ed::SetNodePosition(doNNode->m_Id, ImVec2(140, 88));
+        auto addNode        = m_Blueprint->CreateNode<AddNode>();           ed::SetNodePosition(addNode->m_Id, ImVec2(360, 150));
+        auto mulNode        = m_Blueprint->CreateNode<MulNode>();           ed::SetNodePosition(mulNode->m_Id, ImVec2(360, 248));
+        auto subNode        = m_Blueprint->CreateNode<SubNode>();           ed::SetNodePosition(subNode->m_Id, ImVec2(360, 344));
+        auto divNode        = m_Blueprint->CreateNode<DivNode>();           ed::SetNodePosition(divNode->m_Id, ImVec2(360, 440));
+        auto constInt32Node = m_Blueprint->CreateNode<ConstInt32Node>();    ed::SetNodePosition(constInt32Node->m_Id, ImVec2(124, 320));
+        auto commentNode    = m_Blueprint->CreateNode<CommentNode>();       ed::SetNodePosition(commentNode->m_Id, ImVec2(-48, 0));
+                                                                            //ed::SetNodeSize(commentNode->m_Id, ImVec2(383, 276));
+                                                                            ed::SetGroupSize(commentNode->m_Id, ImVec2(367, 240));
         entryPointNode->m_Exit.LinkTo(doNNode->m_Enter);
 
-        doNNode->m_N.SetValue(5);
+        constInt32Node->m_Int32.SetValue(10);
+        doNNode->m_N.SetValue(50);
         doNNode->m_Exit.LinkTo(flipFlopNode->m_Enter);
 
-        toStringNode->m_Value.LinkTo(addNode->m_Result);
+        //toStringNode->m_Value.LinkTo(addNode->m_Result);
+        toStringNode->m_Value.LinkTo(divNode->m_Result);
 
         addNode->m_A.LinkTo(doNNode->m_Counter);
         addNode->m_B.SetValue(3);
+
+        mulNode->m_A.LinkTo(addNode->m_Result);
+        mulNode->m_B.LinkTo(constInt32Node->m_Int32);
+
+        subNode->m_A.LinkTo(mulNode->m_Result);
+        subNode->m_B.LinkTo(constInt32Node->m_Int32);
+
+        divNode->m_A.LinkTo(subNode->m_Result);
+        divNode->m_B.LinkTo(constInt32Node->m_Int32);
 
         toStringNode->m_Exit.LinkTo(printNode2Node->m_Enter);
 
@@ -602,6 +619,8 @@ private:
         ImGui::SameLine();
         toolbarAction(m_File_Save);
         ImGui::SameLine();
+        toolbarAction(m_File_SaveAs);
+        ImGui::SameLine();
         ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
         ImGui::SameLine();
         toolbarAction(m_Edit_Undo);
@@ -644,186 +663,6 @@ private:
         debugOverlay.Begin();
 
         // Commit all nodes to editor
-
-        // Handling Blueprint Node
-        for (auto& node : blueprint.GetNodes())
-        {
-            if (node->GetType() != NodeType::Blueprint)
-                continue;
-            ed::BeginNode(node->m_Id);
-
-            // General node layout:
-            //
-            // +-----------------------------------+
-            // | Title                             |
-            // | +-----------[ Dummy ]-----------+ |
-            // | +---------------+   +-----------+ |
-            // | | o Pin         |   |   Out B o | |
-            // | | o Pin <Value> |   |   Out A o | |
-            // | | o Pin         |   |           | |
-            // | +---------------+   +-----------+ |
-            // +-----------------------------------+
-
-            // Show title if node has one.
-            auto nodeName = node->GetName();
-            if (!nodeName.empty())
-            {
-                auto headerBackgroundRenderer = ImEx::ItemBackgroundRenderer([node](ImDrawList* drawList)
-                {
-                    auto border   = ed::GetStyle().NodeBorderWidth;
-                    auto rounding = ed::GetStyle().NodeRounding;
-
-                    auto itemMin = ImGui::GetItemRectMin();
-                    auto itemMax = ImGui::GetItemRectMax();
-
-                    auto nodeStart = ed::GetNodePosition(node->m_Id);
-                    auto nodeSize  = ed::GetNodeSize(node->m_Id);
-
-                    itemMin   = nodeStart;
-                    itemMin.x = itemMin.x + border - 0.5f;
-                    itemMin.y = itemMin.y + border - 0.5f;
-                    itemMax.x = nodeStart.x + nodeSize.x - border + 0.5f;
-                    itemMax.y = itemMax.y + ImGui::GetStyle().ItemSpacing.y + 0.5f;
-
-                    drawList->AddRectFilled(itemMin, itemMax, IM_COL32(255, 255, 255, 64), rounding, ImDrawCornerFlags_Top);
-
-                    //drawList->AddRectFilledMultiColor(itemMin, itemMax, IM_COL32(255, 0, 0, 64), rounding, ImDrawCornerFlags_Top);
-                });
-
-                //ImGui::PushFont(HeaderFont());
-                ImGui::TextUnformatted(nodeName.data(), nodeName.data() + nodeName.size());
-                //ImGui::PopFont();
-
-                //ImEx::Debug_DrawItemRect();
-                ImGui::Spacing();
-            }
-
-            ImGui::Dummy(ImVec2(100.0f, 0.0f)); // For minimum node width
-
-            crude_layout::Grid layout;
-            layout.Begin(node->m_Id, 2, 100.0f);
-            layout.SetColumnAlignment(0.0f);
-
-            // Draw column with input pins.
-            for (auto& pin : node->GetInputPins())
-            {
-                // Add a bit of spacing to separate pins and make value not cramped
-                ImGui::Spacing();
-
-                // Input pin layout:
-                //
-                //     +-[1]---+-[2]------+-[3]----------+
-                //     |       |          |              |
-                //    [X] Icon | Pin Name | Value/Editor |
-                //     |       |          |              |
-                //     +-------+----------+--------------+
-
-                ed::BeginPin(pin->m_Id, ed::PinKind::Input);
-                // [X] - Tell editor to put pivot point in the middle of
-                //       the left side of the pin. This is the point
-                //       where link will be hooked to.
-                //
-                //       By default pivot is in pin center point which
-                //       does not look good for blueprint nodes.
-                ed::PinPivotAlignment(ImVec2(0.0f, 0.5f));
-
-                // [1] - Icon
-                Icon(iconSize,
-                    PinTypeToIconType(pin->GetType()),
-                    blueprint.HasPinAnyLink(*pin),
-                    PinTypeToColor(pin->GetValueType()));
-
-                // [2] - Show pin name if it has one
-                if (!pin->m_Name.empty())
-                {
-                    ImGui::SameLine();
-                    ImGui::TextUnformatted(pin->m_Name.data(), pin->m_Name.data() + pin->m_Name.size());
-                }
-
-                // [3] - Show value/editor when pin is not linked to anything
-                if (!blueprint.HasPinAnyLink(*pin))
-                {
-                    ImGui::SameLine();
-                    DrawPinValueWithEditor(*pin);
-                }
-
-                ed::EndPin();
-
-                // [Debug Overlay] Show value of the pin if node is currently executed
-                debugOverlay.DrawInputPin(*pin);
-
-                layout.NextRow();
-            }
-
-            layout.SetColumnAlignment(1.0f);
-            layout.NextColumn();
-
-            // Draw column with output pins.
-            for (auto& pin : node->GetOutputPins())
-            {
-                // Add a bit of spacing to separate pins and make value not cramped
-                ImGui::Spacing();
-
-                // Output pin layout:
-                //
-                //    +-[1]------+-[2]---+
-                //    |          |       |
-                //    | Pin Name | Icon [X]
-                //    |          |       |
-                //    +----------+-------+
-
-                ed::BeginPin(pin->m_Id, ed::PinKind::Output);
-
-                // [X] - Tell editor to put pivot point in the middle of
-                //       the right side of the pin. This is the point
-                //       where link will be hooked to.
-                //
-                //       By default pivot is in pin center point which
-                //       does not look good for blueprint nodes.
-                ed::PinPivotAlignment(ImVec2(1.0f, 0.5f));
-
-                // [1] - Show pin name if it has one
-                if (!pin->m_Name.empty())
-                {
-                    ImGui::TextUnformatted(pin->m_Name.data(), pin->m_Name.data() + pin->m_Name.size());
-                    ImGui::SameLine();
-                }
-
-                // [2] - Show icon
-                Icon(iconSize,
-                    PinTypeToIconType(pin->GetType()),
-                    blueprint.HasPinAnyLink(*pin),
-                    PinTypeToColor(pin->GetValueType()));
-
-                ed::EndPin();
-
-                // [Debug Overlay] Show value of the pin if node is currently executed
-                debugOverlay.DrawOutputPin(*pin);
-
-                layout.NextRow();
-            }
-
-            layout.End();
-
-            //ImEx::Debug_DrawItemRect();
-
-            ed::EndNode();
-
-            //ImEx::Debug_DrawItemRect();
-
-            // [Debug Overlay] Show cursor over node
-            debugOverlay.DrawNode(*node);
-        }
-
-        // Commit all links to editor
-        for (auto& pin : blueprint.GetPins())
-        {
-            if (!pin->m_Link)
-                continue;
-
-            // To keep things simple, link id is same as pin id.
-            ed::Link(pin->m_Id, pin->m_Id, pin->m_Link->m_Id, PinTypeToColor(pin->GetValueType()));
-        }
 
         // Handling Comment Node
         for (auto& node : blueprint.GetNodes())
@@ -879,7 +718,199 @@ private:
                     IM_COL32(255, 255, 255, 128 * bgAlpha / 255), 4.0f);
             }
             ed::EndGroupHint();
+
+            debugOverlay.DrawNode(*node);
         }
+
+        // Handling Blueprint Node
+        for (auto& node : blueprint.GetNodes())
+        {
+            if (node->GetType() != NodeType::Blueprint && node->GetType() != NodeType::Simple)
+                continue;
+            const auto isSimple = node->GetType() == NodeType::Simple;
+            ed::BeginNode(node->m_Id);
+
+            // General node layout:
+            //
+            // +-----------------------------------+
+            // | Title                             |
+            // | +-----------[ Dummy ]-----------+ |
+            // | +---------------+   +-----------+ |
+            // | | o Pin         |   |   Out B o | |
+            // | | o Pin <Value> |   |   Out A o | |
+            // | | o Pin         |   |           | |
+            // | +---------------+   +-----------+ |
+            // +-----------------------------------+
+
+            // Show title if node has one.
+            auto nodeName = node->GetName();
+            if (!nodeName.empty() && !isSimple)
+            {
+                auto headerBackgroundRenderer = ImEx::ItemBackgroundRenderer([node](ImDrawList* drawList)
+                {
+                    auto border   = ed::GetStyle().NodeBorderWidth;
+                    auto rounding = ed::GetStyle().NodeRounding;
+
+                    auto itemMin = ImGui::GetItemRectMin();
+                    auto itemMax = ImGui::GetItemRectMax();
+
+                    auto nodeStart = ed::GetNodePosition(node->m_Id);
+                    auto nodeSize  = ed::GetNodeSize(node->m_Id);
+
+                    itemMin   = nodeStart;
+                    itemMin.x = itemMin.x + border - 0.5f;
+                    itemMin.y = itemMin.y + border - 0.5f;
+                    itemMax.x = nodeStart.x + nodeSize.x - border + 0.5f;
+                    itemMax.y = itemMax.y + ImGui::GetStyle().ItemSpacing.y + 0.5f;
+
+                    drawList->AddRectFilled(itemMin, itemMax, IM_COL32(255, 255, 255, 64), rounding, ImDrawCornerFlags_Top);
+
+                    //drawList->AddRectFilledMultiColor(itemMin, itemMax, IM_COL32(255, 0, 0, 64), rounding, ImDrawCornerFlags_Top);
+                });
+
+                //ImGui::PushFont(HeaderFont());
+                ImGui::TextUnformatted(nodeName.data(), nodeName.data() + nodeName.size());
+                //ImGui::PopFont();
+
+                //ImEx::Debug_DrawItemRect();
+                ImGui::Spacing();
+            }
+
+            ImGui::Dummy(ImVec2(100.0f, 0.0f)); // For minimum node width
+
+            crude_layout::Grid layout;
+            layout.Begin(node->m_Id, isSimple ? 3 : 2, 100.0f);
+            layout.SetColumnAlignment(0.0f);
+
+            // Draw column with input pins.
+            for (auto& pin : node->GetInputPins())
+            {
+                // Add a bit of spacing to separate pins and make value not cramped
+                ImGui::Spacing();
+
+                // Input pin layout:
+                //
+                //     +-[1]---+-[2]------+-[3]----------+
+                //     |       |          |              |
+                //    [X] Icon | Pin Name | Value/Editor |
+                //     |       |          |              |
+                //     +-------+----------+--------------+
+
+                ed::BeginPin(pin->m_Id, ed::PinKind::Input);
+                // [X] - Tell editor to put pivot point in the middle of
+                //       the left side of the pin. This is the point
+                //       where link will be hooked to.
+                //
+                //       By default pivot is in pin center point which
+                //       does not look good for blueprint nodes.
+                ed::PinPivotAlignment(ImVec2(0.0f, 0.5f));
+
+                // [1] - Icon
+                Icon(iconSize,
+                    PinTypeToIconType(pin->GetType()),
+                    blueprint.HasPinAnyLink(*pin),
+                    PinTypeToColor(pin->GetValueType()));
+
+                // [2] - Show pin name if it has one
+                if (!pin->m_Name.empty() && !isSimple)
+                {
+                    ImGui::SameLine();
+                    ImGui::TextUnformatted(pin->m_Name.data(), pin->m_Name.data() + pin->m_Name.size());
+                }
+
+                // [3] - Show value/editor when pin is not linked to anything
+                if (!blueprint.HasPinAnyLink(*pin) && !isSimple)
+                {
+                    ImGui::SameLine();
+                    DrawPinValueWithEditor(*pin);
+                }
+
+                ed::EndPin();
+
+                // [Debug Overlay] Show value of the pin if node is currently executed
+                debugOverlay.DrawInputPin(*pin);
+
+                layout.NextRow();
+            }
+            
+            if (isSimple)
+            {
+                layout.SetColumnAlignment(0.5f);
+                layout.NextColumn();
+
+                ImGui::TextUnformatted(nodeName.data());
+            }
+
+            layout.SetColumnAlignment(1.0f);
+            layout.NextColumn();
+
+            // Draw column with output pins.
+            for (auto& pin : node->GetOutputPins())
+            {
+                // Add a bit of spacing to separate pins and make value not cramped
+                ImGui::Spacing();
+
+                // Output pin layout:
+                //
+                //    +-[1]------+-[2]---+
+                //    |          |       |
+                //    | Pin Name | Icon [X]
+                //    |          |       |
+                //    +----------+-------+
+
+                ed::BeginPin(pin->m_Id, ed::PinKind::Output);
+
+                // [X] - Tell editor to put pivot point in the middle of
+                //       the right side of the pin. This is the point
+                //       where link will be hooked to.
+                //
+                //       By default pivot is in pin center point which
+                //       does not look good for blueprint nodes.
+                ed::PinPivotAlignment(ImVec2(1.0f, 0.5f));
+
+                // [1] - Show pin name if it has one
+                if (!pin->m_Name.empty() && !isSimple)
+                {
+                    ImGui::TextUnformatted(pin->m_Name.data(), pin->m_Name.data() + pin->m_Name.size());
+                    ImGui::SameLine();
+                }
+
+                // [2] - Show icon
+                Icon(iconSize,
+                    PinTypeToIconType(pin->GetType()),
+                    blueprint.HasPinAnyLink(*pin),
+                    PinTypeToColor(pin->GetValueType()));
+
+                ed::EndPin();
+
+                // [Debug Overlay] Show value of the pin if node is currently executed
+                debugOverlay.DrawOutputPin(*pin);
+
+                layout.NextRow();
+            }
+
+            layout.End();
+
+            //ImEx::Debug_DrawItemRect();
+
+            ed::EndNode();
+
+            //ImEx::Debug_DrawItemRect();
+
+            // [Debug Overlay] Show cursor over node
+            debugOverlay.DrawNode(*node);
+        }
+
+        // Commit all links to editor
+        for (auto& pin : blueprint.GetPins())
+        {
+            if (!pin->m_Link)
+                continue;
+
+            // To keep things simple, link id is same as pin id.
+            ed::Link(pin->m_Id, pin->m_Id, pin->m_Link->m_Id, PinTypeToColor(pin->GetValueType()));
+        }
+
         debugOverlay.End();
     }
 
@@ -1131,6 +1162,7 @@ private:
         {
             auto nodeTypeInfo = hoveredNode->GetTypeInfo();
             auto nodeName = hoveredNode->GetName();
+            auto nodeType = hoveredNode->GetType();
 
             ed::Suspend();
             ImGui::BeginTooltip();
@@ -1139,8 +1171,9 @@ private:
             ImGui::Text("Name: %" PRI_sv, FMT_sv(nodeName));
             ImGui::Separator();
             ImGui::TextUnformatted("Type:");
-            ImGui::Bullet(); ImGui::Text("ID: 0x%08" PRIX32, nodeTypeInfo.m_Id);
-            ImGui::Bullet(); ImGui::Text("Name: %" PRI_sv, FMT_sv(nodeTypeInfo.m_Name));
+            ImGui::Bullet(); ImGui::Text("     ID: 0x%08" PRIX32, nodeTypeInfo.m_Id);
+            ImGui::Bullet(); ImGui::Text("   Type: %s", NodeTypeToString(nodeType));
+            ImGui::Bullet(); ImGui::Text("SubType: %" PRI_sv, FMT_sv(nodeTypeInfo.m_Name));
 
             if (hoveredPin)
             {

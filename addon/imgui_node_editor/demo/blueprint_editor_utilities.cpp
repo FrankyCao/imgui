@@ -727,6 +727,16 @@ void blueprint_editor_utilities::NodeContextMenu::Show(Blueprint& blueprint)
 
         ImGui::Separator();
 
+        if (ImGui::MenuItem("Rename"))
+        {
+            if (node && !ax::NodeEditor::IsNodeSelected(node->m_Id))
+            {
+                //ax::NodeEditor::DeleteNode(node->m_Id);
+                //node->GetName();
+                // TODO:: Dicky need change node display name
+            }
+        }
+
         if (ImGui::MenuItem("Delete"))
         {
             if (node && !ax::NodeEditor::IsNodeSelected(node->m_Id))

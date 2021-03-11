@@ -6,12 +6,11 @@
 # include "crude_blueprint.h"
 
 namespace crude_blueprint {
-
-// Group node which is a container include a group nodes
-struct GroupNode final : Node
+// Comment node which is a container include group nodes, only Comments no pin
+struct CommentNode final : Node
 {
-    CRUDE_BP_NODE_TYPE(GroupNode, "Group", NodeType::Comment)
-    GroupNode(Blueprint& blueprint): Node(blueprint) {}
+    CRUDE_BP_NODE_TYPE(CommentNode, "Comment", NodeType::Comment)
+    CommentNode(Blueprint& blueprint): Node(blueprint) {}
 };
 
 // Very basic nodes which serve as a constant data source.
@@ -452,7 +451,7 @@ struct EntryPointNode final : Node
 
 struct AddNode final : Node
 {
-    CRUDE_BP_NODE(AddNode, "Add (const)")
+    CRUDE_BP_NODE_TYPE(AddNode, "+", NodeType::Simple)
 
     AddNode(Blueprint& blueprint): Node(blueprint)
     {
@@ -509,17 +508,6 @@ struct AddNode final : Node
             if (provider.m_Node == this && receiver.GetValueType() != m_PendingType && receiver.GetType() != PinType::Any)
                 return { false, "Receiver must match type of the node" };
         }
-
-        // Accept connection of any type
-        //if (m_Type != PinType::Any && m_Type != PinType::Void)
-        //{
-        //    if (receiver.m_Node == this && receiver.GetValueType() != m_Type)
-        //        return { false, "Receiver must match type of the node" };
-
-        //    if (provider.m_Node == this && provider.GetValueType() != m_Type)
-        //        return { false, "Provider must match type of the node" };
-        //}
-        //else if (m_Type == PinType::Any)
         {
             auto candidateType = PinType::Void;
             if (receiver.m_Node != this)
@@ -563,10 +551,395 @@ struct AddNode final : Node
 
     void SetType(PinType type)
     {
-        if (type != PinType::Any)
-            m_Name = string("Add ") + PinTypeToString(type) + " (const)";
+        m_Name = "+";
+
+        m_Type = PinType::Void;
+        m_PendingType = type;
+
+        m_A.SetValueType(type);
+        m_B.SetValueType(type);
+        m_Result.SetValueType(type);
+
+        m_Type = type;
+    }
+
+    span<Pin*> GetInputPins() override { return m_InputPins; }
+    span<Pin*> GetOutputPins() override { return m_OutputPins; }
+
+    string m_Name;
+
+    PinType m_Type = PinType::Any;
+
+    AnyPin m_A = { this, "A" };
+    AnyPin m_B = { this, "B" };
+    AnyPin m_Result = { this, "Result" };
+
+    Pin* m_InputPins[2] = { &m_A, &m_B };
+    Pin* m_OutputPins[1] = { &m_Result };
+
+private:
+    PinType m_PendingType = PinType::Any;
+};
+
+struct SubNode final : Node
+{
+    CRUDE_BP_NODE_TYPE(SubNode, "-", NodeType::Simple)
+
+    SubNode(Blueprint& blueprint): Node(blueprint)
+    {
+        SetType(PinType::Any);
+    }
+
+    PinValue EvaluatePin(const Context& context, const Pin& pin) const override
+    {
+        if (pin.m_Id == m_Result.m_Id)
+        {
+            auto aValue = context.GetPinValue(m_A);
+            auto bValue = context.GetPinValue(m_B);
+
+            if (aValue.GetType() != m_Type ||
+                bValue.GetType() != m_Type)
+            {
+                return {}; // Error: Node values must be of same type
+            }
+
+            switch (m_Type)
+            {
+                case PinType::Int32:
+                    return aValue.As<int32_t>() - bValue.As<int32_t>();
+                case PinType::Float:
+                    return aValue.As<float>() - bValue.As<float>();
+                default:
+                    break;
+            }
+
+            return {}; // Error: Unsupported type
+        }
         else
-            m_Name = "Add (const)";
+            return Node::EvaluatePin(context, pin);
+    }
+
+    string_view GetName() const override
+    {
+        return m_Name;
+    }
+
+    LinkQueryResult AcceptLink(const Pin& receiver, const Pin& provider) const override
+    {
+        auto result = Node::AcceptLink(receiver, provider);
+        if (!result)
+            return result;
+
+        if (m_Type == PinType::Void)
+        {
+            if (receiver.m_Node == this && provider.GetValueType() != m_PendingType && provider.GetType() != PinType::Any)
+                return { false, "Provider must match type of the node" };
+
+            if (provider.m_Node == this && receiver.GetValueType() != m_PendingType && receiver.GetType() != PinType::Any)
+                return { false, "Receiver must match type of the node" };
+        }
+        {
+            auto candidateType = PinType::Void;
+            if (receiver.m_Node != this)
+                candidateType = receiver.GetType() != PinType::Any ? receiver.GetValueType() : PinType::Any;
+            else if (provider.m_Node != this)
+                candidateType = provider.GetType() != PinType::Any ? provider.GetValueType() : PinType::Any;
+
+            switch (candidateType)
+            {
+                case PinType::Any:
+                case PinType::Int32:
+                case PinType::Float:
+                    return { true, "Other pins will convert to this pin type" };
+
+                default:
+                    return { false, "Node do not support pin of this type" };
+            }
+        }
+
+        return {true};
+    }
+
+    void WasLinked(const Pin& receiver, const Pin& provider) override
+    {
+        if (m_Type == PinType::Void)
+            return;
+
+        if (receiver.m_Id == m_A.m_Id || receiver.m_Id == m_B.m_Id)
+            SetType(provider.GetValueType());
+        else if (provider.m_Id == m_Result.m_Id)
+            SetType(receiver.GetValueType());
+    }
+
+    void WasUnlinked(const Pin& receiver, const Pin& provider) override
+    {
+    }
+
+    //bool Load(const crude_json::value& value) override;
+    //void Save(crude_json::value& value) const override;
+
+    void SetType(PinType type)
+    {
+        m_Name = "-";
+
+        m_Type = PinType::Void;
+        m_PendingType = type;
+
+        m_A.SetValueType(type);
+        m_B.SetValueType(type);
+        m_Result.SetValueType(type);
+
+        m_Type = type;
+    }
+
+    span<Pin*> GetInputPins() override { return m_InputPins; }
+    span<Pin*> GetOutputPins() override { return m_OutputPins; }
+
+    string m_Name;
+
+    PinType m_Type = PinType::Any;
+
+    AnyPin m_A = { this, "A" };
+    AnyPin m_B = { this, "B" };
+    AnyPin m_Result = { this, "Result" };
+
+    Pin* m_InputPins[2] = { &m_A, &m_B };
+    Pin* m_OutputPins[1] = { &m_Result };
+
+private:
+    PinType m_PendingType = PinType::Any;
+};
+
+struct MulNode final : Node
+{
+    CRUDE_BP_NODE_TYPE(MulNode, "x", NodeType::Simple)
+
+    MulNode(Blueprint& blueprint): Node(blueprint)
+    {
+        SetType(PinType::Any);
+    }
+
+    PinValue EvaluatePin(const Context& context, const Pin& pin) const override
+    {
+        if (pin.m_Id == m_Result.m_Id)
+        {
+            auto aValue = context.GetPinValue(m_A);
+            auto bValue = context.GetPinValue(m_B);
+
+            if (aValue.GetType() != m_Type ||
+                bValue.GetType() != m_Type)
+            {
+                return {}; // Error: Node values must be of same type
+            }
+
+            switch (m_Type)
+            {
+                case PinType::Int32:
+                    return aValue.As<int32_t>() * bValue.As<int32_t>();
+                case PinType::Float:
+                    return aValue.As<float>() * bValue.As<float>();
+                default:
+                    break;
+            }
+
+            return {}; // Error: Unsupported type
+        }
+        else
+            return Node::EvaluatePin(context, pin);
+    }
+
+    string_view GetName() const override
+    {
+        return m_Name;
+    }
+
+    LinkQueryResult AcceptLink(const Pin& receiver, const Pin& provider) const override
+    {
+        auto result = Node::AcceptLink(receiver, provider);
+        if (!result)
+            return result;
+
+        if (m_Type == PinType::Void)
+        {
+            if (receiver.m_Node == this && provider.GetValueType() != m_PendingType && provider.GetType() != PinType::Any)
+                return { false, "Provider must match type of the node" };
+
+            if (provider.m_Node == this && receiver.GetValueType() != m_PendingType && receiver.GetType() != PinType::Any)
+                return { false, "Receiver must match type of the node" };
+        }
+        {
+            auto candidateType = PinType::Void;
+            if (receiver.m_Node != this)
+                candidateType = receiver.GetType() != PinType::Any ? receiver.GetValueType() : PinType::Any;
+            else if (provider.m_Node != this)
+                candidateType = provider.GetType() != PinType::Any ? provider.GetValueType() : PinType::Any;
+
+            switch (candidateType)
+            {
+                case PinType::Any:
+                case PinType::Int32:
+                case PinType::Float:
+                    return { true, "Other pins will convert to this pin type" };
+
+                default:
+                    return { false, "Node do not support pin of this type" };
+            }
+        }
+
+        return {true};
+    }
+
+    void WasLinked(const Pin& receiver, const Pin& provider) override
+    {
+        if (m_Type == PinType::Void)
+            return;
+
+        if (receiver.m_Id == m_A.m_Id || receiver.m_Id == m_B.m_Id)
+            SetType(provider.GetValueType());
+        else if (provider.m_Id == m_Result.m_Id)
+            SetType(receiver.GetValueType());
+    }
+
+    void WasUnlinked(const Pin& receiver, const Pin& provider) override
+    {
+    }
+
+    //bool Load(const crude_json::value& value) override;
+    //void Save(crude_json::value& value) const override;
+
+    void SetType(PinType type)
+    {
+        m_Name = "x";
+
+        m_Type = PinType::Void;
+        m_PendingType = type;
+
+        m_A.SetValueType(type);
+        m_B.SetValueType(type);
+        m_Result.SetValueType(type);
+
+        m_Type = type;
+    }
+
+    span<Pin*> GetInputPins() override { return m_InputPins; }
+    span<Pin*> GetOutputPins() override { return m_OutputPins; }
+
+    string m_Name;
+
+    PinType m_Type = PinType::Any;
+
+    AnyPin m_A = { this, "A" };
+    AnyPin m_B = { this, "B" };
+    AnyPin m_Result = { this, "Result" };
+
+    Pin* m_InputPins[2] = { &m_A, &m_B };
+    Pin* m_OutputPins[1] = { &m_Result };
+
+private:
+    PinType m_PendingType = PinType::Any;
+};
+
+struct DivNode final : Node
+{
+    CRUDE_BP_NODE_TYPE(DivNode, "/", NodeType::Simple)
+
+    DivNode(Blueprint& blueprint): Node(blueprint)
+    {
+        SetType(PinType::Any);
+    }
+
+    PinValue EvaluatePin(const Context& context, const Pin& pin) const override
+    {
+        if (pin.m_Id == m_Result.m_Id)
+        {
+            auto aValue = context.GetPinValue(m_A);
+            auto bValue = context.GetPinValue(m_B);
+
+            if (aValue.GetType() != m_Type ||
+                bValue.GetType() != m_Type)
+            {
+                return {}; // Error: Node values must be of same type
+            }
+
+            switch (m_Type)
+            {
+                case PinType::Int32:
+                    if (bValue.As<int32_t>() == 0) return INT_MAX;
+                    return aValue.As<int32_t>() / bValue.As<int32_t>();
+                case PinType::Float:
+                    return aValue.As<float>() / (bValue.As<float>() + 1e-10f);
+                default:
+                    break;
+            }
+
+            return {}; // Error: Unsupported type
+        }
+        else
+            return Node::EvaluatePin(context, pin);
+    }
+
+    string_view GetName() const override
+    {
+        return m_Name;
+    }
+
+    LinkQueryResult AcceptLink(const Pin& receiver, const Pin& provider) const override
+    {
+        auto result = Node::AcceptLink(receiver, provider);
+        if (!result)
+            return result;
+
+        if (m_Type == PinType::Void)
+        {
+            if (receiver.m_Node == this && provider.GetValueType() != m_PendingType && provider.GetType() != PinType::Any)
+                return { false, "Provider must match type of the node" };
+
+            if (provider.m_Node == this && receiver.GetValueType() != m_PendingType && receiver.GetType() != PinType::Any)
+                return { false, "Receiver must match type of the node" };
+        }
+        {
+            auto candidateType = PinType::Void;
+            if (receiver.m_Node != this)
+                candidateType = receiver.GetType() != PinType::Any ? receiver.GetValueType() : PinType::Any;
+            else if (provider.m_Node != this)
+                candidateType = provider.GetType() != PinType::Any ? provider.GetValueType() : PinType::Any;
+
+            switch (candidateType)
+            {
+                case PinType::Any:
+                case PinType::Int32:
+                case PinType::Float:
+                    return { true, "Other pins will convert to this pin type" };
+
+                default:
+                    return { false, "Node do not support pin of this type" };
+            }
+        }
+
+        return {true};
+    }
+
+    void WasLinked(const Pin& receiver, const Pin& provider) override
+    {
+        if (m_Type == PinType::Void)
+            return;
+
+        if (receiver.m_Id == m_A.m_Id || receiver.m_Id == m_B.m_Id)
+            SetType(provider.GetValueType());
+        else if (provider.m_Id == m_Result.m_Id)
+            SetType(receiver.GetValueType());
+    }
+
+    void WasUnlinked(const Pin& receiver, const Pin& provider) override
+    {
+    }
+
+    //bool Load(const crude_json::value& value) override;
+    //void Save(crude_json::value& value) const override;
+
+    void SetType(PinType type)
+    {
+        m_Name = "/";
 
         m_Type = PinType::Void;
         m_PendingType = type;

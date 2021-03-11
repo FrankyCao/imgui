@@ -406,6 +406,7 @@ struct Node
 
     virtual string_view GetName() const;
     virtual NodeType GetType() const;
+    virtual void SetName(string_view name);
 
     virtual LinkQueryResult AcceptLink(const Pin& receiver, const Pin& provider) const; // Checks if node accept link between these two pins. There node can filter out unsupported link types.
     virtual void WasLinked(const Pin& receiver, const Pin& provider); // Notifies node that link involving one of its pins has been made.
