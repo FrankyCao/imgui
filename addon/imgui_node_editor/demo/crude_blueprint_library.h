@@ -7,6 +7,13 @@
 
 namespace crude_blueprint {
 
+// Group node which is a container include a group nodes
+struct GroupNode final : Node
+{
+    CRUDE_BP_NODE_TYPE(GroupNode, "Group", NodeType::Comment)
+    GroupNode(Blueprint& blueprint): Node(blueprint) {}
+};
+
 // Very basic nodes which serve as a constant data source.
 //
 // They're equivalent to setting data directly in input nodes

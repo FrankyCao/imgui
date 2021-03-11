@@ -13,6 +13,7 @@
 # include "crude_layout.h"
 # include "imgui_extras.h"
 # include "imgui_node_editor.h"
+# include "imgui_node_editor_internal.h"
 # include "crude_json.h"
 
 #include "Config.h"
@@ -643,8 +644,12 @@ private:
         debugOverlay.Begin();
 
         // Commit all nodes to editor
+
+        // Handling Blueprint Node
         for (auto& node : blueprint.GetNodes())
         {
+            if (node->GetType() != NodeType::Blueprint)
+                continue;
             ed::BeginNode(node->m_Id);
 
             // General node layout:
@@ -820,6 +825,61 @@ private:
             ed::Link(pin->m_Id, pin->m_Id, pin->m_Link->m_Id, PinTypeToColor(pin->GetValueType()));
         }
 
+        // Handling Comment Node
+        for (auto& node : blueprint.GetNodes())
+        {
+            if (node->GetType() != NodeType::Comment)
+                continue;
+            const float commentAlpha = 0.75f;
+
+            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, commentAlpha);
+            ed::PushStyleColor(ed::StyleColor_NodeBg, ImColor(255, 255, 255, 64));
+            ed::PushStyleColor(ed::StyleColor_NodeBorder, ImColor(255, 255, 255, 64));
+            ed::BeginNode(node->m_Id);
+            ImGui::BeginVertical("content");
+            // Show title if node has one.
+            auto nodeName = node->GetName();
+            if (!nodeName.empty())
+            {
+                ImGui::BeginHorizontal("horizontal");
+                ImGui::Spring(1);
+                ImGui::TextUnformatted(nodeName.data());
+                ImGui::Spring(1);
+                ImGui::EndHorizontal();
+            }
+            auto nodeSize  = ed::GetNodeSize(node->m_Id);
+            ed::Group(nodeSize);
+            ImGui::EndVertical();
+            ed::EndNode();
+            ed::PopStyleColor(2);
+            ImGui::PopStyleVar();
+            if (ed::BeginGroupHint(node->m_Id))
+            {
+                auto bgAlpha = static_cast<int>(ImGui::GetStyle().Alpha * 255);
+                auto min = ed::GetGroupMin();
+
+                ImGui::SetCursorScreenPos(min - ImVec2(-8, ImGui::GetTextLineHeightWithSpacing() + 4));
+                ImGui::BeginGroup();
+                ImGui::TextUnformatted(nodeName.data());
+                ImGui::EndGroup();
+
+                auto drawList = ed::GetHintBackgroundDrawList();
+
+                auto hintBounds      = ax::NodeEditor::Detail::ImGui_GetItemRect();
+                auto hintFrameBounds = ax::NodeEditor::Detail::ImRect_Expanded(hintBounds, 8, 4);
+
+                drawList->AddRectFilled(
+                    hintFrameBounds.GetTL(),
+                    hintFrameBounds.GetBR(),
+                    IM_COL32(255, 255, 255, 64 * bgAlpha / 255), 4.0f);
+
+                drawList->AddRect(
+                    hintFrameBounds.GetTL(),
+                    hintFrameBounds.GetBR(),
+                    IM_COL32(255, 255, 255, 128 * bgAlpha / 255), 4.0f);
+            }
+            ed::EndGroupHint();
+        }
         debugOverlay.End();
     }
 
@@ -1183,12 +1243,12 @@ private:
 
     bool File_Open()
     {
-        const char* filterPatterns[1] = { "*.bp" };
+        const char* filterPatterns[1] = { "*.json" };
         auto path = tinyfd_openFileDialog(
             "Open Blueprint...",
             m_Document ? m_Document->m_Path.c_str() : nullptr,
             1, filterPatterns,
-            "Blueprint Files (*.bp)", 0);
+            "Blueprint Files (*.json)", 0);
         if (!path)
             return false;
 
@@ -1260,12 +1320,12 @@ private:
 
     bool File_SaveAs()
     {
-        const char* filterPatterns[1] = { "*.bp" };
+        const char* filterPatterns[1] = { "*.json" };
         auto path = tinyfd_saveFileDialog(
             "Save Blueprint...",
             m_Document->m_Path.c_str(),
             1, filterPatterns,
-            "Blueprint Files (*.bp)");
+            "Blueprint Files (*.json)");
         if (!path)
             return false;
 
@@ -1416,7 +1476,7 @@ const char* Application_GetName(void * handle)
 void Application_Initialize(void** handle)
 {
     static std::string setting_file = std::string(DEFAULT_CONFIG_PATH) + "Blueprints.json";
-    static std::string bluepoint_file = std::string(DEFAULT_CONFIG_PATH) + "Blueprints.bp";
+    static std::string bluepoint_file = std::string(DEFAULT_CONFIG_PATH) + "Blueprints_bp.json";
     static std::string ini_file = std::string(DEFAULT_CONFIG_PATH) + "Blueprints.ini";
     BlueprintEditorExample * example = new BlueprintEditorExample();
     example->Initialize(setting_file.c_str(), ini_file.c_str(), bluepoint_file.c_str());

@@ -2037,7 +2037,7 @@ bool ed::EditorContext::ApplyState(Node* node, const NodeState& state)
 
     ImRect newBounds;
     newBounds.Min = state.m_Location;
-    newBounds.Max = state.m_Location + node->m_Bounds.GetSize();//state.m_Size;
+    newBounds.Max = state.m_Location + ((state.m_Size.x == 0 || state.m_Size.y == 0) ? node->m_Bounds.GetSize() : state.m_Size);
 
     modified |= (node->m_Bounds.Min != newBounds.Min || node->m_Bounds.Max != newBounds.Max);
 
@@ -3176,7 +3176,6 @@ ed::EditorAction::AcceptResult ed::NavigateAction::Accept(const Control& control
     }
 
     auto& io = ImGui::GetIO();
-
     if (Editor->CanAcceptUserInput() && ImGui::IsKeyPressed(GetKeyIndexForF()) && Editor->AreShortcutsEnabled())
     {
         const auto zoomMode = io.KeyShift ? NavigateAction::ZoomMode::WithMargin : NavigateAction::ZoomMode::None;
@@ -3252,6 +3251,7 @@ bool ed::NavigateAction::Process(const Control& control)
 
     if (!m_IsActive)
         return false;
+    auto& io = ImGui::GetIO();
 
     if (ImGui::IsMouseDragging(Editor->GetConfig().NavigateButtonIndex, 0.0f))
     {

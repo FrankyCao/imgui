@@ -376,6 +376,7 @@ CODE
  When you are not sure about a old symbol or function name, try using the Search/Find function of your IDE to look for comments or references in all imgui files.
  You can read releases logs https://github.com/ocornut/imgui/releases for more details.
 
+ - 2021/03/10 (1.82) - upgraded ImDrawList::AddPolyline() and PathStroke() "bool closed" parameter to "ImDrawFlags flags". The matching ImDrawFlags_Closed value is guaranteed to always stay == 1 in the future.
  - 2021/02/22 (1.82) - win32+mingw: Re-enabled IME functions by default even under MinGW. In July 2016, issue #738 had me incorrectly disable those default functions for MinGW. MinGW users should: either link with -limm32, either set their imconfig file  with '#define IMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCTIONS'.
  - 2021/02/17 (1.82) - renamed rarely used style.CircleSegmentMaxError (old default = 1.60f) to style.CircleTessellationMaxError (new default = 0.30f) as the meaning of the value changed.
  - 2021/02/03 (1.81) - renamed ListBoxHeader(const char* label, ImVec2 size) to BeginListBox(). Kept inline redirection function (will obsolete).
@@ -3889,7 +3890,7 @@ void ImGui::NewFrame()
 {
     IM_ASSERT(GImGui != NULL && "No current context. Did you call ImGui::CreateContext() and ImGui::SetCurrentContext() ?");
     ImGuiContext& g = *GImGui;
-    
+
     // Remove pending delete hooks before frame start.
     // This deferred removal avoid issues of removal while iterating the hook vector
     for (int n = g.Hooks.Size - 1; n >= 0; n--)
@@ -4859,7 +4860,7 @@ bool ImGui::IsItemFocused()
     return true;
 }
 
-// Important: this can be useful but it is NOT equivalent to the behavior of e.g.Button()! 
+// Important: this can be useful but it is NOT equivalent to the behavior of e.g.Button()!
 // Most widgets have specific reactions based on mouse-up/down state, mouse position etc.
 bool ImGui::IsItemClicked(ImGuiMouseButton mouse_button)
 {
@@ -5424,9 +5425,9 @@ static bool ImGui::UpdateWindowManualResize(ImGuiWindow* window, const ImVec2& s
     if (g.NavWindowingTarget && g.NavWindowingTarget->RootWindow == window)
     {
         ImVec2 nav_resize_delta;
-        if (g.NavInputSource == ImGuiInputSource_NavKeyboard && g.IO.KeyShift)
+        if (g.NavInputSource == ImGuiInputSource_Keyboard && g.IO.KeyShift)
             nav_resize_delta = GetNavInputAmount2d(ImGuiNavDirSourceFlags_Keyboard, ImGuiInputReadMode_Down);
-        if (g.NavInputSource == ImGuiInputSource_NavGamepad)
+        if (g.NavInputSource == ImGuiInputSource_Gamepad)
             nav_resize_delta = GetNavInputAmount2d(ImGuiNavDirSourceFlags_PadDPad, ImGuiInputReadMode_Down);
         if (nav_resize_delta.x != 0.0f || nav_resize_delta.y != 0.0f)
         {
@@ -5481,7 +5482,7 @@ static void ImGui::RenderWindowOuterBorders(ImGuiWindow* window)
         ImRect border_r = GetResizeBorderRect(window, border_held, rounding, 0.0f);
         window->DrawList->PathArcTo(ImLerp(border_r.Min, border_r.Max, def.CornerPosN1) + ImVec2(0.5f, 0.5f) + def.InnerDir * rounding, rounding, def.OuterAngle - IM_PI * 0.25f, def.OuterAngle);
         window->DrawList->PathArcTo(ImLerp(border_r.Min, border_r.Max, def.CornerPosN2) + ImVec2(0.5f, 0.5f) + def.InnerDir * rounding, rounding, def.OuterAngle, def.OuterAngle + IM_PI * 0.25f);
-        window->DrawList->PathStroke(GetColorU32(ImGuiCol_SeparatorActive), false, ImMax(2.0f, border_size)); // Thicker than usual
+        window->DrawList->PathStroke(GetColorU32(ImGuiCol_SeparatorActive), 0, ImMax(2.0f, border_size)); // Thicker than usual
     }
     if (g.Style.FrameBorderSize > 0 && !(window->Flags & ImGuiWindowFlags_NoTitleBar))
     {
@@ -9030,17 +9031,17 @@ static void ImGui::NavUpdate()
     // (do it before we map Keyboard input!)
     bool nav_keyboard_active = (io.ConfigFlags & ImGuiConfigFlags_NavEnableKeyboard) != 0;
     bool nav_gamepad_active = (io.ConfigFlags & ImGuiConfigFlags_NavEnableGamepad) != 0 && (io.BackendFlags & ImGuiBackendFlags_HasGamepad) != 0;
-    if (nav_gamepad_active && g.NavInputSource != ImGuiInputSource_NavGamepad)
+    if (nav_gamepad_active && g.NavInputSource != ImGuiInputSource_Gamepad)
     {
         if (io.NavInputs[ImGuiNavInput_Activate] > 0.0f || io.NavInputs[ImGuiNavInput_Input] > 0.0f || io.NavInputs[ImGuiNavInput_Cancel] > 0.0f || io.NavInputs[ImGuiNavInput_Menu] > 0.0f
             || io.NavInputs[ImGuiNavInput_DpadLeft] > 0.0f || io.NavInputs[ImGuiNavInput_DpadRight] > 0.0f || io.NavInputs[ImGuiNavInput_DpadUp] > 0.0f || io.NavInputs[ImGuiNavInput_DpadDown] > 0.0f)
-            g.NavInputSource = ImGuiInputSource_NavGamepad;
+            g.NavInputSource = ImGuiInputSource_Gamepad;
     }
 
     // Update Keyboard->Nav inputs mapping
     if (nav_keyboard_active)
     {
-        #define NAV_MAP_KEY(_KEY, _NAV_INPUT)  do { if (IsKeyDown(io.KeyMap[_KEY])) { io.NavInputs[_NAV_INPUT] = 1.0f; g.NavInputSource = ImGuiInputSource_NavKeyboard; } } while (0)
+        #define NAV_MAP_KEY(_KEY, _NAV_INPUT)  do { if (IsKeyDown(io.KeyMap[_KEY])) { io.NavInputs[_NAV_INPUT] = 1.0f; g.NavInputSource = ImGuiInputSource_Keyboard; } } while (0)
         NAV_MAP_KEY(ImGuiKey_Space,     ImGuiNavInput_Activate );
         NAV_MAP_KEY(ImGuiKey_Enter,     ImGuiNavInput_Input    );
         NAV_MAP_KEY(ImGuiKey_Escape,    ImGuiNavInput_Cancel   );
@@ -9254,7 +9255,7 @@ static void ImGui::NavUpdate()
     // When using gamepad, we project the reference nav bounding box into window visible area.
     // This is to allow resuming navigation inside the visible area after doing a large amount of scrolling, since with gamepad every movements are relative
     // (can't focus a visible object like we can with the mouse).
-    if (g.NavMoveRequest && g.NavInputSource == ImGuiInputSource_NavGamepad && g.NavLayer == ImGuiNavLayer_Main)
+    if (g.NavMoveRequest && g.NavInputSource == ImGuiInputSource_Gamepad && g.NavLayer == ImGuiNavLayer_Main)
     {
         ImGuiWindow* window = g.NavWindow;
         ImRect window_rect_rel(window->InnerRect.Min - window->Pos - ImVec2(1, 1), window->InnerRect.Max - window->Pos + ImVec2(1, 1));
@@ -9570,12 +9571,12 @@ static void ImGui::NavUpdateWindowing()
             g.NavWindowingTarget = g.NavWindowingTargetAnim = window->RootWindow; // FIXME-DOCK: Will need to use RootWindowDockStop
             g.NavWindowingTimer = g.NavWindowingHighlightAlpha = 0.0f;
             g.NavWindowingToggleLayer = start_windowing_with_keyboard ? false : true;
-            g.NavInputSource = start_windowing_with_keyboard ? ImGuiInputSource_NavKeyboard : ImGuiInputSource_NavGamepad;
+            g.NavInputSource = start_windowing_with_keyboard ? ImGuiInputSource_Keyboard : ImGuiInputSource_Gamepad;
         }
 
     // Gamepad update
     g.NavWindowingTimer += g.IO.DeltaTime;
-    if (g.NavWindowingTarget && g.NavInputSource == ImGuiInputSource_NavGamepad)
+    if (g.NavWindowingTarget && g.NavInputSource == ImGuiInputSource_Gamepad)
     {
         // Highlight only appears after a brief time holding the button, so that a fast tap on PadMenu (to toggle NavLayer) doesn't add visual noise
         g.NavWindowingHighlightAlpha = ImMax(g.NavWindowingHighlightAlpha, ImSaturate((g.NavWindowingTimer - NAV_WINDOWING_HIGHLIGHT_DELAY) / 0.05f));
@@ -9601,7 +9602,7 @@ static void ImGui::NavUpdateWindowing()
     }
 
     // Keyboard: Focus
-    if (g.NavWindowingTarget && g.NavInputSource == ImGuiInputSource_NavKeyboard)
+    if (g.NavWindowingTarget && g.NavInputSource == ImGuiInputSource_Keyboard)
     {
         // Visuals only appears after a brief time after pressing TAB the first time, so that a fast CTRL+TAB doesn't add visual noise
         g.NavWindowingHighlightAlpha = ImMax(g.NavWindowingHighlightAlpha, ImSaturate((g.NavWindowingTimer - NAV_WINDOWING_HIGHLIGHT_DELAY) / 0.05f)); // 1.0f
@@ -9623,9 +9624,9 @@ static void ImGui::NavUpdateWindowing()
     if (g.NavWindowingTarget && !(g.NavWindowingTarget->Flags & ImGuiWindowFlags_NoMove))
     {
         ImVec2 move_delta;
-        if (g.NavInputSource == ImGuiInputSource_NavKeyboard && !g.IO.KeyShift)
+        if (g.NavInputSource == ImGuiInputSource_Keyboard && !g.IO.KeyShift)
             move_delta = GetNavInputAmount2d(ImGuiNavDirSourceFlags_Keyboard, ImGuiInputReadMode_Down);
-        if (g.NavInputSource == ImGuiInputSource_NavGamepad)
+        if (g.NavInputSource == ImGuiInputSource_Gamepad)
             move_delta = GetNavInputAmount2d(ImGuiNavDirSourceFlags_PadLStick, ImGuiInputReadMode_Down);
         if (move_delta.x != 0.0f || move_delta.y != 0.0f)
         {
@@ -12033,7 +12034,7 @@ void ImGui::DebugNodeDrawList(ImGuiWindow* window, const ImDrawList* draw_list, 
                 {
                     ImDrawListFlags backup_flags = fg_draw_list->Flags;
                     fg_draw_list->Flags &= ~ImDrawListFlags_AntiAliasedLines; // Disable AA on triangle outlines is more readable for very large and thin triangles.
-                    fg_draw_list->AddPolyline(triangle, 3, IM_COL32(255, 255, 0, 255), true, 1.0f);
+                    fg_draw_list->AddPolyline(triangle, 3, IM_COL32(255, 255, 0, 255), ImDrawFlags_Closed, 1.0f);
                     fg_draw_list->Flags = backup_flags;
                 }
             }
@@ -12060,7 +12061,7 @@ void ImGui::DebugNodeDrawCmdShowMeshAndBoundingBox(ImDrawList* out_draw_list, co
         for (int n = 0; n < 3; n++, idx_n++)
             vtxs_rect.Add((triangle[n] = vtx_buffer[idx_buffer ? idx_buffer[idx_n] : idx_n].pos));
         if (show_mesh)
-            out_draw_list->AddPolyline(triangle, 3, IM_COL32(255, 255, 0, 255), true, 1.0f); // In yellow: mesh triangles
+            out_draw_list->AddPolyline(triangle, 3, IM_COL32(255, 255, 0, 255), ImDrawFlags_Closed, 1.0f); // In yellow: mesh triangles
     }
     // Draw bounding boxes
     if (show_aabb)
@@ -12130,7 +12131,7 @@ void ImGui::DebugNodeViewport(ImGuiViewportP* viewport)
             viewport->Pos.x, viewport->Pos.y, viewport->Size.x, viewport->Size.y,
             viewport->WorkOffsetMin.x, viewport->WorkOffsetMin.y, viewport->WorkOffsetMax.x, viewport->WorkOffsetMax.y);
         BulletText("Flags: 0x%04X =%s%s%s", viewport->Flags,
-            (flags & ImGuiViewportFlags_IsPlatformWindow)  ? " IsPlatformWindow"  : "", 
+            (flags & ImGuiViewportFlags_IsPlatformWindow)  ? " IsPlatformWindow"  : "",
             (flags & ImGuiViewportFlags_IsPlatformMonitor) ? " IsPlatformMonitor" : "",
             (flags & ImGuiViewportFlags_OwnedByApp)        ? " OwnedByApp"        : "");
         for (int layer_i = 0; layer_i < IM_ARRAYSIZE(viewport->DrawDataBuilder.Layers); layer_i++)
@@ -12235,7 +12236,7 @@ void ImGui::DebugNodeViewport(ImGuiViewportP*) {}
 #endif
 
 //-----------------------------------------------------------------------------
-// BanchMark utils
+// BanchMark utils Add By Dicky
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>

@@ -112,6 +112,40 @@ bool crude_blueprint::PinTypeFromString(const char* str, PinType& pinType)
     return true;
 }
 
+//
+// -------[ NodeType ]-------
+//
+
+const char* crude_blueprint::NodeTypeToString(NodeType nodeType)
+{
+    switch (nodeType)
+    {
+        default:
+        case NodeType::Blueprint:   return "Blueprint";
+        case NodeType::Simple:      return "Simple";
+        case NodeType::Tree:        return "Tree";
+        case NodeType::Comment:     return "Comment";
+        case NodeType::Houdini:     return "Houdini";
+    }
+}
+
+bool crude_blueprint::NodeTypeFromString(const char* str, NodeType& nodeType)
+{
+    if (strcmp(str, "Blueprint") == 0)
+        nodeType = NodeType::Blueprint;
+    else if (strcmp(str, "Simple") == 0)
+        nodeType = NodeType::Simple;
+    else if (strcmp(str, "Tree") == 0)
+        nodeType = NodeType::Tree;
+    else if (strcmp(str, "Comment") == 0)
+        nodeType = NodeType::Comment;
+    else if (strcmp(str, "Houdini") == 0)
+        nodeType = NodeType::Houdini;
+    else
+        return false;
+
+    return true;
+}
 
 
 
@@ -482,6 +516,11 @@ crude_blueprint::string_view crude_blueprint::Node::GetName() const
     return GetTypeInfo().m_DisplayName;
 }
 
+crude_blueprint::NodeType crude_blueprint::Node::GetType() const
+{
+    return GetTypeInfo().m_Type;
+}
+
 crude_blueprint::LinkQueryResult crude_blueprint::Node::AcceptLink(const Pin& receiver, const Pin& provider) const
 {
     if (receiver.m_Node == provider.m_Node)
@@ -524,6 +563,10 @@ bool crude_blueprint::Node::Load(const crude_json::value& value)
         return false;
 
     if (!detail::GetTo<crude_json::number>(value, "id", m_Id)) // required
+        return false;
+
+    std::string nodeType;
+    if (!detail::GetTo<crude_json::string>(value, "ntype", nodeType)) // required
         return false;
 
     const crude_json::array* inputPinsArray = nullptr;
@@ -569,6 +612,7 @@ void crude_blueprint::Node::Save(crude_json::value& value) const
 {
     value["id"] = crude_json::number(m_Id); // required
     value["name"] = GetName().to_string(); // optional, to make data readable for humans
+    value["ntype"] = NodeTypeToString(GetType());
 
     auto& inputPinsValue = value["input_pins"]; // optional
     for (auto& pin : const_cast<Node*>(this)->GetInputPins())
@@ -818,6 +862,7 @@ crude_blueprint::StepResult crude_blueprint::Context::SetStepResult(StepResult r
 crude_blueprint::NodeRegistry::NodeRegistry()
     : m_BuildInNodes(
         {
+            GroupNode::GetStaticTypeInfo(),
             ConstBoolNode::GetStaticTypeInfo(),
             ConstInt32Node::GetStaticTypeInfo(),
             ConstFloatNode::GetStaticTypeInfo(),

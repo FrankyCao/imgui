@@ -44,6 +44,16 @@ inline ImRect ImGui_GetItemRect()
     return ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
 }
 
+inline ImRect ImRect_Expanded(const ImRect& rect, float x, float y)
+{
+    auto result = rect;
+    result.Min.x -= x;
+    result.Min.y -= y;
+    result.Max.x += x;
+    result.Max.y += y;
+    return result;
+}
+
 inline bool operator==(const ImRect& lhs, const ImRect& rhs)
 {
     return lhs.Min == rhs.Min && lhs.Max == rhs.Max;
@@ -150,6 +160,7 @@ inline bool Serialization::Parse(const json::value& v, NodeState& result, string
     NodeState state;
 
     CHECK_AND_PARSE    (v, "location",   state.m_Location);
+    CHECK_AND_PARSE    (v, "size",       state.m_Size);
     CHECK_AND_PARSE_OPT(v, "group_size", state.m_GroupSize);
 
     result = std::move(state);
@@ -338,9 +349,9 @@ inline json::value Serialization::ToJson(const NodeState& value)
     json::value result;
 
     result["location"] = ToJson(value.m_Location);
+    result["size"] = ToJson(value.m_Size);
     if (value.m_GroupSize.x > 0 || value.m_GroupSize.y > 0)
         result["group_size"] = ToJson(value.m_GroupSize);
-
     return result;
 }
 

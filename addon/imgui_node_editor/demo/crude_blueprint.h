@@ -50,9 +50,13 @@ struct Blueprint;
 
 
 enum class PinType: int32_t { Void = -1, Any, Flow, Bool, Int32, Float, String };
+enum class NodeType:int32_t { Blueprint = 0, Simple, Tree, Comment, Houdini };
 
 const char* PinTypeToString(PinType pinType);
 bool PinTypeFromString(const char* str, PinType& pinType);
+
+const char* NodeTypeToString(NodeType nodeType);
+bool NodeTypeFromString(const char* str, NodeType& nodeType);
 
 struct PinValue
 {
@@ -340,6 +344,7 @@ struct NodeTypeInfo
     uint32_t    m_Id;
     string_view m_Name;
     string_view m_DisplayName;
+    NodeType    m_Type;
     Factory     m_Factory;
 };
 
@@ -400,6 +405,7 @@ struct Node
     virtual NodeTypeInfo GetTypeInfo() const { return {}; }
 
     virtual string_view GetName() const;
+    virtual NodeType GetType() const;
 
     virtual LinkQueryResult AcceptLink(const Pin& receiver, const Pin& provider) const; // Checks if node accept link between these two pins. There node can filter out unsupported link types.
     virtual void WasLinked(const Pin& receiver, const Pin& provider); // Notifies node that link involving one of its pins has been made.
@@ -567,7 +573,7 @@ constexpr inline uint32_t fnv_1a_hash(const char (&string)[N])
 //
 //     NodeTypeInfo GetTypeInfo() const override { ... }
 //
-# define CRUDE_BP_NODE(type, displayName) \
+# define CRUDE_BP_NODE_TYPE(type, displayName, node_type) \
     static ::crude_blueprint::NodeTypeInfo GetStaticTypeInfo() \
     { \
         return \
@@ -575,6 +581,7 @@ constexpr inline uint32_t fnv_1a_hash(const char (&string)[N])
             ::crude_blueprint::detail::fnv_1a_hash(#type), \
             #type, \
             displayName, \
+            node_type, \
             [](::crude_blueprint::Blueprint& blueprint) -> ::crude_blueprint::Node* { return new type(blueprint); } \
         }; \
     } \
@@ -584,6 +591,8 @@ constexpr inline uint32_t fnv_1a_hash(const char (&string)[N])
         return GetStaticTypeInfo(); \
     }
 
+# define CRUDE_BP_NODE(type, displayName) \
+    CRUDE_BP_NODE_TYPE(type, displayName, NodeType::Blueprint)
 // Look to crude_blueprint_library.h for concrete node examples
 
 

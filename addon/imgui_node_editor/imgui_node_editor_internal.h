@@ -62,6 +62,7 @@ void Log(const char* fmt, ...);
 //inline ImRect ToRect(const ax::rectf& rect);
 //inline ImRect ToRect(const ax::rect& rect);
 inline ImRect ImGui_GetItemRect();
+inline ImRect ImRect_Expanded(const ImRect& rect, float x, float y);
 
 inline bool operator==(const ImRect& lhs, const ImRect& rhs);
 inline bool operator!=(const ImRect& lhs, const ImRect& rhs);

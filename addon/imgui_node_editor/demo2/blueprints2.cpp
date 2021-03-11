@@ -3,7 +3,7 @@
 #include "widgets.h"
 #include "icons.h"
 #include <imgui_node_editor.h>
-
+#include "imgui_node_editor_internal.h"
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
 #include <ImGuiHelper.h>
@@ -14,22 +14,6 @@
 #include <algorithm>
 #include <utility>
 #include "Config.h"
-
-
-static inline ImRect ImGui_GetItemRect()
-{
-    return ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
-}
-
-static inline ImRect ImRect_Expanded(const ImRect& rect, float x, float y)
-{
-    auto result = rect;
-    result.Min.x -= x;
-    result.Min.y -= y;
-    result.Max.x += x;
-    result.Max.y += y;
-    return result;
-}
 
 namespace ed = ax::NodeEditor;
 namespace util = ax::NodeEditor::Utilities;
@@ -1080,7 +1064,7 @@ struct Example
                         auto& pin = node.Inputs[0];
                         ImGui::Dummy(ImVec2(0, padding));
                         ImGui::Spring(1, 0);
-                        inputsRect = ImGui_GetItemRect();
+                        inputsRect = ax::NodeEditor::Detail::ImGui_GetItemRect();
 
                         ed::PushStyleVar(ed::StyleVar_PinArrowSize, 10.0f);
                         ed::PushStyleVar(ed::StyleVar_PinArrowWidth, 10.0f);
@@ -1109,7 +1093,7 @@ struct Example
                 ImGui::TextUnformatted(node.Name.c_str());
                 ImGui::Spring(1);
                 ImGui::EndVertical();
-                auto contentRect = ImGui_GetItemRect();
+                auto contentRect = ax::NodeEditor::Detail::ImGui_GetItemRect();
 
                 ImGui::Spring(1, padding);
                 ImGui::EndHorizontal();
@@ -1124,7 +1108,7 @@ struct Example
                     auto& pin = node.Outputs[0];
                     ImGui::Dummy(ImVec2(0, padding));
                     ImGui::Spring(1, 0);
-                    outputsRect = ImGui_GetItemRect();
+                    outputsRect = ax::NodeEditor::Detail::ImGui_GetItemRect();
 
                     ed::PushStyleVar(ed::StyleVar_PinCorners, 3);
                     ed::BeginPin(pin.ID, ed::PinKind::Output);
@@ -1218,7 +1202,7 @@ struct Example
                     for (auto& pin : node.Inputs)
                     {
                         ImGui::Dummy(ImVec2(padding, padding));
-                        inputsRect = ImGui_GetItemRect();
+                        inputsRect = ax::NodeEditor::Detail::ImGui_GetItemRect();
                         ImGui::Spring(1, 0);
                         inputsRect.Min.y -= padding;
                         inputsRect.Max.y -= padding;
@@ -1258,7 +1242,7 @@ struct Example
                 ImGui::PopStyleColor();
                 ImGui::Spring(1);
                 ImGui::EndVertical();
-                auto contentRect = ImGui_GetItemRect();
+                auto contentRect = ax::NodeEditor::Detail::ImGui_GetItemRect();
 
                 ImGui::Spring(1, padding);
                 ImGui::EndHorizontal();
@@ -1273,7 +1257,7 @@ struct Example
                     for (auto& pin : node.Outputs)
                     {
                         ImGui::Dummy(ImVec2(padding, padding));
-                        outputsRect = ImGui_GetItemRect();
+                        outputsRect = ax::NodeEditor::Detail::ImGui_GetItemRect();
                         ImGui::Spring(1, 0);
                         outputsRect.Min.y += padding;
                         outputsRect.Max.y += padding;
@@ -1366,13 +1350,8 @@ struct Example
 
                 if (ed::BeginGroupHint(node.ID))
                 {
-                    //auto alpha   = static_cast<int>(commentAlpha * ImGui::GetStyle().Alpha * 255);
                     auto bgAlpha = static_cast<int>(ImGui::GetStyle().Alpha * 255);
-
-                    //ImGui::PushStyleVar(ImGuiStyleVar_Alpha, commentAlpha * ImGui::GetStyle().Alpha);
-
                     auto min = ed::GetGroupMin();
-                    //auto max = ed::GetGroupMax();
 
                     ImGui::SetCursorScreenPos(min - ImVec2(-8, ImGui::GetTextLineHeightWithSpacing() + 4));
                     ImGui::BeginGroup();
@@ -1381,8 +1360,8 @@ struct Example
 
                     auto drawList = ed::GetHintBackgroundDrawList();
 
-                    auto hintBounds      = ImGui_GetItemRect();
-                    auto hintFrameBounds = ImRect_Expanded(hintBounds, 8, 4);
+                    auto hintBounds      = ax::NodeEditor::Detail::ImGui_GetItemRect();
+                    auto hintFrameBounds = ax::NodeEditor::Detail::ImRect_Expanded(hintBounds, 8, 4);
 
                     drawList->AddRectFilled(
                         hintFrameBounds.GetTL(),
@@ -1393,8 +1372,6 @@ struct Example
                         hintFrameBounds.GetTL(),
                         hintFrameBounds.GetBR(),
                         IM_COL32(255, 255, 255, 128 * bgAlpha / 255), 4.0f);
-
-                    //ImGui::PopStyleVar();
                 }
                 ed::EndGroupHint();
             }

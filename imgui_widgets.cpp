@@ -3931,7 +3931,7 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
     const bool focus_requested_by_tab = focus_requested && !focus_requested_by_code;
 
     const bool user_clicked = hovered && io.MouseClicked[0];
-    const bool user_nav_input_start = (g.ActiveId != id) && ((g.NavInputId == id) || (g.NavActivateId == id && g.NavInputSource == ImGuiInputSource_NavKeyboard));
+    const bool user_nav_input_start = (g.ActiveId != id) && ((g.NavInputId == id) || (g.NavActivateId == id && g.NavInputSource == ImGuiInputSource_Keyboard));
     const bool user_scroll_finish = is_multiline && state != NULL && g.ActiveId == 0 && g.ActiveIdPreviousFrame == GetWindowScrollbarID(draw_window, ImGuiAxis_Y);
     const bool user_scroll_active = is_multiline && state != NULL && g.ActiveId == GetWindowScrollbarID(draw_window, ImGuiAxis_Y);
 
@@ -5231,7 +5231,7 @@ bool ImGui::ColorPicker4(const char* label, float col[4], ImGuiColorEditFlags fl
             const float a1 = (n+1.0f)/6.0f * 2.0f * IM_PI + aeps;
             const int vert_start_idx = draw_list->VtxBuffer.Size;
             draw_list->PathArcTo(wheel_center, (wheel_r_inner + wheel_r_outer)*0.5f, a0, a1, segment_per_arc);
-            draw_list->PathStroke(col_white, false, wheel_thickness);
+            draw_list->PathStroke(col_white, 0, wheel_thickness);
             const int vert_end_idx = draw_list->VtxBuffer.Size;
 
             // Paint colors over existing vertices
@@ -6613,7 +6613,7 @@ bool ImGui::BeginMainMenuBar()
     if (menu_bar_window == NULL || menu_bar_window->BeginCount == 0)
     {
         // Set window position
-        // We don't attempt to calculate our height ahead, as it depends on the per-viewport font size. 
+        // We don't attempt to calculate our height ahead, as it depends on the per-viewport font size.
         // However menu-bar will affect the minimum window size so we'll get the right height.
         ImVec2 menu_bar_pos = viewport->Pos + viewport->CurrWorkOffsetMin;
         ImVec2 menu_bar_size = ImVec2(viewport->Size.x - viewport->CurrWorkOffsetMin.x + viewport->CurrWorkOffsetMax.x, 1.0f);
@@ -7890,7 +7890,7 @@ void ImGui::TabItemBackground(ImDrawList* draw_list, const ImRect& bb, ImGuiTabI
         draw_list->PathArcToFast(ImVec2(bb.Min.x + rounding + 0.5f, y1 + rounding + 0.5f), rounding, 6, 9);
         draw_list->PathArcToFast(ImVec2(bb.Max.x - rounding - 0.5f, y1 + rounding + 0.5f), rounding, 9, 12);
         draw_list->PathLineTo(ImVec2(bb.Max.x - 0.5f, y2));
-        draw_list->PathStroke(GetColorU32(ImGuiCol_Border), false, g.Style.TabBorderSize);
+        draw_list->PathStroke(GetColorU32(ImGuiCol_Border), 0, g.Style.TabBorderSize);
     }
 }
 
