@@ -854,7 +854,7 @@ private:
     void UpdatePath();
     void ClearPath();
 
-    ImVec2 SamplePath(float distance);
+    ImVec2 SamplePath(float distance) const;
 
     void OnUpdate(float progress) override final;
     void OnStop() override final;
@@ -884,7 +884,7 @@ struct FlowAnimationController final : AnimationController
     FlowAnimationController(EditorContext* editor);
     virtual ~FlowAnimationController();
 
-    void Flow(Link* link);
+    void Flow(Link* link, FlowDirection direction = FlowDirection::Forward);
 
     virtual void Draw(ImDrawList* drawList) override final;
 
@@ -1561,7 +1561,7 @@ struct EditorContext
     void RegisterAnimation(Animation* animation);
     void UnregisterAnimation(Animation* animation);
 
-    void Flow(Link* link);
+    void Flow(Link* link, FlowDirection direction);
 
     void SetUserContext(bool globalSpace = false);
 

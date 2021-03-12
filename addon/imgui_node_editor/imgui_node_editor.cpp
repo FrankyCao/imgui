@@ -498,7 +498,7 @@ static void ImDrawList_AddBezierWithArrows(ImDrawList* drawList, const ImCubicBe
 
     if (fill)
     {
-        drawList->AddBezierCurve(curve.P0, curve.P1, curve.P2, curve.P3, color, thickness);
+        drawList->AddBezierCubic(curve.P0, curve.P1, curve.P2, curve.P3, color, thickness);
 
         if (startArrowSize > 0.0f)
         {
@@ -2390,9 +2390,9 @@ void ed::EditorContext::UpdateAnimations()
     }
 }
 
-void ed::EditorContext::Flow(Link* link)
+void ed::EditorContext::Flow(Link* link, FlowDirection direction)
 {
-    m_FlowAnimationController.Flow(link);
+    m_FlowAnimationController.Flow(link, direction);
 }
 
 void ed::EditorContext::SetUserContext(bool globalSpace)
@@ -2961,7 +2961,8 @@ void ed::FlowAnimation::Flow(ed::Link* link, float markerDistance, float speed, 
 {
     if (IsPlaying())
     {
-        m_Speed += 10;
+        if (m_Speed < 0) m_Speed -= 10;
+        else m_Speed += 10;
         Stop();
     }
     else
@@ -2994,6 +2995,8 @@ void ed::FlowAnimation::Draw(ImDrawList* drawList)
         UpdatePath();
 
     m_Offset = fmodf(m_Offset, m_MarkerDistance);
+    if (m_Offset < 0)
+        m_Offset += m_MarkerDistance;
 
     const auto progress    = GetProgress();
 
@@ -3057,7 +3060,7 @@ void ed::FlowAnimation::ClearPath()
     m_PathLength = 0.0f;
 }
 
-ImVec2 ed::FlowAnimation::SamplePath(float distance)
+ImVec2 ed::FlowAnimation::SamplePath(float distance) const
 {
     //distance = ImMax(0.0f, std::min(distance, PathLength));
 
@@ -3105,7 +3108,7 @@ ed::FlowAnimationController::~FlowAnimationController()
         delete animation;
 }
 
-void ed::FlowAnimationController::Flow(Link* link)
+void ed::FlowAnimationController::Flow(Link* link, FlowDirection direction)
 {
     if (!link || !link->m_IsLive)
         return;
@@ -3114,7 +3117,11 @@ void ed::FlowAnimationController::Flow(Link* link)
 
     auto animation = GetOrCreate(link);
 
-    animation->Flow(link, editorStyle.FlowMarkerDistance, editorStyle.FlowSpeed, editorStyle.FlowDuration);
+    float speedDirection = 1.0f;
+    if (direction == FlowDirection::Backward)
+        speedDirection = -1.0f;
+
+    animation->Flow(link, editorStyle.FlowMarkerDistance, editorStyle.FlowSpeed * speedDirection, editorStyle.FlowDuration);
 }
 
 void ed::FlowAnimationController::Draw(ImDrawList* drawList)

@@ -1063,10 +1063,7 @@ private:
                 continue;
 
             // To keep things simple, link id is same as pin id.
-            if (pin->GetType() == PinType::Flow)
-                ed::Link(pin->m_Id, pin->m_Id, pin->m_Link->m_Id, PinTypeToColor(pin->GetValueType()));
-            else
-                ed::Link(pin->m_Id, pin->m_Link->m_Id,pin->m_Id,  PinTypeToColor(pin->GetValueType()));
+            ed::Link(pin->m_Id, pin->m_Id, pin->m_Link->m_Id, PinTypeToColor(pin->GetValueType()));
         }
 
         debugOverlay.End();
@@ -1679,7 +1676,7 @@ private:
             {
                 if (!pin->m_Link)
                     continue;
-                ed::Flow(pin->m_Id);
+                ed::Flow(pin->m_Id, pin->GetType() == PinType::Flow ? ed::FlowDirection::Forward : ed::FlowDirection::Backward);
             }
         }
     }
