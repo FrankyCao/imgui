@@ -426,6 +426,9 @@ struct BlueprintEditorExample
         ShowMainMenu();
         ShowToolbar();
 
+        if (m_showStyleEditor)
+            ShowStyleEditor(&m_showStyleEditor);
+
         ImGui::Separator();
 
         if (m_Blueprint)
@@ -495,7 +498,11 @@ private:
         auto hasDocument = File_IsOpen();
         auto hasUndo     = hasDocument && !m_Document->m_Undo.empty();
         auto hasRedo     = hasDocument && !m_Document->m_Redo.empty();
-        //auto isModified  = hasDocument && File_IsModified();
+        auto isModified  = hasDocument && File_IsModified();
+        auto entryNode = m_Blueprint ? FindEntryPointNode(*m_Blueprint) : nullptr;
+        bool hasBlueprint  = (m_Blueprint != nullptr);
+        bool hasEntryPoint = (entryNode != nullptr);
+        bool isExecuting   = hasBlueprint && (m_Blueprint->CurrentNode() != nullptr);
 
         m_File_Close.SetEnabled(hasDocument);
         m_File_SaveAs.SetEnabled(hasDocument);
@@ -509,16 +516,12 @@ private:
         m_Edit_Duplicate.SetEnabled(hasDocument && false);
         m_Edit_Delete.SetEnabled(hasDocument && false);
         m_Edit_SelectAll.SetEnabled(hasDocument && false);
+        m_Edit_Style.SetEnabled(hasBlueprint);
 
         m_View_NavigateBackward.SetEnabled(hasDocument && false);
         m_View_NavigateForward.SetEnabled(hasDocument && false);
         m_View_ShowFlow.SetEnabled(hasDocument);
-
-        auto entryNode = m_Blueprint ? FindEntryPointNode(*m_Blueprint) : nullptr;
-
-        bool hasBlueprint  = (m_Blueprint != nullptr);
-        bool hasEntryPoint = (entryNode != nullptr);
-        bool isExecuting   = hasBlueprint && (m_Blueprint->CurrentNode() != nullptr);
+        m_View_ZoomToContent.SetEnabled(hasBlueprint);
 
         m_Blueprint_Start.SetEnabled(hasBlueprint && hasEntryPoint);
         m_Blueprint_Step.SetEnabled(hasBlueprint && isExecuting);
@@ -578,6 +581,8 @@ private:
                 menuAction(m_Edit_Delete);
                 ImGui::Separator();
                 menuAction(m_Edit_SelectAll);
+                ImGui::Separator();
+                menuAction(m_Edit_Style);
 
                 ImGui::EndMenu();
             }
@@ -587,7 +592,7 @@ private:
                 menuAction(m_View_NavigateBackward);
                 menuAction(m_View_NavigateForward);
                 menuAction(m_View_ShowFlow);
-
+                menuAction(m_View_ZoomToContent);
                 ImGui::EndMenu();
             }
 
@@ -629,7 +634,13 @@ private:
         ImGui::SameLine();
         toolbarAction(m_Edit_Redo);
         ImGui::SameLine();
+        toolbarAction(m_Edit_Style);
+        ImGui::SameLine();
+        ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+        ImGui::SameLine();
         toolbarAction(m_View_ShowFlow);
+        ImGui::SameLine();
+        toolbarAction(m_View_ZoomToContent);
         ImGui::SameLine();
         ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
         ImGui::SameLine();
@@ -1263,6 +1274,79 @@ private:
         ed::Resume();
     }
 
+    void ShowStyleEditor(bool* show = nullptr)
+    {
+        if (!ImGui::Begin("Style", show))
+        {
+            ImGui::End();
+            return;
+        }
+
+        //auto paneWidth = ImGui::GetContentRegionAvailWidth();
+        float paneWidth = 600;
+
+        auto& editorStyle = ed::GetStyle();
+        ImGui::BeginHorizontal("Style buttons", ImVec2(paneWidth, 0), 1.0f);
+        ImGui::TextUnformatted("Values");
+        ImGui::Spring();
+        if (ImGui::Button("Reset to defaults"))
+            editorStyle = ed::Style();
+        ImGui::EndHorizontal();
+        ImGui::Spacing();
+        ImGui::DragFloat4("Node Padding", &editorStyle.NodePadding.x, 0.1f, 0.0f, 40.0f);
+        ImGui::DragFloat("Node Rounding", &editorStyle.NodeRounding, 0.1f, 0.0f, 40.0f);
+        ImGui::DragFloat("Node Border Width", &editorStyle.NodeBorderWidth, 0.1f, 0.0f, 15.0f);
+        ImGui::DragFloat("Hovered Node Border Width", &editorStyle.HoveredNodeBorderWidth, 0.1f, 0.0f, 15.0f);
+        ImGui::DragFloat("Selected Node Border Width", &editorStyle.SelectedNodeBorderWidth, 0.1f, 0.0f, 15.0f);
+        ImGui::DragFloat("Pin Rounding", &editorStyle.PinRounding, 0.1f, 0.0f, 40.0f);
+        ImGui::DragFloat("Pin Border Width", &editorStyle.PinBorderWidth, 0.1f, 0.0f, 15.0f);
+        ImGui::DragFloat("Link Strength", &editorStyle.LinkStrength, 1.0f, 0.0f, 500.0f);
+        //ImVec2  SourceDirection;
+        //ImVec2  TargetDirection;
+        ImGui::DragFloat("Scroll Duration", &editorStyle.ScrollDuration, 0.001f, 0.0f, 2.0f);
+        ImGui::DragFloat("Flow Marker Distance", &editorStyle.FlowMarkerDistance, 1.0f, 1.0f, 200.0f);
+        ImGui::DragFloat("Flow Speed", &editorStyle.FlowSpeed, 1.0f, 1.0f, 2000.0f);
+        ImGui::DragFloat("Flow Duration", &editorStyle.FlowDuration, 0.001f, 0.0f, 5.0f);
+        //ImVec2  PivotAlignment;
+        //ImVec2  PivotSize;
+        //ImVec2  PivotScale;
+        //float   PinCorners;
+        //float   PinRadius;
+        //float   PinArrowSize;
+        //float   PinArrowWidth;
+        ImGui::DragFloat("Group Rounding", &editorStyle.GroupRounding, 0.1f, 0.0f, 40.0f);
+        ImGui::DragFloat("Group Border Width", &editorStyle.GroupBorderWidth, 0.1f, 0.0f, 15.0f);
+
+        ImGui::Separator();
+
+        static ImGuiColorEditFlags edit_mode = ImGuiColorEditFlags_RGB;
+        ImGui::BeginHorizontal("Color Mode", ImVec2(paneWidth, 0), 1.0f);
+        ImGui::TextUnformatted("Filter Colors");
+        ImGui::Spring();
+        ImGui::RadioButton("RGB", &edit_mode, ImGuiColorEditFlags_RGB);
+        ImGui::Spring(0);
+        ImGui::RadioButton("HSV", &edit_mode, ImGuiColorEditFlags_HSV);
+        ImGui::Spring(0);
+        ImGui::RadioButton("HEX", &edit_mode, ImGuiColorEditFlags_HEX);
+        ImGui::EndHorizontal();
+
+        static ImGuiTextFilter filter;
+        filter.Draw("", paneWidth);
+
+        ImGui::Spacing();
+
+        for (int i = 0; i < ed::StyleColor_Count; ++i)
+        {
+            auto name = ed::GetStyleColorName((ed::StyleColor)i);
+            if (!filter.PassFilter(name))
+                continue;
+
+            ImGui::ColorEdit4(name, &editorStyle.Colors[i].x, edit_mode);
+        }
+
+        ImGui::End();
+    }
+
     void ShowInfoTooltip(Blueprint& blueprint)
     {
         if (!ed::IsActive())
@@ -1569,6 +1653,11 @@ private:
     {
     }
 
+    void Edit_Style()
+    {
+        m_showStyleEditor = true;
+    }
+
     void View_NavigateBackward()
     {
     }
@@ -1577,7 +1666,12 @@ private:
     {
     }
 
-    void Show_Flow()
+    void View_ZoomToContent()
+    {
+        ed::NavigateToContent();
+    }
+
+    void View_ShowFlow()
     {
         if (m_Blueprint)
         {
@@ -1630,6 +1724,7 @@ private:
 
     unique_ptr<Document> m_Document;
     Blueprint*           m_Blueprint = nullptr;
+    bool                 m_showStyleEditor = false;
 
     CreateNodeDialog m_CreateNodeDailog;
     NodeContextMenu  m_NodeContextMenu;
@@ -1651,8 +1746,10 @@ private:
     Action m_Edit_Duplicate  = { "Duplicate",    [this] { Edit_Duplicate(); } };
     Action m_Edit_Delete     = { "Delete",       [this] { Edit_Delete();    } };
     Action m_Edit_SelectAll  = { "Select All",   [this] { Edit_SelectAll(); } };
+    Action m_Edit_Style      = { "Edit Style",   [this] { Edit_Style(); } };
 
-    Action m_View_ShowFlow  = { "Show Flow",  [this] { Show_Flow();  } };
+    Action m_View_ShowFlow         = { "Show Flow",         [this] { View_ShowFlow();  } };
+    Action m_View_ZoomToContent    = { "Zoom To Content",   [this] { View_ZoomToContent(); } };
     Action m_View_NavigateBackward = { "Navigate Backward", [this] { View_NavigateBackward(); } };
     Action m_View_NavigateForward  = { "Navigate Forward",  [this] { View_NavigateForward();  } };
 
