@@ -943,6 +943,11 @@ ImVec2 ax::NodeEditor::CanvasToScreen(const ImVec2& pos)
     return s_Editor->ToScreen(pos);
 }
 
+void ax::NodeEditor::DrawLastLine()
+{
+    return s_Editor->DrawLastLine();
+}
+
 ImVector<ax::NodeEditor::LinkId> ax::NodeEditor::FindLinksForNode(NodeId nodeId)
 {
     ImVector<LinkId> result;

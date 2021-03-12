@@ -50,7 +50,7 @@ struct Blueprint;
 
 
 enum class PinType: int32_t { Void = -1, Any, Flow, Bool, Int32, Float, String };
-enum class NodeType:int32_t { Blueprint = 0, Simple, Tree, Comment, Houdini };
+enum class NodeType:int32_t { Blueprint = 0, Simple, Tree, Comment };
 
 const char* PinTypeToString(PinType pinType);
 bool PinTypeFromString(const char* str, PinType& pinType);

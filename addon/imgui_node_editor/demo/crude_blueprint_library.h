@@ -6,6 +6,22 @@
 # include "crude_blueprint.h"
 
 namespace crude_blueprint {
+// Tree Node
+struct TreeNode final : Node
+{
+    CRUDE_BP_NODE_TYPE(TreeNode, "Tree", NodeType::Tree)
+    TreeNode(Blueprint& blueprint): Node(blueprint) {}
+
+    span<Pin*> GetInputPins() override { return m_InputPins; }
+    span<Pin*> GetOutputPins() override { return m_OutputPins; }
+
+    AnyPin m_Enter     = { this };
+    AnyPin m_Exit      = { this };
+
+    Pin* m_InputPins[1] = { &m_Enter };
+    Pin* m_OutputPins[1] = { &m_Exit };
+};
+
 // Comment node which is a container include group nodes, only Comments no pin
 struct CommentNode final : Node
 {

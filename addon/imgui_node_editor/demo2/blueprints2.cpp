@@ -1580,6 +1580,8 @@ struct Example
             ImGui::EndPopup();
         }
 
+        bool isNewNodePopuped = false;
+
         if (ImGui::BeginPopup("Create New Node"))
         {
             auto newNodePostion = openPopupPosition;
@@ -1588,6 +1590,7 @@ struct Example
             //auto drawList = ImGui::GetWindowDrawList();
             //drawList->AddCircleFilled(ImGui::GetMousePosOnOpeningCurrentPopup(), 10.0f, 0xFFFF00FF);
 
+            isNewNodePopuped = true;
             Node* node = nullptr;
             if (ImGui::MenuItem("Input Action"))
                 node = SpawnInputActionNode();
@@ -1686,6 +1689,10 @@ struct Example
         cubic_bezier_subdivide(acceptPoint, c);
     */
 
+        if (isNewNodePopuped && newNodeLinkPin != nullptr)
+        {
+            ed::DrawLastLine();
+        }
         ed::End();
 
         ImGui::End();

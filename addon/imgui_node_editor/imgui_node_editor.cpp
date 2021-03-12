@@ -2427,6 +2427,11 @@ bool ed::EditorContext::AreShortcutsEnabled()
     return m_ShortcutsEnabled;
 }
 
+void ed::EditorContext::DrawLastLine()
+{
+    m_CreateItemAction.DrawLastLine();
+}
+
 ed::Control ed::EditorContext::BuildControl(bool allowOffscreen)
 {
     m_IsHovered = false;
@@ -2954,7 +2959,15 @@ ed::FlowAnimation::FlowAnimation(FlowAnimationController* controller):
 
 void ed::FlowAnimation::Flow(ed::Link* link, float markerDistance, float speed, float duration)
 {
-    Stop();
+    if (IsPlaying())
+    {
+        m_Speed += 10;
+        Stop();
+    }
+    else
+    {
+        m_Speed = speed;
+    }
 
     if (m_Link != link)
     {
@@ -2966,7 +2979,7 @@ void ed::FlowAnimation::Flow(ed::Link* link, float markerDistance, float speed, 
         ClearPath();
 
     m_MarkerDistance = markerDistance;
-    m_Speed          = speed;
+    //m_Speed          = speed;
     m_Link           = link;
 
     Play(duration);
@@ -4572,6 +4585,18 @@ bool ed::CreateItemAction::Process(const Control& control)
 
         candidate.UpdateEndpoints();
         candidate.Draw(drawList, m_LinkColor, m_LinkThickness);
+
+        m_lastStartPinKind = candidate.m_StartPin->m_Kind;
+        m_lastStartPivot = candidate.m_StartPin->m_Pivot;
+        m_lastStartDir = candidate.m_StartPin->m_Dir;
+        m_lastStartPinCorners = candidate.m_StartPin->m_Corners;
+        m_lastStartPinStrength = candidate.m_StartPin->m_Strength;
+
+        m_lastEndPinKind = candidate.m_EndPin->m_Kind;
+        m_lastEndPivot = candidate.m_EndPin->m_Pivot;
+        m_lastEndDir = candidate.m_EndPin->m_Dir;
+        m_lastEndPinCorners = candidate.m_EndPin->m_Corners;
+        m_lastEndPinStrength = candidate.m_EndPin->m_Strength;
     }
     else if (m_CurrentStage == Possible || !control.ActivePin)
     {
@@ -4807,8 +4832,27 @@ ed::CreateItemAction::Result ed::CreateItemAction::QueryNode(PinId* pinId)
     return True;
 }
 
-
-
+void ed::CreateItemAction::DrawLastLine()
+{
+    ed::Pin startPin(Editor, 0, m_lastStartPinKind);
+    startPin.m_Pivot = m_lastStartPivot;
+    startPin.m_Dir = m_lastStartDir;
+    startPin.m_Corners = m_lastStartPinCorners;
+    startPin.m_Strength = m_lastStartPinStrength;
+    ed::Pin endPin(Editor, 0, m_lastEndPinKind);
+    endPin.m_Pivot = m_lastEndPivot;
+    endPin.m_Dir = m_lastEndDir;
+    endPin.m_Corners = m_lastEndPinCorners;
+    endPin.m_Strength = m_lastEndPinStrength;
+    ed::Link candidate(Editor, 0);
+    candidate.m_Color = m_LinkColor;
+    candidate.m_StartPin = &startPin;
+    candidate.m_EndPin = &endPin;
+    auto drawList = ImGui::GetWindowDrawList();
+    drawList->ChannelsSetCurrent(c_LinkChannel_NewLink);
+    candidate.UpdateEndpoints();
+    candidate.Draw(drawList, m_LinkColor, m_LinkThickness);
+}
 
 //------------------------------------------------------------------------------
 //

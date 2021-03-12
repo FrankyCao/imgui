@@ -253,9 +253,9 @@ struct ObjectId final: Details::SafePointerType<ObjectId>
     explicit operator NodeId()   const { return AsNodeId();   }
     explicit operator LinkId()   const { return AsLinkId();   }
 
-    PinId    AsPinId()    const { IM_ASSERT(IsPinId());    return PinId(AsPointer());    }
-    NodeId   AsNodeId()   const { IM_ASSERT(IsNodeId());   return NodeId(AsPointer());   }
-    LinkId   AsLinkId()   const { IM_ASSERT(IsLinkId());   return LinkId(AsPointer());   }
+    PinId    AsPinId()    const { if(!IsPinId()) return 0;    return PinId(AsPointer());    }
+    NodeId   AsNodeId()   const { if(!IsNodeId()) return 0;   return NodeId(AsPointer());   }
+    LinkId   AsLinkId()   const { if(!IsLinkId()) return 0;   return LinkId(AsPointer());   }
 
     bool IsPinId()    const { return m_Type == ObjectType::Pin;    }
     bool IsNodeId()   const { return m_Type == ObjectType::Node;   }
@@ -1206,6 +1206,17 @@ struct CreateItemAction final : EditorAction
 
     int       m_LastChannel = -1;
 
+    PinKind   m_lastStartPinKind;
+    ImRect    m_lastStartPivot;
+    ImVec2    m_lastStartDir;
+    float     m_lastStartPinCorners;
+    float     m_lastStartPinStrength;
+
+    PinKind   m_lastEndPinKind;
+    ImRect    m_lastEndPivot;
+    ImVec2    m_lastEndDir;
+    float     m_lastEndPinCorners;
+    float     m_lastEndPinStrength;
 
     CreateItemAction(EditorContext* editor);
 
@@ -1232,6 +1243,8 @@ struct CreateItemAction final : EditorAction
 
     Result QueryLink(PinId* startId, PinId* endId);
     Result QueryNode(PinId* pinId);
+
+    void DrawLastLine();
 
 private:
     bool m_IsInGlobalSpace;
@@ -1611,6 +1624,8 @@ struct EditorContext
     Transaction* GetCurrentTransaction() { return m_Transaction; }
 
     string              m_CachedStateStringForPublicAPI;
+
+    void DrawLastLine();
 
 private:
     void LoadSettings();

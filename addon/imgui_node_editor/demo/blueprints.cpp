@@ -512,6 +512,7 @@ private:
 
         m_View_NavigateBackward.SetEnabled(hasDocument && false);
         m_View_NavigateForward.SetEnabled(hasDocument && false);
+        m_View_ShowFlow.SetEnabled(hasDocument);
 
         auto entryNode = m_Blueprint ? FindEntryPointNode(*m_Blueprint) : nullptr;
 
@@ -585,6 +586,7 @@ private:
             {
                 menuAction(m_View_NavigateBackward);
                 menuAction(m_View_NavigateForward);
+                menuAction(m_View_ShowFlow);
 
                 ImGui::EndMenu();
             }
@@ -627,6 +629,8 @@ private:
         ImGui::SameLine();
         toolbarAction(m_Edit_Redo);
         ImGui::SameLine();
+        toolbarAction(m_View_ShowFlow);
+        ImGui::SameLine();
         ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
         ImGui::SameLine();
         toolbarAction(m_Blueprint_Start);
@@ -663,7 +667,147 @@ private:
         debugOverlay.Begin();
 
         // Commit all nodes to editor
+        // Habdling Tree Node
+        for (auto& node : blueprint.GetNodes())
+        {
+            if (node->GetType() != NodeType::Tree)
+                continue;
 
+            const float rounding = 5.0f;
+            const float padding  = 12.0f;
+
+            const auto pinBackground = ed::GetStyle().Colors[ed::StyleColor_NodeBg];
+
+            ed::PushStyleColor(ed::StyleColor_NodeBg,        ImColor(128, 128, 128, 200));
+            ed::PushStyleColor(ed::StyleColor_NodeBorder,    ImColor( 32,  32,  32, 200));
+            ed::PushStyleColor(ed::StyleColor_PinRect,       ImColor( 60, 180, 255, 150));
+            ed::PushStyleColor(ed::StyleColor_PinRectBorder, ImColor( 60, 180, 255, 150));
+
+            ed::PushStyleVar(ed::StyleVar_NodePadding,  ImVec4(0, 0, 0, 0));
+            ed::PushStyleVar(ed::StyleVar_NodeRounding, rounding);
+            ed::PushStyleVar(ed::StyleVar_SourceDirection, ImVec2(0.0f,  1.0f));
+            ed::PushStyleVar(ed::StyleVar_TargetDirection, ImVec2(0.0f, -1.0f));
+            ed::PushStyleVar(ed::StyleVar_LinkStrength, 0.0f);
+            ed::PushStyleVar(ed::StyleVar_PinBorderWidth, 1.0f);
+            ed::PushStyleVar(ed::StyleVar_PinRadius, 5.0f);
+            ed::BeginNode(node->m_Id);
+
+            ImGui::BeginVertical(node->m_Id);
+            ImGui::BeginHorizontal("inputs");
+            ImGui::Spring(0, padding * 2);
+
+            ImRect inputsRect;
+            int inputAlpha = 200;
+            if (node->GetInputPins().size() > 0)
+            {
+                    auto& pin = node->GetInputPins()[0];
+                    ImGui::Dummy(ImVec2(0, padding));
+                    ImGui::Spring(1, 0);
+                    inputsRect = ax::NodeEditor::Detail::ImGui_GetItemRect();
+
+                    ed::PushStyleVar(ed::StyleVar_PinArrowSize, 10.0f);
+                    ed::PushStyleVar(ed::StyleVar_PinArrowWidth, 10.0f);
+                    ed::PushStyleVar(ed::StyleVar_PinCorners, ImDrawFlags_NoRoundCornerT);
+                    ed::BeginPin(pin->m_Id, ed::PinKind::Input);
+                    ed::PinPivotRect(inputsRect.GetTL(), inputsRect.GetBR());
+                    ed::PinRect(inputsRect.GetTL(), inputsRect.GetBR());
+                    ed::EndPin();
+                    ed::PopStyleVar(3);
+                    
+                    //if (newLinkPin && !CanCreateLink(newLinkPin, &pin) && &pin != newLinkPin)
+                    //    inputAlpha = (int)(255 * ImGui::GetStyle().Alpha * (48.0f / 255.0f));
+
+                    debugOverlay.DrawInputPin(*pin);
+            }
+            else
+                ImGui::Dummy(ImVec2(0, padding));
+
+            ImGui::Spring(0, padding * 2);
+            ImGui::EndHorizontal();
+
+            ImGui::BeginHorizontal("content_frame");
+            ImGui::Spring(1, padding);
+
+            ImGui::BeginVertical("content", ImVec2(0.0f, 0.0f));
+            ImGui::Dummy(ImVec2(160, 0));
+            ImGui::Spring(1);
+            ImGui::TextUnformatted(node->GetName().data());
+            ImGui::Spring(1);
+            ImGui::EndVertical();
+            auto contentRect = ax::NodeEditor::Detail::ImGui_GetItemRect();
+
+            ImGui::Spring(1, padding);
+            ImGui::EndHorizontal();
+
+            ImGui::BeginHorizontal("outputs");
+            ImGui::Spring(0, padding * 2);
+
+            ImRect outputsRect;
+            int outputAlpha = 200;
+            if (node->GetOutputPins().size() > 0)
+            {
+                auto& pin = node->GetOutputPins()[0];
+                ImGui::Dummy(ImVec2(0, padding));
+                ImGui::Spring(1, 0);
+                outputsRect = ax::NodeEditor::Detail::ImGui_GetItemRect();
+
+                ed::PushStyleVar(ed::StyleVar_PinCorners, ImDrawFlags_NoRoundCornerB);
+                ed::BeginPin(pin->m_Id, ed::PinKind::Output);
+                ed::PinPivotRect(outputsRect.GetTL(), outputsRect.GetBR());
+                ed::PinRect(outputsRect.GetTL(), outputsRect.GetBR());
+                ed::EndPin();
+                ed::PopStyleVar();
+                
+                //if (newLinkPin && !CanCreateLink(newLinkPin, &pin) && &pin != newLinkPin)
+                //    outputAlpha = (int)(255 * ImGui::GetStyle().Alpha * (48.0f / 255.0f));
+
+                debugOverlay.DrawOutputPin(*pin);
+            }
+            else
+                ImGui::Dummy(ImVec2(0, padding));
+
+            ImGui::Spring(0, padding * 2);
+            ImGui::EndHorizontal();
+
+            ImGui::EndVertical();
+
+            ed::EndNode();
+            ed::PopStyleVar(7);
+            ed::PopStyleColor(4);
+
+            auto drawList = ed::GetNodeBackgroundDrawList(node->m_Id);
+
+            //const auto fringeScale = ImGui::GetStyle().AntiAliasFringeScale;
+            //const auto unitSize    = 1.0f / fringeScale;
+
+            //const auto ImDrawList_AddRect = [](ImDrawList* drawList, const ImVec2& a, const ImVec2& b, ImU32 col, float rounding, int rounding_corners, float thickness)
+            //{
+            //    if ((col >> 24) == 0)
+            //        return;
+            //    drawList->PathRect(a, b, rounding, rounding_corners);
+            //    drawList->PathStroke(col, true, thickness);
+            //};
+
+            drawList->AddRectFilled(inputsRect.GetTL() + ImVec2(0, 1), inputsRect.GetBR(),
+                IM_COL32((int)(255 * pinBackground.x), (int)(255 * pinBackground.y), (int)(255 * pinBackground.z), inputAlpha), 4.0f, ImDrawFlags_NoRoundCornerT);
+            //ImGui::PushStyleVar(ImGuiStyleVar_AntiAliasFringeScale, 1.0f);
+            drawList->AddRect(inputsRect.GetTL() + ImVec2(0, 1), inputsRect.GetBR(),
+                IM_COL32((int)(255 * pinBackground.x), (int)(255 * pinBackground.y), (int)(255 * pinBackground.z), inputAlpha), 4.0f, ImDrawFlags_NoRoundCornerT);
+            //ImGui::PopStyleVar();
+            drawList->AddRectFilled(outputsRect.GetTL(), outputsRect.GetBR() - ImVec2(0, 1),
+                IM_COL32((int)(255 * pinBackground.x), (int)(255 * pinBackground.y), (int)(255 * pinBackground.z), outputAlpha), 4.0f, ImDrawFlags_NoRoundCornerB);
+            //ImGui::PushStyleVar(ImGuiStyleVar_AntiAliasFringeScale, 1.0f);
+            drawList->AddRect(outputsRect.GetTL(), outputsRect.GetBR() - ImVec2(0, 1),
+                IM_COL32((int)(255 * pinBackground.x), (int)(255 * pinBackground.y), (int)(255 * pinBackground.z), outputAlpha), 4.0f, ImDrawFlags_NoRoundCornerB);
+            //ImGui::PopStyleVar();
+            drawList->AddRectFilled(contentRect.GetTL(), contentRect.GetBR(), IM_COL32(24, 64, 128, 200), 0.0f);
+            //ImGui::PushStyleVar(ImGuiStyleVar_AntiAliasFringeScale, 1.0f);
+            drawList->AddRect(
+                contentRect.GetTL(),
+                contentRect.GetBR(),
+                IM_COL32(48, 128, 255, 100), 0.0f);
+            //ImGui::PopStyleVar();
+        }
         // Handling Comment Node
         for (auto& node : blueprint.GetNodes())
         {
@@ -908,7 +1052,10 @@ private:
                 continue;
 
             // To keep things simple, link id is same as pin id.
-            ed::Link(pin->m_Id, pin->m_Id, pin->m_Link->m_Id, PinTypeToColor(pin->GetValueType()));
+            if (pin->GetType() == PinType::Flow)
+                ed::Link(pin->m_Id, pin->m_Id, pin->m_Link->m_Id, PinTypeToColor(pin->GetValueType()));
+            else
+                ed::Link(pin->m_Id, pin->m_Link->m_Id,pin->m_Id,  PinTypeToColor(pin->GetValueType()));
         }
 
         debugOverlay.End();
@@ -1430,6 +1577,19 @@ private:
     {
     }
 
+    void Show_Flow()
+    {
+        if (m_Blueprint)
+        {
+            for (auto& pin : m_Blueprint->GetPins())
+            {
+                if (!pin->m_Link)
+                    continue;
+                ed::Flow(pin->m_Id);
+            }
+        }
+    }
+
     void Blueprint_Start()
     {
         auto entryNode = FindEntryPointNode(*m_Blueprint);
@@ -1492,6 +1652,7 @@ private:
     Action m_Edit_Delete     = { "Delete",       [this] { Edit_Delete();    } };
     Action m_Edit_SelectAll  = { "Select All",   [this] { Edit_SelectAll(); } };
 
+    Action m_View_ShowFlow  = { "Show Flow",  [this] { Show_Flow();  } };
     Action m_View_NavigateBackward = { "Navigate Backward", [this] { View_NavigateBackward(); } };
     Action m_View_NavigateForward  = { "Navigate Forward",  [this] { View_NavigateForward();  } };
 

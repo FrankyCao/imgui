@@ -246,7 +246,7 @@ struct Style
         TargetDirection         = ImVec2(-1.0f, 0.0f);
         ScrollDuration          = 0.35f;
         FlowMarkerDistance      = 30.0f;
-        FlowSpeed               = 150.0f;
+        FlowSpeed               = 200.0f;
         FlowDuration            = 2.0f;
         PivotAlignment          = ImVec2(0.5f, 0.5f);
         PivotSize               = ImVec2(0.0f, 0.0f);
@@ -449,14 +449,9 @@ ImVec2 GetScreenSize();
 ImVec2 ScreenToCanvas(const ImVec2& pos);
 ImVec2 CanvasToScreen(const ImVec2& pos);
 
+void DrawLastLine();
+
 ImVector<LinkId> FindLinksForNode(NodeId nodeId);
-
-
-
-
-
-
-
 
 //------------------------------------------------------------------------------
 namespace Details {

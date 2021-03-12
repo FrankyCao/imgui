@@ -125,7 +125,6 @@ const char* crude_blueprint::NodeTypeToString(NodeType nodeType)
         case NodeType::Simple:      return "Simple";
         case NodeType::Tree:        return "Tree";
         case NodeType::Comment:     return "Comment";
-        case NodeType::Houdini:     return "Houdini";
     }
 }
 
@@ -139,8 +138,6 @@ bool crude_blueprint::NodeTypeFromString(const char* str, NodeType& nodeType)
         nodeType = NodeType::Tree;
     else if (strcmp(str, "Comment") == 0)
         nodeType = NodeType::Comment;
-    else if (strcmp(str, "Houdini") == 0)
-        nodeType = NodeType::Houdini;
     else
         return false;
 
@@ -867,6 +864,7 @@ crude_blueprint::StepResult crude_blueprint::Context::SetStepResult(StepResult r
 crude_blueprint::NodeRegistry::NodeRegistry()
     : m_BuildInNodes(
         {
+            TreeNode::GetStaticTypeInfo(),
             CommentNode::GetStaticTypeInfo(),
             ConstBoolNode::GetStaticTypeInfo(),
             ConstInt32Node::GetStaticTypeInfo(),
