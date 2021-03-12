@@ -1332,39 +1332,6 @@ endif(WIN32)
 if (IMGUI_APPS)
     if (IMGUI_ADDONS)
         add_executable(
-            example_node_edit_simple
-            test/example_node_edit_simple.cpp
-            ${IMGUI_APP_SRC}
-        )
-        target_link_libraries(
-            example_node_edit_simple
-            imgui
-            ${LINK_LIBS}
-        )
-
-        add_executable(
-            example_node_edit_basic_interaction
-            test/example_node_edit_basic_interaction.cpp
-            ${IMGUI_APP_SRC}
-        )
-        target_link_libraries(
-            example_node_edit_basic_interaction
-            imgui
-            ${LINK_LIBS}
-        )
-
-        add_executable(
-            example_node_edit_canvas
-            test/example_node_edit_canvas.cpp
-            ${IMGUI_APP_SRC}
-        )
-        target_link_libraries(
-            example_node_edit_canvas
-            imgui
-            ${LINK_LIBS}
-        )
-
-        add_executable(
             example_blueprints
             addon/imgui_node_editor/demo/blueprints.cpp
             addon/imgui_node_editor/demo/blueprint_editor_document.cpp
@@ -1390,24 +1357,6 @@ if (IMGUI_APPS)
         )
         target_link_libraries(
             example_blueprints
-            imgui
-            ${LINK_LIBS}
-        )
-        add_executable(
-            example_blueprints2
-            addon/imgui_node_editor/demo2/blueprints2.cpp
-            addon/imgui_node_editor/demo2/builders.cpp
-            addon/imgui_node_editor/demo2/builders.h
-            addon/imgui_node_editor/demo2/drawing.cpp
-            addon/imgui_node_editor/demo2/drawing.h
-            addon/imgui_node_editor/demo2/widgets.cpp
-            addon/imgui_node_editor/demo2/widgets.h
-            addon/imgui_node_editor/demo2/icons.cpp
-            addon/imgui_node_editor/demo2/icons.h
-            ${IMGUI_APP_SRC}
-        )
-        target_link_libraries(
-            example_blueprints2
             imgui
             ${LINK_LIBS}
         )
