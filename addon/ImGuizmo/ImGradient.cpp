@@ -27,9 +27,9 @@ namespace ImGradient
       color.w = 1.f;
       draw_list->AddRectFilled(p1, p2, ImColor(color));
       if (editing)
-         draw_list->AddRect(p1, p2, 0xFFFFFFFF, 2.f, 15, 2.5f);
+         draw_list->AddRect(p1, p2, 0xFFFFFFFF, 2.f, 0, 2.5f);
       else
-         draw_list->AddRect(p1, p2, 0x80FFFFFF, 2.f, 15, 1.25f);
+         draw_list->AddRect(p1, p2, 0x80FFFFFF, 2.f, 0, 1.25f);
 
       if (rc.Contains(io.MousePos))
       {

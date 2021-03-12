@@ -110,7 +110,7 @@ void ax::Drawing::DrawIcon(ImDrawList* drawList, const ImVec2& a, const ImVec2& 
                 const auto p0 = rect_center - ImVec2(r, r);
                 const auto p1 = rect_center + ImVec2(r, r);
 
-                drawList->AddRectFilled(p0, p1, color, 0, 15 + extra_segments);
+                drawList->AddRectFilled(p0, p1, color, 0, extra_segments);
             }
             else
             {
@@ -119,7 +119,7 @@ void ax::Drawing::DrawIcon(ImDrawList* drawList, const ImVec2& a, const ImVec2& 
                 const auto p1 = rect_center + ImVec2(r, r);
 
                 if (innerColor & 0xFF000000)
-                    drawList->AddRectFilled(p0, p1, innerColor, 0, 15 + extra_segments);
+                    drawList->AddRectFilled(p0, p1, innerColor, 0, extra_segments);
 
                 drawList->AddRect(p0, p1, color, 0, 15 + extra_segments, 2.0f * outline_scale);
             }
@@ -164,7 +164,7 @@ void ax::Drawing::DrawIcon(ImDrawList* drawList, const ImVec2& a, const ImVec2& 
                 const auto p0 = rect_center - ImVec2(r, r);
                 const auto p1 = rect_center + ImVec2(r, r);
 
-                drawList->AddRectFilled(p0, p1, color, cr, 15);
+                drawList->AddRectFilled(p0, p1, color, cr, 0);
             }
             else
             {
@@ -174,9 +174,9 @@ void ax::Drawing::DrawIcon(ImDrawList* drawList, const ImVec2& a, const ImVec2& 
                 const auto p1 = rect_center + ImVec2(r, r);
 
                 if (innerColor & 0xFF000000)
-                    drawList->AddRectFilled(p0, p1, innerColor, cr, 15);
+                    drawList->AddRectFilled(p0, p1, innerColor, cr, 0);
 
-                drawList->AddRect(p0, p1, color, cr, 15, 2.0f * outline_scale);
+                drawList->AddRect(p0, p1, color, cr, 0, 2.0f * outline_scale);
             }
         }
         else if (type == IconType::Diamond)

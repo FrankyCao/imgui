@@ -1277,7 +1277,7 @@ void PlotBarsEx(const char* label_id, const Getter& getter, double width) {
             if (s.RenderFill)
                 DrawList.AddRectFilled(a, b, col_fill);
             if (rend_line)
-                DrawList.AddRect(a, b, col_line, 0, ImDrawCornerFlags_All, s.LineWeight);
+                DrawList.AddRect(a, b, col_line, 0, 0, s.LineWeight);
         }
         EndItem();
     }
@@ -1356,7 +1356,7 @@ void PlotBarsHEx(const char* label_id, const Getter& getter, THeight height) {
             if (s.RenderFill)
                 DrawList.AddRectFilled(a, b, col_fill);
             if (rend_line)
-                DrawList.AddRect(a, b, col_line, 0, ImDrawCornerFlags_All, s.LineWeight);
+                DrawList.AddRect(a, b, col_line, 0, 0, s.LineWeight);
         }
         EndItem();
     }

@@ -1068,7 +1068,7 @@ struct Example
 
                         ed::PushStyleVar(ed::StyleVar_PinArrowSize, 10.0f);
                         ed::PushStyleVar(ed::StyleVar_PinArrowWidth, 10.0f);
-                        ed::PushStyleVar(ed::StyleVar_PinCorners, 12);
+                        ed::PushStyleVar(ed::StyleVar_PinCorners, ImDrawFlags_NoRoundCornerT);
                         ed::BeginPin(pin.ID, ed::PinKind::Input);
                         ed::PinPivotRect(inputsRect.GetTL(), inputsRect.GetBR());
                         ed::PinRect(inputsRect.GetTL(), inputsRect.GetBR());
@@ -1110,7 +1110,7 @@ struct Example
                     ImGui::Spring(1, 0);
                     outputsRect = ax::NodeEditor::Detail::ImGui_GetItemRect();
 
-                    ed::PushStyleVar(ed::StyleVar_PinCorners, 3);
+                    ed::PushStyleVar(ed::StyleVar_PinCorners, ImDrawFlags_NoRoundCornerB);
                     ed::BeginPin(pin.ID, ed::PinKind::Output);
                     ed::PinPivotRect(outputsRect.GetTL(), outputsRect.GetBR());
                     ed::PinRect(outputsRect.GetTL(), outputsRect.GetBR());
@@ -1146,16 +1146,16 @@ struct Example
                 //};
 
                 drawList->AddRectFilled(inputsRect.GetTL() + ImVec2(0, 1), inputsRect.GetBR(),
-                    IM_COL32((int)(255 * pinBackground.x), (int)(255 * pinBackground.y), (int)(255 * pinBackground.z), inputAlpha), 4.0f, 12);
+                    IM_COL32((int)(255 * pinBackground.x), (int)(255 * pinBackground.y), (int)(255 * pinBackground.z), inputAlpha), 4.0f, ImDrawFlags_NoRoundCornerT);
                 //ImGui::PushStyleVar(ImGuiStyleVar_AntiAliasFringeScale, 1.0f);
                 drawList->AddRect(inputsRect.GetTL() + ImVec2(0, 1), inputsRect.GetBR(),
-                    IM_COL32((int)(255 * pinBackground.x), (int)(255 * pinBackground.y), (int)(255 * pinBackground.z), inputAlpha), 4.0f, 12);
+                    IM_COL32((int)(255 * pinBackground.x), (int)(255 * pinBackground.y), (int)(255 * pinBackground.z), inputAlpha), 4.0f, ImDrawFlags_NoRoundCornerT);
                 //ImGui::PopStyleVar();
                 drawList->AddRectFilled(outputsRect.GetTL(), outputsRect.GetBR() - ImVec2(0, 1),
-                    IM_COL32((int)(255 * pinBackground.x), (int)(255 * pinBackground.y), (int)(255 * pinBackground.z), outputAlpha), 4.0f, 3);
+                    IM_COL32((int)(255 * pinBackground.x), (int)(255 * pinBackground.y), (int)(255 * pinBackground.z), outputAlpha), 4.0f, ImDrawFlags_NoRoundCornerB);
                 //ImGui::PushStyleVar(ImGuiStyleVar_AntiAliasFringeScale, 1.0f);
                 drawList->AddRect(outputsRect.GetTL(), outputsRect.GetBR() - ImVec2(0, 1),
-                    IM_COL32((int)(255 * pinBackground.x), (int)(255 * pinBackground.y), (int)(255 * pinBackground.z), outputAlpha), 4.0f, 3);
+                    IM_COL32((int)(255 * pinBackground.x), (int)(255 * pinBackground.y), (int)(255 * pinBackground.z), outputAlpha), 4.0f, ImDrawFlags_NoRoundCornerB);
                 //ImGui::PopStyleVar();
                 drawList->AddRectFilled(contentRect.GetTL(), contentRect.GetBR(), IM_COL32(24, 64, 128, 200), 0.0f);
                 //ImGui::PushStyleVar(ImGuiStyleVar_AntiAliasFringeScale, 1.0f);
@@ -1209,7 +1209,7 @@ struct Example
 
                         //ed::PushStyleVar(ed::StyleVar_PinArrowSize, 10.0f);
                         //ed::PushStyleVar(ed::StyleVar_PinArrowWidth, 10.0f);
-                        ed::PushStyleVar(ed::StyleVar_PinCorners, 15);
+                        ed::PushStyleVar(ed::StyleVar_PinCorners, ImDrawFlags_None);
                         ed::BeginPin(pin.ID, ed::PinKind::Input);
                         ed::PinPivotRect(inputsRect.GetCenter(), inputsRect.GetCenter());
                         ed::PinRect(inputsRect.GetTL(), inputsRect.GetBR());
@@ -1219,9 +1219,9 @@ struct Example
 
                         auto drawList = ImGui::GetWindowDrawList();
                         drawList->AddRectFilled(inputsRect.GetTL(), inputsRect.GetBR(),
-                            IM_COL32((int)(255 * pinBackground.x), (int)(255 * pinBackground.y), (int)(255 * pinBackground.z), inputAlpha), 4.0f, 15);
+                            IM_COL32((int)(255 * pinBackground.x), (int)(255 * pinBackground.y), (int)(255 * pinBackground.z), inputAlpha), 4.0f, 0);
                         drawList->AddRect(inputsRect.GetTL(), inputsRect.GetBR(),
-                            IM_COL32((int)(255 * pinBackground.x), (int)(255 * pinBackground.y), (int)(255 * pinBackground.z), inputAlpha), 4.0f, 15);
+                            IM_COL32((int)(255 * pinBackground.x), (int)(255 * pinBackground.y), (int)(255 * pinBackground.z), inputAlpha), 4.0f, 0);
 
                         if (newLinkPin && !CanCreateLink(newLinkPin, &pin) && &pin != newLinkPin)
                             inputAlpha = (int)(255 * ImGui::GetStyle().Alpha * (48.0f / 255.0f));
@@ -1262,7 +1262,7 @@ struct Example
                         outputsRect.Min.y += padding;
                         outputsRect.Max.y += padding;
 
-                        ed::PushStyleVar(ed::StyleVar_PinCorners, 3);
+                        ed::PushStyleVar(ed::StyleVar_PinCorners, ImDrawFlags_NoRoundCornerB);
                         ed::BeginPin(pin.ID, ed::PinKind::Output);
                         ed::PinPivotRect(outputsRect.GetCenter(), outputsRect.GetCenter());
                         ed::PinRect(outputsRect.GetTL(), outputsRect.GetBR());

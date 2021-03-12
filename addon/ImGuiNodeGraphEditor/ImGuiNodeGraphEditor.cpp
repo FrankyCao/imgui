@@ -234,9 +234,9 @@ static void ImDrawListPathFillWithVerticalGradientAndStroke(ImDrawList *dl, cons
     if ((strokeColor& IM_COL32_A_MASK)!= 0 && strokeThickness>0) dl->AddPolyline(dl->_Path.Data, dl->_Path.Size, strokeColor, strokeClosed, strokeThickness);
     dl->PathClear();
 }
-static void ImDrawListAddRectWithVerticalGradient(ImDrawList *dl, const ImVec2 &a, const ImVec2 &b, const ImU32 &fillColorTop, const ImU32 &fillColorBottom, const ImU32 &strokeColor, float rounding = 0.0f, int rounding_corners = 0x0F,float strokeThickness = 1.0f) {
+static void ImDrawListAddRectWithVerticalGradient(ImDrawList *dl, const ImVec2 &a, const ImVec2 &b, const ImU32 &fillColorTop, const ImU32 &fillColorBottom, const ImU32 &strokeColor, float rounding = 0.0f, int rounding_corners = 0,float strokeThickness = 1.0f) {
     if (!dl || (((fillColorTop & IM_COL32_A_MASK) == 0) && ((fillColorBottom & IM_COL32_A_MASK) == 0) && ((strokeColor & IM_COL32_A_MASK) == 0)))  return;
-    if (rounding==0.f || rounding_corners==0) {
+    if (rounding==0.f || rounding_corners==ImDrawFlags_NoRoundCorners) {
         dl->AddRectFilledMultiColor(a,b,fillColorTop,fillColorTop,fillColorBottom,fillColorBottom); // Huge speedup!
         if ((strokeColor& IM_COL32_A_MASK)!= 0 && strokeThickness>0.f) {
             dl->PathRect(a, b, rounding, rounding_corners);
@@ -249,7 +249,7 @@ static void ImDrawListAddRectWithVerticalGradient(ImDrawList *dl, const ImVec2 &
         ImDrawListPathFillWithVerticalGradientAndStroke(dl,fillColorTop,fillColorBottom,strokeColor,true,strokeThickness,a.y,b.y);
     }
 }
-static void ImDrawListAddRectWithVerticalGradient(ImDrawList *dl, const ImVec2 &a, const ImVec2 &b, const ImU32 &fillColor, float fillColorGradientDeltaIn0_05, const ImU32 &strokeColor, float rounding = 0.0f, int rounding_corners = 0x0F,float strokeThickness = 1.0f)   {
+static void ImDrawListAddRectWithVerticalGradient(ImDrawList *dl, const ImVec2 &a, const ImVec2 &b, const ImU32 &fillColor, float fillColorGradientDeltaIn0_05, const ImU32 &strokeColor, float rounding = 0.0f, int rounding_corners = 0,float strokeThickness = 1.0f)   {
     ImU32 fillColorTop,fillColorBottom;GetVerticalGradientTopAndBottomColors(fillColor,fillColorGradientDeltaIn0_05,fillColorTop,fillColorBottom);
     ImDrawListAddRectWithVerticalGradient(dl,a,b,fillColorTop,fillColorBottom,strokeColor,rounding,rounding_corners,strokeThickness);
 }
@@ -1135,15 +1135,15 @@ void NodeGraphEditor::render()
                     float fillGradientFactor = node->overrideTitleBgColorGradient>=0.f ? node->overrideTitleBgColorGradient : titleBgGradient>=0.f ? titleBgGradient : style.color_node_title_background_gradient;//0.15f;
                     if (node->isSelected) fillGradientFactor = -fillGradientFactor; // or if (node==activeNode)
                     if (fillGradientFactor!=0.f)    {
-                        if (node->isOpen) ImGui::NGE_Draw::ImDrawListAddRectWithVerticalGradient(draw_list,node_rect_min, ImVec2(node_rect_max.x,node_rect_min.y+nodeTitleBarBgHeight), nodeTitleBgColor,fillGradientFactor,IM_COL32_BLACK_TRANS,style.node_rounding,1|2);
+                        if (node->isOpen) ImGui::NGE_Draw::ImDrawListAddRectWithVerticalGradient(draw_list,node_rect_min, ImVec2(node_rect_max.x,node_rect_min.y+nodeTitleBarBgHeight), nodeTitleBgColor,fillGradientFactor,IM_COL32_BLACK_TRANS,style.node_rounding, ImDrawFlags_NoRoundCornerB);
                         else ImGui::NGE_Draw::ImDrawListAddRectWithVerticalGradient(draw_list,node_rect_min, node_rect_max, nodeTitleBgColor,fillGradientFactor,IM_COL32_BLACK_TRANS, style.node_rounding);
                     }
                     else {
-                        if (node->isOpen) draw_list->AddRectFilled(node_rect_min, ImVec2(node_rect_max.x,node_rect_min.y+nodeTitleBarBgHeight), nodeTitleBgColor, style.node_rounding,1|2);
+                        if (node->isOpen) draw_list->AddRectFilled(node_rect_min, ImVec2(node_rect_max.x,node_rect_min.y+nodeTitleBarBgHeight), nodeTitleBgColor, style.node_rounding, ImDrawFlags_NoRoundCornerB);
                         else draw_list->AddRectFilled(node_rect_min, node_rect_max, nodeTitleBgColor, style.node_rounding);
                     }
 #                   else // SKIP_VERTICAL_GRADIENT
-                    if (node->isOpen) draw_list->AddRectFilled(node_rect_min, ImVec2(node_rect_max.x,node_rect_min.y+nodeTitleBarBgHeight), nodeTitleBgColor, style.node_rounding,1|2);
+                    if (node->isOpen) draw_list->AddRectFilled(node_rect_min, ImVec2(node_rect_max.x,node_rect_min.y+nodeTitleBarBgHeight), nodeTitleBgColor, style.node_rounding, ImDrawFlags_NoRoundCornerB);
                     else draw_list->AddRectFilled(node_rect_min, node_rect_max, nodeTitleBgColor, style.node_rounding);
 #                   undef SKIP_VERTICAL_GRADIENT
 #                   endif // SKIP_VERTICAL_GRADIENT
@@ -1156,7 +1156,7 @@ void NodeGraphEditor::render()
                                                                                            ((node_hovered_in_list == node || node_hovered_in_scene == node) ? style.color_node_frame_hovered :
                                                                                                                                                               style.color_node_frame));
                 const float lineThickness = ((activeNode == node) ? 3.0f : (node->isSelected ? 2.0f : 1.f))*currentFontWindowScale;
-                draw_list->AddRect(node_rect_min, node_rect_max, node_frame_color, style.node_rounding,0x0F,lineThickness);    // Frame
+                draw_list->AddRect(node_rect_min, node_rect_max, node_frame_color, style.node_rounding, 0, lineThickness);    // Frame
 
                 // Line below node name
                 if (node->isOpen) {
@@ -1476,7 +1476,7 @@ void NodeGraphEditor::render()
                     if (absSelection.Min.y>absSelection.Max.y)  {float tmp = absSelection.Min.y;absSelection.Min.y=absSelection.Max.y;absSelection.Max.y=tmp;}
 
                     draw_list->AddRectFilled(absSelection.Min, absSelection.Max, style.color_mouse_rectangular_selection, 0.f);
-                    draw_list->AddRect(absSelection.Min, absSelection.Max, style.color_mouse_rectangular_selection_frame, 0.f,0x0F,4.0f*currentFontWindowScale);    // Frame
+                    draw_list->AddRect(absSelection.Min, absSelection.Max, style.color_mouse_rectangular_selection_frame, 0.f, 0, 4.0f*currentFontWindowScale);    // Frame
                 }
                 else if (mouseRectangularSelectionForNodesStarted) {
                     // Note: merging this if branch into the main node loop would save a second loop for selecting nodes [Possible opt]
