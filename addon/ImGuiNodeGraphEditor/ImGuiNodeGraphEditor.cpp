@@ -236,7 +236,7 @@ static void ImDrawListPathFillWithVerticalGradientAndStroke(ImDrawList *dl, cons
 }
 static void ImDrawListAddRectWithVerticalGradient(ImDrawList *dl, const ImVec2 &a, const ImVec2 &b, const ImU32 &fillColorTop, const ImU32 &fillColorBottom, const ImU32 &strokeColor, float rounding = 0.0f, int rounding_corners = 0,float strokeThickness = 1.0f) {
     if (!dl || (((fillColorTop & IM_COL32_A_MASK) == 0) && ((fillColorBottom & IM_COL32_A_MASK) == 0) && ((strokeColor & IM_COL32_A_MASK) == 0)))  return;
-    if (rounding==0.f || rounding_corners==ImDrawFlags_NoRoundCorners) {
+    if (rounding==0.f || rounding_corners==ImDrawFlags_RoundCornersNone) {
         dl->AddRectFilledMultiColor(a,b,fillColorTop,fillColorTop,fillColorBottom,fillColorBottom); // Huge speedup!
         if ((strokeColor& IM_COL32_A_MASK)!= 0 && strokeThickness>0.f) {
             dl->PathRect(a, b, rounding, rounding_corners);
@@ -1135,15 +1135,15 @@ void NodeGraphEditor::render()
                     float fillGradientFactor = node->overrideTitleBgColorGradient>=0.f ? node->overrideTitleBgColorGradient : titleBgGradient>=0.f ? titleBgGradient : style.color_node_title_background_gradient;//0.15f;
                     if (node->isSelected) fillGradientFactor = -fillGradientFactor; // or if (node==activeNode)
                     if (fillGradientFactor!=0.f)    {
-                        if (node->isOpen) ImGui::NGE_Draw::ImDrawListAddRectWithVerticalGradient(draw_list,node_rect_min, ImVec2(node_rect_max.x,node_rect_min.y+nodeTitleBarBgHeight), nodeTitleBgColor,fillGradientFactor,IM_COL32_BLACK_TRANS,style.node_rounding, ImDrawFlags_NoRoundCornerB);
+                        if (node->isOpen) ImGui::NGE_Draw::ImDrawListAddRectWithVerticalGradient(draw_list,node_rect_min, ImVec2(node_rect_max.x,node_rect_min.y+nodeTitleBarBgHeight), nodeTitleBgColor,fillGradientFactor,IM_COL32_BLACK_TRANS,style.node_rounding, ImDrawFlags_RoundCornersTop);
                         else ImGui::NGE_Draw::ImDrawListAddRectWithVerticalGradient(draw_list,node_rect_min, node_rect_max, nodeTitleBgColor,fillGradientFactor,IM_COL32_BLACK_TRANS, style.node_rounding);
                     }
                     else {
-                        if (node->isOpen) draw_list->AddRectFilled(node_rect_min, ImVec2(node_rect_max.x,node_rect_min.y+nodeTitleBarBgHeight), nodeTitleBgColor, style.node_rounding, ImDrawFlags_NoRoundCornerB);
+                        if (node->isOpen) draw_list->AddRectFilled(node_rect_min, ImVec2(node_rect_max.x,node_rect_min.y+nodeTitleBarBgHeight), nodeTitleBgColor, style.node_rounding, ImDrawFlags_RoundCornersTop);
                         else draw_list->AddRectFilled(node_rect_min, node_rect_max, nodeTitleBgColor, style.node_rounding);
                     }
 #                   else // SKIP_VERTICAL_GRADIENT
-                    if (node->isOpen) draw_list->AddRectFilled(node_rect_min, ImVec2(node_rect_max.x,node_rect_min.y+nodeTitleBarBgHeight), nodeTitleBgColor, style.node_rounding, ImDrawFlags_NoRoundCornerB);
+                    if (node->isOpen) draw_list->AddRectFilled(node_rect_min, ImVec2(node_rect_max.x,node_rect_min.y+nodeTitleBarBgHeight), nodeTitleBgColor, style.node_rounding, ImDrawFlags_RoundCornersTop);
                     else draw_list->AddRectFilled(node_rect_min, node_rect_max, nodeTitleBgColor, style.node_rounding);
 #                   undef SKIP_VERTICAL_GRADIENT
 #                   endif // SKIP_VERTICAL_GRADIENT

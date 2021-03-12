@@ -1849,7 +1849,7 @@ void draw_node(EditorContext& editor, const int node_idx)
                 title_bar_rect.Max,
                 titlebar_background,
                 node.layout_style.corner_rounding,
-                ImDrawFlags_NoRoundCornerB);
+                ImDrawFlags_RoundCornersTop);
         }
 
         if ((g.style.flags & StyleFlags_NodeOutline) != 0)

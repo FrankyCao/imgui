@@ -270,12 +270,12 @@ void EndTimeline(int num_vertical_grid_lines, float current_time, ImU32 timeline
         {
             if (median.x > startx + columnWidth)
                 median.x = startx + columnWidth;
-            win->DrawList->AddRectFilled(start, median, timeline_running_color, rounding, ImDrawFlags_NoRoundCornerTR | ImDrawFlags_NoRoundCornerBL);
+            win->DrawList->AddRectFilled(start, median, timeline_running_color, rounding, ImDrawFlags_RoundCornersTopLeft | ImDrawFlags_RoundCornersBottomRight);
         }
         median.y=start.y;
         if (median.x < startx + columnWidth)
         {
-            win->DrawList->AddRectFilled(median, end, color, rounding, ImDrawFlags_NoRoundCornerTL | ImDrawFlags_NoRoundCornerBR);
+            win->DrawList->AddRectFilled(median, end, color, rounding, ImDrawFlags_RoundCornersTopRight | ImDrawFlags_RoundCornersBottomLeft);
             if (median.x > startx)
                 win->DrawList->AddLine(median, ImVec2(median.x,end.y), moving_line_color, 3);
         }

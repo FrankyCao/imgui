@@ -1514,7 +1514,7 @@ bool InputTextWithAutoCompletion(const char* label, char* buf, size_t buf_size, 
                         ImVec2 end(start.x+ttWindowSize.x-1,start.y+textLineHeightWithSpacing);
                         ImU32 col = ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_Header]);
                         ImGui::GetWindowDrawList()->AddRectFilled(start,end,col,0,0);
-                        //ImGui::GetWindowDrawList()->AddRect(start,end,ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_HeaderActive]),0,ImDrawFlags_NoRoundCorners,1.f);
+                        //ImGui::GetWindowDrawList()->AddRect(start,end,ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_HeaderActive]),0,ImDrawFlags_RoundCornersNone,1.f);
 
                         ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
                     }
@@ -1522,7 +1522,7 @@ bool InputTextWithAutoCompletion(const char* label, char* buf, size_t buf_size, 
                         ImVec2 end(start.x+ttWindowSize.x-1,start.y+textLineHeightWithSpacing);
                         ImU32 col = ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_Button]);
                         ImGui::GetWindowDrawList()->AddRectFilled(start,end,col,0,0);
-                        ImGui::GetWindowDrawList()->AddRect(start,end,ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_ButtonActive]),0,ImDrawFlags_NoRoundCorners,1.f);
+                        ImGui::GetWindowDrawList()->AddRect(start,end,ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_ButtonActive]),0,ImDrawFlags_RoundCornersNone,1.f);
 
                     }
                     const bool ok = autocompletion_items_getter(autocompletion_user_data,i,&txt);
@@ -1826,7 +1826,7 @@ bool PasswordDrawer(char *password, int passwordSize,ImGuiPasswordDrawerFlags fl
                     // Filled Drawing
                     window->DrawList->AddCircleFilled(center,radius,PasswordDrawerFadeAlpha(pColors[5],isSelected-1,passwordLen),num_segments);
                 }
-                const ImDrawFlags corners_flags = pColors[(flags&ImGuiPasswordDrawerFlags_NoLines)] ? ImDrawFlags_NoRoundCornerR | ImDrawFlags_NoRoundCornerTL : ImDrawFlags_NoRoundCornerL;
+                const ImDrawFlags corners_flags = pColors[(flags&ImGuiPasswordDrawerFlags_NoLines)] ? ImDrawFlags_RoundCornersBottomRight : ImDrawFlags_RoundCornersNone;
                 window->DrawList->AddRectFilled(ImVec2(center.x-quadHalfSize,center.y-quadHalfSize),ImVec2(center.x+quadHalfSize,center.y+quadHalfSize),corners_flags);
             }
             else {
@@ -2074,12 +2074,12 @@ bool CheckboxStyled(const char* label, bool* v,const ImU32* pOptionalEightColors
     if (t>0) {
 	ImU32 fillColor0 = pOptionalEightColors ? ((held || hovered) ? pOptionalEightColors[5] : pOptionalEightColors[4]) :
 	    (GetColorU32((held || hovered) ? ImGuiCol_ButtonHovered : ImGuiCol_Button));
-        window->DrawList->AddRectFilled(innerFrame0.Min, innerFrame0.Max, fillColor0, rounding, t<1 ? ImDrawFlags_NoRoundCornerR : 0/*9 : 15*/);
+        window->DrawList->AddRectFilled(innerFrame0.Min, innerFrame0.Max, fillColor0, rounding, t<1 ? ImDrawFlags_RoundCornersLeft : ImDrawFlags_RoundCornersAll/*9 : 15*/);
     }
     if (t<1) {
 	ImU32 fillColor1 = pOptionalEightColors ? ((held || hovered) ? pOptionalEightColors[7] : pOptionalEightColors[6]) :
         (GetColorU32((held || hovered) ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg));
-        window->DrawList->AddRectFilled(innerFrame1.Min, innerFrame1.Max, fillColor1, rounding, t>0 ?  ImDrawFlags_NoRoundCornerL : 0/*6 : 15*/);
+        window->DrawList->AddRectFilled(innerFrame1.Min, innerFrame1.Max, fillColor1, rounding, t>0 ?  ImDrawFlags_RoundCornersRight : ImDrawFlags_RoundCornersAll/*6 : 15*/);
     }
     if (style.FrameBorderSize)   {
         ImRect innerFrame(innerFrame0.Min,innerFrame1.Max);

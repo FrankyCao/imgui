@@ -861,7 +861,7 @@ void ImDrawListAddRect(ImDrawList *dl, const ImVec2 &a, const ImVec2 &b, const I
 }
 void ImDrawListAddRectWithVerticalGradient(ImDrawList *dl, const ImVec2 &a, const ImVec2 &b, const ImU32 &fillColorTop, const ImU32 &fillColorBottom, const ImU32 &strokeColor, float rounding, int rounding_corners, float strokeThickness) {
     if (!dl || (((fillColorTop & IM_COL32_A_MASK) == 0) && ((fillColorBottom & IM_COL32_A_MASK) == 0) && ((strokeColor & IM_COL32_A_MASK) == 0)))  return;
-    if (rounding==0.f || rounding_corners==ImDrawFlags_NoRoundCorners) {
+    if (rounding==0.f || rounding_corners==ImDrawFlags_RoundCornersNone) {
         dl->AddRectFilledMultiColor(a,b,fillColorTop,fillColorTop,fillColorBottom,fillColorBottom); // Huge speedup!
         if ((strokeColor& IM_COL32_A_MASK)!= 0 && strokeThickness>0.f) {
             dl->PathRect(a, b, rounding, rounding_corners);
@@ -1039,7 +1039,7 @@ void ImDrawListPathFillWithHorizontalGradientAndStroke(ImDrawList *dl, const ImU
 }
 void ImDrawListAddRectWithHorizontalGradient(ImDrawList *dl, const ImVec2 &a, const ImVec2 &b, const ImU32 &fillColorLeft, const ImU32 &fillColoRight, const ImU32 &strokeColor, float rounding, int rounding_corners, float strokeThickness) {
     if (!dl || (((fillColorLeft & IM_COL32_A_MASK) == 0) && ((fillColoRight & IM_COL32_A_MASK) == 0) && ((strokeColor & IM_COL32_A_MASK) == 0)))  return;
-    if (rounding==0.f || rounding_corners==ImDrawFlags_NoRoundCorners) {
+    if (rounding==0.f || rounding_corners==ImDrawFlags_RoundCornersNone) {
         dl->AddRectFilledMultiColor(a,b,fillColorLeft,fillColoRight,fillColoRight,fillColorLeft); // Huge speedup!
         if ((strokeColor& IM_COL32_A_MASK)!= 0 && strokeThickness>0.f) {
             dl->PathRect(a, b, rounding, rounding_corners);
