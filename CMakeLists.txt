@@ -141,15 +141,6 @@ if(PKG_CONFIG_FOUND)
     if(SDL2_FOUND)
         message("sdl2 found")
     endif()
-    pkg_check_modules(FFMPEG IMPORTED_TARGET
-        libavcodec
-        libavformat
-        libavutil
-        libswresample
-        libavfilter
-        libswscale
-        libavdevice
-    )
 endif(PKG_CONFIG_FOUND)
 
 # base include
@@ -184,17 +175,6 @@ if(IMGUI_FREETYPE AND FREETYPE_FOUND)
         ${FREETYPE_LIBRARIES}
     )
 endif(IMGUI_FREETYPE AND FREETYPE_FOUND)
-
-if (FFMPEG_FOUND)
-    set(IMGUI_INC_DIRS
-        ${IMGUI_INC_DIRS}
-        ${FFMPEG_INCLUDE_DIRS}
-    )
-    set(LINK_LIBS
-        ${LINK_LIBS}
-        PkgConfig::FFMPEG
-    )
-endif(FFMPEG_FOUND)
 
 # base sources
 set(IMGUI_SRC
@@ -523,6 +503,10 @@ if (IMGUI_ICONS)
         icons/webfont.cpp
         icons/fork_webfont.cpp
         icons/material_icons.cpp
+    )
+    set(IMGUI_INC_DIRS
+        ${IMGUI_INC_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/icons
     )
 endif(IMGUI_ICONS)
 
@@ -940,23 +924,11 @@ if(IMGUI_ADDONS)
                 )
                 set(GLSLANG_LIBRARY
                     glslang
-                    SPIRV
-                    SPIRV-Tools-opt
+                    shaderc_combined
                 )
-                if(WIN32)
-                    set(GLSLANG_LIBRARY
-                        ${GLSLANG_LIBRARY}
-                        SPIRV-Tools
-                    )
-                else()
-                    set(GLSLANG_LIBRARY
-                        ${GLSLANG_LIBRARY}
-                        SPIRV-Tools-static
-                    )
-                endif(WIN32)
                 set(LINK_LIBS
-                    ${GLSLANG_LIBRARY}
                     ${LINK_LIBS}
+                    ${GLSLANG_LIBRARY}
                 )
             endif()
         endif()
@@ -1371,37 +1343,6 @@ if (IMGUI_APPS)
         imgui
         ${LINK_LIBS}
     )
-    if (FFMPEG_FOUND AND IMGUI_ADDONS AND SDL2_FOUND)
-        add_executable(
-            media_player
-            apps/MediaPlayer/clock.cpp
-            apps/MediaPlayer/clock.h
-            apps/MediaPlayer/demux.cpp
-            apps/MediaPlayer/demux.h
-            apps/MediaPlayer/decoder.cpp
-            apps/MediaPlayer/decoder.h
-            apps/MediaPlayer/packet.cpp
-            apps/MediaPlayer/packet.h
-            apps/MediaPlayer/frame.cpp
-            apps/MediaPlayer/frame.h
-            apps/MediaPlayer/audio.cpp
-            apps/MediaPlayer/audio.h
-            apps/MediaPlayer/video.cpp
-            apps/MediaPlayer/video.h
-            apps/MediaPlayer/subtitle.cpp
-            apps/MediaPlayer/subtitle.h
-            apps/MediaPlayer/player.cpp
-            apps/MediaPlayer/media_player.h
-            apps/MediaPlayer/media_player.cpp
-            ${IMGUI_APP_SRC}
-        )
-        target_link_libraries(
-            media_player
-            imgui
-            ${SDL2_STATIC_LDFLAGS}
-            ${LINK_LIBS}
-        )
-    endif(FFMPEG_FOUND AND IMGUI_ADDONS AND  SDL2_FOUND)
 endif(IMGUI_APPS)
 
 get_directory_property(hasParent PARENT_DIRECTORY)
@@ -1409,4 +1350,5 @@ if(hasParent)
     set(IMGUI_LIBRARYS imgui ${LINK_LIBS} PARENT_SCOPE )
     set(IMGUI_INCLUDES ${IMGUI_INCS} PARENT_SCOPE )
     set(IMGUI_INCLUDE_DIRS ${IMGUI_INC_DIRS} PARENT_SCOPE )
+    set(IMGUI_APP_ENTRY_SRC imgui/${IMGUI_APP_SRC} PARENT_SCOPE )
 endif()
