@@ -4,7 +4,6 @@
 
 #define ICON_MIN_IGFD 0xf002
 #define ICON_MAX_IGFD 0xf1c9
-#ifdef IMGUI_INTERNAL_ICONS
 #define ICON_IGFD_ADD u8"\uf067"
 #define ICON_IGFD_BIG_THUMBAILS u8"\uf009"
 #define ICON_IGFD_BOOKMARK u8"\uf02e"
@@ -27,30 +26,5 @@
 #define ICON_IGFD_SMALL_THUMBAILS u8"\uf00a"
 #define ICON_IGFD_THUMBAILS_LIST u8"\uf00b"
 #define ICON_IGFD_TRASH u8"\uf014"
-#else
-#define ICON_IGFD_ADD u8"[+]"
-#define ICON_IGFD_BIG_THUMBAILS u8"[T]"
-#define ICON_IGFD_BOOKMARK u8"[M]"
-#define ICON_IGFD_CANCEL u8"[C]"
-#define ICON_IGFD_CHEVRON_DOWN u8"[V]"
-#define ICON_IGFD_CHEVRON_UP u8"[^]"
-#define ICON_IGFD_DRIVES u8"[d]"
-#define ICON_IGFD_EDIT u8"[E]"
-#define ICON_IGFD_FILE u8"[F]"
-#define ICON_IGFD_FILE_LIST u8"[l]"
-#define ICON_IGFD_FILE_PIC u8"[P]"
-#define ICON_IGFD_FOLDER u8"[D]"
-#define ICON_IGFD_FOLDER_OPEN u8"[O]"
-#define ICON_IGFD_LINK u8"[L]"
-#define ICON_IGFD_OK u8"[OK]"
-#define ICON_IGFD_REFRESH u8"[Refresh]"
-#define ICON_IGFD_REMOVE u8"[Remove]"
-#define ICON_IGFD_RESET u8"[Reset]"
-#define ICON_IGFD_SAVE u8"[S]"
-#define ICON_IGFD_SEARCH u8"[Search]"
-#define ICON_IGFD_SMALL_THUMBAILS u8"[t]"
-#define ICON_IGFD_THUMBAILS_LIST u8"[TL]"
-#define ICON_IGFD_TRASH u8"[TR]"
-#endif
 
 extern const char FONT_ICON_BUFFER_NAME_IGFD[];
