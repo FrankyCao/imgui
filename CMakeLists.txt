@@ -1302,37 +1302,6 @@ if(WIN32)
 endif(WIN32)
 
 if (IMGUI_APPS)
-    if (IMGUI_ADDONS)
-        add_executable(
-            example_blueprints
-            addon/imgui_node_editor/demo/blueprints.cpp
-            addon/imgui_node_editor/demo/blueprint_editor_document.cpp
-            addon/imgui_node_editor/demo/blueprint_editor_document.h
-            addon/imgui_node_editor/demo/blueprint_editor_icons.cpp
-            addon/imgui_node_editor/demo/blueprint_editor_icons.h
-            addon/imgui_node_editor/demo/blueprint_editor_utilities.cpp
-            addon/imgui_node_editor/demo/blueprint_editor_utilities.h
-            addon/imgui_node_editor/demo/crude_blueprint_library.cpp
-            addon/imgui_node_editor/demo/crude_blueprint_library.h
-            addon/imgui_node_editor/demo/crude_blueprint.cpp
-            addon/imgui_node_editor/demo/crude_blueprint.h
-            addon/imgui_node_editor/demo/crude_layout.cpp
-            addon/imgui_node_editor/demo/crude_layout.h
-            addon/imgui_node_editor/demo/crude_logger.cpp
-            addon/imgui_node_editor/demo/crude_logger.h
-            addon/imgui_node_editor/demo/imgui_extras.cpp
-            addon/imgui_node_editor/demo/imgui_extras.h
-            addon/imgui_node_editor/demo/span.hpp
-            addon/imgui_node_editor/demo/string_view.hpp
-            addon/imgui_node_editor/demo/variant.hpp
-            ${IMGUI_APP_SRC}
-        )
-        target_link_libraries(
-            example_blueprints
-            imgui
-            ${LINK_LIBS}
-        )
-    endif (IMGUI_ADDONS)
     add_executable(
         example_application
         test/example_application.cpp
