@@ -1,4 +1,4 @@
-// dear imgui, v1.82 WIP
+// dear imgui, v1.82
 // (widgets code)
 
 /*
@@ -3928,7 +3928,7 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
     ImGuiInputTextState* state = GetInputTextState(id);
 
     const bool focus_requested = FocusableItemRegister(window, id);
-    const bool focus_requested_by_code = focus_requested && (g.FocusRequestCurrWindow == window && g.FocusRequestCurrCounterRegular == window->DC.FocusCounterRegular);
+    const bool focus_requested_by_code = focus_requested && (g.TabFocusRequestCurrWindow == window && g.TabFocusRequestCurrCounterRegular == window->DC.FocusCounterRegular);
     const bool focus_requested_by_tab = focus_requested && !focus_requested_by_code;
 
     const bool user_clicked = hovered && io.MouseClicked[0];
