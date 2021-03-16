@@ -185,6 +185,7 @@ set(IMGUI_SRC
     imgui_tables.cpp
     fonts/mono_sarasa.cpp
     misc/cpp/imgui_stdlib.cpp
+    misc/cpp/dir_iterate.cpp
 )
 
 # base headers
@@ -196,14 +197,21 @@ set(IMGUI_INCS
     imstb_truetype.h
     imgui_user.h
     misc/cpp/imgui_stdlib.h
+    misc/cpp/dir_iterate.h
     misc/stb_image.h
     misc/stb_image_write.h
+    misc/DynObjectLoader.h
 )
 
 if(WIN32)
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
+        misc/cpp/dlfcn_win.cpp
+    )
     set(IMGUI_INCS
         ${IMGUI_INCS}
         misc/dirent_portable.h
+        misc/cpp/dlfcn_win.h
     )
 endif(WIN32)
 
