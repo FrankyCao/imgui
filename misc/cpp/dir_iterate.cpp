@@ -1,11 +1,13 @@
 #include "dir_iterate.h"
 #if defined(__WIN32__) || defined(_WIN32)
+#include <windows.h>
 #include "dirent_portable.h"
 #else
 #include <dirent.h>
 #endif
 #include <iostream>
 #include <string>
+#include <algorithm>
 
 using namespace std;
 

@@ -11,6 +11,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <memory>
 
 namespace ImGui {
 // ImGui Info

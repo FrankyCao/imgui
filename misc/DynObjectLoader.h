@@ -3,7 +3,7 @@
 
 #include <memory>
 #include <string>
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(_WIN32)
 #include "dlfcn_win.h"
 #else
 #include <dlfcn.h>

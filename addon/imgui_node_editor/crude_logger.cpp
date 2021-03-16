@@ -1,7 +1,7 @@
 # include "crude_logger.h"
 # define IMGUI_DEFINE_MATH_OPERATORS
 # include <imgui_internal.h>
-
+# include <algorithm>
 # ifdef _WIN32
 #     define CRUDE_LOGGER_HAS_OUTPUT_DEBUG_STRING 1
 extern "C" __declspec(dllimport) void __stdcall OutputDebugStringA(const char* string);
