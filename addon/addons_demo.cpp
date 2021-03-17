@@ -1020,7 +1020,7 @@ void ShowAddonsVulkanShaderWindow()
         ImGui::Text("   API:%s", api_ver.c_str());
         ImGui::Text("  Name:%s", device_name.c_str());
         ImGui::Text("Memory:%uMB", gpu_memory_budget);
-        std::string buffon_label = "性能测试##" + std::to_string(i);
+        std::string buffon_label = "Perf Test##" + std::to_string(i);
         if (ImGui::Button(buffon_label.c_str(), ImVec2(120, 20)))
         {
             fp32[i] = vkpeak(vkdev, loop_count, block_count, cmd_count, 0, 0, 0);

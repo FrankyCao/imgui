@@ -84,7 +84,11 @@ _OPTION(IMGUI_DX10               "Build ImGui Direct10 backends(Windows only)" O
 _OPTION(IMGUI_DX11               "Build ImGui Direct11 backends(Windows only)" ON IF WIN32)
 _OPTION(IMGUI_DX12               "Build ImGui Direct12 backends(Windows only)" ON IF WIN32)
 _OPTION(IMGUI_FREETYPE           "Build ImGui with FreeType support" ON)
-_OPTION(IMGUI_FONTS              "Internal Fonts build in library" OFF)
+_OPTION(IMGUI_FONT_SARASA        "Internal Mono Sarasa Fonts build in library" ON)
+_OPTION(IMGUI_FONT_HEI           "Internal Mono Hei Fonts build in library" ON)
+_OPTION(IMGUI_FONT_KAI           "Internal Mono Kai Fonts build in library" OFF)
+_OPTION(IMGUI_FONT_SONG          "Internal Mono Song Fonts build in library" OFF)
+_OPTION(IMGUI_FONT_YUAN          "Internal Mono Yuan Fonts build in library" OFF)
 _OPTION(IMGUI_ICONS              "Internal Icons build in library" ON)
 _OPTION(IMGUI_ADDONS             "build addons base on imgui" ON)
 _OPTION(IMGUI_APPS               "build apps base on imgui" ON)
@@ -183,7 +187,14 @@ set(IMGUI_SRC
     imgui_draw.cpp
     imgui_widgets.cpp
     imgui_tables.cpp
-    fonts/mono_sarasa.cpp
+    fonts/SourceCodePro-Regular.cpp
+    fonts/Monaco.cpp
+    fonts/Cousine-Regular.cpp
+    fonts/DroidSans.cpp
+    fonts/Karla-Regular.cpp
+    fonts/ProggyTiny.cpp
+    fonts/ProggyClean.cpp
+    fonts/Roboto-Medium.cpp
     misc/cpp/imgui_stdlib.cpp
     misc/cpp/dir_iterate.cpp
 )
@@ -486,16 +497,41 @@ if(WIN32)
 endif(WIN32)
 
 # Add Fonts
-if (IMGUI_FONTS)
-    add_definitions(-DIMGUI_INTERNAL_FONTS)
+if (IMGUI_FONT_HEI)
+    add_definitions(-DIMGUI_INTERNAL_FONT_HEI)
     set(IMGUI_SRC
         ${IMGUI_SRC}
         fonts/mono_hei.cpp
+    )
+endif (IMGUI_FONT_HEI)
+if (IMGUI_FONT_KAI)
+    add_definitions(-DIMGUI_INTERNAL_FONT_KAI)
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
         fonts/mono_kai.cpp
+    )
+endif (IMGUI_FONT_KAI)
+if (IMGUI_FONT_SONG)
+    add_definitions(-DIMGUI_INTERNAL_FONT_SONG)
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
         fonts/mono_song.cpp
+    )
+endif (IMGUI_FONT_SONG)
+if (IMGUI_FONT_YUAN)
+    add_definitions(-DIMGUI_INTERNAL_FONT_YUAN)
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
         fonts/mono_yuan.cpp
     )
-endif(IMGUI_FONTS)
+endif (IMGUI_FONT_YUAN)
+if (IMGUI_FONT_SARASA)
+    add_definitions(-DIMGUI_INTERNAL_FONT_SARASA)
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
+        fonts/mono_sarasa.cpp
+    )
+endif (IMGUI_FONT_SARASA)
 
 # Add Icons
 if (IMGUI_ICONS)
