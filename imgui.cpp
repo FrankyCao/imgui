@@ -12262,23 +12262,73 @@ void ImGui::DebugNodeViewport(ImGuiViewportP*) {}
 #else // _WIN32
 #include <sys/time.h>
 #endif // _WIN32
-#ifdef _WIN32
+
 double ImGui::get_current_time()
 {
+#ifdef _WIN32
     LARGE_INTEGER freq;
     LARGE_INTEGER pc;
     QueryPerformanceFrequency(&freq);
     QueryPerformanceCounter(&pc);
     return pc.QuadPart * 1000.0 / freq.QuadPart;
-}
 #else  // _WIN32
-double ImGui::get_current_time()
-{
     struct timeval tv;
     gettimeofday(&tv, NULL);
     return tv.tv_sec * 1000.0 + tv.tv_usec / 1000.0;
-}
 #endif // _WIN32
+}
+
+int32_t ImGui::get_current_time_msec()
+{
+#ifdef _WIN32
+    struct timeval tv;
+    time_t clock;
+    struct tm tm;
+    SYSTEMTIME wtm;
+    GetLocalTime(&wtm);
+    tm.tm_year = wtm.wYear - 1900;
+    tm.tm_mon = wtm.wMonth - 1;
+    tm.tm_mday = wtm.wDay;
+    tm.tm_hour = wtm.wHour;
+    tm.tm_min = wtm.wMinute;
+    tm.tm_sec = wtm.wSecond;
+    tm.tm_isdst = -1;
+    clock = mktime(&tm);
+    tv.tv_sec = (long)clock;
+    tv.tv_usec = wtm.wMilliseconds * 1000;
+    return ((int32_t)tv.tv_sec * 1000 + (int32_t)tv.tv_usec / 1000);
+#else
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return ((int32_t)tv.tv_sec * 1000 + (int32_t)tv.tv_usec / 1000);
+#endif
+}
+
+int64_t ImGui::get_current_time_usec()
+{
+#ifdef _WIN32
+    struct timeval tv;
+    time_t clock;
+    struct tm tm;
+    SYSTEMTIME wtm;
+    GetLocalTime(&wtm);
+    tm.tm_year = wtm.wYear - 1900;
+    tm.tm_mon = wtm.wMonth - 1;
+    tm.tm_mday = wtm.wDay;
+    tm.tm_hour = wtm.wHour;
+    tm.tm_min = wtm.wMinute;
+    tm.tm_sec = wtm.wSecond;
+    tm.tm_isdst = -1;
+    clock = mktime(&tm);
+    tv.tv_sec = (long)clock;
+    tv.tv_usec = wtm.wMilliseconds * 1000;
+    return ((int64_t)tv.tv_sec * 1000000 + (int32_t)tv.tv_usec);
+#else
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return ((int64_t)tv.tv_sec * 1000000 + (int64_t)tv.tv_usec);
+#endif
+}
 // Add By Dicky
 
 //-----------------------------------------------------------------------------
