@@ -134,7 +134,7 @@ bool    ImGui_ImplWin32_Init(void* hwnd)
             break;
         }
 #endif // IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
-    
+
     return true;
 }
 
@@ -148,7 +148,7 @@ void    ImGui_ImplWin32_Shutdown()
     g_XInputGetCapabilities = NULL;
     g_XInputGetState = NULL;
 #endif // IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
-    
+
     g_hWnd = NULL;
     g_Time = 0;
     g_TicksPerSecond = 0;
@@ -193,6 +193,7 @@ static bool ImGui_ImplWin32_UpdateMouseCursor()
 static void ImGui_ImplWin32_UpdateMousePos()
 {
     ImGuiIO& io = ImGui::GetIO();
+    IM_ASSERT(g_hWnd != 0);
 
     // Set OS mouse position if requested (rarely used, only when ImGuiConfigFlags_NavEnableSetMousePos is enabled by user)
     if (io.WantSetMousePos)
