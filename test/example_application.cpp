@@ -56,7 +56,7 @@ public:
         // Init imnodes
         std::string node_ini_path = std::string(DEFAULT_CONFIG_PATH) + "nodes_save_load.ini";
         std::string node_path = std::string(DEFAULT_CONFIG_PATH) + "nodes_save_load.node";
-        imnodes::Initialize();
+        imnodes::CreateContext();
         imnodes_sample::NodeEditorInitialize(node_ini_path.c_str(), node_path.c_str());
 
         // Init NodeGraphEditor
@@ -83,7 +83,7 @@ public:
         std::string node_ini_path = std::string(DEFAULT_CONFIG_PATH) + "nodes_save_load.ini";
         std::string node_path = std::string(DEFAULT_CONFIG_PATH) + "nodes_save_load.node";
         imnodes_sample::NodeEditorShutdown(node_ini_path.c_str(), node_path.c_str());
-        imnodes::Shutdown();
+        imnodes::DestroyContext();
         ImGui::CleanupDemo();
         ImGui::CleanupZMODemo();
 #ifdef IMGUI_VULKAN_SHADER
@@ -297,7 +297,7 @@ bool Application_Frame(void* handle)
             // handle the hotkey index!
         }
 #endif
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", ImGui::GetIO().DeltaTime * 1000.f, ImGui::GetIO().Framerate);
         ImGui::End();
     }
 
