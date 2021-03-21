@@ -3911,6 +3911,25 @@ ImGuiKeyModFlags ImGui::GetMergedKeyModFlags()
     return key_mod_flags;
 }
 
+// Add By Dicky for Power Save
+double ImGui::GetEventWaitingTime()
+{
+    ImGuiContext& g = *GImGui;
+
+    if ((g.IO.ConfigFlags & ImGuiConfigFlags_EnablePowerSavingMode) && g.IO.FrameCountSinceLastInput > 2)
+        return ImMax(0.0, g.MaxWaitBeforeNextFrame);
+
+    return 0.0;
+}
+
+void ImGui::SetMaxWaitBeforeNextFrame(double time)
+{
+    ImGuiContext& g = *GImGui;
+
+    g.MaxWaitBeforeNextFrame = ImMin(g.MaxWaitBeforeNextFrame, time);
+}
+// Add By Dicky end
+
 void ImGui::NewFrame()
 {
     IM_ASSERT(GImGui != NULL && "No current context. Did you call ImGui::CreateContext() and ImGui::SetCurrentContext() ?");
@@ -3936,6 +3955,9 @@ void ImGui::NewFrame()
     g.TooltipOverrideCount = 0;
     g.WindowsActiveCount = 0;
     g.MenusIdSubmittedThisFrame.resize(0);
+    // Add By Dicky for Power Save
+    g.MaxWaitBeforeNextFrame = INFINITY;
+    // Add By Dicky end
 
     // Calculate frame-rate for the user, as a purely luxurious feature
     g.FramerateSecPerFrameAccum += g.IO.DeltaTime - g.FramerateSecPerFrame[g.FramerateSecPerFrameIdx];
@@ -4438,6 +4460,10 @@ void ImGui::EndFrame()
     // End frame
     g.WithinFrameScope = false;
     g.FrameCountEnded = g.FrameCount;
+
+    // Add By Dicky For Power Save
+    g.IO.FrameCountSinceLastInput++;
+    // Add By Dicky end
 
     // Initiate moving window + handle left-click and right-click focus
     UpdateMouseMovingWindowEndFrame();
@@ -12280,6 +12306,10 @@ void ImGui::DebugNodeViewport(ImGuiViewportP*) {}
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+typedef struct timeval {
+    long tv_sec;
+    long tv_usec;
+} timeval;
 #else // _WIN32
 #include <sys/time.h>
 #endif // _WIN32
@@ -12302,22 +12332,11 @@ double ImGui::get_current_time()
 int32_t ImGui::get_current_time_msec()
 {
 #ifdef _WIN32
-    struct timeval tv;
-    time_t clock;
-    struct tm tm;
-    SYSTEMTIME wtm;
-    GetLocalTime(&wtm);
-    tm.tm_year = wtm.wYear - 1900;
-    tm.tm_mon = wtm.wMonth - 1;
-    tm.tm_mday = wtm.wDay;
-    tm.tm_hour = wtm.wHour;
-    tm.tm_min = wtm.wMinute;
-    tm.tm_sec = wtm.wSecond;
-    tm.tm_isdst = -1;
-    clock = mktime(&tm);
-    tv.tv_sec = (long)clock;
-    tv.tv_usec = wtm.wMilliseconds * 1000;
-    return ((int32_t)tv.tv_sec * 1000 + (int32_t)tv.tv_usec / 1000);
+    LARGE_INTEGER freq;
+    LARGE_INTEGER pc;
+    QueryPerformanceFrequency(&freq);
+    QueryPerformanceCounter(&pc);
+    return pc.QuadPart * 1000.0 / freq.QuadPart;
 #else
     struct timeval tv;
     gettimeofday(&tv, NULL);
@@ -12328,22 +12347,11 @@ int32_t ImGui::get_current_time_msec()
 int64_t ImGui::get_current_time_usec()
 {
 #ifdef _WIN32
-    struct timeval tv;
-    time_t clock;
-    struct tm tm;
-    SYSTEMTIME wtm;
-    GetLocalTime(&wtm);
-    tm.tm_year = wtm.wYear - 1900;
-    tm.tm_mon = wtm.wMonth - 1;
-    tm.tm_mday = wtm.wDay;
-    tm.tm_hour = wtm.wHour;
-    tm.tm_min = wtm.wMinute;
-    tm.tm_sec = wtm.wSecond;
-    tm.tm_isdst = -1;
-    clock = mktime(&tm);
-    tv.tv_sec = (long)clock;
-    tv.tv_usec = wtm.wMilliseconds * 1000;
-    return ((int64_t)tv.tv_sec * 1000000 + (int32_t)tv.tv_usec);
+    LARGE_INTEGER freq;
+    LARGE_INTEGER pc;
+    QueryPerformanceFrequency(&freq);
+    QueryPerformanceCounter(&pc);
+    return pc.QuadPart * 1000000.0 / freq.QuadPart;
 #else
     struct timeval tv;
     gettimeofday(&tv, NULL);

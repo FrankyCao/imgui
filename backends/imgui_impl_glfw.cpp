@@ -39,6 +39,7 @@
 
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
+#include <math.h> // isinf needed by Dicky
 
 // GLFW
 #include <GLFW/glfw3.h>
@@ -75,6 +76,7 @@ static bool                 g_InstalledCallbacks = false;
 // Chain GLFW callbacks: our callbacks will call the user's previously installed callbacks, if any.
 static GLFWmousebuttonfun   g_PrevUserCallbackMousebutton = NULL;
 static GLFWscrollfun        g_PrevUserCallbackScroll = NULL;
+static GLFWcursorposfun     g_PrevUserCallbackCursorPos = NULL; // Add By Dicky
 static GLFWkeyfun           g_PrevUserCallbackKey = NULL;
 static GLFWcharfun          g_PrevUserCallbackChar = NULL;
 
@@ -93,6 +95,11 @@ void ImGui_ImplGlfw_MouseButtonCallback(GLFWwindow* window, int button, int acti
     if (g_PrevUserCallbackMousebutton != NULL)
         g_PrevUserCallbackMousebutton(window, button, action, mods);
 
+    // Add By Dicky
+    ImGuiIO& io = ImGui::GetIO();
+    io.FrameCountSinceLastInput = 0;
+    // Add By Dicky end
+
     if (action == GLFW_PRESS && button >= 0 && button < IM_ARRAYSIZE(g_MouseJustPressed))
         g_MouseJustPressed[button] = true;
 }
@@ -103,9 +110,24 @@ void ImGui_ImplGlfw_ScrollCallback(GLFWwindow* window, double xoffset, double yo
         g_PrevUserCallbackScroll(window, xoffset, yoffset);
 
     ImGuiIO& io = ImGui::GetIO();
+    io.FrameCountSinceLastInput = 0; // Add By Dicky
     io.MouseWheelH += (float)xoffset;
     io.MouseWheel += (float)yoffset;
 }
+
+// Add by Dicky
+void ImGui_ImplGlfw_CursorPosCallback(GLFWwindow* window, double xpos, double ypos)
+{
+    if (g_PrevUserCallbackCursorPos != NULL)
+        g_PrevUserCallbackCursorPos(window, xpos, ypos);
+
+    ImGuiIO& io = ImGui::GetIO();
+    io.FrameCountSinceLastInput = 0;
+
+    // Here, we just take note of the event without actually processing the cursor position.
+    // This is done in ImGui_ImplGlfw_NewFrame() / ImGui_ImplGlfw_UpdateMousePosAndButtons().
+}
+// Add by Dicky end
 
 void ImGui_ImplGlfw_KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -113,6 +135,7 @@ void ImGui_ImplGlfw_KeyCallback(GLFWwindow* window, int key, int scancode, int a
         g_PrevUserCallbackKey(window, key, scancode, action, mods);
 
     ImGuiIO& io = ImGui::GetIO();
+    io.FrameCountSinceLastInput = 0; // Add By Dicky
     if (action == GLFW_PRESS)
         io.KeysDown[key] = true;
     if (action == GLFW_RELEASE)
@@ -135,6 +158,7 @@ void ImGui_ImplGlfw_CharCallback(GLFWwindow* window, unsigned int c)
         g_PrevUserCallbackChar(window, c);
 
     ImGuiIO& io = ImGui::GetIO();
+    io.FrameCountSinceLastInput = 0; // Add By Dicky
     io.AddInputCharacter(c);
 }
 
@@ -215,6 +239,9 @@ static bool ImGui_ImplGlfw_Init(GLFWwindow* window, bool install_callbacks, Glfw
         g_PrevUserCallbackScroll = glfwSetScrollCallback(window, ImGui_ImplGlfw_ScrollCallback);
         g_PrevUserCallbackKey = glfwSetKeyCallback(window, ImGui_ImplGlfw_KeyCallback);
         g_PrevUserCallbackChar = glfwSetCharCallback(window, ImGui_ImplGlfw_CharCallback);
+        // Add By Dicky
+        g_PrevUserCallbackCursorPos = glfwSetCursorPosCallback(window, ImGui_ImplGlfw_CursorPosCallback);
+        // Add By Dicky end
     }
 
     g_ClientApi = client_api;
@@ -372,3 +399,21 @@ void ImGui_ImplGlfw_NewFrame()
     // Update game controllers (if enabled and available)
     ImGui_ImplGlfw_UpdateGamepads();
 }
+
+// Add By Dicky
+void ImGui_ImplGlfw_WaitForEvent()
+{
+    if (!(ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_EnablePowerSavingMode))
+        return;
+
+    bool window_is_hidden = !glfwGetWindowAttrib(g_Window, GLFW_VISIBLE) || glfwGetWindowAttrib(g_Window, GLFW_ICONIFIED);
+    double waiting_time = window_is_hidden ? INFINITY : ImGui::GetEventWaitingTime();
+    if (waiting_time > 0.0)
+    {
+        if (isinf(waiting_time))
+            glfwWaitEvents();
+        else
+            glfwWaitEventsTimeout(waiting_time);
+    }
+}
+// Add By Dicky end

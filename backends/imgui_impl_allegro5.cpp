@@ -35,6 +35,7 @@
 
 #include <stdint.h>     // uint64_t
 #include <cstring>      // memcpy
+#include <math.h>       // isinf needed by Dicky
 #include "imgui.h"
 #include "imgui_impl_allegro5.h"
 
@@ -328,6 +329,8 @@ bool ImGui_ImplAllegro5_ProcessEvent(ALLEGRO_EVENT* ev)
 {
     ImGuiIO& io = ImGui::GetIO();
 
+    io.FrameCountSinceLastInput = 0; // Add By Dicky
+
     switch (ev->type)
     {
     case ALLEGRO_EVENT_MOUSE_AXES:
@@ -428,3 +431,23 @@ void ImGui_ImplAllegro5_NewFrame()
 
     ImGui_ImplAllegro5_UpdateMouseCursor();
 }
+
+// Add By Dicky
+void ImGui_ImplAllegro5_WaitForEvent(ALLEGRO_EVENT_QUEUE* queue)
+{
+    if (!(ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_EnablePowerSavingMode))
+        return;
+
+    int display_flags = al_get_display_flags(g_Display);
+    bool window_is_hidden = display_flags & ALLEGRO_MINIMIZED;
+    double waiting_time = window_is_hidden ? INFINITY : ImGui::GetEventWaitingTime();
+    if (waiting_time > 0.0)
+    {
+        if (isinf(waiting_time))
+            al_wait_for_event(queue, NULL);
+        else
+            al_wait_for_event_timed(queue, NULL, waiting_time);
+    }
+}
+// Add By Dicky end
+

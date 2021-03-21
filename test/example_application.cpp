@@ -298,6 +298,7 @@ bool Application_Frame(void* handle)
         }
 #endif
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", ImGui::GetIO().DeltaTime * 1000.f, ImGui::GetIO().Framerate);
+        ImGui::Text("Frames since last input: %d", ImGui::GetIO().FrameCountSinceLastInput);
         ImGui::End();
     }
 

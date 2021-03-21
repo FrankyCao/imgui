@@ -17,6 +17,7 @@
 #include "imgui.h"      // IMGUI_IMPL_API
 
 struct ALLEGRO_DISPLAY;
+struct ALLEGRO_EVENT_QUEUE; // Add By Dicky
 union ALLEGRO_EVENT;
 
 IMGUI_IMPL_API bool     ImGui_ImplAllegro5_Init(ALLEGRO_DISPLAY* display);
@@ -24,6 +25,7 @@ IMGUI_IMPL_API void     ImGui_ImplAllegro5_Shutdown();
 IMGUI_IMPL_API void     ImGui_ImplAllegro5_NewFrame();
 IMGUI_IMPL_API void     ImGui_ImplAllegro5_RenderDrawData(ImDrawData* draw_data);
 IMGUI_IMPL_API bool     ImGui_ImplAllegro5_ProcessEvent(ALLEGRO_EVENT* event);
+IMGUI_IMPL_API void     ImGui_ImplAllegro5_WaitForEvent(ALLEGRO_EVENT_QUEUE* queue); // Add By Dicky
 
 // Use if you want to reset your rendering device without losing Dear ImGui state.
 IMGUI_IMPL_API bool     ImGui_ImplAllegro5_CreateDeviceObjects();

@@ -199,6 +199,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     MSG msg = {};
     while (msg.message != WM_QUIT)
     {
+        ImGui_ImplWin32_WaitForEvent();
         if (PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE))
         {
             if (msg.message == WM_KEYDOWN && (msg.wParam == VK_ESCAPE))

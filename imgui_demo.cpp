@@ -437,6 +437,10 @@ void ImGui::ShowDemoWindow(bool* p_open)
             }
             ImGui::CheckboxFlags("io.ConfigFlags: NoMouseCursorChange", &io.ConfigFlags, ImGuiConfigFlags_NoMouseCursorChange);
             ImGui::SameLine(); HelpMarker("Instruct backend to not alter mouse cursor shape and visibility.");
+            // Add By Dicky
+            ImGui::CheckboxFlags("io.ConfigFlags: EnablePowerSavingMode", (unsigned int *)&io.ConfigFlags, ImGuiConfigFlags_EnablePowerSavingMode);
+            ImGui::SameLine(); HelpMarker("Enable power saving mode, reducing the frame rate automatically when idle.");
+            // Add By Dicky end
             ImGui::Checkbox("io.ConfigInputTextCursorBlink", &io.ConfigInputTextCursorBlink);
             ImGui::SameLine(); HelpMarker("Enable blinking cursor (optional as some users consider it to be distracting)");
             ImGui::Checkbox("io.ConfigDragClickToInputText", &io.ConfigDragClickToInputText);
@@ -1558,6 +1562,10 @@ static void ShowDemoWindowWidgets()
     {
         static bool animate = true;
         ImGui::Checkbox("Animate", &animate);
+        // Add By Dicky
+        if (animate)
+            ImGui::SetMaxWaitBeforeNextFrame(1.0 / 30.0); // = 30fps
+        // Add By Dicky end
 
         static float arr[] = { 0.6f, 0.1f, 1.0f, 0.5f, 0.92f, 0.1f, 0.2f };
         ImGui::PlotLines("Frame Times", arr, IM_ARRAYSIZE(arr));
@@ -5668,6 +5676,9 @@ void ImGui::ShowAboutWindow(bool* p_open)
         if (io.ConfigFlags & ImGuiConfigFlags_NavNoCaptureKeyboard)     ImGui::Text(" NavNoCaptureKeyboard");
         if (io.ConfigFlags & ImGuiConfigFlags_NoMouse)                  ImGui::Text(" NoMouse");
         if (io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange)      ImGui::Text(" NoMouseCursorChange");
+        // Add By Dicky
+        if (io.ConfigFlags & ImGuiConfigFlags_EnablePowerSavingMode)    ImGui::Text(" EnablePowerSavingMode");
+        // Add By Dicky end
         if (io.MouseDrawCursor)                                         ImGui::Text("io.MouseDrawCursor");
         if (io.ConfigMacOSXBehaviors)                                   ImGui::Text("io.ConfigMacOSXBehaviors");
         if (io.ConfigInputTextCursorBlink)                              ImGui::Text("io.ConfigInputTextCursorBlink");

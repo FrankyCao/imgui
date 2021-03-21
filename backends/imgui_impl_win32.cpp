@@ -19,6 +19,7 @@
 #include <windows.h>
 #include <tchar.h>
 #include <dwmapi.h>
+#include <math.h> // isinf needed By Dicky
 
 // Configuration flags to add in your imconfig.h file:
 //#define IMGUI_IMPL_WIN32_DISABLE_GAMEPAD              // Disable gamepad support (this used to be meaningful before <1.81) but we know load XInput dynamically so the option is less relevant now.
@@ -325,6 +326,7 @@ IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARA
         return 0;
 
     ImGuiIO& io = ImGui::GetIO();
+    io.FrameCountSinceLastInput = 0; // Add By Dicky
     switch (msg)
     {
     case WM_LBUTTONDOWN: case WM_LBUTTONDBLCLK:
@@ -535,4 +537,19 @@ void ImGui_ImplWin32_EnableAlphaCompositing(void* hwnd)
 }
 #endif
 
+// Add By Dicky
+void ImGui_ImplWin32_WaitForEvent()
+{
+    if (!(ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_EnablePowerSavingMode))
+        return;
+
+    BOOL window_is_hidden = !IsWindowVisible(g_hWnd) || IsIconic(g_hWnd);
+    double waiting_time = window_is_hidden ? INFINITE : ImGui::GetEventWaitingTime();
+    if (waiting_time > 0.0)
+    {
+        DWORD waiting_time_ms = isinf(waiting_time) ? INFINITE : (DWORD)(1000.0 * waiting_time);
+        ::MsgWaitForMultipleObjectsEx(0, NULL, waiting_time_ms, QS_ALLINPUT, MWMO_INPUTAVAILABLE|MWMO_ALERTABLE);
+    }
+}
+// Add By Dicky end
 //---------------------------------------------------------------------------------------------------------

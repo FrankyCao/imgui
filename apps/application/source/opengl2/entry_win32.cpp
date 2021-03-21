@@ -190,6 +190,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     ZeroMemory(&msg, sizeof(msg));
     while (msg.message != WM_QUIT)
     {
+        ImGui_ImplWin32_WaitForEvent();
         if (::PeekMessage(&msg, NULL, 0U, 0U, PM_REMOVE))
         {
             ::TranslateMessage(&msg);
@@ -202,7 +203,6 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
         ImGui::NewFrame();
 
         done = Application_Frame(user_handle);
-
         if (done)
             ::PostQuitMessage(0);
 
