@@ -1601,6 +1601,15 @@ void ed::EditorContext::SetGroupSize(NodeId nodeId, const ImVec2& size)
     }
 }
 
+ImVec2 ed::EditorContext::GetGroupSize(NodeId nodeId)
+{
+    auto node = FindNode(nodeId);
+    if (node)
+        return node->m_GroupBounds.GetSize();
+    else
+        return ImVec2(0.f, 0.f);
+}
+
 ImVec2 ed::EditorContext::GetNodePosition(NodeId nodeId)
 {
     auto node = FindNode(nodeId);
@@ -3204,16 +3213,25 @@ ed::EditorAction::AcceptResult ed::NavigateAction::Accept(const Control& control
 
     if (m_IsActive)
         return False;
+    
+    auto& io = ImGui::GetIO();
+    bool emulate_middle_button = false;
+    if (Editor->GetConfig().NavigateButtonIndex == 2 && Editor->GetConfig().EmulateMiddleButton)
+        emulate_middle_button = true;
 
-    if (Editor->CanAcceptUserInput() /*&& !ImGui::IsAnyItemActive()*/ && ImGui::IsMouseDragging(Editor->GetConfig().NavigateButtonIndex, 0.0f))
+    bool navigate_button_dragging = emulate_middle_button ? ImGui::IsMouseDragging(0, 0.0f) && io.KeyAlt :
+                                                            ImGui::IsMouseDragging(Editor->GetConfig().NavigateButtonIndex, 0.0f);
+    ImVec2 navigate_scroll_delta = emulate_middle_button ?  ImGui::GetMouseDragDelta(0) :
+                                                            ImGui::GetMouseDragDelta(Editor->GetConfig().NavigateButtonIndex);
+
+    if (Editor->CanAcceptUserInput() /*&& !ImGui::IsAnyItemActive()*/ && navigate_button_dragging)
     {
         m_IsActive    = true;
         m_ScrollStart = m_Scroll;
-        m_ScrollDelta = ImGui::GetMouseDragDelta(Editor->GetConfig().NavigateButtonIndex);
+        m_ScrollDelta = navigate_scroll_delta;
         m_Scroll      = m_ScrollStart - m_ScrollDelta * m_Zoom;
     }
 
-    auto& io = ImGui::GetIO();
     if (Editor->CanAcceptUserInput() && ImGui::IsKeyPressed(GetKeyIndexForF()) && Editor->AreShortcutsEnabled())
     {
         const auto zoomMode = io.KeyShift ? NavigateAction::ZoomMode::WithMargin : NavigateAction::ZoomMode::None;
@@ -3291,9 +3309,18 @@ bool ed::NavigateAction::Process(const Control& control)
         return false;
     auto& io = ImGui::GetIO();
 
-    if (ImGui::IsMouseDragging(Editor->GetConfig().NavigateButtonIndex, 0.0f))
+    bool emulate_middle_button = false;
+    if (Editor->GetConfig().NavigateButtonIndex == 2 && Editor->GetConfig().EmulateMiddleButton)
+        emulate_middle_button = true;
+
+    bool navigate_button_dragging = emulate_middle_button ? ImGui::IsMouseDragging(0, 0.0f) && io.KeyAlt :
+                                                            ImGui::IsMouseDragging(Editor->GetConfig().NavigateButtonIndex, 0.0f);
+    ImVec2 navigate_scroll_delta = emulate_middle_button ?  ImGui::GetMouseDragDelta(0) :
+                                                            ImGui::GetMouseDragDelta(Editor->GetConfig().NavigateButtonIndex);
+
+    if (navigate_button_dragging)
     {
-        m_ScrollDelta = ImGui::GetMouseDragDelta(Editor->GetConfig().NavigateButtonIndex);
+        m_ScrollDelta = navigate_scroll_delta;
         m_Scroll      = m_ScrollStart - m_ScrollDelta * m_Zoom;
         m_VisibleRect = GetViewRect();
 //         if (IsActive && Animation.IsPlaying())

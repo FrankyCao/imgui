@@ -119,6 +119,7 @@ struct Config
     int                         SelectButtonIndex;      // Mouse button index select action will react to (0-left, 1-right, 2-middle)
     int                         NavigateButtonIndex;    // Mouse button index navigate action will react to (0-left, 1-right, 2-middle)
     int                         ContextMenuButtonIndex; // Mouse button index context menu action will react to (0-left, 1-right, 2-middle)
+    int                         EmulateMiddleButton;    // Mouse middle button emulated add By Dicky
     TransactionInterface        TransactionInterface;
 
     Config()
@@ -138,6 +139,7 @@ struct Config
         , SelectButtonIndex(0)
         , NavigateButtonIndex(2)
         , ContextMenuButtonIndex(1)
+        , EmulateMiddleButton(1)
     {
     }
 };
@@ -355,6 +357,7 @@ void EndDelete();
 void SetNodePosition(NodeId nodeId, const ImVec2& editorPosition);
 void SetNodeSize(NodeId nodeId, const ImVec2& size);
 void SetGroupSize(NodeId nodeId, const ImVec2& size);
+ImVec2 GetGroupSize(NodeId nodeId);
 ImVec2 GetNodePosition(NodeId nodeId);
 ImVec2 GetNodeSize(NodeId nodeId);
 void CenterNodeOnScreen(NodeId nodeId);
