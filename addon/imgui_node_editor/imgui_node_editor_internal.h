@@ -24,7 +24,7 @@
 # include "imgui_bezier_math.h"
 # include "imgui_canvas.h"
 
-# include "crude_json.h"
+# include "imgui_json.h"
 
 # include <map>
 # include <vector>
@@ -45,7 +45,7 @@ namespace Detail {
 
 //------------------------------------------------------------------------------
 namespace ed = ax::NodeEditor::Detail;
-namespace json = crude_json;
+namespace json = imgui_json;
 
 
 //------------------------------------------------------------------------------
@@ -1614,9 +1614,6 @@ struct EditorContext
     bool HasStateChanged(const EditorState& state) const;
     bool ApplyState(const EditorState& state);
     void RecordState(EditorState& state) const;
-
-    //void SaveState();
-    //void RestoreState();
 
     Transaction MakeTransaction(const char* name);
     void DestroyTransaction(ITransaction* transaction);

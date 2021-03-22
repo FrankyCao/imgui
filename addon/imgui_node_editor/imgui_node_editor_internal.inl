@@ -295,6 +295,7 @@ inline string Serialization::ToString(const json::type_t& type)
         case json::type_t::string:      return "string";
         case json::type_t::boolean:     return "boolean";
         case json::type_t::number:      return "number";
+        case json::type_t::point:       return "point";
         case json::type_t::discarded:   return "discarded";
     }
 
@@ -350,7 +351,7 @@ inline json::value Serialization::ToJson(const NodeState& value)
 
     result["location"] = ToJson(value.m_Location);
     result["size"] = ToJson(value.m_Size);
-    if (value.m_GroupSize.x > 0 || value.m_GroupSize.y > 0)
+    if (value.m_GroupSize.x > 0 && value.m_GroupSize.y > 0)
         result["group_size"] = ToJson(value.m_GroupSize);
     return result;
 }
@@ -359,7 +360,6 @@ inline json::value Serialization::ToJson(const NodesState& value)
 {
     return ToJson(value.m_Nodes);
 }
-
 
 inline json::value Serialization::ToJson(const SelectionState& value)
 {
@@ -423,9 +423,6 @@ inline json::value Serialization::ToJson(const map<K, V>& value)
 # undef PARSE
 # undef CHECK_AND_PARSE
 # undef CHECK_AND_PARSE_OPT
-
-
-
 
 //------------------------------------------------------------------------------
 inline Transaction::Transaction(EditorContext* editor, ITransaction* transaction)

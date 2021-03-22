@@ -410,7 +410,7 @@ void ax::NodeEditor::RestoreNodeState(NodeId nodeId)
         s_Editor->MarkNodeToRestoreState(node);
 }
 
-bool ax::NodeEditor::HasStateChanged(StateType stateType, const crude_json::value& state)
+bool ax::NodeEditor::HasStateChanged(StateType stateType, const imgui_json::value& state)
 {
     switch (stateType)
     {
@@ -445,7 +445,7 @@ bool ax::NodeEditor::HasStateChanged(StateType stateType, const crude_json::valu
     return false;
 }
 
-bool ax::NodeEditor::HasStateChanged(StateType stateType, NodeId nodeId, const crude_json::value& state)
+bool ax::NodeEditor::HasStateChanged(StateType stateType, NodeId nodeId, const imgui_json::value& state)
 {
     switch (stateType)
     {
@@ -472,7 +472,7 @@ bool ax::NodeEditor::HasStateChanged(StateType stateType, NodeId nodeId, const c
 }
 
 
-crude_json::value ax::NodeEditor::GetState(StateType stateType)
+imgui_json::value ax::NodeEditor::GetState(StateType stateType)
 {
     switch (stateType)
     {
@@ -511,7 +511,7 @@ crude_json::value ax::NodeEditor::GetState(StateType stateType)
     return {};
 }
 
-crude_json::value ax::NodeEditor::GetState(StateType stateType, NodeId nodeId)
+imgui_json::value ax::NodeEditor::GetState(StateType stateType, NodeId nodeId)
 {
     switch (stateType)
     {
@@ -538,7 +538,7 @@ crude_json::value ax::NodeEditor::GetState(StateType stateType, NodeId nodeId)
     return {};
 }
 
-bool ax::NodeEditor::ApplyState(StateType stateType, const crude_json::value& state)
+bool ax::NodeEditor::ApplyState(StateType stateType, const imgui_json::value& state)
 {
     switch (stateType)
     {
@@ -573,7 +573,7 @@ bool ax::NodeEditor::ApplyState(StateType stateType, const crude_json::value& st
     return false;
 }
 
-bool ax::NodeEditor::ApplyState(StateType stateType, NodeId nodeId, const crude_json::value& state)
+bool ax::NodeEditor::ApplyState(StateType stateType, NodeId nodeId, const imgui_json::value& state)
 {
     switch (stateType)
     {
@@ -601,13 +601,13 @@ bool ax::NodeEditor::ApplyState(StateType stateType, NodeId nodeId, const crude_
 
 bool ax::NodeEditor::HasStateChangedString(StateType stateType, const char* state)
 {
-    crude_json::value value;
+    imgui_json::value value;
     return Detail::Serialization::Parse(state, value) && HasStateChanged(stateType, value);
 }
 
 bool ax::NodeEditor::HasStateChangedString(StateType stateType, NodeId nodeId, const char* state)
 {
-    crude_json::value value;
+    imgui_json::value value;
     return Detail::Serialization::Parse(state, value) && HasStateChanged(stateType, nodeId, value);
 }
 
@@ -625,13 +625,13 @@ const char* ax::NodeEditor::GetStateString(StateType stateType, NodeId nodeId)
 
 bool ax::NodeEditor::ApplyStateString(StateType stateType, const char* state)
 {
-    crude_json::value value;
+    imgui_json::value value;
     return Detail::Serialization::Parse(state, value) && ApplyState(stateType, value);
 }
 
 bool ax::NodeEditor::ApplyStateString(StateType stateType, NodeId nodeId, const char* state)
 {
-    crude_json::value value;
+    imgui_json::value value;
     return Detail::Serialization::Parse(state, value) && ApplyState(stateType, nodeId, value);
 }
 

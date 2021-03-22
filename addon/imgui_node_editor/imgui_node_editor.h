@@ -19,9 +19,9 @@
 
 
 //------------------------------------------------------------------------------
-namespace crude_json {
+namespace imgui_json {
 struct value;
-} // crude_json
+} // imgui_json
 
 
 //------------------------------------------------------------------------------
@@ -93,11 +93,11 @@ using ConfigLoadSettings     = size_t (*)(char* data, void* userPointer);
 using ConfigSaveNodeSettings = bool   (*)(NodeId nodeId, const char* data, size_t size, SaveReasonFlags reason, void* userPointer);
 using ConfigLoadNodeSettings = size_t (*)(NodeId nodeId, char* data, void* userPointer);
 
-using ConfigSaveSettingsJson = bool              (*)(const crude_json::value&, SaveReasonFlags reason, void* userPointer);
-using ConfigLoadSettingsJson = crude_json::value (*)(void* userPointer);
+using ConfigSaveSettingsJson = bool              (*)(const imgui_json::value&, SaveReasonFlags reason, void* userPointer);
+using ConfigLoadSettingsJson = imgui_json::value (*)(void* userPointer);
 
-using ConfigSaveNodeSettingsJson = bool              (*)(NodeId nodeId, const crude_json::value& value, SaveReasonFlags reason, void* userPointer);
-using ConfigLoadNodeSettingsJson = crude_json::value (*)(NodeId nodeId, void* userPointer);
+using ConfigSaveNodeSettingsJson = bool              (*)(NodeId nodeId, const imgui_json::value& value, SaveReasonFlags reason, void* userPointer);
+using ConfigLoadNodeSettingsJson = imgui_json::value (*)(NodeId nodeId, void* userPointer);
 
 using ConfigSession          = void   (*)(void* userPointer);
 
@@ -362,9 +362,6 @@ ImVec2 GetNodePosition(NodeId nodeId);
 ImVec2 GetNodeSize(NodeId nodeId);
 void CenterNodeOnScreen(NodeId nodeId);
 
-//void SaveState();
-//void RestoreState();
-
 void RestoreNodeState(NodeId nodeId);
 
 enum class StateType: int32_t
@@ -376,12 +373,12 @@ enum class StateType: int32_t
     View
 };
 
-bool              HasStateChanged(StateType stateType, const crude_json::value& state); // Returns true if state changed since last call to GetState()/GetStateString()
-bool              HasStateChanged(StateType stateType, NodeId nodeId, const crude_json::value& state);
-crude_json::value GetState(StateType stateType); // Return state serialized to json value.
-crude_json::value GetState(StateType stateType, NodeId nodeId);
-bool              ApplyState(StateType stateType, const crude_json::value& state); // Applies state serialized to json value.
-bool              ApplyState(StateType stateType, NodeId nodeId, const crude_json::value& state);
+bool              HasStateChanged(StateType stateType, const imgui_json::value& state); // Returns true if state changed since last call to GetState()/GetStateString()
+bool              HasStateChanged(StateType stateType, NodeId nodeId, const imgui_json::value& state);
+imgui_json::value GetState(StateType stateType); // Return state serialized to json value.
+imgui_json::value GetState(StateType stateType, NodeId nodeId);
+bool              ApplyState(StateType stateType, const imgui_json::value& state); // Applies state serialized to json value.
+bool              ApplyState(StateType stateType, NodeId nodeId, const imgui_json::value& state);
 
 bool        HasStateChangedString(StateType stateType, const char* state); // Returns true if state changed since last call to GetState()/GetStateString()
 bool        HasStateChangedString(StateType stateType, NodeId nodeId, const char* state);

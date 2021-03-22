@@ -5,7 +5,7 @@
 # include <time.h>
 # include <stdint.h>
 
-namespace crude_logger {
+namespace imgui_logger {
 
 using std::vector;
 using std::string;
@@ -18,10 +18,10 @@ enum class LogLevel: int32_t
     Error,
 };
 
-# define LOGV(...)      ::crude_logger::OverlayLogger::GetCurrent()->Log(::crude_logger::LogLevel::Verbose,  __VA_ARGS__)
-# define LOGI(...)      ::crude_logger::OverlayLogger::GetCurrent()->Log(::crude_logger::LogLevel::Info,     __VA_ARGS__)
-# define LOGW(...)      ::crude_logger::OverlayLogger::GetCurrent()->Log(::crude_logger::LogLevel::Warning,  __VA_ARGS__)
-# define LOGE(...)      ::crude_logger::OverlayLogger::GetCurrent()->Log(::crude_logger::LogLevel::Error,    __VA_ARGS__)
+# define LOGV(...)      ::imgui_logger::OverlayLogger::GetCurrent()->Log(::imgui_logger::LogLevel::Verbose,  __VA_ARGS__)
+# define LOGI(...)      ::imgui_logger::OverlayLogger::GetCurrent()->Log(::imgui_logger::LogLevel::Info,     __VA_ARGS__)
+# define LOGW(...)      ::imgui_logger::OverlayLogger::GetCurrent()->Log(::imgui_logger::LogLevel::Warning,  __VA_ARGS__)
+# define LOGE(...)      ::imgui_logger::OverlayLogger::GetCurrent()->Log(::imgui_logger::LogLevel::Error,    __VA_ARGS__)
 
 
 struct OverlayLogger
@@ -43,16 +43,6 @@ private:
         int     m_Start = 0;
         int     m_Size  = 0;
         ImColor m_Color;
-
-# if CRUDE_BP_MSVC2015 // No aggregate initialization
-        Range() = default;
-        Range(int start, int size, ImColor color)
-            : m_Start(start)
-            , m_Size(size)
-            , m_Color(color)
-        {
-        }
-# endif
     };
 
     struct Entry
@@ -101,4 +91,4 @@ private:
     static OverlayLogger* s_Instance;
 };
 
-} // namespace crude_logger {
+} // namespace imgui_logger

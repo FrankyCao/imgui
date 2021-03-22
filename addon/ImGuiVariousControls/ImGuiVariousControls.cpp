@@ -2073,13 +2073,13 @@ bool CheckboxStyled(const char* label, bool* v,const ImU32* pOptionalEightColors
     ImRect innerFrame1(ImVec2(check_bb.Min.x+widthFraction,check_bb.Min.y+heightDelta),ImVec2(check_bb.Max.x,check_bb.Max.y-heightDelta));
     if (t>0) {
 	ImU32 fillColor0 = pOptionalEightColors ? ((held || hovered) ? pOptionalEightColors[5] : pOptionalEightColors[4]) :
-	    (GetColorU32((held || hovered) ? ImGuiCol_ButtonHovered : ImGuiCol_Button));
-        window->DrawList->AddRectFilled(innerFrame0.Min, innerFrame0.Max, fillColor0, rounding, t<1 ? ImDrawFlags_RoundCornersLeft : ImDrawFlags_RoundCornersAll/*9 : 15*/);
+        (GetColorU32((held || hovered) ? ImGuiCol_ButtonHovered : ImGuiCol_Button));
+        window->DrawList->AddRectFilled(innerFrame0.Min, innerFrame0.Max, fillColor0, rounding, t<1 ? ImDrawFlags_RoundCornersLeft : ImDrawFlags_RoundCornersAll);
     }
     if (t<1) {
 	ImU32 fillColor1 = pOptionalEightColors ? ((held || hovered) ? pOptionalEightColors[7] : pOptionalEightColors[6]) :
         (GetColorU32((held || hovered) ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg));
-        window->DrawList->AddRectFilled(innerFrame1.Min, innerFrame1.Max, fillColor1, rounding, t>0 ?  ImDrawFlags_RoundCornersRight : ImDrawFlags_RoundCornersAll/*6 : 15*/);
+        window->DrawList->AddRectFilled(innerFrame1.Min, innerFrame1.Max, fillColor1, rounding, t>0 ?  ImDrawFlags_RoundCornersRight : ImDrawFlags_RoundCornersAll);
     }
     if (style.FrameBorderSize)   {
         ImRect innerFrame(innerFrame0.Min,innerFrame1.Max);

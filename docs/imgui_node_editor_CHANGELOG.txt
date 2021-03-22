@@ -9,7 +9,7 @@ v0.9.1 (WIP):
 
     CHANGE: Canvas: Allow to overlap canvas widget
 
-    CHANGE: Natvis: Move crude_json natvis to separate file
+    CHANGE: Natvis: Move imgui_json natvis to separate file
 
     CHANGE: Natvis: Show readable NodeId/PinId/LinkId
 
@@ -59,12 +59,12 @@ v0.9.1 (WIP):
         New API:
         ImVec2 GetGroupSize(NodeId nodeId);
 
-    NEW: crude_json: Add save() and load()
+    NEW: imgui_json: Add save() and load()
 
-        When CRUDE_JSON_IO == 1 value will have load() and save()
+        When JSON_IO == 1 value will have load() and save()
         function implemented using stdio.h FILE.
 
-    NEW: crude_json: Add erase() and get_ptr()
+    NEW: imgui_json: Add erase() and get_ptr()
 
     NEW: Application overhaul
         - Convert from function based to inheritable class

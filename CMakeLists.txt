@@ -826,16 +826,16 @@ if(IMGUI_ADDONS)
     # Node Editor
     set(IMGUI_SRC
         ${IMGUI_SRC}
-        addon/imgui_node_editor/crude_json.cpp
-        addon/imgui_node_editor/crude_logger.cpp
+        addon/imgui_node_editor/imgui_json.cpp
+        addon/imgui_node_editor/imgui_logger.cpp
         addon/imgui_node_editor/imgui_canvas.cpp
         addon/imgui_node_editor/imgui_node_editor_api.cpp
         addon/imgui_node_editor/imgui_node_editor.cpp
     )
     set(IMGUI_INCS
         ${IMGUI_INCS}
-        addon/imgui_node_editor/crude_json.h
-        addon/imgui_node_editor/crude_logger.h
+        addon/imgui_node_editor/imgui_json.h
+        addon/imgui_node_editor/imgui_logger.h
         addon/imgui_node_editor/imgui_bezier_math.h
         addon/imgui_node_editor/imgui_bezier_math.inl
         addon/imgui_node_editor/imgui_canvas.h

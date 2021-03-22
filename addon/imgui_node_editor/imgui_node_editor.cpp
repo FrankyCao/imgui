@@ -2071,6 +2071,11 @@ bool ed::EditorContext::ApplyState(Node* node, const NodeState& state)
     node->m_Bounds = newBounds;
     node->m_Bounds.Floor();
 
+    if (!IsGroup(node) && state.m_GroupSize.x > 0 && state.m_GroupSize.y >0)
+    {
+        node->m_Type = NodeType::Group;
+    }
+    
     if (IsGroup(node))
     {
         auto groupLocation = node->m_GroupBounds.Min + state.m_Location - lastNodeLocation;
@@ -2229,6 +2234,8 @@ bool ed::EditorContext::ApplyState(const ViewState& state)
     else
     {
         m_NavigateAction.NavigateTo(state.m_VisibleRect, NavigateAction::ZoomMode::Exact, 0.0f);
+        m_NavigateAction.m_Scroll = state.m_ViewScroll;
+        m_NavigateAction.m_Zoom   = state.m_ViewZoom;
 
         return
             lastSatete.m_VisibleRect.Min != state.m_VisibleRect.Min ||
@@ -2274,20 +2281,6 @@ void ed::EditorContext::RecordState(EditorState& state) const
 
     state = std::move(result);
 }
-
-//void ed::EditorContext::SaveState()
-//{
-//    SaveSettings();
-//}
-//
-//void ed::EditorContext::RestoreState()
-//{
-//    m_Settings.ClearDirty();
-//    //m_Settings.m_Nodes.clear();
-//    LoadSettings();
-//    for (auto& node : m_Nodes)
-//        RestoreNodeState(node);
-//}
 
 ed::Transaction ed::EditorContext::MakeTransaction(const char* name)
 {
@@ -5555,9 +5548,6 @@ ImDrawList* ed::HintBuilder::GetBackgroundDrawList()
     return drawList;
 }
 
-
-
-
 //------------------------------------------------------------------------------
 //
 // Style
@@ -5707,9 +5697,6 @@ ImVec4* ed::Style::GetVarVec4Addr(StyleVar idx)
         default:                    return nullptr;
     }
 }
-
-
-
 
 //------------------------------------------------------------------------------
 //

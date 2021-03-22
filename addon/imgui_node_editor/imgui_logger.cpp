@@ -1,27 +1,27 @@
-# include "crude_logger.h"
+# include "imgui_logger.h"
 # define IMGUI_DEFINE_MATH_OPERATORS
 # include <imgui_internal.h>
 # include <algorithm>
 # ifdef _WIN32
-#     define CRUDE_LOGGER_HAS_OUTPUT_DEBUG_STRING 1
+#     define LOGGER_HAS_OUTPUT_DEBUG_STRING 1
 extern "C" __declspec(dllimport) void __stdcall OutputDebugStringA(const char* string);
 # else
-#     define CRUDE_LOGGER_HAS_OUTPUT_DEBUG_STRING 0
+#     define LOGGER_HAS_OUTPUT_DEBUG_STRING 0
 # endif
 
-crude_logger::OverlayLogger* crude_logger::OverlayLogger::s_Instance = nullptr;
+imgui_logger::OverlayLogger* imgui_logger::OverlayLogger::s_Instance = nullptr;
 
-void crude_logger::OverlayLogger::SetCurrent(OverlayLogger* instance)
+void imgui_logger::OverlayLogger::SetCurrent(OverlayLogger* instance)
 {
     s_Instance = instance;
 }
 
-crude_logger::OverlayLogger* crude_logger::OverlayLogger::GetCurrent()
+imgui_logger::OverlayLogger* imgui_logger::OverlayLogger::GetCurrent()
 {
     return s_Instance;
 }
 
-void crude_logger::OverlayLogger::Log(LogLevel level, const char* format, ...)
+void imgui_logger::OverlayLogger::Log(LogLevel level, const char* format, ...)
 {
     va_list args;
     va_start(args, format);
@@ -53,7 +53,7 @@ void crude_logger::OverlayLogger::Log(LogLevel level, const char* format, ...)
     // Parse log message to get ranges for text coloring
     entry.m_ColorRanges = ParseMessage(entry.m_Level, entry.m_Text.c_str());
 
-# if CRUDE_LOGGER_HAS_OUTPUT_DEBUG_STRING
+# if LOGGER_HAS_OUTPUT_DEBUG_STRING
     OutputDebugStringA(entry.m_Text.c_str());
     OutputDebugStringA("\n");
 # endif
@@ -61,7 +61,7 @@ void crude_logger::OverlayLogger::Log(LogLevel level, const char* format, ...)
     m_Entries.push_back(std::move(entry));
 }
 
-void crude_logger::OverlayLogger::Update(float dt)
+void imgui_logger::OverlayLogger::Update(float dt)
 {
     if (m_HoldTimer)
         return;
@@ -84,7 +84,7 @@ void crude_logger::OverlayLogger::Update(float dt)
     m_Entries.erase(lastIt, m_Entries.end());
 }
 
-void crude_logger::OverlayLogger::Draw(const ImVec2& a, const ImVec2& b)
+void imgui_logger::OverlayLogger::Draw(const ImVec2& a, const ImVec2& b)
 {
     const auto canvasMin = a + ImVec2(m_Padding, m_Padding);
     const auto canvasMax = b - ImVec2(m_Padding, m_Padding);
@@ -193,19 +193,19 @@ void crude_logger::OverlayLogger::Draw(const ImVec2& a, const ImVec2& b)
     }
 }
 
-void crude_logger::OverlayLogger::AddKeyword(string keyword)
+void imgui_logger::OverlayLogger::AddKeyword(string keyword)
 {
     m_Keywords.push_back(keyword);
 }
 
-void crude_logger::OverlayLogger::RemoveKeyword(string keyword)
+void imgui_logger::OverlayLogger::RemoveKeyword(string keyword)
 {
     auto it = std::find(m_Keywords.begin(), m_Keywords.end(), keyword);
     if (it != m_Keywords.end())
         m_Keywords.erase(it);
 }
 
-ImColor crude_logger::OverlayLogger::GetLevelColor(LogLevel level) const
+ImColor imgui_logger::OverlayLogger::GetLevelColor(LogLevel level) const
 {
     switch (level)
     {
@@ -218,7 +218,7 @@ ImColor crude_logger::OverlayLogger::GetLevelColor(LogLevel level) const
     return ImColor();
 }
 
-void crude_logger::OverlayLogger::TintVertices(ImDrawList* drawList, int firstVertexIndex, ImColor color, float alpha, int rangeStart, int rangeSize)
+void imgui_logger::OverlayLogger::TintVertices(ImDrawList* drawList, int firstVertexIndex, ImColor color, float alpha, int rangeStart, int rangeSize)
 {
     // We tint data vertices emitted by ImDrawList::AddText().
     //
@@ -249,7 +249,7 @@ void crude_logger::OverlayLogger::TintVertices(ImDrawList* drawList, int firstVe
     }
 }
 
-crude_logger::vector<crude_logger::OverlayLogger::Range> crude_logger::OverlayLogger::ParseMessage(LogLevel level, string message) const
+imgui_logger::vector<imgui_logger::OverlayLogger::Range> imgui_logger::OverlayLogger::ParseMessage(LogLevel level, string message) const
 {
     // Totally not optimized message parsing. It identifies numbers,
     // strings, tags, keywords and symbols.

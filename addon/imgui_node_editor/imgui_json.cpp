@@ -1,25 +1,16 @@
-﻿// Crude implementation of JSON value object and parser.
-//
-// LICENSE
-//   This software is dual-licensed to the public domain and under the following
-//   license: you are granted a perpetual, irrevocable license to copy, modify,
-//   publish, and distribute this file as you see fit.
-//
-// CREDITS
-//   Written by Michal Cichon
-# include "crude_json.h"
+﻿# include "imgui_json.h"
 # include <iomanip>
 # include <limits>
 # include <cstdlib>
 # include <clocale>
 # include <cmath>
 # include <cstring>
-# if CRUDE_JSON_IO
+# if JSON_IO
 #     include <stdio.h>
 #     include <memory>
 # endif
 
-namespace crude_json {
+namespace imgui_json {
 
 value::value(value&& other)
     : m_Type(other.m_Type)
@@ -31,6 +22,7 @@ value::value(value&& other)
         case type_t::string:    construct(m_Storage, std::move( *string_ptr(other.m_Storage))); break;
         case type_t::boolean:   construct(m_Storage, std::move(*boolean_ptr(other.m_Storage))); break;
         case type_t::number:    construct(m_Storage, std::move( *number_ptr(other.m_Storage))); break;
+        case type_t::point:     construct(m_Storage, std::move(  *point_ptr(other.m_Storage))); break;
         default: break;
     }
     destruct(other.m_Storage, other.m_Type);
@@ -47,6 +39,7 @@ value::value(const value& other)
         case type_t::string:    construct(m_Storage,  *string_ptr(other.m_Storage)); break;
         case type_t::boolean:   construct(m_Storage, *boolean_ptr(other.m_Storage)); break;
         case type_t::number:    construct(m_Storage,  *number_ptr(other.m_Storage)); break;
+        case type_t::point:     construct(m_Storage,   *point_ptr(other.m_Storage)); break;
         default: break;
     }
 }
@@ -65,7 +58,7 @@ value& value::operator[](size_t index)
         return v[index];
     }
 
-    CRUDE_ASSERT(false && "operator[] on unsupported type");
+    JSON_ASSERT(false && "operator[] on unsupported type");
     std::terminate();
 }
 
@@ -74,7 +67,7 @@ const value& value::operator[](size_t index) const
     if (is_array())
         return (*array_ptr(m_Storage))[index];
 
-    CRUDE_ASSERT(false && "operator[] on unsupported type");
+    JSON_ASSERT(false && "operator[] on unsupported type");
     std::terminate();
 }
 
@@ -86,7 +79,7 @@ value& value::operator[](const string& key)
     if (is_object())
         return (*object_ptr(m_Storage))[key];
 
-    CRUDE_ASSERT(false && "operator[] on unsupported type");
+    JSON_ASSERT(false && "operator[] on unsupported type");
     std::terminate();
 }
 
@@ -96,11 +89,11 @@ const value& value::operator[](const string& key) const
     {
         auto& o = *object_ptr(m_Storage);
         auto it = o.find(key);
-        CRUDE_ASSERT(it != o.end());
+        JSON_ASSERT(it != o.end());
         return it->second;
     }
 
-    CRUDE_ASSERT(false && "operator[] on unsupported type");
+    JSON_ASSERT(false && "operator[] on unsupported type");
     std::terminate();
 }
 
@@ -128,7 +121,7 @@ void value::push_back(const value& value)
     }
     else
     {
-        CRUDE_ASSERT(false && "operator[] on unsupported type");
+        JSON_ASSERT(false && "operator[] on unsupported type");
         std::terminate();
     }
 }
@@ -145,7 +138,7 @@ void value::push_back(value&& value)
     }
     else
     {
-        CRUDE_ASSERT(false && "operator[] on unsupported type");
+        JSON_ASSERT(false && "operator[] on unsupported type");
         std::terminate();
     }
 }
@@ -179,6 +172,7 @@ void value::swap(value& other)
             case type_t::string:    swap(*string_ptr(m_Storage),  *string_ptr(other.m_Storage));  break;
             case type_t::boolean:   swap(*boolean_ptr(m_Storage), *boolean_ptr(other.m_Storage)); break;
             case type_t::number:    swap(*number_ptr(m_Storage),  *number_ptr(other.m_Storage));  break;
+            case type_t::point:     swap(*point_ptr(m_Storage),   *point_ptr(other.m_Storage));   break;
             default: break;
         }
     }
@@ -329,6 +323,10 @@ void value::dump(dump_context_t& context, int level) const
             context.out << *number_ptr(m_Storage);
             break;
 
+        case type_t::point:
+            context.out << *point_ptr(m_Storage);
+            break;
+
         default:
             break;
     }
@@ -399,6 +397,7 @@ private:
             || accept_string(result)
             || accept_number(result)
             || accept_boolean(result)
+            || accept_point(result)
             || accept_null(result);
     }
 
@@ -515,7 +514,7 @@ private:
         int c;
         while (accept_character(c))
         {
-            CRUDE_ASSERT(c < 128); // #todo: convert characters > 127 to UTF-8
+            JSON_ASSERT(c < 128); // #todo: convert characters > 127 to UTF-8
             result.push_back(static_cast<char>(c));
         }
 
@@ -748,6 +747,17 @@ private:
         return false;
     }
 
+    bool accept_point(value& result)
+    {
+        if (accept("point"))
+        {
+            result = nullptr;
+            return true;
+        }
+
+        return false;
+    }
+
     bool accept_null(value& result)
     {
         if (accept("null"))
@@ -830,7 +840,7 @@ value value::parse(const string& data)
     return v;
 }
 
-# if CRUDE_JSON_IO
+# if JSON_IO
 std::pair<value, bool> value::load(const string& path)
 {
     // Modern C++, so beautiful...
@@ -885,4 +895,4 @@ bool value::save(const string& path, const int indent, const char indent_char) c
 
 # endif
 
-} // namespace crude_json
+} // namespace imgui_json
