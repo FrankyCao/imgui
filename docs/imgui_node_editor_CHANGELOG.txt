@@ -54,6 +54,10 @@ v0.9.1 (WIP):
     NEW: Add SetGroupSize() to explicitly set group size
         New API:
         void SetGroupSize(NodeId nodeId, const ImVec2& size);
+    
+    NEW: add SetNodeChanged() to indicate Node property changed by User
+        New API:
+        void SetNodeChanged(NodeId nodeId);
 
     NEW: Add GetGroupSize() to explicitly get group size
         New API:

@@ -1601,6 +1601,15 @@ void ed::EditorContext::SetGroupSize(NodeId nodeId, const ImVec2& size)
     }
 }
 
+void ed::EditorContext::SetNodeChanged(NodeId nodeId)
+{
+    auto node = FindNode(nodeId);
+    if (node)
+    {
+        MakeDirty(NodeEditor::SaveReasonFlags::User, node);
+    }
+}
+
 ImVec2 ed::EditorContext::GetGroupSize(NodeId nodeId)
 {
     auto node = FindNode(nodeId);

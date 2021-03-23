@@ -383,6 +383,11 @@ void ax::NodeEditor::SetGroupSize(NodeId nodeId, const ImVec2& size)
     s_Editor->SetGroupSize(nodeId, size);
 }
 
+void ax::NodeEditor::SetNodeChanged(NodeId nodeId)
+{
+    s_Editor->SetNodeChanged(nodeId);
+}
+
 ImVec2 ax::NodeEditor::GetGroupSize(NodeId nodeId)
 {
     return s_Editor->GetGroupSize(nodeId);
