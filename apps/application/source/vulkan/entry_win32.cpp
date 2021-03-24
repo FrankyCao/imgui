@@ -133,17 +133,20 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
     // Main loop
     bool done = false;
-    MSG msg;
-    ZeroMemory(&msg, sizeof(msg));
-    while (msg.message != WM_QUIT)
+    while (!done)
     {
         ImGui_ImplWin32_WaitForEvent();
-        if (::PeekMessage(&msg, NULL, 0U, 0U, PM_REMOVE))
+        MSG msg;
+        while (::PeekMessage(&msg, NULL, 0U, 0U, PM_REMOVE))
         {
             ::TranslateMessage(&msg);
             ::DispatchMessage(&msg);
-            continue;
+            if (msg.message == WM_QUIT)
+                done = true;
         }
+        if (done)
+            break;
+
         // Start the Dear ImGui frame
         ImGui_ImplVulkan_NewFrame();
         ImGui_ImplWin32_NewFrame();

@@ -59,6 +59,10 @@ v0.9.1 (WIP):
         New API:
         void SetNodeChanged(NodeId nodeId);
 
+    NEW: add SetPinChanged() to indicate Pin status changed by User
+        New API:
+        void SetPinChanged(PinId pinId);
+
     NEW: Add GetGroupSize() to explicitly get group size
         New API:
         ImVec2 GetGroupSize(NodeId nodeId);

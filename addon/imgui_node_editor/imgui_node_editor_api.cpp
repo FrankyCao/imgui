@@ -415,6 +415,11 @@ void ax::NodeEditor::RestoreNodeState(NodeId nodeId)
         s_Editor->MarkNodeToRestoreState(node);
 }
 
+void ax::NodeEditor::SetPinChanged(PinId pinId)
+{
+    s_Editor->SetPinChanged(pinId);
+}
+
 bool ax::NodeEditor::HasStateChanged(StateType stateType, const imgui_json::value& state)
 {
     switch (stateType)

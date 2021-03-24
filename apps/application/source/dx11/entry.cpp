@@ -196,19 +196,21 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     frame();
 
     // Main loop
-    MSG msg = {};
-    while (msg.message != WM_QUIT)
+    while (!done)
     {
         ImGui_ImplWin32_WaitForEvent();
-        if (PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE))
+        MSG msg;
+        while (::PeekMessage(&msg, NULL, 0U, 0U, PM_REMOVE))
         {
-            if (msg.message == WM_KEYDOWN && (msg.wParam == VK_ESCAPE))
-                PostQuitMessage(0);
-
+            //if (msg.message == WM_KEYDOWN && (msg.wParam == VK_ESCAPE))
+            //    PostQuitMessage(0);
             TranslateMessage(&msg);
             DispatchMessage(&msg);
-            continue;
+            if (msg.message == WM_QUIT)
+                done = true;
         }
+        if (done)
+            break;
 
         if (!IsIconic(hwnd))
             frame();

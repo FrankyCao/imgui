@@ -1452,6 +1452,7 @@ struct EditorContext
     void SetNodeSize(NodeId nodeId, const ImVec2& size);
     void SetGroupSize(NodeId nodeId, const ImVec2& size);
     void SetNodeChanged(NodeId nodeId);
+    void SetPinChanged(PinId pinId);
     ImVec2 GetGroupSize(NodeId nodeId);
     ImVec2 GetNodePosition(NodeId nodeId);
     ImVec2 GetNodeSize(NodeId nodeId);

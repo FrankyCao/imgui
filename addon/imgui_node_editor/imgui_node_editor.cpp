@@ -1610,6 +1610,15 @@ void ed::EditorContext::SetNodeChanged(NodeId nodeId)
     }
 }
 
+void ed::EditorContext::SetPinChanged(PinId pinId)
+{
+    auto pin = FindPin(pinId);
+    if (pin)
+    {
+        MakeDirty(NodeEditor::SaveReasonFlags::User);
+    }
+}
+
 ImVec2 ed::EditorContext::GetGroupSize(NodeId nodeId)
 {
     auto node = FindNode(nodeId);
