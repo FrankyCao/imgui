@@ -420,6 +420,11 @@ void ax::NodeEditor::SetPinChanged(PinId pinId)
     s_Editor->SetPinChanged(pinId);
 }
 
+void ax::NodeEditor::SetLinkChanged(LinkId linkId)
+{
+    s_Editor->SetLinkChanged(linkId);
+}
+
 bool ax::NodeEditor::HasStateChanged(StateType stateType, const imgui_json::value& state)
 {
     switch (stateType)

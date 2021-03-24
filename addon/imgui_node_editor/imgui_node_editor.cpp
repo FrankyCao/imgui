@@ -1619,6 +1619,15 @@ void ed::EditorContext::SetPinChanged(PinId pinId)
     }
 }
 
+void ed::EditorContext::SetLinkChanged(LinkId linkId)
+{
+    auto link = FindLink(linkId);
+    if (link)
+    {
+        MakeDirty(NodeEditor::SaveReasonFlags::User);
+    }
+}
+
 ImVec2 ed::EditorContext::GetGroupSize(NodeId nodeId)
 {
     auto node = FindNode(nodeId);

@@ -63,6 +63,10 @@ v0.9.1 (WIP):
         New API:
         void SetPinChanged(PinId pinId);
 
+    NEW: add SetLinkChanged() to indicate Link status changed by User
+        New API:
+        void SetLinkChanged(LinkId linkId);
+
     NEW: Add GetGroupSize() to explicitly get group size
         New API:
         ImVec2 GetGroupSize(NodeId nodeId);

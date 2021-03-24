@@ -12,7 +12,27 @@
 
 using namespace std;
 
-int DIR_Iterate(string directory, vector<string>& filesAbsolutePath, vector<string>& filesname, bool surfix)
+std::vector<std::string> split(std::string str,std::string pattern)
+{
+    std::string::size_type pos;
+    std::vector<std::string> result;
+    str+=pattern;//扩展字符串以方便操作
+    int size=str.size();
+
+    for(int i=0; i<size; i++)
+    {
+        pos=str.find(pattern,i);
+        if(pos<size)
+        {
+            std::string s=str.substr(i,pos-i);
+            result.push_back(s);
+            i=pos+pattern.size()-1;
+        }
+    }
+    return result;
+}
+
+int DIR_Iterate(string directory, vector<string>& filesAbsolutePath, vector<string>& filesname, bool surfix, string filters)
 {
     DIR* dir = opendir(directory.c_str());
     if ( dir == NULL )
@@ -23,6 +43,11 @@ int DIR_Iterate(string directory, vector<string>& filesAbsolutePath, vector<stri
     struct dirent* d_ent = NULL;
     char dot[3] = ".";
     char dotdot[6] = "..";
+    std::vector<string> filter_array;
+    if (!filters.empty())
+    {
+        filter_array = split(filters, "|");
+    }
     
     while ( (d_ent = readdir(dir)) != NULL )
     {
@@ -37,7 +62,7 @@ int DIR_Iterate(string directory, vector<string>& filesAbsolutePath, vector<stri
                     newDirectory = directory + string(d_ent->d_name);
                 }
                 
-                if ( -1 == DIR_Iterate(newDirectory, filesAbsolutePath, filesname, surfix) )
+                if ( -1 == DIR_Iterate(newDirectory, filesAbsolutePath, filesname, surfix, filters) )
                 {
                     return -1;
                 }
@@ -51,13 +76,29 @@ int DIR_Iterate(string directory, vector<string>& filesAbsolutePath, vector<stri
                 {
                     absolutePath = directory + string(d_ent->d_name);
                 }
-                filesAbsolutePath.push_back(absolutePath);
+                char * pos = strchr(d_ent->d_name, '.');
+                string surfix_name = string(pos);
                 if (!surfix)
                 {
-                    char * pos = strchr(d_ent->d_name, '.');
                     *pos = '\0';
                 }
-                filesname.push_back(d_ent->d_name);
+                if (filter_array.size() == 0)
+                {
+                    filesAbsolutePath.push_back(absolutePath);
+                    filesname.push_back(d_ent->d_name);
+                }
+                else
+                {
+                    for (auto filter : filter_array)
+                    {
+                        if (surfix_name.compare(filter) == 0)
+                        {
+                            filesAbsolutePath.push_back(absolutePath);
+                            filesname.push_back(d_ent->d_name);
+                            break;
+                        }
+                    }
+                }
             }
         }
     }
