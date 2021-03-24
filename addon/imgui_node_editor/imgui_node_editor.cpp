@@ -2012,21 +2012,29 @@ static inline auto FindItemIn(C& container, Id id)
 
 ed::Node* ed::EditorContext::FindNode(NodeId id)
 {
+    if (m_Nodes.size() == 0)
+        return nullptr;
     return FindItemInLinear(m_Nodes, id);
 }
 
 const ed::Node* ed::EditorContext::FindNode(NodeId id) const
 {
+    if (m_Nodes.size() == 0)
+        return nullptr;
     return FindItemInLinear(m_Nodes, id);
 }
 
 ed::Pin* ed::EditorContext::FindPin(PinId id)
 {
+    if (m_Pins.size() == 0)
+        return nullptr;
     return FindItemIn(m_Pins, id);
 }
 
 ed::Link* ed::EditorContext::FindLink(LinkId id)
 {
+    if (m_Links.size() == 0)
+        return nullptr;
     return FindItemIn(m_Links, id);
 }
 
