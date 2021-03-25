@@ -79,9 +79,9 @@
 #define tableHeaderDescendingIcon "D|"
 #endif
 #define tableHeaderFileNameString " File name"
-//#define tableHeaderFileTypeString " Type"
+#define tableHeaderFileTypeString " Type"
 #define tableHeaderFileSizeString " Size"
-#define tableHeaderFileDateTimeString " Date"
+#define tableHeaderFileDateString " Date"
 
 #define USE_BOOKMARK
 //#define bookmarkPaneWith 150.0f

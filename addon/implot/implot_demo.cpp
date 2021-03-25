@@ -248,11 +248,6 @@ void ShowDemoWindow(bool* p_open) {
         ImGui::BulletText("ImGuiBackendFlags_RendererHasVtxOffset: %s", (ImGui::GetIO().BackendFlags & ImGuiBackendFlags_RendererHasVtxOffset) ? "True" : "False");
         ImGui::Unindent();
         ImGui::Unindent();
-#ifdef IMPLOT_DEMO_USE_DOUBLE
-        ImGui::BulletText("The demo data precision is: double");
-#else
-        ImGui::BulletText("The demo data precision is: float");
-#endif
         ImGui::Separator();
         ImGui::Text("USER GUIDE:");
         ShowUserGuide();
@@ -595,6 +590,36 @@ void ShowDemoWindow(bool* p_open) {
         static bool outliers   = true;
         static double mu       = 5;
         static double sigma    = 2;
+
+        ImGui::SetNextItemWidth(200);
+        if (ImGui::RadioButton("Sqrt",bins==ImPlotBin_Sqrt))       { bins = ImPlotBin_Sqrt;    } ImGui::SameLine();
+        if (ImGui::RadioButton("Sturges",bins==ImPlotBin_Sturges)) { bins = ImPlotBin_Sturges; } ImGui::SameLine();
+        if (ImGui::RadioButton("Rice",bins==ImPlotBin_Rice))       { bins = ImPlotBin_Rice;    } ImGui::SameLine();
+        if (ImGui::RadioButton("Scott",bins==ImPlotBin_Scott))     { bins = ImPlotBin_Scott;   } ImGui::SameLine();
+        if (ImGui::RadioButton("N Bins",bins>=0))                       bins = 50;
+        if (bins>=0) {
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(200);
+            ImGui::SliderInt("##Bins", &bins, 1, 100);
+        }
+        if (ImGui::Checkbox("Density", &density))
+            ImPlot::FitNextPlotAxes();
+        ImGui::SameLine();
+        if (ImGui::Checkbox("Cumulative", &cumulative))
+            ImPlot::FitNextPlotAxes();
+        ImGui::SameLine();
+        static bool range = false;
+        ImGui::Checkbox("Range", &range);
+        static float rmin = -3;
+        static float rmax = 13;
+        if (range) {
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(200);
+            ImGui::DragFloat2("##Range",&rmin,0.1f,-3,13);
+            ImGui::SameLine();
+            ImGui::Checkbox("Outliers",&outliers);
+        }
+
         static NormalDistribution<10000> dist(mu, sigma);
         static double x[100];
         static double y[100];
@@ -610,32 +635,7 @@ void ShowDemoWindow(bool* p_open) {
                     y[i] /= y[99];
             }
         }
-        ImGui::SetNextItemWidth(200);
-        if (ImGui::RadioButton("Sqrt",bins==ImPlotBin_Sqrt))       { bins = ImPlotBin_Sqrt;    } ImGui::SameLine();
-        if (ImGui::RadioButton("Sturges",bins==ImPlotBin_Sturges)) { bins = ImPlotBin_Sturges; } ImGui::SameLine();
-        if (ImGui::RadioButton("Rice",bins==ImPlotBin_Rice))       { bins = ImPlotBin_Rice;    } ImGui::SameLine();
-        if (ImGui::RadioButton("Scott",bins==ImPlotBin_Scott))     { bins = ImPlotBin_Scott;   } ImGui::SameLine();
-        if (ImGui::RadioButton("N Bins",bins>=0))                       bins = 50;
-        if (bins>=0) {
-            ImGui::SameLine();
-            ImGui::SetNextItemWidth(200);
-            ImGui::SliderInt("##Bins", &bins, 1, 100);
-        }
-        ImGui::Checkbox("Density", &density);
-        ImGui::SameLine();
-        ImGui::Checkbox("Cumulative", &cumulative);
-        ImGui::SameLine();
-        static bool range = false;
-        ImGui::Checkbox("Range", &range);
-        static float rmin = -3;
-        static float rmax = 13;
-        if (range) {
-            ImGui::SameLine();
-            ImGui::SetNextItemWidth(200);
-            ImGui::DragFloat2("##Range",&rmin,0.1f,-3,13);
-            ImGui::SameLine();
-            ImGui::Checkbox("Outliers",&outliers);
-        }
+
         if (ImPlot::BeginPlot("##Histograms")) {
             ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);
             ImPlot::PlotHistogram("Empirical", dist.Data, 10000, bins, cumulative, density, range ? ImPlotRange(rmin,rmax) : ImPlotRange(), outliers);
@@ -754,19 +754,20 @@ void ShowDemoWindow(bool* p_open) {
         rdata1.Span = history;
         rdata2.Span = history;
 
-        static ImPlotAxisFlags rt_axis = ImPlotAxisFlags_NoTickLabels;
+        static ImPlotAxisFlags flags = ImPlotAxisFlags_NoTickLabels;
         ImPlot::SetNextPlotLimitsX(t - history, t, ImGuiCond_Always);
         ImPlot::SetNextPlotLimitsY(0,1);
-        if (ImPlot::BeginPlot("##Scrolling", NULL, NULL, ImVec2(-1,150), 0, rt_axis, rt_axis | ImPlotAxisFlags_LockMin)) {
-            ImPlot::PlotShaded("Data 1", &sdata1.Data[0].x, &sdata1.Data[0].y, sdata1.Data.size(), 0, sdata1.Offset, 2 * sizeof(float));
-            ImPlot::PlotLine("Data 2", &sdata2.Data[0].x, &sdata2.Data[0].y, sdata2.Data.size(), sdata2.Offset, 2*sizeof(float));
+        if (ImPlot::BeginPlot("##Scrolling", NULL, NULL, ImVec2(-1,150), 0, flags, flags)) {
+            ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL,0.5f);
+            ImPlot::PlotShaded("Mouse X", &sdata1.Data[0].x, &sdata1.Data[0].y, sdata1.Data.size(), -INFINITY, sdata1.Offset, 2 * sizeof(float));
+            ImPlot::PlotLine("Mouse Y", &sdata2.Data[0].x, &sdata2.Data[0].y, sdata2.Data.size(), sdata2.Offset, 2*sizeof(float));
             ImPlot::EndPlot();
         }
         ImPlot::SetNextPlotLimitsX(0, history, ImGuiCond_Always);
         ImPlot::SetNextPlotLimitsY(0,1);
-        if (ImPlot::BeginPlot("##Rolling", NULL, NULL, ImVec2(-1,150), 0, rt_axis, rt_axis)) {
-            ImPlot::PlotLine("Data 1", &rdata1.Data[0].x, &rdata1.Data[0].y, rdata1.Data.size(), 0, 2 * sizeof(float));
-            ImPlot::PlotLine("Data 2", &rdata2.Data[0].x, &rdata2.Data[0].y, rdata2.Data.size(), 0, 2 * sizeof(float));
+        if (ImPlot::BeginPlot("##Rolling", NULL, NULL, ImVec2(-1,150), 0, flags, flags)) {
+            ImPlot::PlotLine("Mouse X", &rdata1.Data[0].x, &rdata1.Data[0].y, rdata1.Data.size(), 0, 2 * sizeof(float));
+            ImPlot::PlotLine("Mouse Y", &rdata2.Data[0].x, &rdata2.Data[0].y, rdata2.Data.size(), 0, 2 * sizeof(float));
             ImPlot::EndPlot();
         }
     }
@@ -953,7 +954,7 @@ void ShowDemoWindow(bool* p_open) {
     //-------------------------------------------------------------------------
     if (ImGui::CollapsingHeader("Querying")) {
         static ImVector<ImPlotPoint> data;
-        static ImPlotLimits range, query;
+        static ImPlotLimits range, query, select;
 
         ImGui::BulletText("Ctrl + click in the plot area to draw points.");
         ImGui::BulletText("Middle click (or Ctrl + right click) and drag to create a query rect.");
@@ -988,12 +989,14 @@ void ShowDemoWindow(bool* p_open) {
                     ImPlot::PlotScatter("Average", &avg.x, &avg.y, 1);
                 }
             }
-            range = ImPlot::GetPlotLimits();
-            query = ImPlot::GetPlotQuery();
+            range  = ImPlot::GetPlotLimits();
+            query  = ImPlot::GetPlotQuery();
+            select = ImPlot::GetPlotSelection();
             ImPlot::EndPlot();
         }
-        ImGui::Text("The current plot limits are:  [%g,%g,%g,%g]", range.X.Min, range.X.Max, range.Y.Min, range.Y.Max);
-        ImGui::Text("The current query limits are: [%g,%g,%g,%g]", query.X.Min, query.X.Max, query.Y.Min, query.Y.Max);
+        ImGui::Text("Limits: [%g,%g,%g,%g]", range.X.Min, range.X.Max, range.Y.Min, range.Y.Max);
+        ImGui::Text("Query: [%g,%g,%g,%g]", query.X.Min, query.X.Max, query.Y.Min, query.Y.Max);
+        ImGui::Text("Selection: [%g,%g,%g,%g]", select.X.Min, select.X.Max, select.Y.Min, select.Y.Max);
 
         ImGui::Separator();
 
@@ -1013,21 +1016,27 @@ void ShowDemoWindow(bool* p_open) {
             y_data3[i] = y_data2[i] * -0.6f + sinf(3 * arg) * 0.4f;
         }
         ImGui::BulletText("Query the first plot to render a subview in the second plot (see above for controls).");
-        ImPlot::SetNextPlotLimits(0,0.01,-1,1);
         ImPlotAxisFlags flags = ImPlotAxisFlags_NoTickLabels;
-        ImPlotLimits query2;
+        static bool use_selection = false;
+        ImGui::Checkbox("Use Box Selection",&use_selection);
+        bool is_viewed = false;
+        ImPlotLimits view;
+        ImPlot::SetNextPlotLimits(0,0.01,-1,1);
         if (ImPlot::BeginPlot("##View1",NULL,NULL,ImVec2(-1,150), ImPlotFlags_Query, flags, flags)) {
             ImPlot::PlotLine("Signal 1", x_data, y_data1, 512);
             ImPlot::PlotLine("Signal 2", x_data, y_data2, 512);
             ImPlot::PlotLine("Signal 3", x_data, y_data3, 512);
-            query2 = ImPlot::GetPlotQuery();
+            is_viewed = use_selection ? ImPlot::IsPlotSelected()   : ImPlot::IsPlotQueried();
+            view      = use_selection ? ImPlot::GetPlotSelection() : ImPlot::GetPlotQuery();
             ImPlot::EndPlot();
         }
-        ImPlot::SetNextPlotLimits(query2.X.Min, query2.X.Max, query2.Y.Min, query2.Y.Max, ImGuiCond_Always);
+        ImPlot::SetNextPlotLimits(view.X.Min, view.X.Max, view.Y.Min, view.Y.Max, ImGuiCond_Always);
         if (ImPlot::BeginPlot("##View2",NULL,NULL,ImVec2(-1,150), ImPlotFlags_CanvasOnly, ImPlotAxisFlags_NoDecorations, ImPlotAxisFlags_NoDecorations)) {
-            ImPlot::PlotLine("Signal 1", x_data, y_data1, 512);
-            ImPlot::PlotLine("Signal 2", x_data, y_data2, 512);
-            ImPlot::PlotLine("Signal 3", x_data, y_data3, 512);
+            if (is_viewed) {
+                ImPlot::PlotLine("Signal 1", x_data, y_data1, 512);
+                ImPlot::PlotLine("Signal 2", x_data, y_data2, 512);
+                ImPlot::PlotLine("Signal 3", x_data, y_data3, 512);
+            }
             ImPlot::EndPlot();
         }
     }
