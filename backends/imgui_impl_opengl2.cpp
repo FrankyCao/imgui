@@ -284,7 +284,9 @@ std::string ImGui_ImplOpenGL2_GLLoaderName()
 {
     const char* gl_loader = "Unknown";
     IM_UNUSED(gl_loader);
-#if defined(IMGUI_IMPL_OPENGL_LOADER_GL3W)
+#if defined(IMGUI_IMPL_OPENGL_ES2)
+    gl_loader = "GLES2";
+#elif defined(IMGUI_IMPL_OPENGL_LOADER_GL3W)
     gl_loader = "GL3W";
 #elif defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
     gl_loader = "GLEW";
