@@ -1244,8 +1244,6 @@ struct CreateItemAction final : EditorAction
     Result QueryLink(PinId* startId, PinId* endId);
     Result QueryNode(PinId* pinId);
 
-    void DrawLastLine();
-
 private:
     bool m_IsInGlobalSpace;
 
@@ -1625,8 +1623,6 @@ struct EditorContext
     Transaction* GetCurrentTransaction() { return m_Transaction; }
 
     string              m_CachedStateStringForPublicAPI;
-
-    void DrawLastLine();
 
 private:
     void LoadSettings();
