@@ -968,18 +968,18 @@ if(IMGUI_ADDONS)
                     ${IMGUI_INC_DIRS}
                     ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImVulkanShader
                 )
-                if(WIN32)
+                if(APPLE)
+                    set(GLSLANG_LIBRARY
+                        glslang
+                        shaderc_combined
+                    )
+                else(APPLE)
                     set(GLSLANG_LIBRARY
                         glslang
                         SPIRV
                         SPIRV-Tools
                     )
-                else(WIN32)
-                    set(GLSLANG_LIBRARY
-                        glslang
-                        shaderc_combined
-                    )
-                endif(WIN32)
+                endif(APPLE)
                 set(LINK_LIBS
                     ${LINK_LIBS}
                     ${GLSLANG_LIBRARY}
