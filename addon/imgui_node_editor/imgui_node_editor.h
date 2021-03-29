@@ -65,12 +65,12 @@ struct ITransaction
 using TransactionConstructor = ITransaction*(*)(const char* name, void* userPointer);  // Create new instance of the transaction
 using TransactionDestructor  = void(*)(ITransaction*, void* userPointer);              // Destroys instance if the transaction
 
-struct TransactionInterface
+typedef struct _TransactionInterface
 {
     TransactionConstructor  Constructor = nullptr;
     TransactionDestructor   Destructor  = nullptr;
     void*                   UserPointer = nullptr;
-};
+} TransactionInterface;
 
 
 //------------------------------------------------------------------------------
