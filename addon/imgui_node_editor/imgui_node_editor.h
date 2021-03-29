@@ -65,12 +65,12 @@ struct ITransaction
 using TransactionConstructor = ITransaction*(*)(const char* name, void* userPointer);  // Create new instance of the transaction
 using TransactionDestructor  = void(*)(ITransaction*, void* userPointer);              // Destroys instance if the transaction
 
-typedef struct _TransactionInterface
+struct TransactionInterfaceStruct
 {
     TransactionConstructor  Constructor = nullptr;
     TransactionDestructor   Destructor  = nullptr;
     void*                   UserPointer = nullptr;
-} TransactionInterface;
+};
 
 
 //------------------------------------------------------------------------------
@@ -120,7 +120,7 @@ struct Config
     int                         NavigateButtonIndex;    // Mouse button index navigate action will react to (0-left, 1-right, 2-middle)
     int                         ContextMenuButtonIndex; // Mouse button index context menu action will react to (0-left, 1-right, 2-middle)
     int                         EmulateMiddleButton;    // Mouse middle button emulated add By Dicky
-    TransactionInterface        TransactionInterface;
+    TransactionInterfaceStruct  TransactionInterface;
 
     Config()
         : SettingsFile(nullptr)
