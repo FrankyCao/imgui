@@ -888,106 +888,83 @@ if(IMGUI_ADDONS)
 
     # Vulkan Shader/Glslang
     if (IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
-        if(WIN32)
-            set(GLSLANG_TARGET_DIR "C:\\msys64\\mingw64\\lib\\cmake")
-        elseif(CMAKE_SYSTEM_NAME MATCHES Linux AND EXISTS "/usr/lib/x86_64-linux-gnu/cmake/glslang")
-            set(GLSLANG_TARGET_DIR "/usr/lib/x86_64-linux-gnu/cmake/glslang")
-        elseif(DEFINED ENV{PREFIX})
-            set(GLSLANG_TARGET_DIR $ENV{PREFIX}/lib/cmake)
-            message(STATUS "found ENV at ${GLSLANG_TARGET_DIR}")
-        else()
-            set(GLSLANG_TARGET_DIR "/usr/local/lib/cmake")
+        option(BUILD_EXTERNAL "" OFF)
+        option(ENABLE_SPVREMAPPER "" OFF)
+        option(ENABLE_GLSLANG_BINARIES "" OFF)
+        option(ENABLE_HLSL "" OFF)
+        option(ENABLE_RTTI "" OFF)
+        option(ENABLE_EXCEPTIONS "" OFF)
+        option(ENABLE_OPT "" OFF)
+        option(ENABLE_PCH "" OFF)
+        option(ENABLE_CTEST "" OFF)
+        option(SKIP_GLSLANG_INSTALL "" ON)
+        add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/addon/ImVulkanShader/glslang)
+        if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_SIMULATE_ID MATCHES "MSVC"))
+            target_compile_options(glslang PRIVATE -fvisibility=hidden -fvisibility-inlines-hidden)
+            target_compile_options(OGLCompiler PRIVATE -fvisibility=hidden -fvisibility-inlines-hidden)
+            target_compile_options(OSDependent PRIVATE -fvisibility=hidden -fvisibility-inlines-hidden)
+            target_compile_options(SPIRV PRIVATE -fvisibility=hidden -fvisibility-inlines-hidden)
         endif()
-        if(NOT GLSLANG_TARGET_DIR AND NOT DEFINED ENV{GLSLANG_TARGET_DIR})
-            message(WARNING "GLSLANG_TARGET_DIR must be defined! IMGUI_VULKAN_SHADER will be turned off.")
-            set(IMGUI_VULKAN_SHADER OFF)
-        else()
-            message(STATUS "Using glslang install located at ${GLSLANG_TARGET_DIR}")
-            find_package(Threads)
-            include("${GLSLANG_TARGET_DIR}/OSDependentTargets.cmake")
-            include("${GLSLANG_TARGET_DIR}/OGLCompilerTargets.cmake")
-            if(EXISTS "${GLSLANG_TARGET_DIR}/HLSLTargets.cmake")
-                # hlsl support can be optional
-                include("${GLSLANG_TARGET_DIR}/HLSLTargets.cmake")
-            endif()
-            include("${GLSLANG_TARGET_DIR}/glslangTargets.cmake")
-            if(CMAKE_SYSTEM_NAME MATCHES Linux AND EXISTS "/usr/lib/x86_64-linux-gnu/cmake/glslang")
-                include("${GLSLANG_TARGET_DIR}/../SPIRV-Tools/SPIRV-ToolsTarget.cmake")
-                include("${GLSLANG_TARGET_DIR}/../SPIRV-Tools-opt/SPIRV-Tools-optTargets.cmake")
-            else()
-                include("${GLSLANG_TARGET_DIR}/SPIRV-Tools/SPIRV-ToolsTarget.cmake")
-                include("${GLSLANG_TARGET_DIR}/SPIRV-Tools-opt/SPIRV-Tools-optTargets.cmake")
-            endif()
-            include("${GLSLANG_TARGET_DIR}/SPIRVTargets.cmake")
-
-            if (NOT TARGET glslang OR NOT TARGET SPIRV)
-                message(WARNING "glslang or SPIRV target not found! IMGUI_VULKAN_SHADER will be turned off.")
-                set(IMGUI_VULKAN_SHADER OFF)
-            else()
-                add_definitions(-DIMGUI_VULKAN_SHADER)
-                if(IMGUI_VULKAN_BENCHMARK)
-                    add_definitions(-DSHADER_BENCHMARK)
-                endif(IMGUI_VULKAN_BENCHMARK)
-                set(IMGUI_SRC
-                    ${IMGUI_SRC}
-                    addon/ImVulkanShader/option.cpp
-                    addon/ImVulkanShader/allocator.cpp
-                    addon/ImVulkanShader/gpu.cpp
-                    addon/ImVulkanShader/command.cpp
-                    addon/ImVulkanShader/colorspace_table.cpp
-                    addon/ImVulkanShader/pipeline.cpp
-                    addon/ImVulkanShader/pipelinecache.cpp
-                    addon/ImVulkanShader/Cast_vulkan.cpp
-                    addon/ImVulkanShader/Packing_vulkan.cpp
-                    addon/ImVulkanShader/ColorConvert_vulkan.cpp
-                    addon/ImVulkanShader/Resize_vulkan.cpp
-                    addon/ImVulkanShader/ImVulkanShader.cpp
-                )
-                set(IMGUI_INCS
-                    ${IMGUI_INCS}
-                    addon/ImVulkanShader/platform.h
-                    addon/ImVulkanShader/vulkan_header_fix.h
-                    addon/ImVulkanShader/option.h
-                    addon/ImVulkanShader/allocator.h
-                    addon/ImVulkanShader/gpu.h
-                    addon/ImVulkanShader/command.h
-                    addon/ImVulkanShader/buffer.h
-                    addon/ImVulkanShader/pipeline.h
-                    addon/ImVulkanShader/pipelinecache.h
-                    addon/ImVulkanShader/Cast_shader.h
-                    addon/ImVulkanShader/Cast_vulkan.h
-                    addon/ImVulkanShader/Packing_shader.h
-                    addon/ImVulkanShader/Packing_vulkan.h
-                    addon/ImVulkanShader/ColorConvert_shader.h
-                    addon/ImVulkanShader/ColorConvert_vulkan.h
-                    addon/ImVulkanShader/Resize_shader.h
-                    addon/ImVulkanShader/Resize_vulkan.h
-                    addon/ImVulkanShader/ImVulkanShader.h
-                )
-                set(IMGUI_INC_DIRS
-                    ${IMGUI_INC_DIRS}
-                    ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImVulkanShader
-                )
-                if(APPLE)
-                    set(GLSLANG_LIBRARY
-                        glslang
-                        shaderc_combined
-                    )
-                else(APPLE)
-                    set(GLSLANG_LIBRARY
-                        glslang
-                        SPIRV
-                        SPIRV-Tools
-                    )
-                endif(APPLE)
-                set(LINK_LIBS
-                    ${LINK_LIBS}
-                    ${GLSLANG_LIBRARY}
-                )
-            endif()
-        endif()
+        add_definitions(-DIMGUI_VULKAN_SHADER)
+        if(IMGUI_VULKAN_BENCHMARK)
+            add_definitions(-DSHADER_BENCHMARK)
+        endif(IMGUI_VULKAN_BENCHMARK)
+        set(IMGUI_SRC
+            ${IMGUI_SRC}
+            addon/ImVulkanShader/option.cpp
+            addon/ImVulkanShader/allocator.cpp
+            addon/ImVulkanShader/gpu.cpp
+            addon/ImVulkanShader/command.cpp
+            addon/ImVulkanShader/colorspace_table.cpp
+            addon/ImVulkanShader/pipeline.cpp
+            addon/ImVulkanShader/pipelinecache.cpp
+            addon/ImVulkanShader/Cast_vulkan.cpp
+            addon/ImVulkanShader/Packing_vulkan.cpp
+            addon/ImVulkanShader/ColorConvert_vulkan.cpp
+            addon/ImVulkanShader/Resize_vulkan.cpp
+            addon/ImVulkanShader/ImVulkanShader.cpp
+        )
+        set(IMGUI_INCS
+            ${IMGUI_INCS}
+            addon/ImVulkanShader/platform.h
+            addon/ImVulkanShader/vulkan_header_fix.h
+            addon/ImVulkanShader/option.h
+            addon/ImVulkanShader/allocator.h
+            addon/ImVulkanShader/gpu.h
+            addon/ImVulkanShader/command.h
+            addon/ImVulkanShader/buffer.h
+            addon/ImVulkanShader/pipeline.h
+            addon/ImVulkanShader/pipelinecache.h
+            addon/ImVulkanShader/Cast_shader.h
+            addon/ImVulkanShader/Cast_vulkan.h
+            addon/ImVulkanShader/Packing_shader.h
+            addon/ImVulkanShader/Packing_vulkan.h
+            addon/ImVulkanShader/ColorConvert_shader.h
+            addon/ImVulkanShader/ColorConvert_vulkan.h
+            addon/ImVulkanShader/Resize_shader.h
+            addon/ImVulkanShader/Resize_vulkan.h
+            addon/ImVulkanShader/ImVulkanShader.h
+        )
+        set(IMGUI_INC_DIRS
+            ${IMGUI_INC_DIRS}
+            ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImVulkanShader
+            ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImVulkanShader/glslang
+            ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImVulkanShader/glslang/glslang/include
+            ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImVulkanShader/glslang/glslang/Public
+            ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImVulkanShader/glslang/SPIRV
+        )
+        set(GLSLANG_LIBRARY
+            glslang
+            OGLCompiler
+            OSDependent
+            SPIRV
+        )
+        set(LINK_LIBS
+            ${LINK_LIBS}
+            ${GLSLANG_LIBRARY}
+        )
     endif(IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
-
+    
     # Addon Demo
     set(IMGUI_SRC
         ${IMGUI_SRC}

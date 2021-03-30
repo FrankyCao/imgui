@@ -3,8 +3,8 @@
 #include <string.h>
 #include <vulkan/vulkan.h>
 
-#include "glslang/SPIRV/GlslangToSpv.h"
-#include "glslang/Public/ShaderLang.h"
+#include "GlslangToSpv.h"
+#include "ShaderLang.h"
 
 #include "command.h"
 #include "buffer.h"
