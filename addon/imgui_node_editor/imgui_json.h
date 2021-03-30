@@ -182,7 +182,7 @@ private:
     static type_t construct(storage_t& storage, const char*    value) { new (&storage)  string(value);                        return type_t::string;  }
     static type_t construct(storage_t& storage,       boolean  value) { new (&storage) boolean(value);                        return type_t::boolean; }
     static type_t construct(storage_t& storage,       number   value) { new (&storage)  number(value);                        return type_t::number;  }
-    static type_t construct(storage_t& storage,       point    value) { new (&storage)   point(value);                        return type_t::number;  }
+    static type_t construct(storage_t& storage,       point    value) { new (&storage)   point(value);                        return type_t::point;   }
 
     static void destruct(storage_t& storage, type_t type)
     {
