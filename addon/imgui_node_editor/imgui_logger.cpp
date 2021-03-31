@@ -138,8 +138,8 @@ void imgui_logger::OverlayLogger::Draw(const ImVec2& a, const ImVec2& b)
            textColor.Value.w = alpha;
         outlineColor.Value.w = alpha / 2.0f;
 
-        if (isHovered || entry.m_IsPinned)
-            drawList->AddRectFilled(cursor, cursor + itemSize, isHovered ? m_HighlightFill : m_PinFill);
+        //if (isHovered || entry.m_IsPinned)
+        //    drawList->AddRectFilled(cursor, cursor + itemSize, isHovered ? m_HighlightFill : m_PinFill);
 
         if (outlineSize > 0.0f)
         {
@@ -163,12 +163,12 @@ void imgui_logger::OverlayLogger::Draw(const ImVec2& a, const ImVec2& b)
             auto stringStart = drawList->VtxBuffer.Size;
             drawList->AddText(nullptr, 0.0f, textPosition, textColor, message, messageEnd, canvasSize.x, &clipRect);
             for (auto& range : entry.m_ColorRanges)
-               TintVertices(drawList, stringStart, range.m_Color, alpha, range.m_Start, range.m_Size);
+                TintVertices(drawList, stringStart, range.m_Color, alpha, range.m_Start, range.m_Size);
         }
 
         if (isHovered)
             m_HoldTimer = true;
-
+        /*
         if (isHovered || entry.m_IsPinned)
             drawList->AddRect(cursor, cursor + itemSize, isHovered ? m_HighlightBorder : m_PinBorder);
 
@@ -187,7 +187,7 @@ void imgui_logger::OverlayLogger::Draw(const ImVec2& a, const ImVec2& b)
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_None))
                 ImGui::SetTooltip("Click to %s message", entry.m_IsPinned ? "unpin" : "pin");
         }
-
+        */
         if (cursor.y < canvasMin.y)
             break;
     }

@@ -265,9 +265,9 @@ struct Style
         GroupRounding           = 6.0f;
         GroupBorderWidth        = 1.0f;
 
-        Colors[StyleColor_Bg]                 = ImColor( 60,  60,  70, 200);
+        Colors[StyleColor_Bg]                 = ImColor( 60,  60,  70,  50);
         Colors[StyleColor_Grid]               = ImColor(120, 120, 120,  40);
-        Colors[StyleColor_NodeBg]             = ImColor( 32,  32,  32, 200);
+        Colors[StyleColor_NodeBg]             = ImColor( 32,  32,  32, 228);
         Colors[StyleColor_NodeBorder]         = ImColor(255, 255, 255,  96);
         Colors[StyleColor_HovNodeBorder]      = ImColor( 50, 176, 255, 255);
         Colors[StyleColor_SelNodeBorder]      = ImColor(255, 176,  50, 255);
