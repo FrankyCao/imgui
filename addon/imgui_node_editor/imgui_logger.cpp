@@ -58,6 +58,8 @@ void imgui_logger::OverlayLogger::Log(LogLevel level, const char* format, ...)
     OutputDebugStringA("\n");
 # endif
 
+    if (m_Entries.size() >= m_EntrySize)
+        m_Entries.erase(m_Entries.begin());
     m_Entries.push_back(std::move(entry));
 }
 

@@ -67,6 +67,7 @@ private:
     float           m_MessageFadeOutDuration      = 0.5f;
     float           m_MessageLifeDuration         = m_MessagePresentationDuration + m_MessageFadeOutDuration;
     bool            m_HoldTimer                   = false;
+    int32_t         m_EntrySize                   = 1024;
     vector<Entry>   m_Entries;
     vector<string>  m_Keywords;
     ImColor         m_HighlightBorder             = ImColor(  5, 130, 255, 128);
