@@ -33,5 +33,10 @@ bool ImGui::LoadInternalIcons(ImFontAtlas* atlas)
     // Fork Material Design Icons
     static const ImWchar md_icons_ranges[] = { ICON_MIN_MD, ICON_MAX_MD, 0 };
 	atlas->AddFontFromMemoryCompressedBase85TTF(MaterialIcons_compressed_data_base85, 16.0f, &icons_config, md_icons_ranges);
+
+    // Kenney Game icons
+    static const ImWchar ki_icons_ranges[] = { ICON_MIN_KI, ICON_MAX_KI, 0 };
+	atlas->AddFontFromMemoryCompressedBase85TTF(kenney_compressed_data_base85, 16.0f, &icons_config, ki_icons_ranges);
+
     return true;
 }
