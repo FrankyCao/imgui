@@ -514,7 +514,10 @@ private:
         int c;
         while (accept_character(c))
         {
-            JSON_ASSERT(c < 128); // #todo: convert characters > 127 to UTF-8
+            //JSON_ASSERT(c < 128);
+            // disable check character is ascii in case we using UTF-8
+            // this will cause problem when UTF-8 character contain '"'
+            // TODO::Dicky
             result.push_back(static_cast<char>(c));
         }
 
@@ -532,8 +535,8 @@ private:
         else if (expect('\"'))
             return false;
 
-        // #todo: Handle UTF-8 sequences.
-        return s((c = peek()) >= 0) && advance();
+        // Handle UTF-8 sequences. only eof will return -1.
+        return s((c = peek()) != -1) && advance();
     }
 
     bool accept_escape(int& c)
