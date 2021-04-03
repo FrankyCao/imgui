@@ -12345,7 +12345,7 @@ double ImGui::get_current_time()
 #else  // _WIN32
     struct timeval tv;
     gettimeofday(&tv, NULL);
-    return tv.tv_sec * 1000.0 + tv.tv_usec / 1000.0;
+    return tv.tv_sec + tv.tv_usec / 1000000.0;
 #endif // _WIN32
 }
 

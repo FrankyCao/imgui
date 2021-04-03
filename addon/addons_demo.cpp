@@ -919,8 +919,7 @@ static float vkpeak(ImVulkan::VulkanDevice* vkdev, int loop, int count_mb, int c
 
                 double time = ImGui::get_current_time() - t0;
                 const double mac = (double)count * (double)loop * 8 * elempack * 2;
-                double gflops = mac / time / 1000000;
-                //if (gflops > max_gflops)
+                double gflops = mac / time / 1000000000;
                 max_gflops += gflops;
             }
             cmd.flash();
