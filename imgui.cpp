@@ -12349,7 +12349,7 @@ double ImGui::get_current_time()
 #endif // _WIN32
 }
 
-int32_t ImGui::get_current_time_msec()
+uint32_t ImGui::get_current_time_msec()
 {
 #ifdef _WIN32
     LARGE_INTEGER freq;
@@ -12360,11 +12360,11 @@ int32_t ImGui::get_current_time_msec()
 #else
     struct timeval tv;
     gettimeofday(&tv, NULL);
-    return ((int32_t)tv.tv_sec * 1000 + (int32_t)tv.tv_usec / 1000);
+    return ((uint32_t)tv.tv_sec * 1000 + (uint32_t)tv.tv_usec / 1000);
 #endif
 }
 
-int64_t ImGui::get_current_time_usec()
+uint64_t ImGui::get_current_time_usec()
 {
 #ifdef _WIN32
     LARGE_INTEGER freq;
@@ -12375,7 +12375,7 @@ int64_t ImGui::get_current_time_usec()
 #else
     struct timeval tv;
     gettimeofday(&tv, NULL);
-    return ((int64_t)tv.tv_sec * 1000000 + (int64_t)tv.tv_usec);
+    return ((uint64_t)tv.tv_sec * 1000000 + (uint64_t)tv.tv_usec);
 #endif
 }
 // Add By Dicky

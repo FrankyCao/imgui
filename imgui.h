@@ -2877,8 +2877,8 @@ enum ImDrawCornerFlags_
 namespace ImGui
 {
     IMGUI_API double            get_current_time();
-    IMGUI_API int32_t           get_current_time_msec();
-    IMGUI_API int64_t           get_current_time_usec();
+    IMGUI_API uint32_t          get_current_time_msec();
+    IMGUI_API uint64_t          get_current_time_usec();
 } // namespace ImGui
 // add By Dicky end
 #endif // #ifndef IMGUI_DISABLE
