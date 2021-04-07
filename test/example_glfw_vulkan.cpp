@@ -566,8 +566,8 @@ int main(int, char**)
     // Init imnodes
     std::string node_ini_path = std::string(DEFAULT_CONFIG_PATH) + "nodes_save_load.ini";
     std::string node_path = std::string(DEFAULT_CONFIG_PATH) + "nodes_save_load.node";
-    imnodes::CreateContext();
-    imnodes_sample::NodeEditorInitialize(node_ini_path.c_str(), node_path.c_str());
+    ImNodes::CreateContext();
+    imnodes_example::NodeEditorInitialize(node_ini_path.c_str(), node_path.c_str());
 
     // Init NodeGraphEditor
     ImGui::NodeGraphEditor nge;
@@ -769,7 +769,7 @@ int main(int, char**)
         // 12. Show Node  Window
         if (show_node_window)
         {
-            imnodes_sample::NodeEditorShow();
+            imnodes_example::NodeEditorShow();
         }
 
         // 13. Show Node Edit Window
@@ -828,8 +828,8 @@ int main(int, char**)
     end_file_dialog_demo_window(&filedialog, bookmark_path.c_str());
 
     // Clean Node Window
-    imnodes_sample::NodeEditorShutdown(node_ini_path.c_str(), node_path.c_str());
-    imnodes::DestroyContext();
+    imnodes_example::NodeEditorShutdown(node_ini_path.c_str(), node_path.c_str());
+    ImNodes::DestroyContext();
 
     // Cleanup Demo
     ImGui::CleanupDemo();

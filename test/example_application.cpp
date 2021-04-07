@@ -56,8 +56,8 @@ public:
         // Init imnodes
         std::string node_ini_path = std::string(DEFAULT_CONFIG_PATH) + "nodes_save_load.ini";
         std::string node_path = std::string(DEFAULT_CONFIG_PATH) + "nodes_save_load.node";
-        imnodes::CreateContext();
-        imnodes_sample::NodeEditorInitialize(node_ini_path.c_str(), node_path.c_str());
+        ImNodes::CreateContext();
+        imnodes_example::NodeEditorInitialize(node_ini_path.c_str(), node_path.c_str());
 
         // Init NodeGraphEditor
         std::string nge_ini_path = std::string(DEFAULT_CONFIG_PATH) + "nodeGraphEditor.nge.ini";
@@ -82,8 +82,8 @@ public:
         // Clean Node Window
         std::string node_ini_path = std::string(DEFAULT_CONFIG_PATH) + "nodes_save_load.ini";
         std::string node_path = std::string(DEFAULT_CONFIG_PATH) + "nodes_save_load.node";
-        imnodes_sample::NodeEditorShutdown(node_ini_path.c_str(), node_path.c_str());
-        imnodes::DestroyContext();
+        imnodes_example::NodeEditorShutdown(node_ini_path.c_str(), node_path.c_str());
+        ImNodes::DestroyContext();
         ImGui::CleanupDemo();
         ImGui::CleanupZMODemo();
 #ifdef IMGUI_VULKAN_SHADER
@@ -407,7 +407,7 @@ bool Application_Frame(void* handle)
     // 13. Show Node Sample Window
     if (example->show_node_window)
     {
-        imnodes_sample::NodeEditorShow(&example->show_node_window);
+        imnodes_example::NodeEditorShow(&example->show_node_window);
     }
 
     // 14. Show Node Edit Window
