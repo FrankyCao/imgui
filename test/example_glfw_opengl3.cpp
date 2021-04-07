@@ -10,8 +10,12 @@
 #include "implot.h"
 #include "imgui_markdown.h"
 #include "imgui_memory_editor.h"
+#ifdef IMGUI_ADDONS_IMNODES
 #include "imnodes.h"
+#endif
+#ifdef IMGUI_ADDONS_NODE_GRAPH
 #include "ImGuiNodeGraphEditor.h"
+#endif
 #include "TextEditor.h"
 #include "ImGuiFileDialog.h"
 #include "ImGuiFileSystem.h"
@@ -266,19 +270,22 @@ int main(int, char**)
     // Init MarkDown
     ImGui::MarkdownConfig mdConfig; 
 
+#ifdef IMGUI_ADDONS_IMNODES
     // Init imnodes
     std::string node_ini_path = std::string(DEFAULT_CONFIG_PATH) + "nodes_save_load.ini";
     std::string node_path = std::string(DEFAULT_CONFIG_PATH) + "nodes_save_load.node";
     ImNodes::CreateContext();
     imnodes_example::NodeEditorInitialize(node_ini_path.c_str(), node_path.c_str());
+#endif
 
+#ifdef IMGUI_ADDONS_NODE_GRAPH
     // Init NodeGraphEditor
     ImGui::NodeGraphEditor nge;
     std::string nge_ini_path = std::string(DEFAULT_CONFIG_PATH) + "nodeGraphEditor.nge.ini";
     std::string nge_style_path = std::string(DEFAULT_CONFIG_PATH) + "nodeGraphEditor.style.ini";
     nge.save_node_path = nge_ini_path;
     nge.save_style_path = nge_style_path;
-
+#endif
     // Init HotKey
     static std::vector<ImHotKey::HotKey> hotkeys = 
     { 
@@ -348,8 +355,12 @@ int main(int, char**)
             ImGui::Checkbox("Show Markdown Window", &show_markdown_window);
             ImGui::Checkbox("Show Dock Window", &show_dock_window);
             ImGui::Checkbox("Show Tab Window", &show_tab_window);
+#ifdef IMGUI_ADDONS_IMNODES
             ImGui::Checkbox("Show Node Sample Window", &show_node_window);
+#endif
+#ifdef IMGUI_ADDONS_NODE_GRAPH
             ImGui::Checkbox("Show Node Edit Windows", &show_node_edit_window);
+#endif
             ImGui::Checkbox("Show Addon Widgets", &show_addon_widget);
             ImGui::Checkbox("Show ImGuizmo Window", &show_zmo_window);
 
@@ -456,13 +467,14 @@ int main(int, char**)
             }
             ImGui::End();
         }
-
+#ifdef IMGUI_ADDONS_IMNODES
         // 12. Show Node  Window
         if (show_node_window)
         {
-            imnodes_sample::NodeEditorShow();
+            imnodes_example::NodeEditorShow();
         }
-
+#ENDIF
+#ifdef IMGUI_ADDONS_NODE_GRAPH
         // 13. Show Node Edit Window
         if (show_node_edit_window)
         {
@@ -475,6 +487,7 @@ int main(int, char**)
             }
             ImGui::End();
         }
+#endif
 
         // 14. Show Addon Widget.
         if (show_addon_widget)
@@ -516,14 +529,18 @@ int main(int, char**)
     // Store file dialog bookmark
     end_file_dialog_demo_window(&filedialog, bookmark_path.c_str());
 
+#ifdef IMGUI_ADDONS_IMNODES
     // Clean Node Window
     imnodes_example::NodeEditorShutdown(node_ini_path.c_str(), node_path.c_str());
     ImNodes::DestroyContext();
+#endif
 
     // Cleanup Demo
     ImGui::CleanupDemo();
     ImGui::CleanupZMODemo();
+#ifdef IMGUI_ADDONS_NODE_GRAPH
     nge.clear();
+#endif
 #endif
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();

@@ -91,6 +91,9 @@ _OPTION(IMGUI_FONT_SONG          "Internal Mono Song Fonts build in library" OFF
 _OPTION(IMGUI_FONT_YUAN          "Internal Mono Yuan Fonts build in library" OFF)
 _OPTION(IMGUI_ICONS              "Internal Icons build in library" ON)
 _OPTION(IMGUI_ADDONS             "build addons base on imgui" ON)
+_OPTION(IMGUI_ADDON_NODE_EDITOR  "build node editor base on imgui" ON)
+_OPTION(IMGUI_ADDON_IMNODES      "build imnodes base on imgui" OFF)
+_OPTION(IMGUI_ADDON_NODE_GRAPH   "build node graph editor base on imgui" OFF)
 _OPTION(IMGUI_APPS               "build apps base on imgui" ON)
 _OPTION(IMGUI_APPLE_APP          "build apple app base on imgui(Apple only)" OFF IF APPLE)
 
@@ -744,33 +747,39 @@ if(IMGUI_ADDONS)
     )
 
     # Simple nodes
-    set(IMGUI_SRC
-        ${IMGUI_SRC}
-        addon/imnodes/imnodes.cpp
-        addon/imnodes/imnodes_demo.cpp
-    )
-    set(IMGUI_INCS
-        ${IMGUI_INCS}
-        addon/imnodes/imnodes.h
-    )
-    set(IMGUI_INC_DIRS
-        ${IMGUI_INC_DIRS}
-        ${CMAKE_CURRENT_SOURCE_DIR}/addon/imnodes
-    )
+    if (IMGUI_ADDONS_IMNODES)
+        add_definitions(-DIMGUI_ADDONS_IMNODES)
+        set(IMGUI_SRC
+            ${IMGUI_SRC}
+            addon/imnodes/imnodes.cpp
+            addon/imnodes/imnodes_demo.cpp
+        )
+        set(IMGUI_INCS
+            ${IMGUI_INCS}
+            addon/imnodes/imnodes.h
+        )
+        set(IMGUI_INC_DIRS
+            ${IMGUI_INC_DIRS}
+            ${CMAKE_CURRENT_SOURCE_DIR}/addon/imnodes
+        )
+    endif(IMGUI_ADDONS_IMNODES)
 
     # Node Graph Edit
-    set(IMGUI_SRC
-        ${IMGUI_SRC}
-        addon/ImGuiNodeGraphEditor/ImGuiNodeGraphEditor.cpp
-    )
-    set(IMGUI_INCS
-        ${IMGUI_INCS}
-        addon/ImGuiNodeGraphEditor/ImGuiNodeGraphEditor.h
-    )
-    set(IMGUI_INC_DIRS
-        ${IMGUI_INC_DIRS}
-        ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiNodeGraphEditor
-    )
+    if (IMGUI_ADDONS_NODE_GRAPH)
+        add_definitions(-DIMGUI_ADDONS_NODE_GRAPH)
+        set(IMGUI_SRC
+            ${IMGUI_SRC}
+            addon/ImGuiNodeGraphEditor/ImGuiNodeGraphEditor.cpp
+        )
+        set(IMGUI_INCS
+            ${IMGUI_INCS}
+            addon/ImGuiNodeGraphEditor/ImGuiNodeGraphEditor.h
+        )
+        set(IMGUI_INC_DIRS
+            ${IMGUI_INC_DIRS}
+            ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiNodeGraphEditor
+        )
+    endif(IMGUI_ADDONS_NODE_GRAPH)
 
     # Simple TimeLine
     set(IMGUI_SRC
