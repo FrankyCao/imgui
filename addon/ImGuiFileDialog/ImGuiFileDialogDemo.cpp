@@ -25,7 +25,7 @@ inline void InfosPane(const char* vFilter, IGFDUserDatas vUserDatas, bool* vCant
 		*vCantContinue = canValidateDialog;
 }
 
-inline bool RadioButtonLabeled(const char* label, bool active, bool disabled)
+inline bool RadioButtonLabeled(const char* label, const char* help, bool active, bool disabled)
 {
 	using namespace ImGui;
 
@@ -77,7 +77,52 @@ inline bool RadioButtonLabeled(const char* label, bool active, bool disabled)
 		RenderText(check_bb.GetCenter() - label_size * 0.5f, label);
 	}
 
+	if (help && ImGui::IsItemHovered())
+		ImGui::SetTooltip("%s", help);
+
 	return pressed;
+}
+
+template<typename T>
+inline bool RadioButtonLabeled_BitWize(
+	const char* vLabel, const char* vHelp, T* vContainer, T vFlag,
+	bool vOneOrZeroAtTime = false, //only one selected at a time
+	bool vAlwaysOne = true, // radio behavior, always one selected
+	T vFlagsToTakeIntoAccount = (T)0,
+	bool vDisableSelection = false,
+	ImFont* vLabelFont = nullptr) // radio witl use only theses flags
+{
+	bool selected = (*vContainer) & vFlag;
+	const bool res = RadioButtonLabeled(vLabel, vHelp, selected, vDisableSelection);
+	if (res) {
+		if (!selected) {
+			if (vOneOrZeroAtTime) {
+				if (vFlagsToTakeIntoAccount) {
+					if (vFlag & vFlagsToTakeIntoAccount) {
+						*vContainer = (T)(*vContainer & ~vFlagsToTakeIntoAccount); // remove these flags
+						*vContainer = (T)(*vContainer | vFlag); // add
+					}
+				}
+				else *vContainer = vFlag; // set
+			}
+			else {
+				if (vFlagsToTakeIntoAccount) {
+					if (vFlag & vFlagsToTakeIntoAccount) {
+						*vContainer = (T)(*vContainer & ~vFlagsToTakeIntoAccount); // remove these flags
+						*vContainer = (T)(*vContainer | vFlag); // add
+					}
+				}
+				else *vContainer = (T)(*vContainer | vFlag); // add
+			}
+		}
+		else {
+			if (vOneOrZeroAtTime) {
+				if (!vAlwaysOne) *vContainer = (T)(0); // remove all
+			}
+			else *vContainer = (T)(*vContainer & ~vFlag); // remove one
+		}
+	}
+	return res;
 }
 
 void prepare_file_dialog_demo_window(ImGuiFileDialog * dlg, const char * bookmark_path)
@@ -144,6 +189,12 @@ void end_file_dialog_demo_window(ImGuiFileDialog * dlg, const char * bookmark_pa
 
 void show_file_dialog_demo_window(ImGuiFileDialog * dlg, bool * open)
 {
+	static std::string filePathName = "";
+	static std::string filePath = "";
+	static std::string filter = "";
+	static std::string userDatas = "";
+	static std::vector<std::pair<std::string, std::string>> selection = {};
+
 	ImGui::Begin("imGuiFileDialog Demo", open); 
 	ImGui::Text("imGuiFileDialog Version : %s", IMGUIFILEDIALOG_VERSION);
 	ImGui::Indent();
@@ -171,28 +222,25 @@ void show_file_dialog_demo_window(ImGuiFileDialog * dlg, bool * open)
 		static bool standardDialogMode = false;
 		ImGui::Text("Open Mode : ");
 		ImGui::SameLine();
-		if (RadioButtonLabeled("Standard", standardDialogMode, false)) standardDialogMode = true;
+		if (RadioButtonLabeled("Standard", "Open dialog in standard mode", standardDialogMode, false)) standardDialogMode = true;
 		ImGui::SameLine();
-		if (RadioButtonLabeled("Modal", !standardDialogMode, false)) standardDialogMode = false;
+		if (RadioButtonLabeled("Modal", "Open dialog in modal mode", !standardDialogMode, false)) standardDialogMode = false;
 
 		static ImGuiFileDialogFlags flags = ImGuiFileDialogFlags_ConfirmOverwrite;
 		ImGui::Text("ImGuiFileDialog Flags : ");
+		ImGui::Indent();
+		ImGui::Text("Commons :");
+		RadioButtonLabeled_BitWize<ImGuiFileDialogFlags>("Overwrite", "Overwrite verifcation before dialog closing", &flags, ImGuiFileDialogFlags_ConfirmOverwrite);
 		ImGui::SameLine();
-		if (RadioButtonLabeled("Confirm Overwrite", flags & ImGuiFileDialogFlags_ConfirmOverwrite, false))
-		{
-			if (flags & ImGuiFileDialogFlags_ConfirmOverwrite)
-				flags &= ~ImGuiFileDialogFlags_ConfirmOverwrite;
-			else
-				flags |= ImGuiFileDialogFlags_ConfirmOverwrite;
-		}
+		RadioButtonLabeled_BitWize<ImGuiFileDialogFlags>("Hide Hidden Files", "Hide Hidden Files", &flags, ImGuiFileDialogFlags_DontShowHiddenFiles);
+		
+		ImGui::Text("Hide Column by default : (saved in imgui.ini, \n\tso defined when the inmgui.ini is not existing)");
+		RadioButtonLabeled_BitWize<ImGuiFileDialogFlags>("Hide Column Type", "Hide Column file type by default", &flags, ImGuiFileDialogFlags_HideColumnType);
 		ImGui::SameLine();
-		if (RadioButtonLabeled("Dont Show Hidden Files", flags & ImGuiFileDialogFlags_DontShowHiddenFiles, false))
-		{
-			if (flags & ImGuiFileDialogFlags_DontShowHiddenFiles)
-				flags &= ~ImGuiFileDialogFlags_DontShowHiddenFiles;
-			else
-				flags |= ImGuiFileDialogFlags_DontShowHiddenFiles;
-		}
+		RadioButtonLabeled_BitWize<ImGuiFileDialogFlags>("Hide Column Size", "Hide Column file Size by default", &flags, ImGuiFileDialogFlags_HideColumnSize);
+		ImGui::SameLine();
+		RadioButtonLabeled_BitWize<ImGuiFileDialogFlags>("Hide Column Date", "Hide Column file Date by default", &flags, ImGuiFileDialogFlags_HideColumnDate);
+		ImGui::Unindent();
 
 		ImGui::Text("Singleton acces :");
 		if (ImGui::Button(ICON_IGFD_FOLDER_OPEN " Open File Dialog"))
@@ -226,6 +274,14 @@ void show_file_dialog_demo_window(ImGuiFileDialog * dlg, bool * open)
 				dlg->OpenDialog("ChooseFileDlgKey",	ICON_IGFD_FOLDER_OPEN " Choose a File", filters, ".", "", 0, nullptr, flags);
 			else
 				dlg->OpenModal("ChooseFileDlgKey",	ICON_IGFD_FOLDER_OPEN " Choose a File", filters, ".", "", 0, nullptr, flags);
+		}
+		if (ImGui::Button(ICON_IGFD_FOLDER_OPEN " Open File Dialog with last file path name"))
+		{
+			const char* filters = ".*,.cpp,.h,.hpp";
+			if (standardDialogMode)
+				ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", ICON_IGFD_FOLDER_OPEN " Choose a File", filters, filePathName, 1, nullptr, flags);
+			else
+				ImGuiFileDialog::Instance()->OpenModal("ChooseFileDlgKey", ICON_IGFD_FOLDER_OPEN " Choose a File", filters, filePathName, 1, nullptr, flags);
 		}
 		if (ImGui::Button(ICON_IGFD_FOLDER_OPEN " Open All file types with filter .*"))
 		{
@@ -295,12 +351,6 @@ void show_file_dialog_demo_window(ImGuiFileDialog * dlg, bool * open)
 		// flags => ImGuiWindowFlags_NoCollapse
 		// minSize => 0,0
 		// maxSize => FLT_MAX, FLT_MAX (defined is float.h)
-
-		static std::string filePathName = "";
-		static std::string filePath = "";
-		static std::string filter = "";
-		static std::string userDatas = "";
-		static std::vector<std::pair<std::string, std::string>> selection = {};
 
 		if (dlg->Display("ChooseFileDlgKey",
 			ImGuiWindowFlags_NoCollapse, minSize, maxSize))

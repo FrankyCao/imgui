@@ -601,7 +601,7 @@ namespace IGFD
 			window->DC.LastItemStatusFlags |= ImGuiItemStatusFlags_ToggledSelection;
 
 		// Render
-		if (held && (flags & ImGuiSelectableFlags_DrawHoveredWhenHeld) || vFlashing)
+		if ((held && (flags & ImGuiSelectableFlags_DrawHoveredWhenHeld)) || vFlashing)
 			hovered = true;
 		if (hovered || selected)
 		{
@@ -687,7 +687,9 @@ namespace IGFD
 		if (ps.isOk)
 		{
 			dlg_path = ps.path;
-			SetDefaultFileName(vFilePathName);
+			SetDefaultFileName(ps.name + "." + ps.ext);
+			m_SelectedFileNames.clear();
+			m_SelectedFileNames.emplace(ps.name + "." + ps.ext);
 			dlg_defaultExt = "." + ps.ext;
 		}
 		else
@@ -775,7 +777,9 @@ namespace IGFD
 		if (ps.isOk)
 		{
 			dlg_path = ps.path;
-			SetDefaultFileName(vFilePathName);
+			SetDefaultFileName(ps.name + "." + ps.ext);
+			m_SelectedFileNames.clear();
+			m_SelectedFileNames.emplace(ps.name + "." + ps.ext);
 			dlg_defaultExt = "." + ps.ext;
 		}
 		else
@@ -1291,9 +1295,9 @@ namespace IGFD
 		{
 			ImGui::TableSetupScrollFreeze(0, 1); // Make header always visible
 			ImGui::TableSetupColumn(m_HeaderFileName.c_str(), ImGuiTableColumnFlags_WidthStretch, -1, 0);
-			ImGui::TableSetupColumn(m_HeaderFileType.c_str(), ImGuiTableColumnFlags_WidthFixed, -1, 1);
-			ImGui::TableSetupColumn(m_HeaderFileSize.c_str(), ImGuiTableColumnFlags_WidthFixed, -1, 2);
-			ImGui::TableSetupColumn(m_HeaderFileDate.c_str(), ImGuiTableColumnFlags_WidthFixed, -1, 3);
+			ImGui::TableSetupColumn(m_HeaderFileType.c_str(), ImGuiTableColumnFlags_WidthFixed | ((dlg_flags & ImGuiFileDialogFlags_HideColumnType) ? ImGuiTableColumnFlags_DefaultHide : 0), -1, 1);
+			ImGui::TableSetupColumn(m_HeaderFileSize.c_str(), ImGuiTableColumnFlags_WidthFixed | ((dlg_flags & ImGuiFileDialogFlags_HideColumnSize) ? ImGuiTableColumnFlags_DefaultHide : 0), -1, 2);
+			ImGui::TableSetupColumn(m_HeaderFileDate.c_str(), ImGuiTableColumnFlags_WidthFixed | ((dlg_flags & ImGuiFileDialogFlags_HideColumnDate) ? ImGuiTableColumnFlags_DefaultHide : 0), -1, 3);
 
 #ifndef USE_CUSTOM_SORTING_ICON
 			// Sort our data if sort specs have been changed!
@@ -1347,6 +1351,7 @@ namespace IGFD
 						if (i < 0) continue;
 
 						const FileInfoStruct& infos = m_FilteredFileList[i];
+
 						ImVec4 c;
 						std::string icon;
 						bool showTypeColor = GetTypeInfos(std::to_string(infos.type), &c, &icon);
@@ -1401,7 +1406,7 @@ namespace IGFD
 							}
 							else
 							{
-								ImGui::Text("");
+								ImGui::Text("%s ", "");
 							}
 						}
 						if (ImGui::TableNextColumn()) // file date + time
@@ -1490,6 +1495,7 @@ namespace IGFD
 				{
 					SelectFileName(vInfos);
 				}
+
 				return true; // needToBreakTheloop
 			}
 			else if (vInfos.type == 'f')
@@ -1590,9 +1596,13 @@ namespace IGFD
 		if (dlg_filters.empty()) // if directory mode
 		{
 			std::string selectedDirectory = FileNameBuffer;
-			if (!selectedDirectory.empty() && 
-				selectedDirectory != ".")
-				path += PATH_SEP + selectedDirectory;
+			if (!selectedDirectory.empty() && selectedDirectory != ".")
+			{
+				if (path.empty())
+					path = selectedDirectory;
+				else
+					path += PATH_SEP + selectedDirectory;
+			}
 		}
 
 		return path;
@@ -1607,13 +1617,16 @@ namespace IGFD
 			// if not a collection we can replace the filter by the extention we want
 			if (m_SelectedFilter.collectionfilters.empty())
 			{
-				size_t lastPoint = result.find_last_of('.');
-				if (lastPoint != std::string::npos)
+				if (m_SelectedFilter.filter.find('*') == std::string::npos && result != m_SelectedFilter.filter)
 				{
-					result = result.substr(0, lastPoint);
-				}
+					size_t lastPoint = result.find_last_of('.');
+					if (lastPoint != std::string::npos)
+					{
+						result = result.substr(0, lastPoint);
+					}
 
-				result += m_SelectedFilter.filter;
+					result += m_SelectedFilter.filter;
+				}
 			}
 
 			return result;
@@ -2035,6 +2048,15 @@ namespace IGFD
 				std::sort(m_FileList.begin(), m_FileList.end(),
 					[](const FileInfoStruct& a, const FileInfoStruct& b) -> bool
 					{
+					  	if (a.fileName[0] == '.' && b.fileName[0] != '.') return true;
+					  	if (a.fileName[0] != '.' && b.fileName[0] == '.') return false;
+					  	if (a.fileName[0] == '.' && b.fileName[0] == '.')
+					  	{
+						  	if (a.fileName.length() == 1) return false;
+						  	if (b.fileName.length() == 1) return true;
+						  	return (stricmp(a.fileName.c_str() + 1, b.fileName.c_str() + 1) < 0);
+					  	}
+
 						if (a.type != b.type) return (a.type == 'd'); // directory in first
 						return (stricmp(a.fileName.c_str(), b.fileName.c_str()) < 0); // sort in insensitive case
 					});
@@ -2047,6 +2069,15 @@ namespace IGFD
 				std::sort(m_FileList.begin(), m_FileList.end(),
 					[](const FileInfoStruct& a, const FileInfoStruct& b) -> bool
 					{
+					  	if (a.fileName[0] == '.' && b.fileName[0] != '.') return false;
+					  	if (a.fileName[0] != '.' && b.fileName[0] == '.') return true;
+					  	if (a.fileName[0] == '.' && b.fileName[0] == '.')
+					  	{
+						  	if (a.fileName.length() == 1) return true;
+						  	if (b.fileName.length() == 1) return false;
+						  	return (stricmp(a.fileName.c_str() + 1, b.fileName.c_str() + 1) > 0);
+					  	}
+
 						if (a.type != b.type) return (a.type != 'd'); // directory in last
 						return (stricmp(a.fileName.c_str(), b.fileName.c_str()) > 0); // sort in insensitive case
 					});
@@ -2263,6 +2294,10 @@ namespace IGFD
 			utf8_to_wide(path.c_str(), wpath);
 			numchar = GetFullPathNameW(&wpath[0], PATH_MAX+1, &buffer[0], NULL);
 			wide_to_utf8(&buffer[0], real_path);
+			if (!numchar)
+			{
+				std::cout << "fail to obtain FullPathName " << path << std::endl;
+			}
 #elif defined(UNIX) // UNIX is LINUX or APPLE
 			char* numchar = realpath(path.c_str(), real_path);
 #endif // defined(UNIX)

@@ -22,7 +22,7 @@
 //#define FILTER_COMBO_WIDTH 120.0f
 // button widget use for compose path
 //#define IMGUI_PATH_BUTTON ImGui::Button
-// standar button
+// standard button
 //#define IMGUI_BUTTON ImGui::Button
 
 // locales string
@@ -42,7 +42,7 @@
 #define cancelButtonString " Cancel"
 #define resetButtonString "R"
 #define drivesButtonString "Drives"
-//#define searchString " Search"
+//#define searchString "Search"
 #define dirEntryString "[DIR] "
 #define linkEntryString "[LINK] "
 #define fileEntryString "[FILE] "

@@ -493,7 +493,11 @@ enum ImGuiFileDialogFlags_
 	ImGuiFileDialogFlags_None = 0,
 	ImGuiFileDialogFlags_ConfirmOverwrite = 1 << 0,		// show confirm to overwrite dialog
 	ImGuiFileDialogFlags_DontShowHiddenFiles = 1 << 1,	// dont show hidden file (file starting with a .)
-	ImGuiFileDialogFlags_ShowBookmark = 1 << 2			// show bookmark when open dialog
+	ImGuiFileDialogFlags_HideColumnType = 1 << 2,		// hide column file type
+	ImGuiFileDialogFlags_HideColumnSize = 1 << 3,		// hide column file size
+	ImGuiFileDialogFlags_HideColumnDate = 1 << 4,		// hide column file date
+	ImGuiFileDialogFlags_ShowBookmark = 1 << 5,			// show bookmark when open dialog
+	ImGuiFileDialogFlags_Default = ImGuiFileDialogFlags_None // for the moment we have no defualt options but its comming :)
 };
 
 #ifdef __cplusplus
