@@ -159,7 +159,7 @@ set(IMGUI_INC_DIRS
 set(LINK_LIBS)
 
 if(OPENGL_FOUND)
-    option(IMGUI_OPENGL "" ON)
+    set(IMGUI_OPENGL ON)
     message(STATUS "    [ImGui with OpenGL support]")
     set(IMGUI_INC_DIRS
         ${IMGUI_INC_DIRS}
@@ -172,7 +172,7 @@ if(OPENGL_FOUND)
 endif(OPENGL_FOUND)
 
 if(IMGUI_FREETYPE AND FREETYPE_FOUND)
-    option(IMGUI_ENABLE_FREETYPE "" ON)
+    set(IMGUI_ENABLE_FREETYPE ON)
     set(IMGUI_INC_DIRS
         ${IMGUI_INC_DIRS}
         ${FREETYPE_INCLUDE_DIRS}
@@ -275,7 +275,7 @@ set(BACKEND_RENDERING NONE)
 # Vulkan support
 if (IMGUI_VULKAN AND VULKAN_FOUND)
     message(STATUS "    [ImGui backend rendering with Vulkan]")
-    option(IMGUI_RENDERING_VULKAN "" ON)
+    set(IMGUI_RENDERING_VULKAN ON)
     set(BACKEND_RENDERING VULKAN)
     set(IMGUI_INC_DIRS
         ${IMGUI_INC_DIRS}
@@ -299,7 +299,7 @@ endif(IMGUI_VULKAN AND VULKAN_FOUND)
 if(OPENGL_FOUND AND BACKEND_RENDERING MATCHES NONE)
     if(IMGUI_GL3)
         message(STATUS "    [ImGui backend rendering with OpenGL3]")
-        option(IMGUI_RENDERING_GL3 "" ON)
+        set(IMGUI_RENDERING_GL3 ON)
         set(BACKEND_RENDERING OPENGL3)
         set(IMGUI_SRC
             ${IMGUI_SRC}
@@ -311,7 +311,7 @@ if(OPENGL_FOUND AND BACKEND_RENDERING MATCHES NONE)
         )
     elseif(IMGUI_GL2)
         message(STATUS "    [ImGui backend rendering with OpenGL2]")
-        option(IMGUI_RENDERING_GL2 "" ON)
+        set(IMGUI_RENDERING_GL2 ON)
         set(BACKEND_RENDERING OPENGL2)
         set(IMGUI_SRC
             ${IMGUI_SRC}
@@ -328,7 +328,7 @@ endif()
 if(WIN32 AND BACKEND_RENDERING MATCHES NONE)
     if(IMGUI_DX12)
         message(STATUS "    [ImGui backend rendering with DX12]")
-        option(IMGUI_RENDERING_DX12 "" ON)
+        set(IMGUI_RENDERING_DX12 ON)
         set(BACKEND_RENDERING DX12)
         set(LINK_LIBS
             ${LINK_LIBS}
@@ -344,7 +344,7 @@ if(WIN32 AND BACKEND_RENDERING MATCHES NONE)
         )
     elseif(IMGUI_DX11)
         message(STATUS "    [ImGui backend rendering with DX11]")
-        option(IMGUI_RENDERING_DX11 "" ON)
+        set(IMGUI_RENDERING_DX11 ON)
         set(BACKEND_RENDERING DX11)
         set(LINK_LIBS
             ${LINK_LIBS}
@@ -360,7 +360,7 @@ if(WIN32 AND BACKEND_RENDERING MATCHES NONE)
         )
     elseif(IMGUI_DX10)
         message(STATUS "    [ImGui backend rendering with DX10]")
-        option(IMGUI_RENDERING_DX10 "" ON)
+        set(IMGUI_RENDERING_DX10 ON)
         set(BACKEND_RENDERING DX10)
         set(LINK_LIBS
             ${LINK_LIBS}
@@ -376,7 +376,7 @@ if(WIN32 AND BACKEND_RENDERING MATCHES NONE)
         )
     elseif(IMGUI_DX9)
         message(STATUS "    [ImGui backend rendering with DX9]")
-        option(IMGUI_RENDERING_DX9 "" ON)
+        set(IMGUI_RENDERING_DX9 ON)
         set(BACKEND_RENDERING DX9)
         set(LINK_LIBS
             ${LINK_LIBS}
@@ -403,7 +403,7 @@ endif()
 # Apple metal support
 if (APPLE AND IMGUI_MATAL AND BACKEND_RENDERING MATCHES NONE)
     message(STATUS "    [ImGui backend rendering with Matal]")
-    option(IMGUI_RENDERING_MATAL "" ON)
+    set(IMGUI_RENDERING_MATAL ON)
     set(BACKEND_RENDERING MATAL)
     set(IMGUI_SRC
         ${IMGUI_SRC}
@@ -421,7 +421,7 @@ endif()
 # SDL2 Support 
 if (IMGUI_SDL2 AND SDL2_FOUND)
     message(STATUS "    [ImGui backend platform with SDL2]")
-    option(IMGUI_PLATFORM_SDL2 "" ON)
+    set(IMGUI_PLATFORM_SDL2 ON)
     set(IMGUI_SRC
         ${IMGUI_SRC}
         backends/imgui_impl_sdl.cpp
@@ -435,7 +435,7 @@ endif(IMGUI_SDL2 AND SDL2_FOUND)
 # GLFW support
 if (IMGUI_GLFW AND GLFW_FOUND)
     message(STATUS "    [ImGui backend platform with GLFW]")
-    option(IMGUI_PLATFORM_GLFW "" ON)
+    set(IMGUI_PLATFORM_GLFW ON)
     set(IMGUI_INC_DIRS
         ${IMGUI_INC_DIRS}
         ${GLFW_INCLUDE_DIRS}
@@ -457,7 +457,7 @@ endif(IMGUI_GLFW AND GLFW_FOUND)
 # GLUT support
 if (IMGUI_GLUT AND GLUT_FOUND)
     message(STATUS "    [ImGui backend platform with GLUT]")
-    option(IMGUI_PLATFORM_GLUT "" ON)
+    set(IMGUI_PLATFORM_GLUT ON)
     set(IMGUI_INC_DIRS
         ${IMGUI_INC_DIRS}
         ${GLUT_INCLUDE_DIRS}
@@ -486,7 +486,7 @@ endif(IMGUI_GLUT AND GLUT_FOUND)
 # Win32 Support
 if(WIN32)
     message(STATUS "    [ImGui backend platform with Win32]")
-    option(IMGUI_PLATFORM_WIN32 "" ON)
+    set(IMGUI_PLATFORM_WIN32 ON)
     set(IMGUI_SRC
         ${IMGUI_SRC}
         backends/imgui_impl_win32.cpp
@@ -499,35 +499,35 @@ endif(WIN32)
 
 # Add Fonts
 if (IMGUI_FONT_HEI)
-    option(IMGUI_INTERNAL_FONT_HEI "" ON)
+    set(IMGUI_INTERNAL_FONT_HEI ON)
     set(IMGUI_SRC
         ${IMGUI_SRC}
         fonts/mono_hei.cpp
     )
 endif (IMGUI_FONT_HEI)
 if (IMGUI_FONT_KAI)
-    option(IMGUI_INTERNAL_FONT_KAI "" ON)
+    set(IMGUI_INTERNAL_FONT_KAI ON)
     set(IMGUI_SRC
         ${IMGUI_SRC}
         fonts/mono_kai.cpp
     )
 endif (IMGUI_FONT_KAI)
 if (IMGUI_FONT_SONG)
-    option(IMGUI_INTERNAL_FONT_SONG "" ON)
+    set(IMGUI_INTERNAL_FONT_SONG ON)
     set(IMGUI_SRC
         ${IMGUI_SRC}
         fonts/mono_song.cpp
     )
 endif (IMGUI_FONT_SONG)
 if (IMGUI_FONT_YUAN)
-    option(IMGUI_INTERNAL_FONT_YUAN "" ON)
+    set(IMGUI_INTERNAL_FONT_YUAN ON)
     set(IMGUI_SRC
         ${IMGUI_SRC}
         fonts/mono_yuan.cpp
     )
 endif (IMGUI_FONT_YUAN)
 if (IMGUI_FONT_SARASA)
-    option(IMGUI_INTERNAL_FONT_SARASA "" ON)
+    set(IMGUI_INTERNAL_FONT_SARASA ON)
     set(IMGUI_SRC
         ${IMGUI_SRC}
         fonts/mono_sarasa.cpp
@@ -536,7 +536,7 @@ endif (IMGUI_FONT_SARASA)
 
 # Add Icons
 if (IMGUI_ICONS)
-    option(IMGUI_INTERNAL_ICONS "" ON)
+    set(IMGUI_INTERNAL_ICONS ON)
     set(IMGUI_SRC
         ${IMGUI_SRC}
         icons/icons.cpp
@@ -912,7 +912,7 @@ if(IMGUI_ADDONS)
             target_compile_options(SPIRV PRIVATE -fvisibility=hidden -fvisibility-inlines-hidden)
         endif()
         if(IMGUI_VULKAN_BENCHMARK)
-            option(SHADER_BENCHMARK "" ON)
+            set(SHADER_BENCHMARK ON)
         endif(IMGUI_VULKAN_BENCHMARK)
         set(IMGUI_SRC
             ${IMGUI_SRC}
@@ -989,8 +989,8 @@ endif(IMGUI_ADDONS)
 set(IMGUI_APP_SRC)
 if (IMGUI_APPS)
     if(BACKEND_RENDERING MATCHES VULKAN AND SDL2_FOUND AND IMGUI_SDL2)
-        option(IMGUI_APPLICATION_RENDERING_VULKAN "" ON)
-        option(IMGUI_APPLICATION_PLATFORM_SDL2 "" ON)
+        set(IMGUI_APPLICATION_RENDERING_VULKAN ON)
+        set(IMGUI_APPLICATION_PLATFORM_SDL2 ON)
         message(STATUS "    [ImGui application platform with SDL2]")
         message(STATUS "    [ImGui application rendering with Vulkan]")
         set(IMGUI_APP_SRC
@@ -998,8 +998,8 @@ if (IMGUI_APPS)
             apps/application/source/vulkan/entry_sdl.cpp
         )
     elseif(BACKEND_RENDERING MATCHES VULKAN AND GLFW_FOUND AND IMGUI_GLFW)
-        option(IMGUI_APPLICATION_RENDERING_VULKAN "" ON)
-        option(IMGUI_APPLICATION_PLATFORM_GLFW "" ON)
+        set(IMGUI_APPLICATION_RENDERING_VULKAN ON)
+        set(IMGUI_APPLICATION_PLATFORM_GLFW ON)
         message(STATUS "    [ImGui application platform with GLFW]")
         message(STATUS "    [ImGui application rendering with Vulkan]")
         set(IMGUI_APP_SRC
@@ -1007,8 +1007,8 @@ if (IMGUI_APPS)
             apps/application/source/vulkan/entry_glfw.cpp
         )
     elseif(BACKEND_RENDERING MATCHES VULKAN AND WIN32)
-        option(IMGUI_APPLICATION_RENDERING_VULKAN "" ON)
-        option(IMGUI_APPLICATION_PLATFORM_WIN32 "" ON)
+        set(IMGUI_APPLICATION_RENDERING_VULKAN ON)
+        set(IMGUI_APPLICATION_PLATFORM_WIN32 ON)
         message(STATUS "    [ImGui application platform with Win32]")
         message(STATUS "    [ImGui application rendering with Vulkan]")
         set(IMGUI_APP_SRC
@@ -1016,8 +1016,8 @@ if (IMGUI_APPS)
             apps/application/source/vulkan/entry_win32.cpp
         )
     elseif(BACKEND_RENDERING MATCHES DX11)
-        option(IMGUI_APPLICATION_RENDERING_DX11 "" ON)
-        option(IMGUI_APPLICATION_PLATFORM_WIN32 "" ON)
+        set(IMGUI_APPLICATION_RENDERING_DX11 ON)
+        set(IMGUI_APPLICATION_PLATFORM_WIN32 ON)
         message(STATUS "    [ImGui application platform with Win32]")
         message(STATUS "    [ImGui application rendering with DX11]")
         set(IMGUI_APP_SRC
@@ -1025,8 +1025,8 @@ if (IMGUI_APPS)
             apps/application/source/dx11/entry.cpp
         )
     elseif(BACKEND_RENDERING MATCHES DX9)
-        option(IMGUI_APPLICATION_RENDERING_DX9 "" ON)
-        option(IMGUI_APPLICATION_PLATFORM_WIN32 "" ON)
+        set(IMGUI_APPLICATION_RENDERING_DX9 ON)
+        set(IMGUI_APPLICATION_PLATFORM_WIN32 ON)
         message(STATUS "    [ImGui application platform with Win32]")
         message(STATUS "    [ImGui application rendering with Dx9]")
         set(IMGUI_APP_SRC
@@ -1034,23 +1034,23 @@ if (IMGUI_APPS)
             apps/application/source/dx9/entry.cpp
         )
     elseif(BACKEND_RENDERING MATCHES OPENGL3)
-        option(IMGUI_APPLICATION_RENDERING_GL3 "" ON)
+        set(IMGUI_APPLICATION_RENDERING_GL3 ON)
         if(IMGUI_SDL2 AND SDL2_FOUND)
-            option(IMGUI_APPLICATION_PLATFORM_SDL2 "" ON)
+            set(IMGUI_APPLICATION_PLATFORM_SDL2 ON)
             message(STATUS "    [ImGui application platform with SDL2]")
             set(IMGUI_APP_SRC
                 ${IMGUI_APP_SRC}
                 apps/application/source/opengl3/entry_sdl.cpp
             )
         elseif(IMGUI_GLFW AND GLFW_FOUND)
-            option(IMGUI_APPLICATION_PLATFORM_GLFW "" ON)
+            set(IMGUI_APPLICATION_PLATFORM_GLFW ON)
             message(STATUS "    [ImGui application platform with GLFW]")
             set(IMGUI_APP_SRC
                 ${IMGUI_APP_SRC}
                 apps/application/source/opengl3/entry_glfw.cpp
             )
         elseif(WIN32)
-            option(IMGUI_APPLICATION_PLATFORM_WIN32 "" ON)
+            set(IMGUI_APPLICATION_PLATFORM_WIN32 ON)
             message(STATUS "    [ImGui application platform with Win32]")
             set(IMGUI_APP_SRC
                 ${IMGUI_APP_SRC}
@@ -1059,30 +1059,30 @@ if (IMGUI_APPS)
         endif()
         message(STATUS "    [ImGui application rendering with OpenGL3]")
     elseif(BACKEND_RENDERING MATCHES OPENGL2)
-        option(IMGUI_APPLICATION_RENDERING_GL2 "" ON)
+        set(IMGUI_APPLICATION_RENDERING_GL2 ON)
         if(SDL2_FOUND AND IMGUI_SDL2)
-            option(IMGUI_APPLICATION_PLATFORM_SDL2 "" ON)
+            set(IMGUI_APPLICATION_PLATFORM_SDL2 ON)
             message(STATUS "    [ImGui application platform with SDL2]")
             set(IMGUI_APP_SRC
                 ${IMGUI_APP_SRC}
                 apps/application/source/opengl2/entry_sdl.cpp
             )   
         elseif(IMGUI_GLFW AND GLFW_FOUND)
-            option(IMGUI_APPLICATION_PLATFORM_GLFW "" ON)
+            set(IMGUI_APPLICATION_PLATFORM_GLFW ON)
             message(STATUS "    [ImGui application platform with GLFW]")
             set(IMGUI_APP_SRC
                 ${IMGUI_APP_SRC}
                 apps/application/source/opengl2/entry_glfw.cpp
             )
         elseif(WIN32)
-            option(IMGUI_APPLICATION_PLATFORM_WIN32 "" ON)
+            set(IMGUI_APPLICATION_PLATFORM_WIN32 ON)
             message(STATUS "    [ImGui application platform with Win32]")
             set(IMGUI_APP_SRC
                 ${IMGUI_APP_SRC}
                 apps/application/source/opengl2/entry_win32.cpp
             )
         elseif(IMGUI_GLUT AND GLUT_FOUND)
-            option(IMGUI_APPLICATION_PLATFORM_GLUT "" ON)
+            set(IMGUI_APPLICATION_PLATFORM_GLUT ON)
             message(STATUS "    [ImGui application platform with GLUT]")
             set(IMGUI_APP_SRC
                 ${IMGUI_APP_SRC}

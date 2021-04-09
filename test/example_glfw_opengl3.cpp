@@ -473,7 +473,7 @@ int main(int, char**)
         {
             imnodes_example::NodeEditorShow();
         }
-#ENDIF
+#endif
 #if IMGUI_ADDON_NODE_GRAPH
         // 13. Show Node Edit Window
         if (show_node_edit_window)
