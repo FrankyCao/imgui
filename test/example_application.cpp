@@ -6,18 +6,18 @@
 #include <sstream>
 #include <string>
 #include <cerrno>
-#ifdef IMGUI_VULKAN_SHADER
+#if IMGUI_VULKAN_SHADER
 #include "imgui_impl_vulkan.h"
 #endif
-#ifdef IMGUI_ADDONS
+#if IMGUI_ADDONS
 #include "implot.h"
 #include "imgui_markdown.h"
 #include "imgui_node_editor.h"
 #include "imgui_memory_editor.h"
-#ifdef IMGUI_ADDONS_IMNODES
+#if IMGUI_ADDON_IMNODES
 #include "imnodes.h"
 #endif
-#ifdef IMGUI_ADDONS_NODE_GRAPH
+#if IMGUI_ADDON_NODE_GRAPH
 #include "ImGuiNodeGraphEditor.h"
 #endif
 #include "TextEditor.h"
@@ -29,7 +29,7 @@
 #endif
 #include "Config.h"
 
-#ifdef IMGUI_ADDONS
+#if IMGUI_ADDONS
 // Init HotKey
 static std::vector<ImHotKey::HotKey> hotkeys = 
 { 
@@ -46,7 +46,7 @@ class Example
 public:
     Example() 
     {
-#ifdef IMGUI_ADDONS
+#if IMGUI_ADDONS
         std::string node_save_path;
         // load file dialog resource
         std::string bookmark_path = std::string(DEFAULT_CONFIG_PATH) + "bookmark.ini";
@@ -57,7 +57,7 @@ public:
         mem_edit.OptShowDataPreview = true;
         data = malloc(0x1000);
 
-#ifdef IMGUI_ADDONS_IMNODES
+#if IMGUI_ADDON_IMNODES
         // Init imnodes
         std::string node_ini_path = std::string(DEFAULT_CONFIG_PATH) + "nodes_save_load.ini";
         std::string node_path = std::string(DEFAULT_CONFIG_PATH) + "nodes_save_load.node";
@@ -65,21 +65,21 @@ public:
         imnodes_example::NodeEditorInitialize(node_ini_path.c_str(), node_path.c_str());
 #endif
 
-#ifdef IMGUI_ADDONS_NODE_GRAPH
+#if IMGUI_ADDON_NODE_GRAPH
         // Init NodeGraphEditor
         std::string nge_ini_path = std::string(DEFAULT_CONFIG_PATH) + "nodeGraphEditor.nge.ini";
         std::string nge_style_path = std::string(DEFAULT_CONFIG_PATH) + "nodeGraphEditor.style.ini";
         nge.save_node_path = nge_ini_path;
         nge.save_style_path = nge_style_path;
 #endif
-#ifdef IMGUI_VULKAN_SHADER
+#if IMGUI_VULKAN_SHADER
         ImGui::PrepareVulkanDemo();
 #endif
 #endif
     };
     ~Example() 
     {
-#ifdef IMGUI_ADDONS
+#if IMGUI_ADDONS
         if (data)
             free(data); 
 
@@ -87,7 +87,7 @@ public:
         std::string bookmark_path = std::string(DEFAULT_CONFIG_PATH) + "bookmark.ini";
         end_file_dialog_demo_window(&filedialog, bookmark_path.c_str());
 
-#ifdef IMGUI_ADDONS_IMNODES
+#if IMGUI_ADDON_IMNODES
         // Clean Node Window
         std::string node_ini_path = std::string(DEFAULT_CONFIG_PATH) + "nodes_save_load.ini";
         std::string node_path = std::string(DEFAULT_CONFIG_PATH) + "nodes_save_load.node";
@@ -96,7 +96,7 @@ public:
 #endif
         ImGui::CleanupDemo();
         ImGui::CleanupZMODemo();
-#ifdef IMGUI_VULKAN_SHADER
+#if IMGUI_VULKAN_SHADER
         ImGui::CleanVulkanDemo();
 #endif
 #endif
@@ -106,7 +106,7 @@ public:
     bool show_demo_window = true;
     bool show_another_window = false;
 
-#ifdef IMGUI_ADDONS
+#if IMGUI_ADDONS
     // init file dialog
     ImGuiFileDialog filedialog;
 
@@ -122,7 +122,7 @@ public:
 
     // Init MarkDown
     ImGui::MarkdownConfig mdConfig;
-#ifdef IMGUI_ADDONS_NODE_GRAPH
+#if IMGUI_ADDON_NODE_GRAPH
     // Init NodeGraphEditor
     ImGui::NodeGraphEditor nge;
 #endif
@@ -144,14 +144,14 @@ public:
     static ImGui::MarkdownImageData ImageCallback( ImGui::MarkdownLinkCallbackData data_ );
     static void LinkCallback( ImGui::MarkdownLinkCallbackData data_ );
     static void ExampleMarkdownFormatCallback( const ImGui::MarkdownFormatInfo& markdownFormatInfo_, bool start_ );
-#ifdef IMGUI_VULKAN_SHADER
+#if IMGUI_VULKAN_SHADER
 public:
     bool show_shader_window = false;
 #endif
 #endif
 };
 
-#ifdef IMGUI_ADDONS
+#if IMGUI_ADDONS
 std::string Example::get_file_contents(const char *filename)
 {
     std::ifstream infile(filename, std::ios::in | std::ios::binary);
@@ -234,7 +234,7 @@ void Application_Initialize(void** handle)
 {
     *handle = new Example();
     Example * example = (Example *)*handle;
-#ifdef IMGUI_ADDONS
+#if IMGUI_ADDONS
     ImPlot::CreateContext();
 #endif
     ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -249,7 +249,7 @@ void Application_Finalize(void** handle)
         delete example;
         *handle = nullptr;
     }
-#ifdef IMGUI_ADDONS
+#if IMGUI_ADDONS
     ImPlot::DestroyContext();
 #endif
 }
@@ -275,7 +275,7 @@ bool Application_Frame(void* handle)
         ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
         ImGui::Checkbox("Demo Window", &example->show_demo_window);      // Edit bools storing our window open/close state
         ImGui::Checkbox("Another Window", &example->show_another_window);
-#ifdef IMGUI_ADDONS
+#if IMGUI_ADDONS
         ImGui::Checkbox("ImPlot Window", &example->show_implot_window);
         ImGui::Checkbox("File Dialog Window", &example->show_file_dialog_window);
         ImGui::Checkbox("Sample File Dialog", &example->show_sample_file_dialog);
@@ -285,15 +285,15 @@ bool Application_Frame(void* handle)
         ImGui::Checkbox("Show Markdown Window", &example->show_markdown_window);
         ImGui::Checkbox("Show Dock Window", &example->show_dock_window);
         ImGui::Checkbox("Show Tab Window", &example->show_tab_window);
-#ifdef IMGUI_ADDONS_IMNODES
+#if IMGUI_ADDON_IMNODES
         ImGui::Checkbox("Show Node Sample Window", &example->show_node_window);
 #endif
-#ifdef IMGUI_ADDONS_NODE_GRAPH
+#if IMGUI_ADDON_NODE_GRAPH
         ImGui::Checkbox("Show Node Edit Windows", &example->show_node_edit_window);
 #endif
         ImGui::Checkbox("Show Addon Widgets", &example->show_addon_widget);
         ImGui::Checkbox("Show ZMO Window", &example->show_zmo_window);
-#ifdef IMGUI_VULKAN_SHADER
+#if IMGUI_VULKAN_SHADER
         ImGui::Checkbox("Show Shader Window", &example->show_shader_window);
 #endif
 
@@ -326,7 +326,7 @@ bool Application_Frame(void* handle)
         ImGui::End();
     }
 
-#ifdef IMGUI_ADDONS
+#if IMGUI_ADDONS
     // 4. Show ImPlot simple window
     if (example->show_implot_window)
     {
@@ -417,14 +417,14 @@ bool Application_Frame(void* handle)
         }
         ImGui::End();
     }
-#ifdef IMGUI_ADDONS_IMNODES
+#if IMGUI_ADDON_IMNODES
     // 13. Show Node Sample Window
     if (example->show_node_window)
     {
         imnodes_example::NodeEditorShow(&example->show_node_window);
     }
 #endif
-#ifdef IMGUI_ADDONS_NODE_GRAPH
+#if IMGUI_ADDON_NODE_GRAPH
     // 14. Show Node Edit Window
     if (example->show_node_edit_window)
     {
@@ -456,7 +456,7 @@ bool Application_Frame(void* handle)
         ImGui::End();
     }
 
-#ifdef IMGUI_VULKAN_SHADER
+#if IMGUI_VULKAN_SHADER
     // 17. Show Shader Window
     if (example->show_shader_window)
     {

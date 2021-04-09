@@ -8,14 +8,14 @@
 #include "imgui_internal.h"
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_opengl3.h"
-#ifdef IMGUI_ADDONS
+#if IMGUI_ADDONS
 #include "implot.h"
 #include "imgui_markdown.h"
 #include "imgui_memory_editor.h"
-#ifdef IMGUI_ADDONS_IMNODES
+#if IMGUI_ADDON_IMNODES
 #include "imnodes.h"
 #endif
-#ifdef IMGUI_ADDONS_NODE_GRAPH
+#if IMGUI_ADDON_NODE_GRAPH
 #include "ImGuiNodeGraphEditor.h"
 #endif
 #include "TextEditor.h"
@@ -33,7 +33,7 @@
 #include <cerrno>
 #include "Config.h"
 
-#ifdef IMGUI_ADDONS
+#if IMGUI_ADDONS
 static std::string get_file_contents(const char *filename)
 {
     std::ifstream infile(filename, std::ios::in | std::ios::binary);
@@ -206,7 +206,7 @@ int main(int, char**)
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-#ifdef IMGUI_ADDONS
+#if IMGUI_ADDONS
     ImPlot::CreateContext();
 #endif
     ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -224,7 +224,7 @@ int main(int, char**)
     ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
-#ifdef IMGUI_ADDONS
+#if IMGUI_ADDONS
     // load file dialog resource
     ImGuiFileDialog filedialog;
     std::string bookmark_path = std::string(DEFAULT_CONFIG_PATH) + "bookmark.ini";
@@ -246,7 +246,7 @@ int main(int, char**)
     // Init MarkDown
     ImGui::MarkdownConfig mdConfig; 
 
-#ifdef IMGUI_ADDONS_IMNODES
+#if IMGUI_ADDON_IMNODES
     // Init imnodes
     std::string node_ini_path = std::string(DEFAULT_CONFIG_PATH) + "nodes_save_load.ini";
     std::string node_path = std::string(DEFAULT_CONFIG_PATH) + "nodes_save_load.node";
@@ -254,7 +254,7 @@ int main(int, char**)
     imnodes_example::NodeEditorInitialize(node_ini_path.c_str(), node_path.c_str());
 #endif
 
-#ifdef IMGUI_ADDONS_NODE_GRAPH
+#if IMGUI_ADDON_NODE_GRAPH
     // Init NodeGraphEditor
     ImGui::NodeGraphEditor nge;
     std::string nge_ini_path = std::string(DEFAULT_CONFIG_PATH) + "nodeGraphEditor.nge.ini";
@@ -276,7 +276,7 @@ int main(int, char**)
     // Our state
     bool show_demo_window = true;
     bool show_another_window = false;
-#ifdef IMGUI_ADDONS
+#if IMGUI_ADDONS
     bool show_implot_window = false;
     bool show_file_dialog_window = false;
     bool show_sample_file_dialog = false;
@@ -342,7 +342,7 @@ int main(int, char**)
             ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
             ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
             ImGui::Checkbox("Another Window", &show_another_window);
-#ifdef IMGUI_ADDONS
+#if IMGUI_ADDONS
             ImGui::Checkbox("ImPlot Window", &show_implot_window);
             ImGui::Checkbox("File Dialog Window", &show_file_dialog_window);
             ImGui::Checkbox("Sample File Dialog", &show_sample_file_dialog);
@@ -351,10 +351,10 @@ int main(int, char**)
             ImGui::Checkbox("Show Markdown Window", &show_markdown_window);
             ImGui::Checkbox("Show Dock Window", &show_dock_window);
             ImGui::Checkbox("Show Tab Window", &show_tab_window);
-#ifdef IMGUI_ADDONS_IMNODES
+#if IMGUI_ADDON_IMNODES
             ImGui::Checkbox("Show Node Sample Window", &show_node_window);
 #endif
-#ifdef IMGUI_ADDONS_NODE_GRAPH
+#if IMGUI_ADDON_NODE_GRAPH
             ImGui::Checkbox("Show Node Edit Windows", &show_node_edit_window);
 #endif
             ImGui::Checkbox("Show Addon Widgets", &show_addon_widget);
@@ -387,7 +387,7 @@ int main(int, char**)
                 show_another_window = false;
             ImGui::End();
         }
-#ifdef IMGUI_ADDONS
+#if IMGUI_ADDONS
         // 4. Show ImPlot simple window
         if (show_implot_window)
         {
@@ -462,14 +462,14 @@ int main(int, char**)
             }
             ImGui::End();
         }
-#ifdef IMGUI_ADDONS_IMNODES
+#if IMGUI_ADDON_IMNODES
         // 12. Show Node Window
         if (show_node_window)
         {
             imnodes_example::NodeEditorShow();
         }
 #endif
-#ifdef IMGUI_ADDONS_NODE_GRAPH
+#if IMGUI_ADDON_NODE_GRAPH
         // 13. Show Node Edit Window
         if (show_node_edit_window)
         {
@@ -512,7 +512,7 @@ int main(int, char**)
         SDL_GL_SwapWindow(window);
     }
 
-#ifdef IMGUI_ADDONS
+#if IMGUI_ADDONS
     // Cleanup memory edit resource
     if (data)
         free(data);
@@ -520,7 +520,7 @@ int main(int, char**)
     // Store file dialog bookmark
     end_file_dialog_demo_window(&filedialog, bookmark_path.c_str());
 
-#ifdef IMGUI_ADDONS_IMNODES
+#if IMGUI_ADDON_IMNODES
     // Clean Node Window
     imnodes_example::NodeEditorShutdown(node_ini_path.c_str(), node_path.c_str());
     ImNodes::DestroyContext();
@@ -528,7 +528,7 @@ int main(int, char**)
     // Cleanup Demo
     ImGui::CleanupDemo();
     ImGui::CleanupZMODemo();
-#ifdef IMGUI_ADDONS_NODE_GRAPH
+#if IMGUI_ADDON_NODE_GRAPH
     nge.clear();
 #endif
 #endif
@@ -536,7 +536,7 @@ int main(int, char**)
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL2_Shutdown();
-#ifdef IMGUI_ADDONS
+#if IMGUI_ADDONS
     ImPlot::DestroyContext();
 #endif
     ImGui::DestroyContext();

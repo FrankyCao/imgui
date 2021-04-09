@@ -9,7 +9,7 @@ namespace ImGui
     IMGUI_API void          ShowAddonsZMOWindow();
     IMGUI_API void          CleanupZMODemo();
     IMGUI_API void          CleanupDemo();
-#ifdef IMGUI_VULKAN_SHADER
+#if IMGUI_VULKAN_SHADER
     IMGUI_API void          PrepareVulkanDemo();
     IMGUI_API void          ShowAddonsVulkanShaderWindow();
     IMGUI_API void          CleanVulkanDemo();

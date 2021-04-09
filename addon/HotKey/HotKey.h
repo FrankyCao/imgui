@@ -57,7 +57,7 @@ static void GetHotKeyLib(unsigned int functionKeys, char* buffer, size_t bufferS
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
 
-#ifdef IMGUI_SDL2
+#if IMGUI_SDL2
 #include <SDL.h>
 #endif
 #ifdef _WIN32

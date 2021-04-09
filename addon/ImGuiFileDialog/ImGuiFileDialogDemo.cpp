@@ -127,7 +127,7 @@ inline bool RadioButtonLabeled_BitWize(
 
 void prepare_file_dialog_demo_window(ImGuiFileDialog * dlg, const char * bookmark_path)
 {
-#ifdef IMGUI_INTERNAL_ICONS
+#if IMGUI_INTERNAL_ICONS
 	// set type color and icons
 	dlg->SetTypeInfos(std::to_string('f'), ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FK_FILE_O);
 	dlg->SetTypeInfos(std::to_string('d'), ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FK_FOLDER);

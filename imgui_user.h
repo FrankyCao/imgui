@@ -9,7 +9,7 @@ extern "C" {
 }
 
 /*
-#ifdef IMGUI_VULKAN_SHADER
+#if IMGUI_VULKAN_SHADER
 #include "ImVulkanShader.h"
 #endif
 #include "ImGuiHelper.h"

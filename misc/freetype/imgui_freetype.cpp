@@ -423,6 +423,13 @@ bool ImFontAtlasBuildWithFreeTypeEx(FT_Library ft_library, ImFontAtlas* atlas, u
         if (src_tmp.DstIndex == -1)
             return false;
 
+        // Modify by dicky, skipped merged font
+        if (cfg.MergeMode)
+        {
+            continue;
+        }
+        // Modify by dicky end
+
         // Load font
         if (!font_face.InitFont(ft_library, cfg, extra_flags))
             return false;
@@ -441,6 +448,13 @@ bool ImFontAtlasBuildWithFreeTypeEx(FT_Library ft_library, ImFontAtlas* atlas, u
     int total_glyphs_count = 0;
     for (int src_i = 0; src_i < src_tmp_array.Size; src_i++)
     {
+        // Modify by dicky, skipped merged font
+        if (!src_tmp_array[src_i].SrcRanges)
+        {
+            continue;
+        }
+        // Modify by dicky end
+
         ImFontBuildSrcDataFT& src_tmp = src_tmp_array[src_i];
         ImFontBuildDstDataFT& dst_tmp = dst_tmp_array[src_tmp.DstIndex];
         src_tmp.GlyphsSet.Create(src_tmp.GlyphsHighest + 1);
@@ -468,6 +482,13 @@ bool ImFontAtlasBuildWithFreeTypeEx(FT_Library ft_library, ImFontAtlas* atlas, u
     // 3. Unpack our bit map into a flat list (we now have all the Unicode points that we know are requested _and_ available _and_ not overlapping another)
     for (int src_i = 0; src_i < src_tmp_array.Size; src_i++)
     {
+        // Modify by dicky, skipped merged font
+        if (!src_tmp_array[src_i].SrcRanges)
+        {
+            continue;
+        }
+        // Modify by dicky end
+
         ImFontBuildSrcDataFT& src_tmp = src_tmp_array[src_i];
         src_tmp.GlyphsList.reserve(src_tmp.GlyphsCount);
 

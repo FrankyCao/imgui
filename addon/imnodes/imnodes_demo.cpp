@@ -3,7 +3,7 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
 
-#ifdef IMGUI_SDL2
+#if IMGUI_SDL2
 #include <SDL_keycode.h>
 #include <SDL_timer.h>
 #elif !defined(__WIN32__) && !defined(_WIN32)
@@ -635,7 +635,7 @@ public:
     void show(bool * open)
     {
         // Update timer context
-#if defined(__WIN32__) || defined(_WIN32) || !defined(IMGUI_SDL2)
+#if defined(__WIN32__) || defined(_WIN32) || !IMGUI_SDL2
 #define SDL_SCANCODE_A 'A'
 #define SDL_SCANCODE_X 'X'
         current_time_seconds = 0.001f * GetTickCount();

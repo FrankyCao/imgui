@@ -9,7 +9,7 @@
 #include "Splitter.h"
 #include "imgui_dock.h"
 #include "ImGuiTabWindow.h"
-#ifdef IMGUI_VULKAN_SHADER
+#if IMGUI_VULKAN_SHADER
 #include "ImVulkanShader.h"
 #endif
 #ifdef _WIN32
@@ -658,7 +658,7 @@ void CleanupDemo()
     if (ImageTextureNumber) { ImDestroyTexture(ImageTextureNumber); ImageTextureNumber = 0; }
 }
 
-#ifdef IMGUI_VULKAN_SHADER
+#if IMGUI_VULKAN_SHADER
 int g_gpu_count = ImVulkan::get_gpu_count();
 
 static const char glsl_p1_data[] = R"(

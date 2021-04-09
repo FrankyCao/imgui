@@ -14,6 +14,43 @@
 
 #pragma once
 
+#cmakedefine01 IMGUI_OPENGL
+#cmakedefine01 IMGUI_ENABLE_FREETYPE
+#cmakedefine01 IMGUI_GLEW
+#cmakedefine01 IMGUI_SDL2
+#cmakedefine01 IMGUI_RENDERING_VULKAN
+#cmakedefine01 IMGUI_RENDERING_GL3
+#cmakedefine01 IMGUI_RENDERING_GL2
+#cmakedefine01 IMGUI_RENDERING_DX12
+#cmakedefine01 IMGUI_RENDERING_DX11
+#cmakedefine01 IMGUI_RENDERING_DX10
+#cmakedefine01 IMGUI_RENDERING_DX9
+#cmakedefine01 IMGUI_RENDERING_MATAL
+#cmakedefine01 IMGUI_PLATFORM_SDL2
+#cmakedefine01 IMGUI_PLATFORM_GLFW
+#cmakedefine01 IMGUI_PLATFORM_GLUT
+#cmakedefine01 IMGUI_PLATFORM_WIN32
+#cmakedefine01 IMGUI_INTERNAL_FONT_HEI
+#cmakedefine01 IMGUI_INTERNAL_FONT_KAI
+#cmakedefine01 IMGUI_INTERNAL_FONT_SONG
+#cmakedefine01 IMGUI_INTERNAL_FONT_YUAN
+#cmakedefine01 IMGUI_INTERNAL_FONT_SARASA
+#cmakedefine01 IMGUI_INTERNAL_ICONS
+#cmakedefine01 IMGUI_ADDONS
+#cmakedefine01 IMGUI_ADDON_IMNODES
+#cmakedefine01 IMGUI_ADDON_NODE_GRAPH
+#cmakedefine01 IMGUI_VULKAN_SHADER
+#cmakedefine01 SHADER_BENCHMARK
+#cmakedefine01 IMGUI_APPLICATION_RENDERING_VULKAN
+#cmakedefine01 IMGUI_APPLICATION_RENDERING_GL3
+#cmakedefine01 IMGUI_APPLICATION_RENDERING_GL2
+#cmakedefine01 IMGUI_APPLICATION_RENDERING_DX11
+#cmakedefine01 IMGUI_APPLICATION_RENDERING_DX9
+#cmakedefine01 IMGUI_APPLICATION_PLATFORM_SDL2
+#cmakedefine01 IMGUI_APPLICATION_PLATFORM_GLFW
+#cmakedefine01 IMGUI_APPLICATION_PLATFORM_GLUT
+#cmakedefine01 IMGUI_APPLICATION_PLATFORM_WIN32
+
 //---- Define assertion handler. Defaults to calling assert().
 // If your macro uses multiple statements, make sure is enclosed in a 'do { .. } while (0)' block so it can be used as a single statement.
 //#define IM_ASSERT(_EXPR)  MyAssert(_EXPR)
@@ -46,7 +83,7 @@
 //#define IMGUI_DISABLE_DEFAULT_ALLOCATORS                  // Don't implement default allocators calling malloc()/free() to avoid linking with them. You will need to call ImGui::SetAllocatorFunctions().
 
 //---- Include imgui_user.h at the end of imgui.h as a convenience
-#ifdef IMGUI_ADDONS
+#if IMGUI_ADDONS
 #define IMGUI_INCLUDE_IMGUI_USER_H
 #endif
 
