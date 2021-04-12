@@ -78,21 +78,21 @@ struct ImGui_ImplVulkanH_WindowRenderBuffers
 };
 
 // Vulkan data
-static ImGui_ImplVulkan_InitInfo g_VulkanInitInfo = {};
-static VkRenderPass             g_RenderPass = VK_NULL_HANDLE;
-static VkDeviceSize             g_BufferMemoryAlignment = 256;
-static VkPipelineCreateFlags    g_PipelineCreateFlags = 0x00;
-static VkDescriptorSetLayout    g_DescriptorSetLayout = VK_NULL_HANDLE;
-static VkPipelineLayout         g_PipelineLayout = VK_NULL_HANDLE;
-static ImTextureVK              g_FontTexture;
-static VkPipeline               g_Pipeline = VK_NULL_HANDLE;
-static uint32_t                 g_Subpass = 0;
-static VkShaderModule           g_ShaderModuleVert;
-static VkShaderModule           g_ShaderModuleFrag;
+static std::shared_ptr<ImGui_ImplVulkan_InitInfo>   g_VulkanInitInfo = nullptr;
+static VkRenderPass                 g_RenderPass = VK_NULL_HANDLE;
+static VkDeviceSize                 g_BufferMemoryAlignment = 256;
+static VkPipelineCreateFlags        g_PipelineCreateFlags = 0x00;
+static VkDescriptorSetLayout        g_DescriptorSetLayout = VK_NULL_HANDLE;
+static VkPipelineLayout             g_PipelineLayout = VK_NULL_HANDLE;
+static ImTextureVK                  g_FontTexture;
+static VkPipeline                   g_Pipeline = VK_NULL_HANDLE;
+static uint32_t                     g_Subpass = 0;
+static VkShaderModule               g_ShaderModuleVert;
+static VkShaderModule               g_ShaderModuleFrag;
 #ifdef VK_NO_PROTOTYPES
-static bool                     g_FunctionsLoaded = false;
+static bool                         g_FunctionsLoaded = false;
 #else
-static bool                     g_FunctionsLoaded = true;
+static bool                         g_FunctionsLoaded = true;
 #endif
 
 // Font data
@@ -300,7 +300,9 @@ static uint32_t __glsl_shader_frag_spv[] =
 
 static uint32_t ImGui_ImplVulkan_MemoryType(VkMemoryPropertyFlags properties, uint32_t type_bits)
 {
-    ImGui_ImplVulkan_InitInfo* v = &g_VulkanInitInfo;
+    auto v = g_VulkanInitInfo;
+    if (!v)
+        return 0xFFFFFFFF;
     VkPhysicalDeviceMemoryProperties prop;
     vkGetPhysicalDeviceMemoryProperties(v->PhysicalDevice, &prop);
     for (uint32_t i = 0; i < prop.memoryTypeCount; i++)
@@ -311,14 +313,16 @@ static uint32_t ImGui_ImplVulkan_MemoryType(VkMemoryPropertyFlags properties, ui
 
 static void check_vk_result(VkResult err)
 {
-    ImGui_ImplVulkan_InitInfo* v = &g_VulkanInitInfo;
-    if (v->CheckVkResultFn)
+    auto v = g_VulkanInitInfo;
+    if (v && v->CheckVkResultFn)
         v->CheckVkResultFn(err);
 }
 
 static void CreateOrResizeBuffer(VkBuffer& buffer, VkDeviceMemory& buffer_memory, VkDeviceSize& p_buffer_size, size_t new_size, VkBufferUsageFlagBits usage)
 {
-    ImGui_ImplVulkan_InitInfo* v = &g_VulkanInitInfo;
+    auto v = g_VulkanInitInfo;
+    if (!v || !v->PhysicalDevice)
+        return;
     VkResult err;
     if (buffer != VK_NULL_HANDLE)
         vkDestroyBuffer(v->Device, buffer, v->Allocator);
@@ -402,7 +406,10 @@ void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer comm
     if (fb_width <= 0 || fb_height <= 0)
         return;
 
-    ImGui_ImplVulkan_InitInfo* v = &g_VulkanInitInfo;
+    auto v = g_VulkanInitInfo;
+    if (!v || !v->PhysicalDevice)
+        return;
+
     if (pipeline == VK_NULL_HANDLE)
         pipeline = g_Pipeline;
 
@@ -528,9 +535,11 @@ void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer comm
 
 bool ImGui_ImplVulkan_CreateFontsTexture(VkCommandBuffer command_buffer)
 {
-    ImGui_ImplVulkan_InitInfo* v = &g_VulkanInitInfo;
-    ImGuiIO& io = ImGui::GetIO();
+    auto v = g_VulkanInitInfo;
+    if (!v || !v->PhysicalDevice)
+        return false;
 
+    ImGuiIO& io = ImGui::GetIO();
     unsigned char* pixels;
     int width, height;
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
@@ -880,8 +889,10 @@ static void ImGui_ImplVulkan_CreatePipeline(VkDevice device, const VkAllocationC
 
 bool ImGui_ImplVulkan_CreateDeviceObjects()
 {
-    ImGui_ImplVulkan_InitInfo* v = &g_VulkanInitInfo;
+    auto v = g_VulkanInitInfo;
     VkResult err;
+    if (!v || !v->PhysicalDevice)
+        return false;
 
     if (!g_FontSampler)
     {
@@ -952,7 +963,10 @@ bool ImGui_ImplVulkan_CreateDeviceObjects()
 
 void    ImGui_ImplVulkan_DestroyFontUploadObjects()
 {
-    ImGui_ImplVulkan_InitInfo* v = &g_VulkanInitInfo;
+    auto v = g_VulkanInitInfo;
+    if (!v || !v->PhysicalDevice)
+        return;
+
     if (g_UploadBuffer)
     {
         vkDestroyBuffer(v->Device, g_UploadBuffer, v->Allocator);
@@ -967,7 +981,10 @@ void    ImGui_ImplVulkan_DestroyFontUploadObjects()
 
 void    ImGui_ImplVulkan_DestroyDeviceObjects()
 {
-    ImGui_ImplVulkan_InitInfo* v = &g_VulkanInitInfo;
+    auto v = g_VulkanInitInfo;
+    if (!v || !v->PhysicalDevice)
+        return;
+
     ImGui_ImplVulkanH_DestroyWindowRenderBuffers(v->Device, &g_MainWindowRenderBuffers, v->Allocator);
     ImGui_ImplVulkan_DestroyFontUploadObjects();
 
@@ -1003,7 +1020,7 @@ bool    ImGui_ImplVulkan_LoadFunctions(PFN_vkVoidFunction(*loader_func)(const ch
     return true;
 }
 
-bool    ImGui_ImplVulkan_Init(ImGui_ImplVulkan_InitInfo* info, VkRenderPass render_pass)
+bool    ImGui_ImplVulkan_Init(std::shared_ptr<ImGui_ImplVulkan_InitInfo> info, VkRenderPass render_pass)
 {
     IM_ASSERT(g_FunctionsLoaded && "Need to call ImGui_ImplVulkan_LoadFunctions() if IMGUI_IMPL_VULKAN_NO_PROTOTYPES or VK_NO_PROTOTYPES are set!");
 
@@ -1021,7 +1038,7 @@ bool    ImGui_ImplVulkan_Init(ImGui_ImplVulkan_InitInfo* info, VkRenderPass rend
     IM_ASSERT(info->ImageCount >= info->MinImageCount);
     IM_ASSERT(render_pass != VK_NULL_HANDLE);
 
-    g_VulkanInitInfo = *info;
+    g_VulkanInitInfo = info;
     g_RenderPass = render_pass;
     g_Subpass = info->Subpass;
 
@@ -1042,14 +1059,17 @@ void ImGui_ImplVulkan_NewFrame()
 void ImGui_ImplVulkan_SetMinImageCount(uint32_t min_image_count)
 {
     IM_ASSERT(min_image_count >= 2);
-    if (g_VulkanInitInfo.MinImageCount == min_image_count)
+    if (!g_VulkanInitInfo || g_VulkanInitInfo->MinImageCount == min_image_count)
         return;
 
-    ImGui_ImplVulkan_InitInfo* v = &g_VulkanInitInfo;
+    auto v = g_VulkanInitInfo;
+    if (!v || !v->PhysicalDevice)
+        return;
+
     VkResult err = vkDeviceWaitIdle(v->Device);
     check_vk_result(err);
     ImGui_ImplVulkanH_DestroyWindowRenderBuffers(v->Device, &g_MainWindowRenderBuffers, v->Allocator);
-    g_VulkanInitInfo.MinImageCount = min_image_count;
+    g_VulkanInitInfo->MinImageCount = min_image_count;
 }
 
 
@@ -1436,7 +1456,7 @@ void ImGui_ImplVulkanH_DestroyWindowRenderBuffers(VkDevice device, ImGui_ImplVul
 }
 
 // Texture founction
-uint32_t findMemoryType(ImGui_ImplVulkan_InitInfo* v, uint32_t typeFilter, VkMemoryPropertyFlags properties) 
+uint32_t findMemoryType(std::shared_ptr<ImGui_ImplVulkan_InitInfo> v, uint32_t typeFilter, VkMemoryPropertyFlags properties) 
 {
     VkPhysicalDeviceMemoryProperties memProperties;
     vkGetPhysicalDeviceMemoryProperties(v->PhysicalDevice, &memProperties);
@@ -1450,7 +1470,7 @@ uint32_t findMemoryType(ImGui_ImplVulkan_InitInfo* v, uint32_t typeFilter, VkMem
     throw std::runtime_error("failed to find suitable memory type!");
 }
 
-static void createBuffer(ImGui_ImplVulkan_InitInfo* v, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
+static void createBuffer(std::shared_ptr<ImGui_ImplVulkan_InitInfo> v, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
 {
     VkBufferCreateInfo bufferInfo{};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -1474,7 +1494,7 @@ static void createBuffer(ImGui_ImplVulkan_InitInfo* v, VkDeviceSize size, VkBuff
     vkBindBufferMemory(v->Device, buffer, bufferMemory, 0);
 }
 
-static void createImage(ImGui_ImplVulkan_InitInfo* v, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory) 
+static void createImage(std::shared_ptr<ImGui_ImplVulkan_InitInfo> v, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory) 
 {
     VkImageCreateInfo imageInfo{};
     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -1507,7 +1527,7 @@ static void createImage(ImGui_ImplVulkan_InitInfo* v, uint32_t width, uint32_t h
     vkBindImageMemory(v->Device, image, imageMemory, 0);
 }
 
-static void createImageView(ImGui_ImplVulkan_InitInfo* v, VkImage image, VkImageView& imageView)
+static void createImageView(std::shared_ptr<ImGui_ImplVulkan_InitInfo> v, VkImage image, VkImageView& imageView)
 {
     VkImageViewCreateInfo info = {};
     info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -1523,7 +1543,7 @@ static void createImageView(ImGui_ImplVulkan_InitInfo* v, VkImage image, VkImage
     }
 }
 
-static void createImageSampler(ImGui_ImplVulkan_InitInfo* v, VkSampler& textureSampler)
+static void createImageSampler(std::shared_ptr<ImGui_ImplVulkan_InitInfo> v, VkSampler& textureSampler)
 {
     VkSamplerCreateInfo info = {};
     info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -1542,7 +1562,7 @@ static void createImageSampler(ImGui_ImplVulkan_InitInfo* v, VkSampler& textureS
     }
 }
 
-static VkCommandBuffer beginSingleTimeCommands(ImGui_ImplVulkan_InitInfo* v, VkCommandPool commandPool) 
+static VkCommandBuffer beginSingleTimeCommands(std::shared_ptr<ImGui_ImplVulkan_InitInfo> v, VkCommandPool commandPool) 
 {
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -1558,7 +1578,7 @@ static VkCommandBuffer beginSingleTimeCommands(ImGui_ImplVulkan_InitInfo* v, VkC
     return commandBuffer;
 }
 
-static void endSingleTimeCommands(ImGui_ImplVulkan_InitInfo* v, VkCommandPool commandPool, VkCommandBuffer commandBuffer) 
+static void endSingleTimeCommands(std::shared_ptr<ImGui_ImplVulkan_InitInfo> v, VkCommandPool commandPool, VkCommandBuffer commandBuffer) 
 {
     vkEndCommandBuffer(commandBuffer);
     VkSubmitInfo submitInfo{};
@@ -1570,7 +1590,7 @@ static void endSingleTimeCommands(ImGui_ImplVulkan_InitInfo* v, VkCommandPool co
     vkFreeCommandBuffers(v->Device, commandPool, 1, &commandBuffer);
 }
 
-static void transitionImageLayout(ImGui_ImplVulkan_InitInfo* v, VkCommandPool commandPool, VkImage& image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) 
+static void transitionImageLayout(std::shared_ptr<ImGui_ImplVulkan_InitInfo> v, VkCommandPool commandPool, VkImage& image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) 
 {
     VkCommandBuffer commandBuffer = beginSingleTimeCommands(v, commandPool);
     VkImageMemoryBarrier barrier{};
@@ -1616,7 +1636,7 @@ static void transitionImageLayout(ImGui_ImplVulkan_InitInfo* v, VkCommandPool co
     endSingleTimeCommands(v, commandPool, commandBuffer);
 }
 
-static void copyBufferToImage(ImGui_ImplVulkan_InitInfo* v, VkCommandPool commandPool, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) 
+static void copyBufferToImage(std::shared_ptr<ImGui_ImplVulkan_InitInfo> v, VkCommandPool commandPool, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) 
 {
     VkCommandBuffer commandBuffer = beginSingleTimeCommands(v, commandPool);
     VkBufferImageCopy region{};
@@ -1641,8 +1661,10 @@ ImTextureID ImGui_ImplVulkan_CreateTexture(const void * pixels, int width, int h
 {
     ImTextureVk texture = new ImTextureVK();
     VkCommandPool commandPool = VK_NULL_HANDLE;
-    ImGui_ImplVulkan_InitInfo* v = &g_VulkanInitInfo;
+    auto v = g_VulkanInitInfo;
     VkDeviceSize imageSize = width * height * 4;
+    if (!v || !v->PhysicalDevice)
+        return (ImTextureID)0;
 
     // create staging buffer
     VkBuffer stagingBuffer;
@@ -1696,7 +1718,10 @@ ImTextureID ImGui_ImplVulkan_CreateTexture(VkBuffer buffer, int width, int heigh
 {
     ImTextureVk texture = new ImTextureVK();
     VkCommandPool commandPool = VK_NULL_HANDLE;
-    ImGui_ImplVulkan_InitInfo* v = &g_VulkanInitInfo;
+    auto v = g_VulkanInitInfo;
+    if (!v || !v->PhysicalDevice)
+        return (ImTextureID)0;
+
     VkDeviceSize imageSize = width * height * 4;
 
     createImage(v, width,height,VK_FORMAT_R8G8B8A8_UNORM,
@@ -1734,7 +1759,10 @@ void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, VkBuffer stagingBuffe
     ImTextureVk texture = (ImTextureVk)textureid;
     if (!texture)
         return;
-    ImGui_ImplVulkan_InitInfo* v = &g_VulkanInitInfo;
+    auto v = g_VulkanInitInfo;
+    if (!v || !v->PhysicalDevice)
+        return;
+
     VkDeviceSize imageSize = width * height * 4;
     
     // create staging buffer
@@ -1765,7 +1793,10 @@ void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, const void * pixels, 
     ImTextureVk texture = (ImTextureVk)textureid;
     if (!texture)
         return;
-    ImGui_ImplVulkan_InitInfo* v = &g_VulkanInitInfo;
+    auto v = g_VulkanInitInfo;
+    if (!v || !v->PhysicalDevice)
+        return;
+
     VkDeviceSize imageSize = width * height * 4;
     
     // create staging buffer
@@ -1808,7 +1839,10 @@ void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, const void * pixels, 
 
 void ImGui_ImplVulkan_DestroyTexture(ImTextureVk* texture)
 {
-    ImGui_ImplVulkan_InitInfo* v = &g_VulkanInitInfo;
+    auto v = g_VulkanInitInfo;
+    if (!v || !v->PhysicalDevice)
+        return;
+
     if (texture && *texture)            
     {
         ImTextureVk textureVK = *texture;
@@ -1828,7 +1862,10 @@ VkDescriptorSet ImGui_ImplVulkan_AddTexture(VkSampler sampler, VkImageView image
 {
     VkResult err;
 
-    ImGui_ImplVulkan_InitInfo* v = &g_VulkanInitInfo;
+    auto v = g_VulkanInitInfo;
+    if (!v || !v->PhysicalDevice)
+        return {};
+
     VkDescriptorSet descriptor_set;
     // Create Descriptor Set:
     {
@@ -1861,7 +1898,7 @@ VkDescriptorSet ImGui_ImplVulkan_AddTexture(VkSampler sampler, VkImageView image
 
 std::string ImGui_ImplVulkan_GetDeviceName()
 {
-    ImGui_ImplVulkan_InitInfo* v = &g_VulkanInitInfo;
+    auto v = g_VulkanInitInfo;
     if (!v || !v->PhysicalDevice)
         return "Unknown";
     VkPhysicalDeviceProperties physicalDeviceProperties;
@@ -1871,7 +1908,7 @@ std::string ImGui_ImplVulkan_GetDeviceName()
 
 std::string ImGui_ImplVulkan_GetApiVersion()
 {
-    ImGui_ImplVulkan_InitInfo* v = &g_VulkanInitInfo;
+    auto v = g_VulkanInitInfo;
     if (!v || !v->PhysicalDevice)
         return "Unknown";
     VkPhysicalDeviceProperties physicalDeviceProperties;
@@ -1883,7 +1920,7 @@ std::string ImGui_ImplVulkan_GetApiVersion()
 
 std::string ImGui_ImplVulkan_GetDrvVersion()
 {
-    ImGui_ImplVulkan_InitInfo* v = &g_VulkanInitInfo;
+    auto v = g_VulkanInitInfo;
     if (!v || !v->PhysicalDevice)
         return "Unknown";
     VkPhysicalDeviceProperties physicalDeviceProperties;
@@ -1891,4 +1928,9 @@ std::string ImGui_ImplVulkan_GetDrvVersion()
     return  std::to_string(VK_VERSION_MAJOR(physicalDeviceProperties.driverVersion)) + "." +
             std::to_string(VK_VERSION_MINOR(physicalDeviceProperties.driverVersion)) + "." +
             std::to_string(VK_VERSION_PATCH(physicalDeviceProperties.driverVersion));
+}
+
+std::shared_ptr<ImGui_ImplVulkan_InitInfo> ImGui_ImplVulkan_GetInitInfo()
+{
+    return g_VulkanInitInfo;
 }
