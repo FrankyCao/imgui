@@ -4,6 +4,7 @@
 #include <stdio.h>          // printf, fprintf
 #include <stdlib.h>         // abort
 #include <string>
+#include <memory>
 #include <SDL.h>
 #include <SDL_vulkan.h>
 #include "application.h"
