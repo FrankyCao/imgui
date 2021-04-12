@@ -10,9 +10,14 @@ set(CMAKE_MACOSX_RPATH 0)
 if (POLICY CMP0054)
     cmake_policy(SET CMP0054 NEW)
 endif()
-if (POLICY CMP0072)
-    cmake_policy(SET CMP0072 NEW)
+if (POLICY CMP0068)
+    cmake_policy(SET CMP0068 NEW)
 endif()
+if(POLICY CMP0025)
+    # reference from https://cmake.org/cmake/help/latest/policy/CMP0025.html
+    cmake_policy(SET CMP0025 NEW)
+endif()
+
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 macro(_OPTION variable description value)
@@ -68,6 +73,8 @@ include_directories(
 
 find_package(PkgConfig)
 
+_OPTION(IMGUI_STATIC             "Build ImGui as static library" OFF)
+_OPTION(IMGUI_BUILD_EXAMPLE      "Build ImGui example" OFF)
 _OPTION(IMGUI_GL2                "Build ImGui OpenGL2 backends" ON)
 _OPTION(IMGUI_GL3                "Build ImGui OpenGL3 backends" ON)
 _OPTION(IMGUI_SDL2               "Build ImGui SDL2 backends" ON)
@@ -112,6 +119,12 @@ if (IMGUI_GLUT)
 endif (IMGUI_GLUT)
 
 if(PKG_CONFIG_FOUND)
+    if(IMGUI_ADDONS)
+        pkg_search_module(ZLIB REQUIRED zlib)
+        if(ZLIB_FOUND)
+            message("zlib found")
+        endif(ZLIB_FOUND)
+    endif(IMGUI_ADDONS)
     if(IMGUI_GLEW)
         pkg_search_module(GLEW REQUIRED glew)
     endif(IMGUI_GLEW)
@@ -590,7 +603,7 @@ if(IMGUI_ADDONS)
         addon/ImGuiFileSystem/ImGuiFileSystem.h
     )
 
-    if (NOT WIN32)
+    if (NOT WIN32 AND ZLIB_FOUND)
         set(IMGUI_SRC
             ${IMGUI_SRC}
             addon/ImGuiFileSystem/minizip/zip.c
@@ -604,7 +617,7 @@ if(IMGUI_ADDONS)
             addon/ImGuiFileSystem/minizip/ioapi.h
             addon/ImGuiFileSystem/minizip/crypt.h
         )
-    endif(NOT WIN32)
+    endif(NOT WIN32 AND ZLIB_FOUND)
 
     set(IMGUI_INC_DIRS
         ${IMGUI_INC_DIRS}
@@ -982,7 +995,12 @@ if(IMGUI_ADDONS)
         addon/addons_demo.h
         addon/NumberTexture.h
     )
-
+    if(ZLIB_FOUND)
+        set(LINK_LIBS
+            ${LINK_LIBS}
+            ${ZLIB_LDFLAGS}
+        )
+    endif(ZLIB_FOUND)
 endif(IMGUI_ADDONS)
 
 # Application Framework
@@ -1112,9 +1130,18 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_BINARY_DIR}
 )
 include_directories(${IMGUI_INC_DIRS})
-add_library(imgui ${IMGUI_SRC} ${IMGUI_INCS})
-set_property(TARGET imgui PROPERTY POSITION_INDEPENDENT_CODE ON)
 
+if(IMGUI_STATIC)
+set(LIBRARY STATIC)
+else(IMGUI_STATIC)
+set(LIBRARY SHARED)
+endif(IMGUI_STATIC)
+
+add_library(imgui ${LIBRARY} ${IMGUI_SRC} ${IMGUI_INCS})
+set_property(TARGET imgui PROPERTY POSITION_INDEPENDENT_CODE ON)
+if(NOT IMGUI_STATIC)
+target_link_libraries(imgui ${LINK_LIBS})
+endif(NOT IMGUI_STATIC)
 # Build Tools
 if (APPLE AND IMGUI_MATAL)
     target_compile_options(
@@ -1123,7 +1150,7 @@ if (APPLE AND IMGUI_MATAL)
     )
 endif(APPLE AND IMGUI_MATAL)
 
-if (SDL2_FOUND AND IMGUI_SDL2)
+if (IMGUI_BUILD_EXAMPLE AND SDL2_FOUND AND IMGUI_SDL2)
     # Build utils
     add_executable(
         binary_to_compressed
@@ -1187,9 +1214,9 @@ if (SDL2_FOUND AND IMGUI_SDL2)
             ${LINK_LIBS}
         )
     endif(BACKEND_RENDERING MATCHES VULKAN)
-endif(SDL2_FOUND AND IMGUI_SDL2)
+endif(IMGUI_BUILD_EXAMPLE AND SDL2_FOUND AND IMGUI_SDL2)
 
-if (GLFW_FOUND AND IMGUI_GLFW AND BACKEND_RENDERING MATCHES VULKAN)
+if (IMGUI_BUILD_EXAMPLE AND GLFW_FOUND AND IMGUI_GLFW AND BACKEND_RENDERING MATCHES VULKAN)
     add_executable(
         example_glfw_vulkan
         test/example_glfw_vulkan.cpp
@@ -1199,9 +1226,9 @@ if (GLFW_FOUND AND IMGUI_GLFW AND BACKEND_RENDERING MATCHES VULKAN)
         imgui
         ${LINK_LIBS}
     )
-endif(GLFW_FOUND AND IMGUI_GLFW AND BACKEND_RENDERING MATCHES VULKAN)
+endif(IMGUI_BUILD_EXAMPLE AND GLFW_FOUND AND IMGUI_GLFW AND BACKEND_RENDERING MATCHES VULKAN)
 
-if (IMGUI_GLUT AND GLUT_FOUND AND BACKEND_RENDERING MATCHES OPENGL2)
+if (IMGUI_BUILD_EXAMPLE AND IMGUI_GLUT AND GLUT_FOUND AND BACKEND_RENDERING MATCHES OPENGL2)
     add_executable(
         example_glut_opengl2
         test/example_glut_opengl2.cpp
@@ -1211,9 +1238,9 @@ if (IMGUI_GLUT AND GLUT_FOUND AND BACKEND_RENDERING MATCHES OPENGL2)
         imgui
         ${LINK_LIBS}
     )
-endif(IMGUI_GLUT AND GLUT_FOUND AND BACKEND_RENDERING MATCHES OPENGL2)
+endif(IMGUI_BUILD_EXAMPLE AND IMGUI_GLUT AND GLUT_FOUND AND BACKEND_RENDERING MATCHES OPENGL2)
 
-if (GLFW_FOUND AND IMGUI_GLFW AND BACKEND_RENDERING MATCHES OPENGL3)
+if (IMGUI_BUILD_EXAMPLE AND GLFW_FOUND AND IMGUI_GLFW AND BACKEND_RENDERING MATCHES OPENGL3)
     add_executable(
         example_glfw_opengl3
         test/example_glfw_opengl3.cpp
@@ -1223,9 +1250,9 @@ if (GLFW_FOUND AND IMGUI_GLFW AND BACKEND_RENDERING MATCHES OPENGL3)
         imgui
         ${LINK_LIBS}
     )
-endif(GLFW_FOUND AND IMGUI_GLFW AND BACKEND_RENDERING MATCHES OPENGL3)
+endif(IMGUI_BUILD_EXAMPLE AND GLFW_FOUND AND IMGUI_GLFW AND BACKEND_RENDERING MATCHES OPENGL3)
 
-if (APPLE AND IMGUI_MATAL AND BACKEND_RENDERING MATCHES MATAL)
+if (IMGUI_BUILD_EXAMPLE AND APPLE AND IMGUI_MATAL AND BACKEND_RENDERING MATCHES MATAL)
     if (IMGUI_APPLE_APP)
         add_executable(
             example_apple_metal
@@ -1297,9 +1324,9 @@ if (APPLE AND IMGUI_MATAL AND BACKEND_RENDERING MATCHES MATAL)
             "-framework QuartzCore"
         )
     endif(IMGUI_GLFW AND GLFW_FOUND)
-endif(APPLE AND IMGUI_MATAL AND BACKEND_RENDERING MATCHES MATAL)
+endif(IMGUI_BUILD_EXAMPLE AND APPLE AND IMGUI_MATAL AND BACKEND_RENDERING MATCHES MATAL)
 
-if(WIN32)
+if(IMGUI_BUILD_EXAMPLE AND WIN32)
     if(BACKEND_RENDERING MATCHES DX12)
         add_executable(
             example_win32_directx12
@@ -1341,9 +1368,9 @@ if(WIN32)
             ${LINK_LIBS}
         )
     endif()
-endif(WIN32)
+endif(IMGUI_BUILD_EXAMPLE AND WIN32)
 
-if (IMGUI_APPS)
+if (IMGUI_BUILD_EXAMPLE AND IMGUI_APPS)
     add_executable(
         example_application
         test/example_application.cpp
@@ -1354,7 +1381,7 @@ if (IMGUI_APPS)
         imgui
         ${LINK_LIBS}
     )
-endif(IMGUI_APPS)
+endif(IMGUI_BUILD_EXAMPLE AND IMGUI_APPS)
 
 get_directory_property(hasParent PARENT_DIRECTORY)
 if(hasParent)
