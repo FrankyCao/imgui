@@ -12,7 +12,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
-namespace ImGui
+namespace ImGuizmo
 {
 static int gizmoCount = 1;
 static float camDistance = 8.f;
@@ -51,7 +51,7 @@ static const float identityMatrix[16] =
     0.f, 0.f, 0.f, 1.f 
 };
 
-void Frustum(float left, float right, float bottom, float top, float znear, float zfar, float* m16)
+static void Frustum(float left, float right, float bottom, float top, float znear, float zfar, float* m16)
 {
     float temp, temp2, temp3, temp4;
     temp = 2.0f * znear;
@@ -650,6 +650,6 @@ void ShowAddonsZMOWindow()
 
 void CleanupZMODemo()
 {
-    if (procTexture) {{ ImDestroyTexture(procTexture); procTexture = 0; }}
+    if (procTexture) {{ ImGui::ImDestroyTexture(procTexture); procTexture = 0; }}
 }
 } // namespace ImGui

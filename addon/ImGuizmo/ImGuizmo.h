@@ -104,12 +104,7 @@ void EditTransform(const Camera& camera, matrix_t& matrix)
 #endif
 #pragma once
 
-#ifdef USE_IMGUI_API
 #include "imconfig.h"
-#endif
-#ifndef IMGUI_API
-#define IMGUI_API
-#endif
 
 namespace ImGuizmo
 {
@@ -183,7 +178,7 @@ namespace ImGuizmo
 
    inline OPERATION operator|(OPERATION lhs, OPERATION rhs)
    {
-     return static_cast<OPERATION>(static_cast<int>(lhs) | static_cast<int>(rhs));
+      return static_cast<OPERATION>(static_cast<int>(lhs) | static_cast<int>(rhs));
    }
 
    enum MODE
@@ -210,4 +205,8 @@ namespace ImGuizmo
    // When true (default), the guizmo axis flip for better visibility
    // When false, they always stay along the positive world/local axis
    IMGUI_API void AllowAxisFlip(bool value);
+
+   // For Demo
+   IMGUI_API void  ShowAddonsZMOWindow();
+   IMGUI_API void  CleanupZMODemo();
 }

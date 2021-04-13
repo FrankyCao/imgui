@@ -12,6 +12,7 @@
 #include "imgui.h"
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_vulkan.h"
+#include "ImGuizmo.h"
 #include "addon/addons_demo.h"
 #include <stdio.h>          // printf, fprintf
 #include <stdlib.h>         // abort
@@ -553,7 +554,7 @@ int main(int, char**)
 #if IMGUI_ADDONS
     // Cleanup Demo
     ImGui::CleanupDemo();
-    ImGui::CleanupZMODemo();
+    ImGuizmo::CleanupZMODemo();
 #endif
 
     // Cleanup

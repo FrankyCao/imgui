@@ -23,6 +23,7 @@
 #include "ImGuiFileSystem.h"
 #include "imgui_dock.h"
 #include "HotKey.h"
+#include "ImGuizmo.h"
 #include "addon/addons_demo.h"
 #endif
 #include <stdio.h>
@@ -499,7 +500,7 @@ int main(int, char**)
             ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
             ImGui::SetNextWindowSize(ImVec2(1280, 800), ImGuiCond_FirstUseEver);
             ImGui::Begin("##ZMO", &show_zmo_window, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar);
-            ImGui::ShowAddonsZMOWindow();
+            ImGuizmo::ShowAddonsZMOWindow();
             ImGui::End();
         }
 #endif
@@ -527,7 +528,7 @@ int main(int, char**)
 #endif
     // Cleanup Demo
     ImGui::CleanupDemo();
-    ImGui::CleanupZMODemo();
+    ImGuizmo::CleanupZMODemo();
 #if IMGUI_ADDON_NODE_GRAPH
     nge.clear();
 #endif

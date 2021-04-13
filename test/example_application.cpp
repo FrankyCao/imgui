@@ -25,6 +25,7 @@
 #include "ImGuiFileSystem.h"
 #include "tinyfiledialogs.h"
 #include "HotKey.h"
+#include "ImGuizmo.h"
 #include "addon/addons_demo.h"
 #endif
 #include "Config.h"
@@ -95,7 +96,7 @@ public:
         ImNodes::DestroyContext();
 #endif
         ImGui::CleanupDemo();
-        ImGui::CleanupZMODemo();
+        ImGuizmo::CleanupZMODemo();
 #if IMGUI_VULKAN_SHADER
         ImGui::CleanVulkanDemo();
 #endif
@@ -452,7 +453,7 @@ bool Application_Frame(void* handle)
         ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
         ImGui::SetNextWindowSize(ImVec2(1280, 800), ImGuiCond_FirstUseEver);
         ImGui::Begin("##ZMO", &example->show_zmo_window, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar);
-        ImGui::ShowAddonsZMOWindow();
+        ImGuizmo::ShowAddonsZMOWindow();
         ImGui::End();
     }
 

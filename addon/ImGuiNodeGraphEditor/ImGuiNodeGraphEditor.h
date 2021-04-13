@@ -364,7 +364,7 @@ struct NodeLink
     friend class NodeGraphEditor;
 };
 
-class NodeGraphEditor
+class IMGUI_API NodeGraphEditor
 #if (defined(IMGUITABWINDOW_H_) && !defined(IMGUINODEGRAPHEDITOR_NO_TABLABEL))
 : public TabWindow::TabLabel
 #endif //IMGUITABWINDOW_H_
