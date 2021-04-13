@@ -4,7 +4,7 @@
 
 namespace ImVulkan 
 {
-class Resize_vulkan
+class IMGUI_API Resize_vulkan
 {
 public:
     Resize_vulkan(int gpu = -1);
