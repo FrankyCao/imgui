@@ -1,5 +1,5 @@
 #pragma once
-
+#include <imgui.h>
 // uncomment and modify defines under for customize ImGuiFileDialog
 
 //#define MAX_FILE_DIALOG_NAME_BUFFER 1024
