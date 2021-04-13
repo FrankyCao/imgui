@@ -20,6 +20,10 @@
 #ifndef DLFCN_H
 #define DLFCN_H
 
+#ifndef EXPORT
+#define EXPORT __declspec( dllexport )
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -42,10 +46,10 @@ extern "C" {
 #define RTLD_DEFAULT    ((void *)0)
 #define RTLD_NEXT       ((void *)-1)
 
-	void* dlopen(const char* file, int mode);
-	int   dlclose(void* handle);
-	void* dlsym(void* handle, const char* name);
-	char* dlerror(void);
+	EXPORT void* dlopen(const char* file, int mode);
+	EXPORT int   dlclose(void* handle);
+	EXPORT void* dlsym(void* handle, const char* name);
+	EXPORT char* dlerror(void);
 
 #ifdef __cplusplus
 }

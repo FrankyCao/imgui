@@ -1417,7 +1417,7 @@ inline SuspendFlags operator |(SuspendFlags lhs, SuspendFlags rhs) { return stat
 inline SuspendFlags operator &(SuspendFlags lhs, SuspendFlags rhs) { return static_cast<SuspendFlags>(static_cast<uint8_t>(lhs) & static_cast<uint8_t>(rhs)); }
 
 
-struct EditorContext
+struct IMGUI_API EditorContext
 {
     EditorContext(const ax::NodeEditor::Config* config = nullptr);
     ~EditorContext();

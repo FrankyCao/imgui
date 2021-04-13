@@ -65,7 +65,7 @@ class PopupMenuSimpleParams {
 public:
     bool open;
     int getSelectedEntry() const {return selectedEntry;}    // optional (use PopupMenuSimple(...) return value)
-protected:
+//protected:
     int selectedEntry;
     int hoveredEntry;
     int endIndex;
@@ -76,7 +76,7 @@ public:
     PopupMenuSimpleParams(bool _resetScrollingWhenRestart=true)
     : open(false),selectedEntry(-1),hoveredEntry(-1),endIndex(-1),startIndex(-1),scrollTimer(ImGui::GetTime()),resetScrollingWhenRestart(_resetScrollingWhenRestart)
     {}
-friend int PopupMenuSimple(PopupMenuSimpleParams& params,const char** pTotalEntries,int numTotalEntries,int numAllowedEntries,bool reverseItems,const char* optionalTitle,const char* scrollUpEntryText,const char* scrollDownEntryText);
+    //int PopupMenuSimple(PopupMenuSimpleParams& params,const char** pTotalEntries,int numTotalEntries,int numAllowedEntries,bool reverseItems,const char* optionalTitle,const char* scrollUpEntryText,const char* scrollDownEntryText);
 };
 
 IMGUI_API int PopupMenuSimple(PopupMenuSimpleParams& params,const char** pTotalEntries,int numTotalEntries,int numAllowedEntries,bool reverseItems=false,const char* optionalTitle=NULL,const char* scrollUpEntryText="   ^   ",const char* scrollDownEntryText="   v   ");
@@ -297,7 +297,7 @@ struct AnimatedImage {
 IMGUI_API bool ImageZoomAndPan(ImTextureID user_texture_id, const ImVec2& size,float aspectRatio,float& zoom,ImVec2& zoomCenter,int panMouseButtonDrag=1,int resetZoomAndPanMouseButton=2,const ImVec2& zoomMaxAndZoomStep=ImVec2(16.f,1.025f));
 
 class InputTextWithAutoCompletionData  {
-    protected:
+public:
     // auto completion:
     int deltaTTItems;                           // modified by UP/DOWN keys
     bool tabPressed;                            // triggers autocompletion
@@ -307,7 +307,7 @@ class InputTextWithAutoCompletionData  {
     int additionalFlags,bufTextLen,lastSelectedTTItemIndex;
     bool inited;                                // turns true the first time a method that use this class is called
 
-    public:
+public:
     int currentAutocompletionItemIndex;         // completely user-side (if!=-1, that item is displayed in a different way in the autocompletion menu)
     InputTextWithAutoCompletionData(ImGuiInputTextFlags _additionalFlags=0,int _currentAutocompletionItemIndex=-1) : deltaTTItems(0),tabPressed(false),itemPositionOfReturnedText(-1),itemIndexOfReturnedText(-1),
     additionalFlags(_additionalFlags&(ImGuiInputTextFlags_CharsDecimal|ImGuiInputTextFlags_CharsHexadecimal|ImGuiInputTextFlags_CharsNoBlank|ImGuiInputTextFlags_CharsUppercase)),bufTextLen(-1),lastSelectedTTItemIndex(-1),
@@ -319,8 +319,8 @@ class InputTextWithAutoCompletionData  {
 
     static float Opacity;   // 0.6f;
 
-    friend bool InputTextWithAutoCompletion(const char* label, char* buf, size_t buf_size,InputTextWithAutoCompletionData* pAutocompletion_data, bool (*autocompletion_items_getter)(void*, int, const char**), int autocompletion_items_size, void* autocompletion_user_data, int num_visible_autocompletion_items);
-    friend int DefaultInputTextAutoCompletionCallback(ImGuiInputTextCallbackData *data);
+    //friend bool InputTextWithAutoCompletion(const char* label, char* buf, size_t buf_size,InputTextWithAutoCompletionData* pAutocompletion_data, bool (*autocompletion_items_getter)(void*, int, const char**), int autocompletion_items_size, void* autocompletion_user_data, int num_visible_autocompletion_items);
+    //friend int DefaultInputTextAutoCompletionCallback(ImGuiInputTextCallbackData *data);
 
     // Some useful helper methods
     IMGUI_API static int HelperGetItemInsertionPosition(const char* txt,bool (*items_getter)(void*, int, const char**), int items_count, void* user_data=NULL,bool* item_is_already_present_out=NULL);
@@ -329,13 +329,13 @@ class InputTextWithAutoCompletionData  {
 IMGUI_API bool InputTextWithAutoCompletion(const char* label, char* buf, size_t buf_size, InputTextWithAutoCompletionData* pAutocompletion_data, bool (*autocompletion_items_getter)(void*, int, const char**), int autocompletion_items_size, void* autocompletion_user_data=NULL, int num_visible_autocompletion_items=-1);
 
 
-class InputComboWithAutoCompletionData : protected InputTextWithAutoCompletionData {
-    protected:
+class InputComboWithAutoCompletionData : public InputTextWithAutoCompletionData {
+public:
     int inputTextShown;
     ImVector<char> buf;
     bool isRenaming;
     bool itemHovered,itemActive;
-    public:
+public:
     InputComboWithAutoCompletionData(ImGuiInputTextFlags additionalInputTextFlags=0) : InputTextWithAutoCompletionData(additionalInputTextFlags),inputTextShown(0),isRenaming(false),itemHovered(false),itemActive(false) {}
 
     bool isInited() const {return inited;}              // added just for my laziness (to init elements inside DrawGL() of similiar)
@@ -347,12 +347,12 @@ class InputComboWithAutoCompletionData : protected InputTextWithAutoCompletionDa
     static char ButtonCharcters[3][5];  // = {"+","r","x"};
     static char ButtonTooltips[3][128]; // = {"add","rename","delete"};
 
-    friend bool InputComboWithAutoCompletion(const char* label, int *current_item, size_t autocompletion_buffer_size, InputComboWithAutoCompletionData* pAutocompletion_data,
-                                  bool (*items_getter)(void*, int, const char**),       // gets item at position ... (cannot be NULL)
-                                  bool (*items_inserter)(void*, int,const char*),       // inserts item at position ... (cannot be NULL)
-                                  bool (*items_deleter)(void*, int),                    // deletes item at position ... (can be NULL)
-                                  bool (*items_renamer)(void *, int, int, const char *),// deletes item at position, and inserts renamed item at new position  ... (can be NULL)
-                                  int items_count, void* user_data, int num_visible_items);
+    //friend bool InputComboWithAutoCompletion(const char* label, int *current_item, size_t autocompletion_buffer_size, InputComboWithAutoCompletionData* pAutocompletion_data,
+    //                              bool (*items_getter)(void*, int, const char**),       // gets item at position ... (cannot be NULL)
+    //                              bool (*items_inserter)(void*, int,const char*),       // inserts item at position ... (cannot be NULL)
+    //                              bool (*items_deleter)(void*, int),                    // deletes item at position ... (can be NULL)
+    //                              bool (*items_renamer)(void *, int, int, const char *),// deletes item at position, and inserts renamed item at new position  ... (can be NULL)
+    //                              int items_count, void* user_data, int num_visible_items);
 };
 IMGUI_API bool InputComboWithAutoCompletion(const char* label,int* current_item,size_t autocompletion_buffer_size,InputComboWithAutoCompletionData* pAutocompletion_data,
     bool (*items_getter)(void*, int, const char**),  // gets item at position ... (cannot be NULL)

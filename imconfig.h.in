@@ -14,6 +14,7 @@
 
 #pragma once
 
+#cmakedefine01 IMGUI_SHARED_LIBRARY
 #cmakedefine01 IMGUI_OPENGL
 #cmakedefine01 IMGUI_ENABLE_FREETYPE
 #cmakedefine01 IMGUI_GLEW
@@ -60,7 +61,14 @@
 // Using Dear ImGui via a shared library is not recommended, because of function call overhead and because we don't guarantee backward nor forward ABI compatibility.
 // DLL users: heaps and globals are not shared across DLL boundaries! You will need to call SetCurrentContext() + SetAllocatorFunctions()
 // for each static/DLL boundary you are calling from. Read "Context and Memory Allocators" section of imgui.cpp for more details.
-//#define IMGUI_API __declspec( dllexport )
+
+#ifdef _WIN32
+#if IMGUI_SHARED_LIBRARY
+#define IMGUI_API __declspec( dllexport )
+#else
+#define IMGUI_API
+#endif
+#endif
 //#define IMGUI_API __declspec( dllimport )
 
 //---- Don't define obsolete functions/enums/behaviors. Consider enabling from time to time after updating to avoid using soon-to-be obsolete function/names.

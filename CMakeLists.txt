@@ -1122,6 +1122,9 @@ if (IMGUI_APPS)
     )
 endif(IMGUI_APPS)
 
+if(NOT IMGUI_STATIC)
+set(IMGUI_SHARED_LIBRARY ON)
+endif(NOT IMGUI_STATIC)
 # Build library
 configure_file(imconfig.h.in ${CMAKE_CURRENT_BINARY_DIR}/imconfig.h)
 

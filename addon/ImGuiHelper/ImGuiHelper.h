@@ -145,7 +145,7 @@ enum FieldType {
     FT_COUNT
 };
 
-struct ScopedItemWidth
+struct IMGUI_API ScopedItemWidth
 {
     ScopedItemWidth(float width);
     ~ScopedItemWidth();
@@ -156,7 +156,7 @@ private:
     bool m_IsDone = false;
 };
 
-struct ScopedDisableItem
+struct IMGUI_API ScopedDisableItem
 {
     ScopedDisableItem(bool disable, float disabledAlpha = 0.5f);
     ~ScopedDisableItem();
@@ -168,7 +168,7 @@ private:
     float   m_LastAlpha     = 1.0f;
 };
 
-struct ScopedSuspendLayout
+struct IMGUI_API ScopedSuspendLayout
 {
     ScopedSuspendLayout();
     ~ScopedSuspendLayout();
@@ -186,7 +186,7 @@ private:
     float  m_PrevLineTextBaseOffset;
 };
 
-struct ItemBackgroundRenderer
+struct IMGUI_API ItemBackgroundRenderer
 {
     using OnDrawCallback = std::function<void(ImDrawList* drawList)>;
 
@@ -283,7 +283,8 @@ private:
 
     std::map<std::string, std::unique_ptr<Settings>> m_Settings;
 };
-struct MostRecentlyUsedList
+
+struct IMGUI_API MostRecentlyUsedList
 {
     static void Install(ImGuiContext* context);
 
@@ -313,7 +314,7 @@ private:
     static StorageHandler<Settings> s_Storage;
 };
 
-struct Grid
+struct IMGUI_API Grid
 {
     void Begin(const char* id, int columns, float width = -1.0f);
     void Begin(ImU32 id, int columns, float width = -1.0f);
@@ -356,7 +357,7 @@ typedef ImGui::FieldType FieldType;
 IMGUI_API bool GetFileContent(const char* filePath,ImVector<char>& contentOut,bool clearContentOutBeforeUsage=true,const char* modes="rb",bool appendTrailingZeroIfModesIsNotBinary=true);
 IMGUI_API bool FileExists(const char* filePath);
 
-class Deserializer {
+class IMGUI_API Deserializer {
     char* f_data;
     size_t f_size;
     void clear();

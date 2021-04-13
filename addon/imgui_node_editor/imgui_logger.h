@@ -24,7 +24,7 @@ enum class LogLevel: int32_t
 # define LOGE(...)      ::imgui_logger::OverlayLogger::GetCurrent()->Log(::imgui_logger::LogLevel::Error,    __VA_ARGS__)
 
 
-struct OverlayLogger
+struct IMGUI_API OverlayLogger
 {
     static void SetCurrent(OverlayLogger* instance);
     static OverlayLogger* GetCurrent();

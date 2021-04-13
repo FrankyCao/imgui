@@ -538,7 +538,7 @@ namespace IGFD
 	typedef void* UserDatas;
 	typedef std::function<void(const char*, UserDatas, bool*)> PaneFun;
 	
-	class FileDialog
+	class IMGUI_API FileDialog
 	{
 
 	///////////////////////////////////////////////////////////////////////////////////////

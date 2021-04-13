@@ -1,7 +1,6 @@
 ﻿# ifndef __IMGUI_JSON_H__
 # define __IMGUI_JSON_H__
-# pragma once
-
+# include <imgui.h>
 # include <type_traits>
 # include <string>
 # include <vector>
@@ -43,7 +42,7 @@ enum class type_t
     discarded
 };
 
-struct value
+struct IMGUI_API value
 {
     value(type_t type = type_t::null): m_Type(construct(m_Storage, type)) {}
     value(value&& other);
