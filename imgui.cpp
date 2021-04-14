@@ -3927,7 +3927,7 @@ double ImGui::GetEventWaitingTime()
     {
         double current_time = get_current_time();
         double deltaTime = g.WallClock > 0 ? current_time - g.WallClock : g.MaxWaitBeforeNextFrame;
-        double delta = g.MaxWaitBeforeNextFrame - deltaTime - 0.001;
+        double delta = g.MaxWaitBeforeNextFrame - deltaTime;
         return ImMax(0.0, delta);
     }
 
