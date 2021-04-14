@@ -40,6 +40,7 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include <math.h> // isinf needed by Dicky
+#include <thread> // sleep_for by Dicky
 
 // GLFW
 #include <GLFW/glfw3.h>
@@ -403,7 +404,8 @@ void ImGui_ImplGlfw_NewFrame()
 // Add By Dicky
 void ImGui_ImplGlfw_WaitForEvent()
 {
-    if (!(ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_EnablePowerSavingMode))
+    if (!(ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_EnablePowerSavingMode) &&
+        !(ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_EnableLowRefreshMode))
         return;
 
     bool window_is_hidden = !glfwGetWindowAttrib(g_Window, GLFW_VISIBLE) || glfwGetWindowAttrib(g_Window, GLFW_ICONIFIED);
@@ -413,7 +415,12 @@ void ImGui_ImplGlfw_WaitForEvent()
         if (isinf(waiting_time))
             glfwWaitEvents();
         else
-            glfwWaitEventsTimeout(waiting_time);
+        {
+            if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_EnablePowerSavingMode)
+                glfwWaitEventsTimeout(waiting_time);
+            else
+                std::this_thread::sleep_for(std::chrono::milliseconds((uint64_t)(waiting_time * 1000)));
+        }
     }
 }
 // Add By Dicky end

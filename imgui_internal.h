@@ -1464,6 +1464,7 @@ struct ImGuiContext
 
     // Add By Dicky Power saving mode
     double                  MaxWaitBeforeNextFrame;             // How much time, in seconds, can we wait for events before starting the next frame
+    double                  WallClock;                          // System Clock
     // Add By Dicky end
 
     // Gamepad/keyboard Navigation
@@ -1613,7 +1614,7 @@ struct ImGuiContext
     ImGuiMetricsConfig      DebugMetricsConfig;
 
     // Misc
-    float                   FramerateSecPerFrame[120];          // Calculate estimate of framerate for user over the last 2 seconds.
+    float                   FramerateSecPerFrame[60];          // Calculate estimate of framerate for user over the last 2 seconds.
     int                     FramerateSecPerFrameIdx;
     float                   FramerateSecPerFrameAccum;
     int                     WantCaptureMouseNextFrame;          // Explicit capture via CaptureKeyboardFromApp()/CaptureMouseFromApp() sets those flags
@@ -1759,6 +1760,7 @@ struct ImGuiContext
         DebugItemPickerActive = false;
         DebugItemPickerBreakId = 0;
 
+        // Modify By Dicky, set init framerate to buffer
         memset(FramerateSecPerFrame, 0, sizeof(FramerateSecPerFrame));
         FramerateSecPerFrameIdx = 0;
         FramerateSecPerFrameAccum = 0.0f;

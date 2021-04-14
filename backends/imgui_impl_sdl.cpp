@@ -56,6 +56,7 @@
 #endif
 
 #include <math.h> // isinf needed By Dicky
+#include <thread> // sleep_for By Dicky
 
 #define SDL_HAS_CAPTURE_AND_GLOBAL_MOUSE    SDL_VERSION_ATLEAST(2,0,4)
 #define SDL_HAS_VULKAN                      SDL_VERSION_ATLEAST(2,0,6)
@@ -383,7 +384,8 @@ void ImGui_ImplSDL2_NewFrame(SDL_Window* window)
 // Add By Dicky
 void ImGui_ImplSDL2_WaitForEvent()
 {
-    if (!(ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_EnablePowerSavingMode))
+    if (!(ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_EnablePowerSavingMode) &&
+        !(ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_EnableLowRefreshMode))
         return;
 
     Uint32 window_flags = SDL_GetWindowFlags(g_Window);
@@ -396,7 +398,10 @@ void ImGui_ImplSDL2_WaitForEvent()
         else
         {
             const int waiting_time_ms = (int)(1000.0 * ImGui::GetEventWaitingTime());
-            SDL_WaitEventTimeout(NULL, waiting_time_ms);
+            if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_EnablePowerSavingMode)
+                SDL_WaitEventTimeout(NULL, waiting_time_ms);
+            else
+                std::this_thread::sleep_for(std::chrono::milliseconds(waiting_time_ms));
         }
     }
 }

@@ -440,6 +440,8 @@ void ImGui::ShowDemoWindow(bool* p_open)
             // Add By Dicky
             ImGui::CheckboxFlags("io.ConfigFlags: EnablePowerSavingMode", (unsigned int *)&io.ConfigFlags, ImGuiConfigFlags_EnablePowerSavingMode);
             ImGui::SameLine(); HelpMarker("Enable power saving mode, reducing the frame rate automatically when idle.");
+            ImGui::CheckboxFlags("io.ConfigFlags: EnableLowRefreshMode", (unsigned int *)&io.ConfigFlags, ImGuiConfigFlags_EnableLowRefreshMode);
+            ImGui::SameLine(); HelpMarker("Enable low refresh mode, reducing the frame rate.");
             // Add By Dicky end
             ImGui::Checkbox("io.ConfigInputTextCursorBlink", &io.ConfigInputTextCursorBlink);
             ImGui::SameLine(); HelpMarker("Enable blinking cursor (optional as some users consider it to be distracting)");
@@ -5678,6 +5680,7 @@ void ImGui::ShowAboutWindow(bool* p_open)
         if (io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange)      ImGui::Text(" NoMouseCursorChange");
         // Add By Dicky
         if (io.ConfigFlags & ImGuiConfigFlags_EnablePowerSavingMode)    ImGui::Text(" EnablePowerSavingMode");
+        if (io.ConfigFlags & ImGuiConfigFlags_EnableLowRefreshMode)     ImGui::Text(" EnableLowRefreshMode");
         // Add By Dicky end
         if (io.MouseDrawCursor)                                         ImGui::Text("io.MouseDrawCursor");
         if (io.ConfigMacOSXBehaviors)                                   ImGui::Text("io.ConfigMacOSXBehaviors");

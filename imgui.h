@@ -275,7 +275,7 @@ namespace ImGui
     IMGUI_API ImDrawData*   GetDrawData();                              // valid after Render() and until the next call to NewFrame(). this is what you have to render.
 
     // Power saving mode add By Dicky
-    // Disabled by default; enabled by setting ImGuiConfigFlags_EnablePowerSavingMode in ImGuiIO.ConfigFlags.
+    // Disabled by default; enabled by setting ImGuiConfigFlags_EnablePowerSavingMode or ImGuiConfigFlags_EnableLowRefreshMode in ImGuiIO.ConfigFlags.
     // Requires platform binding support.
     // When enabled and supported, ImGui will wait for input events before starting new frames, instead of continuously polling, thereby helping to reduce power consumption.
     // It will wake up periodically if a widget is animating (e.g. blinking InputText cursor). You can control this maximum wake-up timeout using SetMaxWaitBeforeNextFrame(), for example when your application is playing an animation.
@@ -1413,6 +1413,7 @@ enum ImGuiConfigFlags_
     ImGuiConfigFlags_NoMouseCursorChange    = 1 << 5,   // Instruct backend to not alter mouse cursor shape and visibility. Use if the backend cursor changes are interfering with yours and you don't want to use SetMouseCursor() to change mouse cursor. You may want to honor requests from imgui by reading GetMouseCursor() yourself instead.
                                                         // Add By Dicky
     ImGuiConfigFlags_EnablePowerSavingMode  = 1 << 6,   // Instruct imgui to help save power by not starting new frames when there are no user inputs or if the window is known not to be visible (both features require support in the platform binding). Use SetMaxWaitBeforeNextFrame() to let your application request a maximum wait before the next frame, which helps enforce a minimum frame rate (e.g. when playing an animation).
+    ImGuiConfigFlags_EnableLowRefreshMode   = 1 << 7,   // Instruct imgui to help low refresh by not starting new frames when there are no user inputs or if the window is known not to be visible (both features require support in the platform binding). Use SetMaxWaitBeforeNextFrame() to let your application request a maximum wait before the next frame, which helps enforce a minimum frame rate (e.g. when playing an animation).
                                                         // Add By Dicky end
     // User storage (to allow your backend/engine to communicate to code that may be shared between multiple projects. Those flags are not used by core Dear ImGui)
     ImGuiConfigFlags_IsSRGB                 = 1 << 20,  // Application is SRGB-aware.

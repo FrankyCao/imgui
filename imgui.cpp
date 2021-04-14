@@ -3923,6 +3923,14 @@ double ImGui::GetEventWaitingTime()
 {
     ImGuiContext& g = *GImGui;
 
+    if (g.IO.ConfigFlags & ImGuiConfigFlags_EnableLowRefreshMode)
+    {
+        double current_time = get_current_time();
+        double deltaTime = g.WallClock > 0 ? current_time - g.WallClock : g.MaxWaitBeforeNextFrame;
+        double delta = g.MaxWaitBeforeNextFrame - deltaTime - 0.001;
+        return ImMax(0.0, delta);
+    }
+
     if ((g.IO.ConfigFlags & ImGuiConfigFlags_EnablePowerSavingMode) && g.IO.FrameCountSinceLastInput > 2)
         return ImMax(0.0, g.MaxWaitBeforeNextFrame);
 
@@ -3964,13 +3972,14 @@ void ImGui::NewFrame()
     g.MenusIdSubmittedThisFrame.resize(0);
     // Add By Dicky for Power Save
     g.MaxWaitBeforeNextFrame = INFINITY;
+    g.WallClock = get_current_time();
     // Add By Dicky end
 
     // Calculate frame-rate for the user, as a purely luxurious feature
     g.FramerateSecPerFrameAccum += g.IO.DeltaTime - g.FramerateSecPerFrame[g.FramerateSecPerFrameIdx];
     g.FramerateSecPerFrame[g.FramerateSecPerFrameIdx] = g.IO.DeltaTime;
     g.FramerateSecPerFrameIdx = (g.FramerateSecPerFrameIdx + 1) % IM_ARRAYSIZE(g.FramerateSecPerFrame);
-    g.IO.Framerate = (g.FramerateSecPerFrameAccum > 0.0f) ? (1.0f / (g.FramerateSecPerFrameAccum / (float)IM_ARRAYSIZE(g.FramerateSecPerFrame))) : FLT_MAX;
+    g.IO.Framerate = (g.FramerateSecPerFrameAccum > 0.0f) ? (1.0f / (g.FramerateSecPerFrameAccum / (float)IM_ARRAYSIZE(g.FramerateSecPerFrame))) : 60.0;//FLT_MAX;
 
     UpdateViewportsNewFrame();
 
@@ -12347,7 +12356,7 @@ double ImGui::get_current_time()
     LARGE_INTEGER pc;
     QueryPerformanceFrequency(&freq);
     QueryPerformanceCounter(&pc);
-    return pc.QuadPart * 1000.0 / freq.QuadPart;
+    return (double)pc.QuadPart / ((double)freq.QuadPart + 1e-10);
 #else  // _WIN32
     struct timeval tv;
     gettimeofday(&tv, NULL);

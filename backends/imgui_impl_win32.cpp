@@ -20,6 +20,7 @@
 #include <tchar.h>
 #include <dwmapi.h>
 #include <math.h> // isinf needed By Dicky
+#include <thread> // sleep_for By Dicky
 
 // Configuration flags to add in your imconfig.h file:
 //#define IMGUI_IMPL_WIN32_DISABLE_GAMEPAD              // Disable gamepad support (this used to be meaningful before <1.81) but we know load XInput dynamically so the option is less relevant now.
@@ -544,7 +545,8 @@ void ImGui_ImplWin32_EnableAlphaCompositing(void* hwnd)
 // Add By Dicky
 void ImGui_ImplWin32_WaitForEvent()
 {
-    if (!(ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_EnablePowerSavingMode))
+    if (!(ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_EnablePowerSavingMode) &&
+        !(ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_EnableLowRefreshMode))
         return;
 
     BOOL window_is_hidden = !IsWindowVisible(g_hWnd) || IsIconic(g_hWnd);
@@ -552,7 +554,10 @@ void ImGui_ImplWin32_WaitForEvent()
     if (waiting_time > 0.0)
     {
         DWORD waiting_time_ms = isinf(waiting_time) ? INFINITE : (DWORD)(1000.0 * waiting_time);
-        ::MsgWaitForMultipleObjectsEx(0, NULL, waiting_time_ms, QS_ALLINPUT, MWMO_INPUTAVAILABLE|MWMO_ALERTABLE);
+        if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_EnablePowerSavingMode)
+            ::MsgWaitForMultipleObjectsEx(0, NULL, waiting_time_ms, QS_ALLINPUT, MWMO_INPUTAVAILABLE|MWMO_ALERTABLE);
+        else
+            std::this_thread::sleep_for(std::chrono::milliseconds(waiting_time_ms));
     }
 }
 // Add By Dicky end
