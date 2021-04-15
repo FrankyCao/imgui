@@ -45,7 +45,8 @@ DLClass<T>::DLClass(std::string module_name) :
 
 template <class T>
 DLClass<T>::~DLClass() {
-	//close_module();
+    if (shared)
+        shared->close_module();
 }
 
 template <class T>

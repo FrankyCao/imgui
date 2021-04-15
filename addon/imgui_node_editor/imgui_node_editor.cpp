@@ -221,6 +221,8 @@ static void ImDrawListSplitter_Grow(ImDrawList* draw_list, ImDrawListSplitter* s
             splitter->_Channels[i]._CmdBuffer.resize(0);
             splitter->_Channels[i]._IdxBuffer.resize(0);
         }
+        /*
+        // TODO::Dicky CmdBuffer push_back will cause drawlist memory leak, but why?
         if (splitter->_Channels[i]._CmdBuffer.Size == 0)
         {
             ImDrawCmd draw_cmd;
@@ -228,6 +230,7 @@ static void ImDrawListSplitter_Grow(ImDrawList* draw_list, ImDrawListSplitter* s
             draw_cmd.TextureId = draw_list->_TextureIdStack.back();
             splitter->_Channels[i]._CmdBuffer.push_back(draw_cmd);
         }
+         */
     }
 }
 
@@ -1516,7 +1519,7 @@ void ed::EditorContext::End()
 
     if (m_Settings.m_IsDirty && !m_CurrentAction)
         SaveSettings();
-
+    
     m_DrawList = nullptr;
     m_IsFirstFrame = false;
 }
