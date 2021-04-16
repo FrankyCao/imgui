@@ -562,6 +562,7 @@ if (IMGUI_ICONS)
         icons/fork_webfont.cpp
         icons/material_icons.cpp
         icons/kenney.cpp
+        icons/StepMath.cpp
     )
     set(IMGUI_INC_DIRS
         ${IMGUI_INC_DIRS}

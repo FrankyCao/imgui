@@ -1,5 +1,9 @@
 #include "imgui.h"
 
+extern const char StepMath_compressed_data_base85[];
+#define ICON_MIN_MATH 0x2000
+#define ICON_MAX_MATH 0x2A80
+
 bool ImGui::LoadInternalIcons(ImFontAtlas* atlas)
 {
     ImFontConfig icons_config; 
@@ -37,6 +41,10 @@ bool ImGui::LoadInternalIcons(ImFontAtlas* atlas)
     // Kenney Game icons
     static const ImWchar ki_icons_ranges[] = { ICON_MIN_KI, ICON_MAX_KI, 0 };
 	atlas->AddFontFromMemoryCompressedBase85TTF(kenney_compressed_data_base85, 16.0f, &icons_config, ki_icons_ranges);
+
+    // StepMath
+    static const ImWchar math_icons_ranges[] = { ICON_MIN_MATH, ICON_MAX_MATH, 0 };
+	atlas->AddFontFromMemoryCompressedBase85TTF(StepMath_compressed_data_base85, 16.0f, &icons_config, math_icons_ranges);
 
     return true;
 }

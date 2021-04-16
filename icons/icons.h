@@ -7,6 +7,7 @@
 #include "IconsForkAwesome.h"
 #include "IconsMaterialDesign.h"
 #include "IconsKenney.h"
+
 namespace ImGui
 {
     IMGUI_API bool LoadInternalIcons(ImFontAtlas* atlas);
