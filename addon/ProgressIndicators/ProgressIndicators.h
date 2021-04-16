@@ -21,6 +21,8 @@ namespace ImGui
 	IMGUI_API bool      SpinFloat(const char* label, float* v, float step = 0.0f, float step_fast = 0.0f, const char* format = "%.3f", ImGuiInputTextFlags flags = 0);
 	IMGUI_API bool      SpinDouble(const char* label, double* v, double step = 0.0, double step_fast = 0.0, const char* format = "%.6f", ImGuiInputTextFlags flags = 0);
 
+#if IMGUI_BUILD_EXAMPLE
     // Demo
     IMGUI_API void      ShowBezierDemo();
+#endif
 } // namespace ImGui

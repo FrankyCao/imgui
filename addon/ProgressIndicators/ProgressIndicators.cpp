@@ -830,10 +830,13 @@ int ImGui::Bezier(const char *label, float P[5])
     // if (hovered || changed) DrawList->PopClipRect();
     return changed;
 }
+
+#if IMGUI_BUILD_EXAMPLE
 void ImGui::ShowBezierDemo() 
 {
     { static float v[5] = { 0.950f, 0.050f, 0.795f, 0.035f }; ImGui::Bezier("easeInExpo", v); }
 }
+#endif
 
 //-------------------------------------------------------------------------
 bool ImGui::SpinScaler(const char* label, ImGuiDataType data_type, void* data_ptr, const void* step, const void* step_fast, const char* format, ImGuiInputTextFlags flags)

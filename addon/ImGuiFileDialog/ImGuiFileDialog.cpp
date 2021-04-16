@@ -464,7 +464,7 @@ namespace IGFD
 		dlg_optionsPaneWidth = 250;
 		dlg_filters = "";
 		dlg_userDatas = 0;
-#if IMGUI_INTERNAL_ICONS
+#if IMGUI_ICONS
         // set type color and icons
         SetTypeInfos(std::to_string('f'), ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FK_FILE_O);
         SetTypeInfos(std::to_string('d'), ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FK_FOLDER);

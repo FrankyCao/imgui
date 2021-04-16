@@ -206,7 +206,9 @@ namespace ImGuizmo
    // When false, they always stay along the positive world/local axis
    IMGUI_API void AllowAxisFlip(bool value);
 
+#if IMGUI_BUILD_EXAMPLE
    // For Demo
    IMGUI_API void  ShowAddonsZMOWindow();
    IMGUI_API void  CleanupZMODemo();
+#endif
 }

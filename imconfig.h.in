@@ -15,6 +15,7 @@
 #pragma once
 
 #cmakedefine01 IMGUI_SHARED_LIBRARY
+#cmakedefine01 IMGUI_BUILD_EXAMPLE
 #cmakedefine01 IMGUI_OPENGL
 #cmakedefine01 IMGUI_ENABLE_FREETYPE
 #cmakedefine01 IMGUI_GLEW
@@ -31,12 +32,12 @@
 #cmakedefine01 IMGUI_PLATFORM_GLFW
 #cmakedefine01 IMGUI_PLATFORM_GLUT
 #cmakedefine01 IMGUI_PLATFORM_WIN32
-#cmakedefine01 IMGUI_INTERNAL_FONT_HEI
-#cmakedefine01 IMGUI_INTERNAL_FONT_KAI
-#cmakedefine01 IMGUI_INTERNAL_FONT_SONG
-#cmakedefine01 IMGUI_INTERNAL_FONT_YUAN
-#cmakedefine01 IMGUI_INTERNAL_FONT_SARASA
-#cmakedefine01 IMGUI_INTERNAL_ICONS
+#cmakedefine01 IMGUI_FONT_HEI
+#cmakedefine01 IMGUI_FONT_KAI
+#cmakedefine01 IMGUI_FONT_SONG
+#cmakedefine01 IMGUI_FONT_YUAN
+#cmakedefine01 IMGUI_FONT_SARASA
+#cmakedefine01 IMGUI_ICONS
 #cmakedefine01 IMGUI_ADDONS
 #cmakedefine01 IMGUI_ADDON_IMNODES
 #cmakedefine01 IMGUI_ADDON_NODE_GRAPH

@@ -188,19 +188,19 @@ extern const char ProggyTiny_compressed_data_base85[];
 extern const char Roboto_Medium_compressed_data_base85[];
 
 // Add By Dicky for Chinese App
-#if IMGUI_INTERNAL_FONT_SARASA
+#if IMGUI_FONT_SARASA
 extern const char mono_sarasa_compressed_data_base85[];
 #endif
-#if IMGUI_INTERNAL_FONT_HEI
+#if IMGUI_FONT_HEI
 extern const char mono_hei_compressed_data_base85[];
 #endif
-#if IMGUI_INTERNAL_FONT_SONG
+#if IMGUI_FONT_SONG
 extern const char mono_song_compressed_data_base85[];
 #endif
-#if IMGUI_INTERNAL_FONT_YUAN
+#if IMGUI_FONT_YUAN
 extern const char mono_yuan_compressed_data_base85[];
 #endif
-#if IMGUI_INTERNAL_FONT_KAI
+#if IMGUI_FONT_KAI
 extern const char mono_kai_compressed_data_base85[];
 #endif
 // Add by Dicky end
@@ -2129,7 +2129,6 @@ static void         Decode85(const unsigned char* src, unsigned char* dst)
 // Load embedded monohei.ttf at size 16. modify by Dicky
 ImFont* ImFontAtlas::AddFontDefault(const ImFontConfig* font_cfg_template)
 {
-    bool load_icons = false;
     ImFont* font = nullptr;
     float font_size = 16.0f;
     ImFontConfig font_cfg = font_cfg_template ? *font_cfg_template : ImFontConfig();
@@ -2143,52 +2142,52 @@ ImFont* ImFontAtlas::AddFontDefault(const ImFontConfig* font_cfg_template)
         font_cfg.SizePixels = font_size * 1.0f;
     font_cfg.EllipsisChar = (ImWchar)0x0085;
     font_cfg.GlyphOffset.y = 1.0f * IM_FLOOR(font_cfg.SizePixels / font_size);  // Add +1 offset per 16 units
-#if IMGUI_INTERNAL_FONT_HEI
+#if IMGUI_FONT_HEI
     {
         ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "等宽黑体, %dpx", (int)font_cfg.SizePixels);
         ImFont* cfont = AddFontFromMemoryCompressedBase85TTF(mono_hei_compressed_data_base85, font_cfg.SizePixels, &font_cfg, GetGlyphRangesChineseFull());
         if (font == nullptr) font = cfont;
-#if IMGUI_INTERNAL_ICONS
+#if IMGUI_ICONS
         ImGui::LoadInternalIcons(this);
 #endif
     }
 #endif
-#if IMGUI_INTERNAL_FONT_SARASA
+#if IMGUI_FONT_SARASA
     {
         ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "等宽粗黑, %dpx", (int)font_cfg.SizePixels);
         ImFont* cfont = AddFontFromMemoryCompressedBase85TTF(mono_sarasa_compressed_data_base85, font_cfg.SizePixels, &font_cfg, GetGlyphRangesChineseFull());
         if (font == nullptr) font = cfont;
-#if IMGUI_INTERNAL_ICONS
+#if IMGUI_ICONS
         ImGui::LoadInternalIcons(this);
 #endif
     }
 #endif
-#if IMGUI_INTERNAL_FONT_KAI
+#if IMGUI_FONT_KAI
     {
         ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "等宽粗楷, %dpx", (int)font_cfg.SizePixels);
         ImFont* cfont = AddFontFromMemoryCompressedBase85TTF(mono_kai_compressed_data_base85, font_cfg.SizePixels, &font_cfg, GetGlyphRangesChineseFull());
         if (font == nullptr) font = cfont;
-#if IMGUI_INTERNAL_ICONS
+#if IMGUI_ICONS
         ImGui::LoadInternalIcons(this);
 #endif
     }
 #endif
-#if IMGUI_INTERNAL_FONT_SONG
+#if IMGUI_FONT_SONG
     {
         ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "等宽宋体, %dpx", (int)font_cfg.SizePixels);
         ImFont* cfont = AddFontFromMemoryCompressedBase85TTF(mono_song_compressed_data_base85, font_cfg.SizePixels, &font_cfg, GetGlyphRangesChineseFull());
         if (font == nullptr) font = cfont;
-#if IMGUI_INTERNAL_ICONS
+#if IMGUI_ICONS
         ImGui::LoadInternalIcons(this);
 #endif
     }
 #endif
-#if IMGUI_INTERNAL_FONT_YUAN
+#if IMGUI_FONT_YUAN
     {
         ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "等宽粗圆, %dpx", (int)font_cfg.SizePixels);
         ImFont* cfont = AddFontFromMemoryCompressedBase85TTF(mono_yuan_compressed_data_base85, font_cfg.SizePixels, &font_cfg, GetGlyphRangesChineseFull());  
         if (font == nullptr) font = cfont;
-#if IMGUI_INTERNAL_ICONS
+#if IMGUI_ICONS
         ImGui::LoadInternalIcons(this);
 #endif
     }
@@ -2202,11 +2201,14 @@ ImFont* ImFontAtlas::AddFontDefault(const ImFontConfig* font_cfg_template)
 
         ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "SourceCodePro Regular, %dpx", (int)font_cfg.SizePixels);
         cfont = AddFontFromMemoryCompressedBase85TTF(SourceCodePro_Regular_compressed_data_base85, font_cfg.SizePixels, &font_cfg, glyph_ranges);
-#if IMGUI_INTERNAL_ICONS
-        if (!load_icons) load_icons = ImGui::LoadInternalIcons(this);
+#if IMGUI_ICONS
+        ImGui::LoadInternalIcons(this);
 #endif
         ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "Monaco, %dpx", (int)font_cfg.SizePixels);
         AddFontFromMemoryCompressedBase85TTF(Monaco_compressed_data_base85, font_cfg.SizePixels, &font_cfg, glyph_ranges);
+#if IMGUI_ICONS
+        ImGui::LoadInternalIcons(this);
+#endif
         ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "DroidSans, %dpx", (int)font_cfg.SizePixels);
         AddFontFromMemoryCompressedBase85TTF(DroidSans_compressed_data_base85, font_cfg.SizePixels, &font_cfg, glyph_ranges);
         ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "ProggyClean, %dpx", (int)font_cfg.SizePixels);

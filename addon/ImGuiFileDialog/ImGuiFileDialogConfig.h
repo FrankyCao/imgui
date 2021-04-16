@@ -26,7 +26,7 @@
 //#define IMGUI_BUTTON ImGui::Button
 
 // locales string
-#if IMGUI_INTERNAL_ICONS
+#if IMGUI_ICONS
 #define createDirButtonString ICON_IGFD_ADD
 #define okButtonString ICON_IGFD_OK " OK"
 #define cancelButtonString ICON_IGFD_CANCEL " Cancel"
@@ -55,7 +55,7 @@
 //#define buttonCreateDirString "Create Directory"
 //#define OverWriteDialogTitleString "The file Already Exist !"
 //#define OverWriteDialogMessageString "Would you like to OverWrite it ?"
-#if IMGUI_INTERNAL_ICONS
+#if IMGUI_ICONS
 #define OverWriteDialogConfirmButtonString ICON_IGFD_OK " Confirm"
 #define OverWriteDialogCancelButtonString ICON_IGFD_CANCEL " Cancel"
 #else
@@ -71,7 +71,7 @@
 
 // theses icons will appear in table headers
 #define USE_CUSTOM_SORTING_ICON
-#if IMGUI_INTERNAL_ICONS
+#if IMGUI_ICONS
 #define tableHeaderAscendingIcon ICON_IGFD_CHEVRON_UP
 #define tableHeaderDescendingIcon ICON_IGFD_CHEVRON_DOWN
 #else
@@ -86,7 +86,7 @@
 #define USE_BOOKMARK
 //#define bookmarkPaneWith 150.0f
 //#define IMGUI_TOGGLE_BUTTON ToggleButton
-#if IMGUI_INTERNAL_ICONS
+#if IMGUI_ICONS
 #define bookmarksButtonString ICON_IGFD_BOOKMARK
 #define addBookmarkButtonString ICON_IGFD_ADD
 #define removeBookmarkButtonString ICON_IGFD_REMOVE

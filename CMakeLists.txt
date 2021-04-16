@@ -199,7 +199,6 @@ endif(IMGUI_FREETYPE AND FREETYPE_FOUND)
 # base sources
 set(IMGUI_SRC
     imgui.cpp 
-    imgui_demo.cpp 
     imgui_draw.cpp
     imgui_widgets.cpp
     imgui_tables.cpp
@@ -229,6 +228,13 @@ set(IMGUI_INCS
     misc/stb_image_write.h
     misc/DynObjectLoader.h
 )
+
+if(IMGUI_BUILD_EXAMPLE)
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
+        imgui_demo.cpp 
+    )
+endif(IMGUI_BUILD_EXAMPLE)
 
 if(WIN32)
     set(IMGUI_SRC
@@ -512,35 +518,30 @@ endif(WIN32)
 
 # Add Fonts
 if (IMGUI_FONT_HEI)
-    set(IMGUI_INTERNAL_FONT_HEI ON)
     set(IMGUI_SRC
         ${IMGUI_SRC}
         fonts/mono_hei.cpp
     )
 endif (IMGUI_FONT_HEI)
 if (IMGUI_FONT_KAI)
-    set(IMGUI_INTERNAL_FONT_KAI ON)
     set(IMGUI_SRC
         ${IMGUI_SRC}
         fonts/mono_kai.cpp
     )
 endif (IMGUI_FONT_KAI)
 if (IMGUI_FONT_SONG)
-    set(IMGUI_INTERNAL_FONT_SONG ON)
     set(IMGUI_SRC
         ${IMGUI_SRC}
         fonts/mono_song.cpp
     )
 endif (IMGUI_FONT_SONG)
 if (IMGUI_FONT_YUAN)
-    set(IMGUI_INTERNAL_FONT_YUAN ON)
     set(IMGUI_SRC
         ${IMGUI_SRC}
         fonts/mono_yuan.cpp
     )
 endif (IMGUI_FONT_YUAN)
 if (IMGUI_FONT_SARASA)
-    set(IMGUI_INTERNAL_FONT_SARASA ON)
     set(IMGUI_SRC
         ${IMGUI_SRC}
         fonts/mono_sarasa.cpp
@@ -549,7 +550,6 @@ endif (IMGUI_FONT_SARASA)
 
 # Add Icons
 if (IMGUI_ICONS)
-    set(IMGUI_INTERNAL_ICONS ON)
     set(IMGUI_SRC
         ${IMGUI_SRC}
         icons/icons.cpp
@@ -595,41 +595,42 @@ if(IMGUI_ADDONS)
     )
 
     # ImGuiFileSystem
-    set(IMGUI_SRC
-        ${IMGUI_SRC}
-        addon/ImGuiFileSystem/ImGuiFileSystem.cpp
-    )
-    set(IMGUI_INCS
-        ${IMGUI_INCS}
-        addon/ImGuiFileSystem/ImGuiFileSystem.h
-    )
-
-    if (NOT WIN32 AND ZLIB_FOUND)
+    if (IMGUI_BUILD_EXAMPLE)
         set(IMGUI_SRC
             ${IMGUI_SRC}
-            addon/ImGuiFileSystem/minizip/zip.c
-            addon/ImGuiFileSystem/minizip/unzip.c
-            addon/ImGuiFileSystem/minizip/ioapi.c
+            addon/ImGuiFileSystem/ImGuiFileSystem.cpp
         )
         set(IMGUI_INCS
             ${IMGUI_INCS}
-            addon/ImGuiFileSystem/minizip/zip.h
-            addon/ImGuiFileSystem/minizip/unzip.h
-            addon/ImGuiFileSystem/minizip/ioapi.h
-            addon/ImGuiFileSystem/minizip/crypt.h
+            addon/ImGuiFileSystem/ImGuiFileSystem.h
         )
-    endif(NOT WIN32 AND ZLIB_FOUND)
 
-    set(IMGUI_INC_DIRS
-        ${IMGUI_INC_DIRS}
-        ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiFileSystem
-    )
+        if (NOT WIN32 AND ZLIB_FOUND)
+            set(IMGUI_SRC
+                ${IMGUI_SRC}
+                addon/ImGuiFileSystem/minizip/zip.c
+                addon/ImGuiFileSystem/minizip/unzip.c
+                addon/ImGuiFileSystem/minizip/ioapi.c
+            )
+            set(IMGUI_INCS
+                ${IMGUI_INCS}
+                addon/ImGuiFileSystem/minizip/zip.h
+                addon/ImGuiFileSystem/minizip/unzip.h
+                addon/ImGuiFileSystem/minizip/ioapi.h
+                addon/ImGuiFileSystem/minizip/crypt.h
+            )
+        endif(NOT WIN32 AND ZLIB_FOUND)
+
+        set(IMGUI_INC_DIRS
+            ${IMGUI_INC_DIRS}
+            ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiFileSystem
+        )
+    endif(IMGUI_BUILD_EXAMPLE)
 
     # ImGuiFileDialog
     set(IMGUI_SRC
         ${IMGUI_SRC}
         addon/ImGuiFileDialog/ImGuiFileDialog.cpp
-        addon/ImGuiFileDialog/ImGuiFileDialogDemo.cpp
     )
     set(IMGUI_INCS
         ${IMGUI_INCS}
@@ -639,27 +640,34 @@ if(IMGUI_ADDONS)
         ${IMGUI_INC_DIRS}
         ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiFileDialog
     )
+    if (IMGUI_BUILD_EXAMPLE)
+        set(IMGUI_SRC
+            ${IMGUI_SRC}
+            addon/ImGuiFileDialog/ImGuiFileDialogDemo.cpp
+        )
+    endif(IMGUI_BUILD_EXAMPLE)
 
     # TinyFileDialog
-    set(IMGUI_SRC
-        ${IMGUI_SRC}
-        addon/tinyfiledialog/tinyfiledialogs.c
-        addon/tinyfiledialog/tinyfiledialogs.h
-    )
-    set(IMGUI_INCS
-        ${IMGUI_INCS}
-        addon/tinyfiledialog/tinyfiledialogs.h
-    )
-    set(IMGUI_INC_DIRS
-        ${IMGUI_INC_DIRS}
-        ${CMAKE_CURRENT_SOURCE_DIR}/addon/tinyfiledialog
-    )
+    if (IMGUI_BUILD_EXAMPLE)
+        set(IMGUI_SRC
+            ${IMGUI_SRC}
+            addon/tinyfiledialog/tinyfiledialogs.c
+            addon/tinyfiledialog/tinyfiledialogs.h
+        )
+        set(IMGUI_INCS
+            ${IMGUI_INCS}
+            addon/tinyfiledialog/tinyfiledialogs.h
+        )
+        set(IMGUI_INC_DIRS
+            ${IMGUI_INC_DIRS}
+            ${CMAKE_CURRENT_SOURCE_DIR}/addon/tinyfiledialog
+        )
+    endif(IMGUI_BUILD_EXAMPLE)
     # implot
     set(IMGUI_SRC
         ${IMGUI_SRC}
         addon/implot/implot.cpp
         addon/implot/implot_items.cpp
-        addon/implot/implot_demo.cpp
     )
     set(IMGUI_INCS
         ${IMGUI_INCS}
@@ -670,6 +678,12 @@ if(IMGUI_ADDONS)
         ${IMGUI_INC_DIRS}
         ${CMAKE_CURRENT_SOURCE_DIR}/addon/implot
     )
+    if(IMGUI_BUILD_EXAMPLE)
+        set(IMGUI_SRC
+            ${IMGUI_SRC}
+            addon/implot/implot_demo.cpp
+        )
+    endif(IMGUI_BUILD_EXAMPLE)
 
     # Progress Indicators
     set(IMGUI_SRC
@@ -762,8 +776,13 @@ if(IMGUI_ADDONS)
         set(IMGUI_SRC
             ${IMGUI_SRC}
             addon/imnodes/imnodes.cpp
-            addon/imnodes/imnodes_demo.cpp
         )
+        if (IMGUI_BUILD_EXAMPLE)
+            set(IMGUI_SRC
+                ${IMGUI_SRC}
+                addon/imnodes/imnodes_demo.cpp
+            )
+        endif(IMGUI_BUILD_EXAMPLE)
         set(IMGUI_INCS
             ${IMGUI_INCS}
             addon/imnodes/imnodes.h
@@ -891,7 +910,6 @@ if(IMGUI_ADDONS)
         addon/ImGuizmo/ImCurveEdit.cpp
         addon/ImGuizmo/ImGradient.cpp
         addon/ImGuizmo/ImSequencer.cpp
-        addon/ImGuizmo/ImGuizmoDemo.cpp
     )
     set(IMGUI_INCS
         ${IMGUI_INCS}
@@ -905,6 +923,12 @@ if(IMGUI_ADDONS)
         ${IMGUI_INC_DIRS}
         ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuizmo
     )
+    if (IMGUI_BUILD_EXAMPLE)
+        set(IMGUI_SRC
+            ${IMGUI_SRC}
+            addon/ImGuizmo/ImGuizmoDemo.cpp
+        )
+    endif(IMGUI_BUILD_EXAMPLE)
 
     # Vulkan Shader/Glslang
     if (IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
@@ -985,17 +1009,19 @@ if(IMGUI_ADDONS)
     endif(IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
     
     # Addon Demo
-    set(IMGUI_SRC
-        ${IMGUI_SRC}
-        addon/addons_demo.cpp
-        addon/NumberTexture.cpp
-    )
+    if (IMGUI_BUILD_EXAMPLE)
+        set(IMGUI_SRC
+            ${IMGUI_SRC}
+            addon/addons_demo.cpp
+            addon/NumberTexture.cpp
+        )
 
-    set(IMGUI_INCS
-        ${IMGUI_INCS}
-        addon/addons_demo.h
-        addon/NumberTexture.h
-    )
+        set(IMGUI_INCS
+            ${IMGUI_INCS}
+            addon/addons_demo.h
+            addon/NumberTexture.h
+        )
+    endif(IMGUI_BUILD_EXAMPLE)
     if(ZLIB_FOUND)
         set(LINK_LIBS
             ${LINK_LIBS}

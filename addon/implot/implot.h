@@ -826,11 +826,12 @@ IMPLOT_API void ShowUserGuide();
 // Shows ImPlot metrics/debug information window.
 IMPLOT_API void ShowMetricsWindow(bool* p_popen = NULL);
 
+#if IMGUI_BUILD_EXAMPLE
 //-----------------------------------------------------------------------------
 // Demo (add implot_demo.cpp to your sources!)
 //-----------------------------------------------------------------------------
 
 // Shows the ImPlot demo window.
 IMPLOT_API void ShowDemoWindow(bool* p_open = NULL);
-
+#endif
 }  // namespace ImPlot

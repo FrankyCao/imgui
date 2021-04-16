@@ -1124,9 +1124,10 @@ typedef IGFD::FileDialog ImGuiFileDialog;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Demo Window
-
+#if IMGUI_BUILD_EXAMPLE
 IMGUI_API void prepare_file_dialog_demo_window(ImGuiFileDialog * dlg, const char * bookmark_path);
 IMGUI_API void show_file_dialog_demo_window(ImGuiFileDialog * dlg, bool * open);
 IMGUI_API void end_file_dialog_demo_window(ImGuiFileDialog * dlg, const char * bookmark_path);
+#endif
 
 #endif // IMGUIFILEDIALOG_H
