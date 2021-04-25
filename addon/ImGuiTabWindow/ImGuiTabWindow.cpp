@@ -695,7 +695,7 @@ static bool OldBeginChild(const char* str_id, const ImVec2& size_arg = ImVec2(0,
     //if (!(parent_window->Flags & ImGuiWindowFlags_ShowBorders)) child_window->Flags &= ~ImGuiWindowFlags_ShowBorders;
 
     // Process navigation-in immediately so NavInit can run on first frame
-    if (!(flags & ImGuiWindowFlags_NavFlattened) && (child_window->DC.NavLayerActiveMask != 0 || child_window->DC.NavHasScroll) && GImGui->NavActivateId == id)
+    if (!(flags & ImGuiWindowFlags_NavFlattened) && (child_window->DC.NavLayersActiveMask != 0 || child_window->DC.NavHasScroll) && GImGui->NavActivateId == id)
     {
         ImGui::FocusWindow(child_window);
         ImGui::NavInitWindow(child_window, false);

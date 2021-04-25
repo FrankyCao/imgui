@@ -44,6 +44,7 @@ IMGUI_API bool CheckButton(const char* label,bool* pvalue);
 IMGUI_API bool SmallCheckButton(const char* label,bool* pvalue);
 IMGUI_API void ToggleButton(const char* str_id, bool* v);
 IMGUI_API bool ToggleButton(const char *str_id, bool *v, const ImVec2 &size);
+IMGUI_API bool BulletToggleButton(const char* label,bool* v, ImVec2 &pos, ImVec2 &size);
 
 // Please note that you can tweak the "format" argument if you want to add a prefix (or a suffix) piece of text to the text that appears at the right of the bar.
 // returns the value "fraction" in 0.f-1.f.

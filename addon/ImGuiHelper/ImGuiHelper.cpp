@@ -222,8 +222,8 @@ void ShowImGuiInfo()
     {
         const ImVulkan::GpuInfo& info = ImVulkan::get_gpu_info(i);
         ImGui::Text("  %s:", info.device_name());
-        ImGui::Text("    bugs: sbn1=%d bilz=%d copc=%d ihfa=%d si=%d", 
-                    info.bug_storage_buffer_no_l1(), info.bug_buffer_image_load_zero(), info.bug_corrupted_online_pipeline_cache(), info.bug_implicit_fp16_arithmetic(), info.bug_storage_image()); 
+        ImGui::Text("    bugs: sbn1=%d bilz=%d copc=%d ihfa=%d", 
+                    info.bug_storage_buffer_no_l1(), info.bug_buffer_image_load_zero(), info.bug_corrupted_online_pipeline_cache(), info.bug_implicit_fp16_arithmetic()); 
         ImGui::Text("    fp16: p=%d/s=%d/a=%d int8: p=%d/s=%d/a=%d", 
                     info.support_fp16_packed(), info.support_fp16_storage(), info.support_fp16_arithmetic(), 
                     info.support_int8_packed(), info.support_int8_storage(), info.support_int8_arithmetic());

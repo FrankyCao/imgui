@@ -43,7 +43,10 @@ Other Changes:
 - Scrolling: Fix scroll snapping on edge of scroll region when both scrollbars are enabled.
 - Scrolling: Fix mouse wheel axis swap when using SHIFT on macOS (system already does it). (#4010)
 - Window: Fix IsWindowAppearing() from returning true twice in most cases. (#3982, #1497, #1061)
-- Nav: Fixed using SetItemDefaultFocus() on windows with _NavFlattened flag.
+- Nav: Fixed toggling menu layer while an InputText() is active not stealing active id. (#787)
+- Nav: Fixed pressing Escape to leave menu layer while in a popup or child window. (#787)
+- Nav, InputText: Fixed accidental menu toggling while typing non-ascii characters using AltGR. [@rokups] (#370)
+- Nav: Fixed using SetItemDefaultFocus() on windows with _NavFlattened flag. (#787)
 - Tables: Expose TableSetColumnEnabled() in public api. (#3935)
 - Tables: Better preserve widths when columns count changes. (#4046)
 - TabBar: Fixed mouse reordering with very fast movements (e.g. crossing multiple tabs in a single
@@ -68,6 +71,8 @@ Other Changes:
 - Backends: OSX: Fix keys remaining stuck when CMD-tabbing to a different application. (#3832) [@rokups]
 - Backends: DirectX9: calling IDirect3DStateBlock9::Capture() after CreateStateBlock() which appears to
   workaround/fix state restoring issues. Unknown exactly why so, but bit of a cargo-cult fix. (#3857)
+- Backends: DirectX9: explicitly setting up more graphics states to increase compatibility with unusual
+  non-default states. (#4063)
 - Backends: DirectX10, DirectX11: fixed a crash when backing/restoring state if nothing is bound when
   entering the rendering function. (#4045) [@Nemirtingas]
 - Backends: Vulkan: Fix mapped memory Vulkan validation error when buffer sizes are not multiple of

@@ -115,6 +115,32 @@ bool ToggleButton(const char *str_id, bool *v, const ImVec2 &size)
     return valueChange;
 }
 
+bool BulletToggleButton(const char* label, bool* v, ImVec2 &pos, ImVec2 &size)
+{
+    bool valueChange = false;
+
+    ImDrawList *draw_list = ImGui::GetWindowDrawList();
+    ImVec2 old_pos = ImGui::GetCursorScreenPos();
+    ImGui::SetCursorScreenPos(pos);
+    ImGui::InvisibleButton(label, size);
+    if (ImGui::IsItemClicked())
+    {
+        *v = !*v;
+        valueChange = true;
+    }
+    pos += size / 2;
+    if (*v)
+    {
+        draw_list->AddCircleFilled(pos, draw_list->_Data->FontSize * 0.20f, IM_COL32(255, 0, 0, 255), 8);
+    }
+    else
+    {
+        draw_list->AddCircleFilled(pos, draw_list->_Data->FontSize * 0.20f, IM_COL32(128, 128, 128, 255), 8);
+    }
+    ImGui::SetCursorScreenPos(old_pos);
+    return valueChange;
+}
+
 float ProgressBar(const char *optionalPrefixText, float value, const float minValue, const float maxValue, const char *format, const ImVec2 &sizeOfBarWithoutTextInPixels, const ImVec4 &colorLeft, const ImVec4 &colorRight, const ImVec4 &colorBorder)    {
     if (value<minValue) value=minValue;
     else if (value>maxValue) value = maxValue;
