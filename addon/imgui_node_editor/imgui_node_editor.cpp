@@ -2994,10 +2994,21 @@ ed::FlowAnimation::FlowAnimation(FlowAnimationController* controller):
 
 void ed::FlowAnimation::Flow(ed::Link* link, float markerDistance, float speed, float duration)
 {
+#if 0
     if (IsPlaying())
     {
-        if (m_Speed < 0) m_Speed -= 10;
-        else m_Speed += 10;
+        if (m_Speed < 0)
+        {
+            m_Speed -= 10;
+            if (m_Speed < -2000)
+                m_Speed = -2000;
+        }
+        else 
+        {
+            m_Speed += 10;
+            if (m_Speed > 2000)
+                m_Speed = 2000;
+        }
         Stop();
     }
     else
@@ -3019,6 +3030,24 @@ void ed::FlowAnimation::Flow(ed::Link* link, float markerDistance, float speed, 
     m_Link           = link;
 
     Play(duration);
+#else
+    Stop();
+
+    if (m_Link != link)
+    {
+        m_Offset = 0.0f;
+        ClearPath();
+    }
+
+    if (m_MarkerDistance != markerDistance)
+        ClearPath();
+
+    m_MarkerDistance = markerDistance;
+    m_Speed          = speed;
+    m_Link           = link;
+
+    Play(duration);
+#endif
 }
 
 void ed::FlowAnimation::Draw(ImDrawList* drawList)
@@ -3046,7 +3075,7 @@ void ed::FlowAnimation::Draw(ImDrawList* drawList)
         //Offset = 0;
 
         const auto markerAlpha  = powf(1.0f - progress, 0.35f);
-        const auto markerRadius = 4.0f * (1.0f - progress) + 2.0f;
+        const auto markerRadius = 3.0f * (1.0f - progress) + 2.0f;
         const auto markerColor  = Editor->GetColor(StyleColor_FlowMarker, markerAlpha);
 
         for (float d = m_Offset; d < m_PathLength; d += m_MarkerDistance)

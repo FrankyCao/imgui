@@ -252,9 +252,9 @@ struct Style
         SourceDirection         = ImVec2(1.0f, 0.0f);
         TargetDirection         = ImVec2(-1.0f, 0.0f);
         ScrollDuration          = 0.35f;
-        FlowMarkerDistance      = 30.0f;
+        FlowMarkerDistance      = 20.0f;
         FlowSpeed               = 200.0f;
-        FlowDuration            = 2.0f;
+        FlowDuration            = 0.1f;
         PivotAlignment          = ImVec2(0.5f, 0.5f);
         PivotSize               = ImVec2(0.0f, 0.0f);
         PivotScale              = ImVec2(1, 1);
