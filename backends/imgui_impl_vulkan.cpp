@@ -1664,7 +1664,10 @@ ImTextureID ImGui_ImplVulkan_CreateTexture(const void * pixels, int width, int h
     auto v = g_VulkanInitInfo;
     VkDeviceSize imageSize = width * height * 4;
     if (!v || !v->PhysicalDevice)
+    {
+        delete texture;
         return (ImTextureID)0;
+    }
 
     // create staging buffer
     VkBuffer stagingBuffer;
@@ -1720,7 +1723,10 @@ ImTextureID ImGui_ImplVulkan_CreateTexture(VkBuffer buffer, int width, int heigh
     VkCommandPool commandPool = VK_NULL_HANDLE;
     auto v = g_VulkanInitInfo;
     if (!v || !v->PhysicalDevice)
+    {
+        delete texture;
         return (ImTextureID)0;
+    }
 
     VkDeviceSize imageSize = width * height * 4;
 

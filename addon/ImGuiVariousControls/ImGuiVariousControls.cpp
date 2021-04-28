@@ -907,7 +907,12 @@ struct AnimatedImageInternal {
 
         int c=0, *int_delays=NULL;
         buffer = stbi_load_gif_from_memory(gif_buffer,gif_buffer_size,&int_delays,&w,&h,&frames,&c,4);
-        if (!buffer || frames<=0 || !int_delays) {clear();return false;}
+        if (!buffer || frames<=0 || !int_delays)
+        {
+            if (int_delays) { STBI_FREE(int_delays);int_delays=NULL; }
+            clear();
+            return false;
+        }
         //fprintf(stderr,"w=%d h=%d z=%d c=%d\n",w,h,frames,c);
 
         // copy int_delays into delays
