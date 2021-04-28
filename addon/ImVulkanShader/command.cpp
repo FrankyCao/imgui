@@ -361,7 +361,7 @@ void VkCompute::record_upload(const ImageBuffer& src, VkImageBuffer& dst, const 
     // upload
     VkImageBuffer dst_staging;
     dst_staging.create_like(src_fp16, opt.staging_vkallocator);
-    if (dst_staging.empty())
+    if (dst_staging.empty() || !dst_staging.mapped_ptr())
         return;
 
     // stash staging
@@ -838,6 +838,8 @@ void VkCompute::record_clone(const ImageBuffer& src, VkImageMat& dst, const Opti
     Option opt_staging = opt;
     opt_staging.blob_vkallocator = opt.staging_vkallocator;
     record_clone(src, dst_staging, opt_staging);
+    if (dst_staging.empty())
+        return;
 
     // staging to image
     record_clone(dst_staging, dst, opt);
@@ -855,6 +857,8 @@ void VkCompute::record_clone(const VkImageBuffer& src, ImageBuffer& dst, const O
         Option opt_staging = opt;
         opt_staging.blob_vkallocator = opt.staging_vkallocator;
         record_clone(src, src_staging, opt_staging);
+        if (src_staging.empty())
+            return;
 
         // staging to host
         record_clone(src_staging, dst, opt);
@@ -928,6 +932,8 @@ void VkCompute::record_clone(const VkImageMat& src, ImageBuffer& dst, const Opti
     Option opt_staging = opt;
     opt_staging.blob_vkallocator = opt.staging_vkallocator;
     record_clone(src, src_staging, opt_staging);
+    if (src_staging.empty())
+        return;
 
     // staging to host
     record_clone(src_staging, dst, opt);
@@ -2582,7 +2588,9 @@ void VkTransfer::record_upload(const ImageBuffer& src, VkImageBuffer& dst, const
     // create staging
     VkImageBuffer dst_staging;
     dst_staging.create_like(src_flattened, opt.staging_vkallocator);
-
+    if (dst_staging.empty() || !dst_staging.mapped_ptr())
+        return;
+    
     // memcpy src_flattened to staging
     memcpy(dst_staging.mapped_ptr(), src_flattened.data, src_flattened.total() * src_flattened.elemsize);
     dst_staging.allocator->flush(dst_staging.data);
@@ -2722,6 +2730,8 @@ void VkTransfer::record_upload(const ImageBuffer& src, VkImageMat& dst, const Op
     // create staging
     VkImageBuffer dst_staging;
     dst_staging.create_like(src, opt.staging_vkallocator);
+    if (dst_staging.empty() || !dst_staging.mapped_ptr())
+        return;
 
     // memcpy src to staging
     memcpy(dst_staging.mapped_ptr(), src.data, src.total() * src.elemsize);

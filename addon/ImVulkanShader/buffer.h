@@ -759,7 +759,8 @@ inline ImageBuffer ImageBuffer::reshape(int _w, Allocator* _allocator) const
     {
         ImageBuffer m;
         m.create(_w, elemsize, elempack, _allocator);
-
+        if (!m.data)
+            return m;
         // flatten
         for (int i = 0; i < c; i++)
         {
@@ -1949,8 +1950,11 @@ inline ImageBuffer VkImageBuffer::mapped() const
 
 inline void* VkImageBuffer::mapped_ptr() const
 {
+    if (!allocator)
+        return NULL;
+    
     if (!allocator->mappable)
-        return 0;
+        return NULL;
 
     return (unsigned char*)data->mapped_ptr + data->offset;
 }

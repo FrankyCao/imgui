@@ -6797,6 +6797,7 @@ static void *stbi__load_gif_main(stbi__context *s, int **delays, int *x, int *y,
             if (out) {
                void *tmp = (stbi_uc*) STBI_REALLOC_SIZED( out, out_size, layers * stride );
                if (NULL == tmp) {
+                  STBI_FREE(out);
                   STBI_FREE(g.out);
                   STBI_FREE(g.history);
                   STBI_FREE(g.background);

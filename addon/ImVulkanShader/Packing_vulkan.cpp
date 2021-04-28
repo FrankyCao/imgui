@@ -24,7 +24,7 @@ int Packing_vulkan::create_pipeline(const Option& _opt)
     Option opt = _opt;
     const ImageBuffer& out_shape = top_shapes.empty() ? ImageBuffer() : top_shapes[0];
 
-    size_t out_elemsize;
+    size_t out_elemsize = out_elempack;
     if (cast_type_to == 0)
     {
         if (opt.use_fp16_storage)
@@ -294,7 +294,7 @@ int Packing_vulkan::forward(const VkImageBuffer& bottom_blob, VkImageBuffer& top
         }
     }
 
-    size_t out_elemsize;
+    size_t out_elemsize = out_elempack;
     if (cast_type_to == 0)
     {
         if (opt.use_fp16_storage)
@@ -466,7 +466,7 @@ int Packing_vulkan::forward(const VkImageMat& bottom_blob, VkImageMat& top_blob,
         }
     }
 
-    size_t out_elemsize;
+    size_t out_elemsize = out_elempack;
     if (cast_type_to == 0)
     {
         if (opt.use_fp16_storage)
@@ -598,7 +598,7 @@ int Packing_vulkan::forward(const VkImageBuffer& bottom_blob, VkImageMat& top_bl
     int channels = bottom_blob.c;
     int dims = bottom_blob.dims;
 
-    size_t out_elemsize;
+    size_t out_elemsize = out_elempack;
     if (cast_type_to == 0)
     {
         if (opt.use_fp16_storage)
@@ -730,7 +730,7 @@ int Packing_vulkan::forward(const VkImageMat& bottom_blob, VkImageBuffer& top_bl
     int channels = bottom_blob.c;
     int dims = bottom_blob.dims;
 
-    size_t out_elemsize;
+    size_t out_elemsize = out_elempack;
     if (cast_type_to == 0)
     {
         if (opt.use_fp16_storage)

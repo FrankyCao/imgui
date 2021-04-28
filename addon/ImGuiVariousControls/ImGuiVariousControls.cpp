@@ -1941,8 +1941,8 @@ unsigned int CheckboxFlags(const char* label,unsigned int* flags,int numFlags,in
     unsigned int j=0;int groupItemCnt = 0, groupCnt = 0;
     const bool buttonPressed = ImGui::IsMouseClicked(0);
 
-    ImU32 annColor;int annSegments;
-    float annThickness,annCenter,annRadius;
+    ImU32 annColor = GetColorU32(ImGuiCol_FrameBg);int annSegments = 3;
+    float annThickness = checkSize.x,annCenter = checkSize.x,annRadius = checkSize.x;
     if (flagAnnotations)    {
         annColor = GetColorU32(ImGuiCol_Button);
         annSegments = (int) (checkSize.x * 0.4f);if (annSegments<3) annSegments=3;

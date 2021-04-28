@@ -3769,7 +3769,7 @@ bool ed::SizeAction::Process(const Control& control)
     if (!m_IsActive)
         return false;
 
-    if (control.ActiveNode == m_SizedNode)
+    if (m_SizedNode && control.ActiveNode == m_SizedNode)
     {
         const auto dragOffset = (control.ActiveNode == m_SizedNode) ? ImGui::GetMouseDragDelta(0, 0.0f) : m_LastDragOffset;
         m_LastDragOffset = dragOffset;
@@ -3967,7 +3967,7 @@ bool ed::DragAction::Process(const Control& control)
     if (!m_IsActive)
         return false;
 
-    if (control.ActiveObject == m_DraggedObject)
+    if (m_DraggedObject && control.ActiveObject == m_DraggedObject)
     {
         auto dragOffset = ImGui::GetMouseDragDelta(Editor->GetConfig().DragButtonIndex, 0.0f);
 
