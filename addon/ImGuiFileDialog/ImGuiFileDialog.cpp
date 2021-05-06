@@ -28,6 +28,9 @@ SOFTWARE.
 #include "ImGuiFileDialog.h"
 
 #ifdef __cplusplus
+
+#include "imgui.h"
+
 #include <float.h>
 #include <string.h> // stricmp / strcasecmp
 #include <sstream>
@@ -496,7 +499,7 @@ namespace IGFD
         SetExtentionInfos(".xlsx", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_EXCEL);
         SetExtentionInfos(".pdf", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_PDF);
 #endif
-	    SetExtentionInfos(".gif", ImVec4(0.0f, 1.0f, 0.5f, 0.9f), "[GIF]"); // add an text for a filter type
+        SetExtentionInfos(".gif", ImVec4(0.0f, 1.0f, 0.5f, 0.9f), "[GIF]"); // add an text for a filter type
 #ifdef USE_BOOKMARK
 		m_BookmarkPaneShown = false;
 		m_BookmarkWidth = defaultBookmarkPaneWith;
@@ -616,8 +619,8 @@ namespace IGFD
 		{
 			if (!g.NavDisableMouseHover && g.NavWindow == window && g.NavLayer == window->DC.NavLayerCurrent)
 			{
+				//SetNavID(id, window->DC.NavLayerCurrent, window->DC.NavFocusScopeIdCurrent, ImRect(bb.Min - window->Pos, bb.Max - window->Pos));
 				g.NavDisableHighlight = true;
-				SetNavID(id, window->DC.NavLayerCurrent, window->DC.NavFocusScopeIdCurrent);
 			}
 		}
 		if (pressed)
@@ -955,7 +958,8 @@ namespace IGFD
 				m_CurrentPath_Decomposition.clear();
 			}
 
-			m_IsOk = false;	 // reset dialog result
+			m_IsOk = false;			// reset dialog result
+			m_WantToQuit = false;	// reset var used for start the dialog quit process from anywhere
 
 			ResetEvents();
 
@@ -1009,20 +1013,13 @@ namespace IGFD
 				// disable the modal mode of the main file dialog
 				// see m_OkResultToConfirm under
 				if (dlg_modal &&
-					!m_OkResultToConfirm &&
-					!m_FileClicked)
+					!m_OkResultToConfirm)
 					ImGui::EndPopup();
 			}
 
 			// same things here regarding m_OkResultToConfirm
-			if (!dlg_modal || m_OkResultToConfirm || m_FileClicked)
+			if (!dlg_modal || m_OkResultToConfirm)
 				ImGui::End();
-
-			if (m_FileClicked)
-			{
-				m_IsOk = true;
-				return true;
-			}
 
 			// confirm the result and show the confirm to overwrite dialog if needed
 			return Confirm_Or_OpenOverWriteFileDialog_IfNeeded(res, vFlags);
@@ -1036,7 +1033,6 @@ namespace IGFD
 		// reset events
 		m_DrivesClicked = false;
 		m_PathClicked = false;
-		m_FileClicked = false;
 		m_CanWeContinue = true;
 	}
 
@@ -1161,6 +1157,11 @@ namespace IGFD
 
 		m_FooterHeight = ImGui::GetCursorPosY() - posY;
 
+		if (m_WantToQuit && m_IsOk)
+		{
+			res = true;
+		}
+
 		return res;
 	}
 #ifdef USE_BOOKMARK
@@ -1175,6 +1176,9 @@ namespace IGFD
 
 	void IGFD::FileDialog::DrawDirectoryCreation()
 	{
+		if (dlg_flags & ImGuiFileDialogFlags_DisableCreateDirectoryButton)
+			return;
+
 		if (IMGUI_BUTTON(createDirButtonString))
 		{
 			if (!m_CreateDirectoryMode)
@@ -1371,6 +1375,7 @@ namespace IGFD
 				}
 			}
 #endif // USE_CUSTOM_SORTING_ICON
+			
 			if (!m_FilteredFileList.empty())
 			{
 				m_FileListClipper.Begin((int)m_FilteredFileList.size(), ImGui::GetTextLineHeightWithSpacing());
@@ -1422,7 +1427,7 @@ namespace IGFD
 
 						if (ImGui::TableNextColumn()) // file name
 						{
-							needToBreakTheloop = SelectableItem(i, infos, selected, str.c_str());
+							needToBreakTheloop = SelectableItem(i, infos, selected, "%s", str.c_str());
 						}
 						if (ImGui::TableNextColumn()) // file type
 						{
@@ -1528,17 +1533,15 @@ namespace IGFD
 
 				return true; // needToBreakTheloop
 			}
-			else if (vInfos.type == 'f')
-			{
-				SelectFileName(vInfos);
-				if (ImGui::IsMouseDoubleClicked(0)) // 0 -> left mouse button double click
-				{
-					m_FileClicked = true;
-				}
-			}
 			else
 			{
 				SelectFileName(vInfos);
+
+				if (ImGui::IsMouseDoubleClicked(0))
+				{
+					m_WantToQuit = true;
+					m_IsOk = true;
+				}
 			}
 		}
 
