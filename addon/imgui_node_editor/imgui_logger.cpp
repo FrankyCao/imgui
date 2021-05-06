@@ -23,6 +23,7 @@ imgui_logger::OverlayLogger* imgui_logger::OverlayLogger::GetCurrent()
 
 void imgui_logger::OverlayLogger::Log(LogLevel level, const char* format, ...)
 {
+    if (!this) return;
     va_list args;
     va_start(args, format);
     ImGuiTextBuffer textBuffer;
