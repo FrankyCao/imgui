@@ -457,6 +457,8 @@ IMGUI_API ImVec2 GetScreenSize();
 IMGUI_API ImVec2 ScreenToCanvas(const ImVec2& pos);
 IMGUI_API ImVec2 CanvasToScreen(const ImVec2& pos);
 
+IMGUI_API void DrawLastLine();
+
 IMGUI_API ImVector<LinkId> FindLinksForNode(NodeId nodeId);
 
 //------------------------------------------------------------------------------

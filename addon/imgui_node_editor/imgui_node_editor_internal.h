@@ -1244,6 +1244,8 @@ struct CreateItemAction final : EditorAction
     Result QueryLink(PinId* startId, PinId* endId);
     Result QueryNode(PinId* pinId);
 
+    void DrawLastLine();
+
 private:
     bool m_IsInGlobalSpace;
 
@@ -1591,6 +1593,8 @@ struct IMGUI_API EditorContext
     {
         return ImVec2(AlignPointToGrid(p.x), AlignPointToGrid(p.y));
     }
+
+    void DrawLastLine();
 
     ImDrawList* GetDrawList() { return m_DrawList; }
 
