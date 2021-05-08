@@ -810,6 +810,8 @@ namespace IGFD
 		void ClearExtentionInfos();									// clear extentions setttings
 
 		// Type info displaying
+		void SetLightStyle();
+		void SetDarkStyle();
 		void SetTypeInfos(const std::string& vType, const FileExtentionInfosStruct& vInfos);
 		void SetTypeInfos(const std::string& vType, const ImVec4& vColor, const std::string& vIcon = "");
 		bool GetTypeInfos(const std::string& vType, ImVec4 *vColor, std::string *vIcon = 0);

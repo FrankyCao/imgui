@@ -23,7 +23,7 @@ imgui_logger::OverlayLogger* imgui_logger::OverlayLogger::GetCurrent()
 
 void imgui_logger::OverlayLogger::Log(LogLevel level, const char* format, ...)
 {
-    if (!this) return;
+    //if (!this) return;
     va_list args;
     va_start(args, format);
     ImGuiTextBuffer textBuffer;
@@ -135,8 +135,8 @@ void imgui_logger::OverlayLogger::Draw(const ImVec2& a, const ImVec2& b)
             alpha = 1.0f - alpha * alpha; // Make fade out non-linear
         }
 
-        auto textColor    = m_LogTextColor;
-        auto outlineColor = m_LogOutlineColor;
+        auto textColor    = m_Colors[LogColor_LogTextColor];
+        auto outlineColor = m_Colors[LogColor_LogOutlineColor];
 
            textColor.Value.w = alpha;
         outlineColor.Value.w = alpha / 2.0f;
@@ -212,13 +212,18 @@ ImColor imgui_logger::OverlayLogger::GetLevelColor(LogLevel level) const
 {
     switch (level)
     {
-        case LogLevel::Verbose: return m_LogVerboseColor; break;
-        case LogLevel::Info:    return m_LogInfoColor;    break;
-        case LogLevel::Warning: return m_LogWarningColor; break;
-        case LogLevel::Error:   return m_LogErrorColor;   break;
+        case LogLevel::Verbose: return m_Colors[LogColor_LogVerboseColor]; break;
+        case LogLevel::Info:    return m_Colors[LogColor_LogInfoColor];    break;
+        case LogLevel::Warning: return m_Colors[LogColor_LogWarningColor]; break;
+        case LogLevel::Error:   return m_Colors[LogColor_LogErrorColor];   break;
     }
 
     return ImColor();
+}
+
+void imgui_logger::OverlayLogger::SetLogColor(LogColor index, ImColor col)
+{
+    m_Colors[index] = col;
 }
 
 void imgui_logger::OverlayLogger::TintVertices(ImDrawList* drawList, int firstVertexIndex, ImColor color, float alpha, int rangeStart, int rangeSize)
@@ -262,13 +267,13 @@ imgui_logger::vector<imgui_logger::OverlayLogger::Range> imgui_logger::OverlayLo
     auto levelColor = GetLevelColor(level);
 
     // Color timestamp '[00:00:00] [x] ', this is present in all messages.
-    result.push_back({  0, 10, m_LogSymbolColor });
-    result.push_back({  1,  2, m_LogTimeColor });
-    result.push_back({  4,  2, m_LogTimeColor });
-    result.push_back({  7,  2, m_LogTimeColor });
-    result.push_back({ 11,  1, m_LogSymbolColor });
+    result.push_back({  0, 10, m_Colors[LogColor_LogSymbolColor] });
+    result.push_back({  1,  2, m_Colors[LogColor_LogTimeColor] });
+    result.push_back({  4,  2, m_Colors[LogColor_LogTimeColor] });
+    result.push_back({  7,  2, m_Colors[LogColor_LogTimeColor] });
+    result.push_back({ 11,  1, m_Colors[LogColor_LogSymbolColor] });
     result.push_back({ 12,  1, levelColor });
-    result.push_back({ 13,  1, m_LogSymbolColor });
+    result.push_back({ 13,  1, m_Colors[LogColor_LogSymbolColor] });
 
     // Color rest of the message to level color.
     result.push_back({ 15, static_cast<int>(message.size()) - 15, levelColor });
@@ -330,7 +335,7 @@ imgui_logger::vector<imgui_logger::OverlayLogger::Range> imgui_logger::OverlayLo
         if (index == string::npos)
             break;
 
-        result.push_back({ static_cast<int>(index), 1, m_LogSymbolColor });
+        result.push_back({ static_cast<int>(index), 1, m_Colors[LogColor_LogSymbolColor] });
 
         searchStart = index + 1;
     }
@@ -347,7 +352,7 @@ imgui_logger::vector<imgui_logger::OverlayLogger::Range> imgui_logger::OverlayLo
         if (tagEnd == string::npos)
             break;
 
-        result.push_back({ static_cast<int>(tagStart) + 1, static_cast<int>(tagEnd - tagStart) - 1, m_LogTagColor });
+        result.push_back({ static_cast<int>(tagStart) + 1, static_cast<int>(tagEnd - tagStart) - 1, m_Colors[LogColor_LogTagColor] });
 
         searchStart = tagEnd + 2;
     }
@@ -368,7 +373,7 @@ imgui_logger::vector<imgui_logger::OverlayLogger::Range> imgui_logger::OverlayLo
 
         if (std::find(m_Keywords.begin(), m_Keywords.end(), token) != m_Keywords.end())
         {
-            result.push_back({ static_cast<int>(tokenStart), static_cast<int>(tokenEnd - tokenStart), m_LogKeywordColor });
+            result.push_back({ static_cast<int>(tokenStart), static_cast<int>(tokenEnd - tokenStart), m_Colors[LogColor_LogKeywordColor] });
         }
 
         searchStart = tokenEnd + 1;
@@ -389,7 +394,7 @@ imgui_logger::vector<imgui_logger::OverlayLogger::Range> imgui_logger::OverlayLo
         if (stringEnd == string::npos)
             break;
 
-        result.push_back({ static_cast<int>(stringStart), static_cast<int>(stringEnd - stringStart) + 1, m_LogStringColor });
+        result.push_back({ static_cast<int>(stringStart), static_cast<int>(stringEnd - stringStart) + 1, m_Colors[LogColor_LogStringColor] });
 
         searchStart = stringEnd + 2;
     }
@@ -419,7 +424,7 @@ imgui_logger::vector<imgui_logger::OverlayLogger::Range> imgui_logger::OverlayLo
             continue;
         }
 
-        result.push_back({ static_cast<int>(numberStart), static_cast<int>(numberEnd - numberStart), m_LogNumberColor });
+        result.push_back({ static_cast<int>(numberStart), static_cast<int>(numberEnd - numberStart), m_Colors[LogColor_LogNumberColor] });
 
         searchStart = numberEnd + 1;
     }
