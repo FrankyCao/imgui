@@ -154,6 +154,7 @@ const char* ax::NodeEditor::ToString(TransactionAction action)
         case TransactionAction::Unknown:        return "Unknown";
         case TransactionAction::Navigation:     return "Navigation";
         case TransactionAction::Drag:           return "Drag";
+        case TransactionAction::Resize:         return "Resize";
         case TransactionAction::ClearSelection: return "ClearSelection";
         case TransactionAction::Select:         return "Select";
         case TransactionAction::Deselect:       return "Deselect";
@@ -1703,7 +1704,7 @@ void ed::EditorContext::DeselectObject(Object* object)
     if (objectIt != m_SelectedObjects.end())
     {
         if (m_Transaction)
-        m_Transaction->AddAction(TransactionAction::Deselect, object->ID());
+            m_Transaction->AddAction(TransactionAction::Deselect, object->ID());
 
         m_SelectedObjects.erase(objectIt);
     }
@@ -3762,11 +3763,19 @@ bool ed::SizeAction::Process(const Control& control)
     {
         m_Clean = false;
 
+        auto transaction = Editor->MakeTransaction("SizeAction");
+
         if (m_SizedNode->m_Bounds.Min != m_StartBounds.Min || m_SizedNode->m_GroupBounds.Min != m_StartGroupBounds.Min)
+        {
             Editor->MakeDirty(SaveReasonFlags::Position | SaveReasonFlags::User, m_SizedNode);
+            transaction.AddAction(TransactionAction::Resize, m_SizedNode->m_ID, ("Resize " + Serialization::ToString(m_SizedNode->ID())).c_str());
+        }
 
         if (m_SizedNode->m_Bounds.GetSize() != m_StartBounds.GetSize() || m_SizedNode->m_GroupBounds.GetSize() != m_StartGroupBounds.GetSize())
+        {
             Editor->MakeDirty(SaveReasonFlags::Size | SaveReasonFlags::User, m_SizedNode);
+            transaction.AddAction(TransactionAction::Resize, m_SizedNode->m_ID, ("Resize " + Serialization::ToString(m_SizedNode->ID())).c_str());
+        }
 
         m_SizedNode = nullptr;
     }
