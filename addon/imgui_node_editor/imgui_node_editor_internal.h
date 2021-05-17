@@ -353,8 +353,8 @@ struct Object
 
     virtual bool TestHit(const ImRect& rect, bool allowIntersect = true) const
     {
-        if (!m_IsLive)
-            return false;
+        //if (!m_IsLive)
+        //    return false;
 
         const auto bounds = GetBounds();
 
@@ -477,6 +477,7 @@ struct Node final: Object
     ImU32    m_GroupColor;
     ImU32    m_GroupBorderColor;
     float    m_GroupBorderWidth;
+    float    m_GroupBorderOffset;
     float    m_GroupRounding;
     ImRect   m_GroupBounds;
 
@@ -1570,6 +1571,8 @@ struct IMGUI_API EditorContext
     void SetUserContext(bool globalSpace = false);
 
     void EnableShortcuts(bool enable);
+    void TriggerShowMeters();
+
     bool AreShortcutsEnabled();
 
     NodeId GetHoveredNode()            const { return m_HoveredNode;             }
@@ -1644,6 +1647,7 @@ private:
     bool                m_IsHoveredWithoutOverlapp;
 
     bool                m_ShortcutsEnabled;
+    bool                m_ShowMeters;
 
     Style               m_Style;
 

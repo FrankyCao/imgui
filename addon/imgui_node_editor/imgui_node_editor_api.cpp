@@ -689,6 +689,22 @@ int ax::NodeEditor::GetSelectedNodes(NodeId* nodes, int size)
     });
 }
 
+int  ax::NodeEditor::GetGroupedNodes(std::vector<NodeId>& nodes, NodeId nodeId)
+{
+    nodes.clear();
+    auto current_node = s_Editor->GetNode(nodeId);
+    if (current_node && current_node->m_Type == Detail::NodeType::Group)
+    {
+        std::vector<Detail::Node*> groupedNodes;
+        current_node->GetGroupedNodes(groupedNodes);
+        for (auto node : groupedNodes)
+        {
+            nodes.push_back(node->m_ID);
+        }
+    }
+    return nodes.size();
+}
+
 int ax::NodeEditor::GetSelectedLinks(LinkId* links, int size)
 {
     return BuildIdList(s_Editor->GetSelectedObjects(), links, size, [](auto object)
@@ -821,6 +837,11 @@ bool ax::NodeEditor::ShowBackgroundContextMenu()
 void ax::NodeEditor::EnableShortcuts(bool enable)
 {
     s_Editor->EnableShortcuts(enable);
+}
+
+void ax::NodeEditor::TriggerShowMeters()
+{
+    s_Editor->TriggerShowMeters();
 }
 
 bool ax::NodeEditor::AreShortcutsEnabled()

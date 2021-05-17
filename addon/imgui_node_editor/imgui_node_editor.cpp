@@ -106,7 +106,7 @@ static const int c_NodeUserBackgroundChannel = 2;
 static const int c_NodePinChannel            = 3;
 static const int c_NodeContentChannel        = 4;
 
-static const float c_GroupSelectThickness       = 6.0f;  // canvas pixels
+static const float c_GroupSelectThickness       = 4.0f;  // canvas pixels
 static const float c_LinkSelectThickness        = 5.0f;  // canvas pixels
 static const float c_NavigationZoomMargin       = 0.1f;  // percentage of visible bounds
 static const float c_MouseZoomDuration          = 0.15f; // seconds
@@ -1054,6 +1054,7 @@ ed::EditorContext::EditorContext(const ax::NodeEditor::Config* config)
     , m_IsHovered(false)
     , m_IsHoveredWithoutOverlapp(false)
     , m_ShortcutsEnabled(true)
+    , m_ShowMeters(false)
     , m_Style()
     , m_Nodes()
     , m_Pins()
@@ -1503,7 +1504,8 @@ void ed::EditorContext::End()
     }
 
     // #metrics
-    // ShowMetrics(control);
+    if (m_ShowMeters)
+        ShowMetrics(control);
 
     ImGui::PopID();
 
@@ -2461,6 +2463,11 @@ void ed::EditorContext::SetUserContext(bool globalSpace)
 void ed::EditorContext::EnableShortcuts(bool enable)
 {
     m_ShortcutsEnabled = enable;
+}
+
+void ed::EditorContext::TriggerShowMeters()
+{
+    m_ShowMeters = !m_ShowMeters;
 }
 
 bool ed::EditorContext::AreShortcutsEnabled()
@@ -5348,12 +5355,12 @@ void ed::NodeBuilder::End()
     if (m_IsGroup)
     {
         // Groups cannot have pins. Discard them.
-        for (auto pin = m_CurrentNode->m_LastPin; pin; pin = pin->m_PreviousPin)
-            pin->Reset();
+        //for (auto pin = m_CurrentNode->m_LastPin; pin; pin = pin->m_PreviousPin)
+        //    pin->Reset();
 
         m_CurrentNode->m_Type        = NodeType::Group;
         m_CurrentNode->m_GroupBounds = m_GroupBounds;
-        m_CurrentNode->m_LastPin     = nullptr;
+        //m_CurrentNode->m_LastPin     = nullptr;
     }
     else
         m_CurrentNode->m_Type        = NodeType::Node;
@@ -5365,7 +5372,7 @@ void ed::NodeBuilder::BeginPin(PinId pinId, PinKind kind)
 {
     IM_ASSERT(nullptr != m_CurrentNode);
     IM_ASSERT(nullptr == m_CurrentPin);
-    IM_ASSERT(false   == m_IsGroup);
+    //IM_ASSERT(false   == m_IsGroup);
 
     auto& editorStyle = Editor->GetStyle();
 
@@ -5393,26 +5400,32 @@ void ed::NodeBuilder::BeginPin(PinId pinId, PinKind kind)
     m_ResolvePinRect          = true;
     m_ResolvePivot            = true;
 
-    if (auto drawList = Editor->GetDrawList())
+    if (!m_IsGroup)
     {
-        m_PinSplitter.Clear();
-        ImDrawList_SwapSplitter(drawList, m_PinSplitter);
-    }
+        if (auto drawList = Editor->GetDrawList())
+        {
+            m_PinSplitter.Clear();
+            ImDrawList_SwapSplitter(drawList, m_PinSplitter);
+        }
 
-    ImGui::BeginGroup();
+        ImGui::BeginGroup();
+    }
 }
 
 void ed::NodeBuilder::EndPin()
 {
     IM_ASSERT(nullptr != m_CurrentPin);
 
-    if (auto drawList = Editor->GetDrawList())
+    if (!m_IsGroup)
     {
-        IM_ASSERT(drawList->_Splitter._Count == 1); // Did you forgot to call drawList->ChannelsMerge()?
-        ImDrawList_SwapSplitter(drawList, m_PinSplitter);
-    }
+        if (auto drawList = Editor->GetDrawList())
+        {
+            IM_ASSERT(drawList->_Splitter._Count == 1); // Did you forgot to call drawList->ChannelsMerge()?
+            ImDrawList_SwapSplitter(drawList, m_PinSplitter);
+        }
 
-    ImGui::EndGroup();
+        ImGui::EndGroup();
+    }
 
     if (m_ResolvePinRect)
         m_CurrentPin->m_Bounds = ImGui_GetItemRect();
