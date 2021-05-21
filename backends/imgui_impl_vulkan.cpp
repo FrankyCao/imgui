@@ -79,20 +79,20 @@ struct ImGui_ImplVulkanH_WindowRenderBuffers
 
 // Vulkan data
 static std::shared_ptr<ImGui_ImplVulkan_InitInfo>   g_VulkanInitInfo = nullptr;
-static VkRenderPass                 g_RenderPass = VK_NULL_HANDLE;
-static VkDeviceSize                 g_BufferMemoryAlignment = 256;
-static VkPipelineCreateFlags        g_PipelineCreateFlags = 0x00;
-static VkDescriptorSetLayout        g_DescriptorSetLayout = VK_NULL_HANDLE;
-static VkPipelineLayout             g_PipelineLayout = VK_NULL_HANDLE;
-static ImTextureVK                  g_FontTexture;
-static VkPipeline                   g_Pipeline = VK_NULL_HANDLE;
-static uint32_t                     g_Subpass = 0;
-static VkShaderModule               g_ShaderModuleVert;
-static VkShaderModule               g_ShaderModuleFrag;
+static VkRenderPass             g_RenderPass = VK_NULL_HANDLE;
+static VkDeviceSize             g_BufferMemoryAlignment = 256;
+static VkPipelineCreateFlags    g_PipelineCreateFlags = 0x00;
+static VkDescriptorSetLayout    g_DescriptorSetLayout = VK_NULL_HANDLE;
+static VkPipelineLayout         g_PipelineLayout = VK_NULL_HANDLE;
+static ImTextureVK              g_FontTexture;
+static VkPipeline               g_Pipeline = VK_NULL_HANDLE;
+static uint32_t                 g_Subpass = 0;
+static VkShaderModule           g_ShaderModuleVert;
+static VkShaderModule           g_ShaderModuleFrag;
 #ifdef VK_NO_PROTOTYPES
-static bool                         g_FunctionsLoaded = false;
+static bool                     g_FunctionsLoaded = false;
 #else
-static bool                         g_FunctionsLoaded = true;
+static bool                     g_FunctionsLoaded = true;
 #endif
 
 // Font data
@@ -177,7 +177,18 @@ void ImGui_ImplVulkanH_CreateWindowCommandBuffers(VkPhysicalDevice physical_devi
     IMGUI_VULKAN_FUNC_MAP_MACRO(vkGetSwapchainImagesKHR) \
     IMGUI_VULKAN_FUNC_MAP_MACRO(vkMapMemory) \
     IMGUI_VULKAN_FUNC_MAP_MACRO(vkUnmapMemory) \
-    IMGUI_VULKAN_FUNC_MAP_MACRO(vkUpdateDescriptorSets)
+    IMGUI_VULKAN_FUNC_MAP_MACRO(vkUpdateDescriptorSets) \
+    IMGUI_VULKAN_FUNC_MAP_MACRO(vkGetPhysicalDeviceSurfaceSupportKHR) \
+    IMGUI_VULKAN_FUNC_MAP_MACRO(vkWaitForFences) \
+    IMGUI_VULKAN_FUNC_MAP_MACRO(vkCmdBeginRenderPass) \
+    IMGUI_VULKAN_FUNC_MAP_MACRO(vkCmdEndRenderPass) \
+    IMGUI_VULKAN_FUNC_MAP_MACRO(vkQueuePresentKHR) \
+    IMGUI_VULKAN_FUNC_MAP_MACRO(vkBeginCommandBuffer) \
+    IMGUI_VULKAN_FUNC_MAP_MACRO(vkEndCommandBuffer) \
+    IMGUI_VULKAN_FUNC_MAP_MACRO(vkResetFences) \
+    IMGUI_VULKAN_FUNC_MAP_MACRO(vkQueueSubmit) \
+    IMGUI_VULKAN_FUNC_MAP_MACRO(vkResetCommandPool) \
+    IMGUI_VULKAN_FUNC_MAP_MACRO(vkAcquireNextImageKHR)
 
 // Define function pointers
 #define IMGUI_VULKAN_FUNC_DEF(func) static PFN_##func func;

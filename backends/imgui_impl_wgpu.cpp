@@ -12,6 +12,7 @@
 
 // CHANGELOG
 // (minor and older changes stripped away, please see git history for details)
+//  2021-05-19: Replaced direct access to ImDrawCmd::TextureId with a call to ImDrawCmd::GetTexID(). (will become a requirement)
 //  2021-05-16: Update to latest WebGPU specs (compatible with Emscripten 2.0.20 and Chrome Canary 92).
 //  2021-02-18: Change blending equation to preserve alpha in output buffer.
 //  2021-01-28: Initial version.
@@ -424,15 +425,17 @@ void ImGui_ImplWGPU_RenderDrawData(ImDrawData* draw_data, WGPURenderPassEncoder 
             else
             {
                 // Bind custom texture
-                auto bind_group = g_resources.ImageBindGroups.GetVoidPtr(ImHashData(&pcmd->TextureId, sizeof(ImTextureID)));
+                ImTextureID tex_id = pcmd->GetTexID();
+                ImGuiID tex_id_hash = ImHashData(&tex_id, sizeof(tex_id));
+                auto bind_group = g_resources.ImageBindGroups.GetVoidPtr(tex_id_hash);
                 if (bind_group)
                 {
                     wgpuRenderPassEncoderSetBindGroup(pass_encoder, 1, (WGPUBindGroup)bind_group, 0, NULL);
                 }
                 else
                 {
-                    WGPUBindGroup image_bind_group = ImGui_ImplWGPU_CreateImageBindGroup(g_resources.ImageBindGroupLayout, (WGPUTextureView)pcmd->TextureId);
-                    g_resources.ImageBindGroups.SetVoidPtr(ImHashData(&pcmd->TextureId, sizeof(ImTextureID)), image_bind_group);
+                    WGPUBindGroup image_bind_group = ImGui_ImplWGPU_CreateImageBindGroup(g_resources.ImageBindGroupLayout, (WGPUTextureView)tex_id);
+                    g_resources.ImageBindGroups.SetVoidPtr(tex_id_hash, image_bind_group);
                     wgpuRenderPassEncoderSetBindGroup(pass_encoder, 1, image_bind_group, 0, NULL);
                 }
 
