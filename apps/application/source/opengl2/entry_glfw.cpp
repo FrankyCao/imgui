@@ -75,6 +75,9 @@ int main(int, char**)
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
+        if (io.ConfigFlags & ImGuiConfigFlags_EnableLowRefreshMode)
+            ImGui::SetMaxWaitBeforeNextFrame(1.0 / 30.0);
+
         done = Application_Frame(user_handle);
 
         ImGui::EndFrame();

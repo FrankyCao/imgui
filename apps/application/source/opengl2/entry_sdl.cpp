@@ -102,6 +102,9 @@ int main(int, char**)
         ImGui_ImplSDL2_NewFrame(window);
         ImGui::NewFrame();
 
+        if (io.ConfigFlags & ImGuiConfigFlags_EnableLowRefreshMode)
+            ImGui::SetMaxWaitBeforeNextFrame(1.0 / 30.0);
+
         app_done = Application_Frame(user_handle);
 
         ImGui::EndFrame();

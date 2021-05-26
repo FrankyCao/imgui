@@ -26,6 +26,9 @@ void glut_display_func()
     ImGui_ImplOpenGL2_NewFrame();
     ImGui_ImplGLUT_NewFrame();
 
+    if (io.ConfigFlags & ImGuiConfigFlags_EnableLowRefreshMode)
+        ImGui::SetMaxWaitBeforeNextFrame(1.0 / 30.0);
+
     done = Application_Frame(user_handle);
 
     ImGui::EndFrame();

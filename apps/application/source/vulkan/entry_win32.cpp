@@ -152,6 +152,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
 
+        if (io.ConfigFlags & ImGuiConfigFlags_EnableLowRefreshMode)
+            ImGui::SetMaxWaitBeforeNextFrame(1.0 / 30.0);
+
         done = Application_Frame(user_handle);
         if (done)
             ::PostQuitMessage(0);
