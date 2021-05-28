@@ -40,12 +40,12 @@ SOFTWARE.
 #include <sys/stat.h>
 #include <stdio.h>
 #include <errno.h>
-#include <limits.h>
+#include <limits.h> // Add By Dicky
 #if defined (__EMSCRIPTEN__) // EMSCRIPTEN
 #include <emscripten.h>
 #endif // EMSCRIPTEN
 #if defined(__WIN32__) || defined(_WIN32)
-#include <windows.h>
+#include <windows.h> // Add By Dicky
 #ifndef WIN32
 #define WIN32
 #endif // WIN32
@@ -53,6 +53,7 @@ SOFTWARE.
 #define stricmp _stricmp
 #include <cctype>
 
+// Add By Dicky
 #ifdef IMGUIFILESYSTEM_USE_ASCII_SHORT_PATHS_ON_WINDOWS
 #undef DIRENT_USE_ASCII_SHORT_PATHS_ON_WINDOWS
 #define DIRENT_USE_ASCII_SHORT_PATHS_ON_WINDOWS
@@ -76,6 +77,7 @@ inline static void utf8_to_wide(const char* str,wchar_t* rv)    {
     //rv[size_needed]=L'\0';            // // If the parameter after str is -1, the function processes the entire input string, including the terminating null character. Therefore, the resulting character string has a terminating null character, and the length returned by the function includes this character.
     return;
 }
+// Add By Dicky end
 #define PATH_SEP '\\'
 #ifndef PATH_MAX
 #define PATH_MAX 260
@@ -93,7 +95,7 @@ inline static void utf8_to_wide(const char* str,wchar_t* rv)    {
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif // IMGUI_DEFINE_MATH_OPERATORS
 #include "imgui_internal.h"
-#include "Splitter.h"
+#include "Splitter.h"  // Add By Dicky for ImGui::Splitter
 
 #include <cstdlib>
 #include <algorithm>
@@ -201,7 +203,7 @@ namespace IGFD
 #endif // OverWriteDialogCancelButtonString
 // see strftime functionin <ctime> for customize
 #ifndef DateTimeFormat
-#define DateTimeFormat "%Y/%m/%d %H:%M:%S"
+#define DateTimeFormat "%Y/%m/%d %H:%M:%S" // Modify By Dicky
 #endif // DateTimeFormat
 
 #ifdef USE_BOOKMARK
@@ -254,12 +256,66 @@ namespace IGFD
 #endif // IMGUI_TOGGLE_BUTTON
 #endif // USE_BOOKMARK
 
+        /*
+        // Disable By Dicky, we using ImGui::Splitter
+	// https://github.com/ocornut/imgui/issues/1720
+	bool Splitter(bool split_vertically, float thickness, float* size1, float* size2, float min_size1, float min_size2, float splitter_long_axis_size = -1.0f)
+	{
+		using namespace ImGui;
+		ImGuiContext& g = *GImGui;
+		ImGuiWindow* window = g.CurrentWindow;
+		ImGuiID id = window->GetID("##Splitter");
+		ImRect bb;
+		bb.Min = window->DC.CursorPos + (split_vertically ? ImVec2(*size1, 0.0f) : ImVec2(0.0f, *size1));
+		bb.Max = bb.Min + CalcItemSize(split_vertically ? ImVec2(thickness, splitter_long_axis_size) : ImVec2(splitter_long_axis_size, thickness), 0.0f, 0.0f);
+		return SplitterBehavior(bb, id, split_vertically ? ImGuiAxis_X : ImGuiAxis_Y, size1, size2, min_size1, min_size2, 1.0f);
+	}
+	// Disable By Dicky end
+        */
 	static std::string s_fs_root = std::string(1u, PATH_SEP);
 
 	inline int alphaSort(const struct dirent** a, const struct dirent** b)
 	{
 		return strcoll((*a)->d_name, (*b)->d_name);
 	}
+
+#if 0 //def WIN32 // Disable By Dicky
+	inline bool wreplaceString(std::wstring& str, const std::wstring& oldStr, const std::wstring& newStr)
+	{
+		bool found = false;
+		size_t pos = 0;
+		while ((pos = str.find(oldStr, pos)) != std::wstring::npos)
+		{
+			found = true;
+			str.replace(pos, oldStr.length(), newStr);
+			pos += newStr.length();
+		}
+		return found;
+	}
+
+	inline std::vector<std::wstring> wsplitStringToVector(const std::wstring& text, char delimiter, bool pushEmpty)
+	{
+		std::vector<std::wstring> arr;
+		if (!text.empty())
+		{
+			std::wstring::size_type start = 0;
+			std::wstring::size_type end = text.find(delimiter, start);
+			while (end != std::wstring::npos)
+			{
+				std::wstring token = text.substr(start, end - start);
+				if (!token.empty() || (token.empty() && pushEmpty)) //-V728
+					arr.push_back(token);
+				start = end + 1;
+				end = text.find(delimiter, start);
+			}
+			std::wstring token = text.substr(start);
+			if (!token.empty() || (token.empty() && pushEmpty)) //-V728
+				arr.push_back(token);
+		}
+		return arr;
+	}
+#endif
+// Disable By Dicky end
 
 	inline bool replaceString(std::string& str, const std::string& oldStr, const std::string& newStr)
 	{
@@ -335,6 +391,20 @@ namespace IGFD
 		return bExists;    // this is not a directory!
 	}
 
+#if 0 //def WIN32 // Disable By Dicky
+	inline std::wstring wGetString(const char* str)
+	{
+		std::wstring ret;
+		size_t sz;
+		if (!dirent_mbstowcs_s(&sz, nullptr, 0, str, 0))
+		{
+			ret.resize(sz);
+			dirent_mbstowcs_s(nullptr, (wchar_t*)ret.data(), sz, str, sz - 1);
+		}
+		return ret;
+	}
+#endif
+// Disable By Dicky end
 	inline bool CreateDirectoryIfNotExist(const std::string& name)
 	{
 		bool res = false;
@@ -343,10 +413,11 @@ namespace IGFD
 		{
 			if (!IsDirectoryExist(name))
 			{
-#ifdef WIN32
+#ifdef WIN32 // Modify By Dicky
 				static wchar_t wname[PATH_MAX+1];
 				utf8_to_wide(name.c_str(), wname);
 				if (CreateDirectoryW(wname, nullptr))
+	    // Modify By Dicky end
 				{
 					res = true;
 				}
@@ -467,7 +538,7 @@ namespace IGFD
 		dlg_optionsPaneWidth = 250;
 		dlg_filters = "";
 		dlg_userDatas = 0;
-		SetDarkStyle();
+		SetDarkStyle(); // Add By Dicky
 #ifdef USE_BOOKMARK
 		m_BookmarkPaneShown = false;
 		m_BookmarkWidth = defaultBookmarkPaneWith;
@@ -618,10 +689,10 @@ namespace IGFD
 		bool item_add;
 		if (flags & ImGuiSelectableFlags_Disabled)
 		{
-			ImGuiItemFlags backup_item_flags = window->DC.ItemFlags;
-			window->DC.ItemFlags |= ImGuiItemFlags_Disabled | ImGuiItemFlags_NoNavDefaultFocus;
+			ImGuiItemFlags backup_item_flags = g.CurrentItemFlags;
+			g.CurrentItemFlags |= ImGuiItemFlags_Disabled | ImGuiItemFlags_NoNavDefaultFocus;
 			item_add = ItemAdd(bb, id);
-			window->DC.ItemFlags = backup_item_flags;
+			g.CurrentItemFlags = backup_item_flags;
 		}
 		else
 		{
@@ -665,7 +736,7 @@ namespace IGFD
 		{
 			if (!g.NavDisableMouseHover && g.NavWindow == window && g.NavLayer == window->DC.NavLayerCurrent)
 			{
-				//SetNavID(id, window->DC.NavLayerCurrent, window->DC.NavFocusScopeIdCurrent, ImRect(bb.Min - window->Pos, bb.Max - window->Pos));
+				SetNavID(id, window->DC.NavLayerCurrent, window->DC.NavFocusScopeIdCurrent, ImRect(bb.Min - window->Pos, bb.Max - window->Pos));
 				g.NavDisableHighlight = true;
 			}
 		}
@@ -699,7 +770,7 @@ namespace IGFD
 		if (flags & ImGuiSelectableFlags_Disabled) PopStyleColor();
 
 		// Automatically close popups
-		if (pressed && (window->Flags & ImGuiWindowFlags_Popup) && !(flags & ImGuiSelectableFlags_DontClosePopups) && !(window->DC.ItemFlags & ImGuiItemFlags_SelectableDontClosePopup))
+		if (pressed && (window->Flags & ImGuiWindowFlags_Popup) && !(flags & ImGuiSelectableFlags_DontClosePopups) && !(g.CurrentItemFlags & ImGuiItemFlags_SelectableDontClosePopup))
 			CloseCurrentPopup();
 
 		IMGUI_TEST_ENGINE_ITEM_INFO(id, label, window->DC.ItemFlags);
@@ -742,7 +813,7 @@ namespace IGFD
 
 		m_ShowDialog = true;					// open dialog
 #ifdef USE_BOOKMARK
-		m_BookmarkPaneShown = vFlags & ImGuiFileDialogFlags_ShowBookmark ? true : false;
+		m_BookmarkPaneShown = vFlags & ImGuiFileDialogFlags_ShowBookmark ? true : false; // Modify By Dicky
 #endif // USE_BOOKMARK
 	}
 
@@ -791,7 +862,7 @@ namespace IGFD
 
 		m_ShowDialog = true;
 #ifdef USE_BOOKMARK
-		m_BookmarkPaneShown = vFlags & ImGuiFileDialogFlags_ShowBookmark ? true : false;
+		m_BookmarkPaneShown = vFlags & ImGuiFileDialogFlags_ShowBookmark ? true : false; // Modify By Dicky
 #endif // USE_BOOKMARK
 	}
 	
@@ -829,7 +900,7 @@ namespace IGFD
 
 		m_ShowDialog = true;					// open dialog
 #ifdef USE_BOOKMARK
-		m_BookmarkPaneShown = vFlags & ImGuiFileDialogFlags_ShowBookmark ? true : false;
+		m_BookmarkPaneShown = vFlags & ImGuiFileDialogFlags_ShowBookmark ? true : false; // Modify By Dicky
 #endif // USE_BOOKMARK
 	}
 
@@ -881,7 +952,7 @@ namespace IGFD
 
 		m_ShowDialog = true;
 #ifdef USE_BOOKMARK
-		m_BookmarkPaneShown = vFlags & ImGuiFileDialogFlags_ShowBookmark ? true : false;
+		m_BookmarkPaneShown = vFlags & ImGuiFileDialogFlags_ShowBookmark ? true : false; // Modify By Dicky
 #endif // USE_BOOKMARK
 	}
 
@@ -1103,7 +1174,7 @@ namespace IGFD
 			//size.x -= m_BookmarkWidth;
 			ImGui::PushID("##splitterbookmark");
 			float otherWidth = size.x - m_BookmarkWidth;
-			ImGui::Splitter(true, 4.0f, &m_BookmarkWidth, &otherWidth, 10.0f, 10.0f + dlg_optionsPaneWidth, size.y);
+			ImGui::Splitter(true, 4.0f, &m_BookmarkWidth, &otherWidth, 10.0f, 10.0f + dlg_optionsPaneWidth, size.y); // Modify By Dicky
 			ImGui::PopID();
 			size.x -= otherWidth;
 			DrawBookmarkPane(size);
@@ -1116,7 +1187,7 @@ namespace IGFD
 		if (dlg_optionsPane)
 		{
 			ImGui::PushID("##splittersidepane");
-			ImGui::Splitter(true, 4.0f, &size.x, &dlg_optionsPaneWidth, 10.0f, 10.0f, size.y);
+			ImGui::Splitter(true, 4.0f, &size.x, &dlg_optionsPaneWidth, 10.0f, 10.0f, size.y); // Modify By Dicky
 			ImGui::PopID();
 		}
 
@@ -1142,7 +1213,7 @@ namespace IGFD
 		// Input file fields
 		float width = ImGui::GetContentRegionAvail().x;
 		if (!dlg_filters.empty())
-			width -= FILTER_COMBO_WIDTH + 16; //Dicky ?
+			width -= FILTER_COMBO_WIDTH + 16; // Modify By Dicky ?
 		ImGui::PushItemWidth(width);
 		ImGui::InputText("##FileName", FileNameBuffer, MAX_FILE_DIALOG_NAME_BUFFER);
 		ImGui::PopItemWidth();
@@ -1364,7 +1435,7 @@ namespace IGFD
 	{
 		ImGui::BeginChild("##FileDialog_FileList", vSize);
 
-		static ImGuiTableFlags flags = ImGuiTableFlags_SizingFixedSame | ImGuiTableFlags_RowBg |
+		static ImGuiTableFlags flags = ImGuiTableFlags_SizingFixedSame | ImGuiTableFlags_RowBg |  // Modify By Dicky
 			ImGuiTableFlags_Hideable | ImGuiTableFlags_ScrollY |
 			ImGuiTableFlags_NoHostExtendY
 #ifndef USE_CUSTOM_SORTING_ICON
@@ -1435,6 +1506,7 @@ namespace IGFD
 
 						ImVec4 c;
 						std::string icon;
+						 // Modify By Dicky
 						bool showTypeColor = GetTypeInfos(std::to_string(infos.type), &c, &icon);
 						if (showTypeColor)
 							ImGui::PushStyleColor(ImGuiCol_Text, c);
@@ -1465,6 +1537,7 @@ namespace IGFD
 							else
 								str = fileEntryString + str;
 						}
+						 // Modify By Dicky end
 						bool selected = (m_SelectedFileNames.find(infos.fileName) != m_SelectedFileNames.end()); // found
 
 						ImGui::TableNextRow();
@@ -1499,7 +1572,7 @@ namespace IGFD
 							ImGui::PopStyleColor();
 
 						if (showTypeColor)
-							ImGui::PopStyleColor();
+							ImGui::PopStyleColor();  // Add By Dicky
 
 						if (needToBreakTheloop)
 							break;
@@ -1782,6 +1855,7 @@ namespace IGFD
 		m_FileExtentionInfos.clear();
 	}
 
+        // Add By Dicky
 	void IGFD::FileDialog::SetTypeInfos(const std::string& vType, const FileExtentionInfosStruct& vInfos)
 	{
 		m_FileTypeInfos[vType] = vInfos;
@@ -1813,7 +1887,7 @@ namespace IGFD
 	{
 		m_FileTypeInfos.clear();
 	}
-
+        // Add By Dicky end
 	void IGFD::FileDialog::SetDefaultFileName(const std::string& vFileName)
 	{
 		dlg_defaultFileName = vFileName;
@@ -2025,6 +2099,7 @@ namespace IGFD
 	{
 		if (vFormat && vByteSize != 0)
 		{
+		        // Modify By Dicky
 			static double lo = 1024.0;
 			static double ko = 1024.0 * 1024.0;
 			static double mo = 1024.0 * 1024.0 * 1024.0;
@@ -2042,6 +2117,7 @@ namespace IGFD
 				*vFormat = round_n(v / mo, 2) + " GB"; // GB
 			else
 				*vFormat = round_n(v / go, 2) + " TB"; // TB
+			// Modify By Dicky end
 		}
 	}
 
@@ -2356,7 +2432,7 @@ namespace IGFD
 		if (s_fs_root == path)
 			path += PATH_SEP;
 #endif // WIN32
-		char real_path[PATH_MAX] = {0};
+		char real_path[PATH_MAX] = {0};  // Modify By Dicky
 		DIR* dir = opendir(path.c_str());
 		if (dir == nullptr)
 		{
@@ -2366,7 +2442,7 @@ namespace IGFD
 
 		if (dir != nullptr)
 		{
-#ifdef WIN32
+#ifdef WIN32  // Modify By Dicky
 			DWORD numchar = 0;
 			static wchar_t wpath[PATH_MAX+1];
 			static wchar_t buffer[PATH_MAX+1];
