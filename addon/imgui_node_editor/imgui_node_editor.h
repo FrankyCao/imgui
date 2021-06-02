@@ -420,6 +420,7 @@ IMGUI_API int BreakLinks(PinId pinId); // Break all links connected to this pin
 
 IMGUI_API void NavigateToContent(float duration = -1);
 IMGUI_API void NavigateToSelection(bool zoomIn = false, float duration = -1);
+IMGUI_API void NavigateToOrigin(float duration = -1);
 
 IMGUI_API bool ShowNodeContextMenu(NodeId* nodeId);
 IMGUI_API bool ShowPinContextMenu(PinId* pinId);
