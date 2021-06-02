@@ -816,8 +816,7 @@ void ax::NodeEditor::NavigateToSelection(bool zoomIn, float duration)
 
 void ax::NodeEditor::NavigateToOrigin(float duration)
 {
-    auto rect = s_Editor->GetRect();
-    s_Editor->NavigateTo(rect, true, duration);
+    s_Editor->NavigateTo(s_Editor->GetRect(), true, duration);
 }
 
 bool ax::NodeEditor::ShowNodeContextMenu(NodeId* nodeId)
