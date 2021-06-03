@@ -153,6 +153,8 @@ bool Parse(const string& str, NodeId& result, string* error = nullptr);
 bool Parse(const string& str, json::value& result, string* error = nullptr);
 
 bool Parse(const json::value& v, float& result, string* error = nullptr);
+bool Parse(const json::value& v, int& result, string* error = nullptr);
+bool Parse(const json::value& v, string& result, string* error = nullptr);
 bool Parse(const json::value& v, ImVec2& result, string* error = nullptr);
 bool Parse(const json::value& v, ImRect& result, string* error = nullptr);
 bool Parse(const json::value& v, NodeState& result, string* error = nullptr);
@@ -612,12 +614,14 @@ struct ViewState
     ImVec2 m_ViewScroll;
     float  m_ViewZoom;
     ImRect m_VisibleRect;
+    string m_Theme;
 
     friend bool operator==(const ViewState& lhs, const ViewState& rhs)
     {
         return lhs.m_ViewScroll  == rhs.m_ViewScroll
             && lhs.m_ViewZoom    == rhs.m_ViewZoom
-            && lhs.m_VisibleRect == rhs.m_VisibleRect;
+            && lhs.m_VisibleRect == rhs.m_VisibleRect
+            && lhs.m_Theme       == rhs.m_Theme;
     }
 
     friend bool operator!=(const ViewState& lhs, const ViewState& rhs) { return !(lhs == rhs); }
@@ -954,6 +958,7 @@ struct NavigateAction final: EditorAction
 
     bool            m_IsActive;
     float           m_Zoom;
+    std::string     m_Theme;
     ImRect          m_VisibleRect;
     ImVec2          m_Scroll;
     ImVec2          m_ScrollStart;
@@ -986,9 +991,12 @@ struct NavigateAction final: EditorAction
     ImGuiEx::CanvasView GetView() const;
     ImVec2 GetViewOrigin() const;
     float GetViewScale() const;
+    void SetViewTheme(std::string theme);
+    std::string GetViewTheme() const;
 
     void SetViewRect(const ImRect& rect);
     ImRect GetViewRect() const;
+
 
     const char* Describe() const;
 
@@ -1561,6 +1569,16 @@ struct IMGUI_API EditorContext
     {
         auto zoomMode = zoomIn ? NavigateAction::ZoomMode::WithMargin : NavigateAction::ZoomMode::None;
         m_NavigateAction.NavigateTo(bounds, zoomMode, duration);
+    }
+
+    void SetTheme(std::string theme)
+    {
+        m_NavigateAction.SetViewTheme(theme);
+    }
+
+    std::string GetTheme() const
+    {
+        return m_NavigateAction.GetViewTheme();
     }
 
     void RegisterAnimation(Animation* animation);

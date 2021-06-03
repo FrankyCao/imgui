@@ -819,6 +819,16 @@ void ax::NodeEditor::NavigateToOrigin(float duration)
     s_Editor->NavigateTo(s_Editor->GetRect(), true, duration);
 }
 
+void ax::NodeEditor::SetTheme(std::string theme)
+{
+    s_Editor->SetTheme(theme);
+}
+
+std::string ax::NodeEditor::GetTheme()
+{
+    return s_Editor->GetTheme();
+}
+
 bool ax::NodeEditor::ShowNodeContextMenu(NodeId* nodeId)
 {
     return s_Editor->GetContextMenu().ShowNodeContextMenu(nodeId);

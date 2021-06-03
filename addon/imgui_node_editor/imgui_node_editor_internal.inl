@@ -125,6 +125,24 @@ inline bool Serialization::Parse(const json::value& v, float& result, string* er
     return true;
 }
 
+inline bool Serialization::Parse(const json::value& v, int& result, string* error)
+{
+    CHECK_TYPE(v, json::type_t::integer);
+
+    result = v.get<int>();
+
+    return true;
+}
+
+inline bool Serialization::Parse(const json::value& v, string& result, string* error)
+{
+    CHECK_TYPE(v, json::type_t::string);
+
+    result = v.get<string>();
+
+    return true;
+}
+
 inline bool Serialization::Parse(const json::value& v, ImVec2& result, string* error)
 {
     CHECK_TYPE(v, json::type_t::object);
@@ -203,6 +221,7 @@ inline bool Serialization::Parse(const json::value& v, ViewState& result, string
     CHECK_AND_PARSE    (v, "scroll",       state.m_ViewScroll);
     CHECK_AND_PARSE    (v, "zoom",         state.m_ViewZoom);
     CHECK_AND_PARSE_OPT(v, "visible_rect", state.m_VisibleRect);
+    CHECK_AND_PARSE_OPT(v, "theme",        state.m_Theme);
 
     result = state;
 
@@ -295,6 +314,7 @@ inline string Serialization::ToString(const json::type_t& type)
         case json::type_t::string:      return "string";
         case json::type_t::boolean:     return "boolean";
         case json::type_t::number:      return "number";
+        case json::type_t::integer:     return "integer";
         case json::type_t::point:       return "point";
         case json::type_t::discarded:   return "discarded";
     }
@@ -373,6 +393,7 @@ inline json::value Serialization::ToJson(const ViewState& value)
     result["scroll"]       = ToJson(value.m_ViewScroll);
     result["zoom"]         = value.m_ViewZoom;
     result["visible_rect"] = ToJson(value.m_VisibleRect);
+    result["theme"]        = value.m_Theme;
 
     return result;
 }

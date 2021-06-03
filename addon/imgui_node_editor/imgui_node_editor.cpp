@@ -2262,7 +2262,7 @@ bool ed::EditorContext::ApplyState(const ViewState& state)
     auto lastSatete = m_State.m_ViewState;
 
     m_State.m_ViewState = state;
-
+    m_NavigateAction.m_Theme = state.m_Theme;
     if (ImRect_IsEmpty(state.m_VisibleRect))
     {
         m_NavigateAction.m_Scroll = state.m_ViewScroll;
@@ -2291,6 +2291,7 @@ void ed::EditorContext::RecordState(ViewState& state) const
     result.m_ViewScroll  = m_NavigateAction.m_Scroll;
     result.m_ViewZoom    = m_NavigateAction.m_Zoom;
     result.m_VisibleRect = m_NavigateAction.m_VisibleRect;
+    result.m_Theme       = m_NavigateAction.m_Theme;
 
     state = std::move(result);
 }
@@ -3615,6 +3616,17 @@ ImVec2 ed::NavigateAction::GetViewOrigin() const
 float ed::NavigateAction::GetViewScale() const
 {
     return m_Zoom;
+}
+
+void ed::NavigateAction::SetViewTheme(std::string theme)
+{
+    m_Theme = theme;
+    Editor->MakeDirty(SaveReasonFlags::Navigation);
+}
+
+std::string ed::NavigateAction::GetViewTheme() const
+{
+    return m_Theme;
 }
 
 void ed::NavigateAction::SetViewRect(const ImRect& rect)
