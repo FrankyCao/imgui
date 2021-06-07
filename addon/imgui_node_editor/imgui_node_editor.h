@@ -178,6 +178,7 @@ enum StyleColor
     StyleColor_PinRectBorder,
     StyleColor_Flow,
     StyleColor_FlowMarker,
+    StyleColor_FlowDMarker,
     StyleColor_GroupBg,
     StyleColor_GroupBorder,
 

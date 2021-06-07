@@ -3087,10 +3087,10 @@ void ed::FlowAnimation::Draw(ImDrawList* drawList)
     if (IsPathValid())
     {
         //Offset = 0;
-
+        bool dmark = m_Link->m_StartPin->m_Dir.x == -1;
         const auto markerAlpha  = powf(1.0f - progress, 0.35f);
         const auto markerRadius = 3.0f * (1.0f - progress) + 2.0f;
-        const auto markerColor  = Editor->GetColor(StyleColor_FlowMarker, markerAlpha);
+        const auto markerColor  = Editor->GetColor(dmark ? StyleColor_FlowDMarker : StyleColor_FlowMarker, markerAlpha);
 
         for (float d = m_Offset; d < m_PathLength; d += m_MarkerDistance)
             drawList->AddCircleFilled(SamplePath(d), markerRadius, markerColor);
@@ -5743,6 +5743,7 @@ const char* ed::Style::GetColorName(StyleColor colorIndex) const
         case StyleColor_PinRectBorder: return "PinRectBorder";
         case StyleColor_Flow: return "Flow";
         case StyleColor_FlowMarker: return "FlowMarker";
+        case StyleColor_FlowDMarker: return "FlowDMarker";
         case StyleColor_GroupBg: return "GroupBg";
         case StyleColor_GroupBorder: return "GroupBorder";
         case StyleColor_Count: break;
