@@ -153,7 +153,8 @@ const char* ax::NodeEditor::ToString(TransactionAction action)
     {
         case TransactionAction::Unknown:        return "Unknown";
         case TransactionAction::Navigation:     return "Navigation";
-        case TransactionAction::Drag:           return "Drag";
+        case TransactionAction::DragStart:      return "DragStart";
+        case TransactionAction::DragEnd:        return "DragEnd";
         case TransactionAction::Resize:         return "Resize";
         case TransactionAction::ClearSelection: return "ClearSelection";
         case TransactionAction::Select:         return "Select";
@@ -713,7 +714,7 @@ void ed::Node::DrawBorder(ImDrawList* drawList, ImU32 color, float thickness)
     }
 }
 
-void ed::Node::GetGroupedNodes(std::vector<Node*>& result, bool append)
+void ed::Node::GetGroupedNodes(std::vector<Node*>& result, bool append, ImVec2 expand)
 {
     if (!append)
         result.resize(0);
@@ -722,7 +723,9 @@ void ed::Node::GetGroupedNodes(std::vector<Node*>& result, bool append)
         return;
 
     const auto firstNodeIndex = result.size();
-    Editor->FindNodesInRect(m_GroupBounds, result, true, false);
+    auto rect = m_GroupBounds;
+    rect.Expand(expand);
+    Editor->FindNodesInRect(rect, result, true, false);
 
     for (auto index = firstNodeIndex; index < result.size(); ++index)
         result[index]->GetGroupedNodes(result, true);
@@ -3964,6 +3967,12 @@ ed::EditorAction::AcceptResult ed::DragAction::Accept(const Control& control)
                     m_Objects.push_back(candidate);
         }
 
+        auto transaction = Editor->MakeTransaction("DragAction");
+        for (auto object : m_Objects)
+        {
+            Editor->MakeDirty(SaveReasonFlags::Position | SaveReasonFlags::User, object->AsNode());
+            transaction.AddAction(TransactionAction::DragStart, object->AsNode()->m_ID, ("Drag Start " + Serialization::ToString(object->ID())).c_str());
+        }
         m_IsActive = true;
     }
     else if (control.HotNode && IsGroup(control.HotNode) && control.HotNode->GetRegion(ImGui::GetMousePos()) == NodeRegion::Header)
@@ -3987,8 +3996,7 @@ bool ed::DragAction::Process(const Control& control)
             if (object->EndDrag())
             {
                 Editor->MakeDirty(SaveReasonFlags::Position | SaveReasonFlags::User, object->AsNode());
-
-                transaction.AddAction(TransactionAction::Drag, object->AsNode()->m_ID, ("Drag " + Serialization::ToString(object->ID())).c_str());
+                transaction.AddAction(TransactionAction::DragEnd, object->AsNode()->m_ID, ("Drag End " + Serialization::ToString(object->ID())).c_str());
             }
         }
 

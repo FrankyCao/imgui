@@ -516,7 +516,7 @@ struct Node final: Object
     virtual void Draw(ImDrawList* drawList, DrawFlags flags = None) override final;
     void DrawBorder(ImDrawList* drawList, ImU32 color, float thickness = 1.0f);
 
-    void GetGroupedNodes(std::vector<Node*>& result, bool append = false);
+    void GetGroupedNodes(std::vector<Node*>& result, bool append = false, ImVec2 expand = {0.f, 0.f});
 
     void CenterOnScreenInNextFrame() { m_CenterOnScreen = true; }
 

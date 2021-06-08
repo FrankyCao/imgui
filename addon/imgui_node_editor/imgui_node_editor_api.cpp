@@ -689,7 +689,7 @@ int ax::NodeEditor::GetSelectedNodes(NodeId* nodes, int size)
     });
 }
 
-int  ax::NodeEditor::GetGroupedNodes(std::vector<NodeId>& nodes, NodeId nodeId)
+int ax::NodeEditor::GetGroupedNodes(std::vector<NodeId>& nodes, NodeId nodeId)
 {
     nodes.clear();
     auto current_node = s_Editor->GetNode(nodeId);
