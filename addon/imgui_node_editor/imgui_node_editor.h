@@ -17,6 +17,7 @@
 # include <cstdint> // std::uintXX_t
 # include <utility> // std::move
 # include <vector>
+# include <string>
 
 //------------------------------------------------------------------------------
 namespace imgui_json {
