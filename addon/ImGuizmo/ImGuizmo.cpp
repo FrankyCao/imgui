@@ -1002,11 +1002,11 @@ namespace ImGuizmo
       gContext.mCameraUp = viewInverse.v.up;
 
       // projection reverse
-       vec_t _near, _far;
-       _near.Transform(makeVect(0, 0, 1.f, 1.f), gContext.mProjectionMat);
-       _far.Transform(makeVect(0, 0, 2.f, 1.f), gContext.mProjectionMat);
+       vec_t nearPos, farPos;
+       nearPos.Transform(makeVect(0, 0, 1.f, 1.f), gContext.mProjectionMat);
+       farPos.Transform(makeVect(0, 0, 2.f, 1.f), gContext.mProjectionMat);
 
-       gContext.mReversed = (_near.z/_near.w) > (_far.z / _far.w);
+       gContext.mReversed = (nearPos.z/nearPos.w) > (farPos.z / farPos.w);
 
       // compute scale from the size of camera right vector projected on screen at the matrix position
       vec_t pointRight = viewInverse.v.right;
@@ -1156,7 +1156,7 @@ namespace ImGuizmo
       vec_t perpendicularVector;
       perpendicularVector.Cross(gContext.mRotationVectorSource, gContext.mTranslationPlan);
       perpendicularVector.Normalize();
-      float acosAngle = ImClamp(Dot(localPos, gContext.mRotationVectorSource), -1.f, 1.f);
+      float acosAngle = ImClamp(Dot(localPos, gContext.mRotationVectorSource), -1.f, 1.f); // Add Dicky, using ImClamp
       float angle = acosf(acosAngle);
       angle *= (Dot(localPos, perpendicularVector) < 0.f) ? 1.f : -1.f;
       return angle;
@@ -1537,7 +1537,7 @@ namespace ImGuizmo
             }
             float boundDistance = sqrtf(ImLengthSqr(worldBound1 - worldBound2));
             int stepCount = (int)(boundDistance / 10.f);
-            stepCount = ImMin(stepCount, 1000);
+            stepCount = ImMin(stepCount, 1000); // Add by Dicky, using ImMin
             float stepLength = 1.f / (float)stepCount;
             for (int j = 0; j < stepCount; j++)
             {
@@ -2019,12 +2019,12 @@ namespace ImGuizmo
             vec_t baseVector = gContext.mTranslationPlanOrigin - gContext.mModel.v.position;
             float ratio = Dot(axisValue, baseVector + delta) / Dot(axisValue, baseVector);
 
-            gContext.mScale[axisIndex] = ImMax(ratio, 0.001f);
+            gContext.mScale[axisIndex] = ImMax(ratio, 0.001f); // Add by Dicky, using ImMax
          }
          else
          {
             float scaleDelta = (io.MousePos.x - gContext.mSaveMousePosx) * 0.01f;
-            gContext.mScale.Set(ImMax(1.f + scaleDelta, 0.001f));
+            gContext.mScale.Set(ImMax(1.f + scaleDelta, 0.001f)); // Add by Dicky, using ImMax
          }
 
          // snap
@@ -2036,7 +2036,7 @@ namespace ImGuizmo
 
          // no 0 allowed
          for (int i = 0; i < 3; i++)
-            gContext.mScale[i] = ImMax(gContext.mScale[i], 0.001f);
+            gContext.mScale[i] = ImMax(gContext.mScale[i], 0.001f); // Add by Dicky, using ImMax
 
          if (gContext.mScaleLast != gContext.mScale)
          {
