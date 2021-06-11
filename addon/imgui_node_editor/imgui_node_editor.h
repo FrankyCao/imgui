@@ -404,7 +404,7 @@ IMGUI_API bool HasSelectionChanged();
 IMGUI_API int  GetSelectedObjectCount();
 IMGUI_API int  GetSelectedNodes(NodeId* nodes, int size);
 IMGUI_API int  GetSelectedLinks(LinkId* links, int size);
-IMGUI_API int  GetGroupedNodes(std::vector<NodeId>& nodes, NodeId nodeId);
+IMGUI_API int  GetGroupedNodes(std::vector<NodeId>& nodes, NodeId nodeId, ImVec2 expand = {0, 0});
 IMGUI_API void SetNodeGroupID(NodeId nodeId, NodeId groupId);
 IMGUI_API bool IsNodeSelected(NodeId nodeId);
 IMGUI_API bool IsLinkSelected(LinkId linkId);

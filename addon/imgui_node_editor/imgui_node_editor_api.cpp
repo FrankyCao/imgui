@@ -689,14 +689,14 @@ int ax::NodeEditor::GetSelectedNodes(NodeId* nodes, int size)
     });
 }
 
-int ax::NodeEditor::GetGroupedNodes(std::vector<NodeId>& nodes, NodeId nodeId)
+int ax::NodeEditor::GetGroupedNodes(std::vector<NodeId>& nodes, NodeId nodeId, ImVec2 expand)
 {
     nodes.clear();
     auto current_node = s_Editor->GetNode(nodeId);
     if (current_node && current_node->m_Type == Detail::NodeType::Group)
     {
         std::vector<Detail::Node*> groupedNodes;
-        current_node->GetGroupedNodes(groupedNodes);
+        current_node->GetGroupedNodes(groupedNodes, false, expand);
         for (auto node : groupedNodes)
         {
             nodes.push_back(node->m_ID);
