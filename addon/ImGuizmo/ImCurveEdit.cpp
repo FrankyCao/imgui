@@ -5,7 +5,7 @@
 #include <set>
 #include <vector>
 
-#if !defined(_MSC_VER) && !defined(_malloca)
+#if !defined(_MSC_VER)
 #define _malloca(x) alloca(x)
 #endif
 
@@ -301,7 +301,6 @@ namespace ImCurveEdit
             int originalIndex = 0;
             for (auto& sel : prevSelection)
             {
-               const ImVec2* pts = delegate.GetPoints(sel.curveIndex);
                const ImVec2 p = rangeToPoint(pointToRange(originalPoints[originalIndex]) + (io.MousePos - mousePosOrigin) * sizeOfPixel);
                const int newIndex = delegate.EditPoint(sel.curveIndex, sel.pointIndex, p);
                if (newIndex != sel.pointIndex)

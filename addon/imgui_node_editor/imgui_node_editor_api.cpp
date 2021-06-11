@@ -705,6 +705,17 @@ int ax::NodeEditor::GetGroupedNodes(std::vector<NodeId>& nodes, NodeId nodeId)
     return nodes.size();
 }
 
+void ax::NodeEditor::SetNodeGroupID(NodeId nodeId, NodeId groupId)
+{
+    if (!s_Editor)
+        return;
+    auto current_node = s_Editor->GetNode(nodeId);
+    if (current_node)
+    {
+        current_node->SetGroupID(groupId);
+    }
+}
+
 int ax::NodeEditor::GetSelectedLinks(LinkId* links, int size)
 {
     return BuildIdList(s_Editor->GetSelectedObjects(), links, size, [](auto object)

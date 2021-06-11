@@ -485,10 +485,12 @@ struct Node final: Object
 
     bool     m_RestoreState;
     bool     m_CenterOnScreen;
+    NodeId   m_GroupID;
 
     Node(EditorContext* editor, NodeId id)
         : Object(editor)
         , m_ID(id)
+        , m_GroupID(NodeId::Invalid)
         , m_Type(NodeType::Node)
         , m_Bounds()
         , m_Channel(0)
@@ -517,7 +519,7 @@ struct Node final: Object
     void DrawBorder(ImDrawList* drawList, ImU32 color, float thickness = 1.0f);
 
     void GetGroupedNodes(std::vector<Node*>& result, bool append = false, ImVec2 expand = {0.f, 0.f});
-
+    void SetGroupID(NodeId id) { m_GroupID = id; };
     void CenterOnScreenInNextFrame() { m_CenterOnScreen = true; }
 
     ImRect GetRegionBounds(NodeRegion region) const;

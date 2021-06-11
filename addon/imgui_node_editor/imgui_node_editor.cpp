@@ -725,7 +725,16 @@ void ed::Node::GetGroupedNodes(std::vector<Node*>& result, bool append, ImVec2 e
     const auto firstNodeIndex = result.size();
     auto rect = m_GroupBounds;
     rect.Expand(expand);
-    Editor->FindNodesInRect(rect, result, true, false);
+    std::vector<Node*> _nodes;
+    Editor->FindNodesInRect(rect, _nodes, true, false);
+
+    for (auto node : _nodes)
+    {
+        if (node->m_GroupID == NodeId::Invalid)
+            result.push_back(node);
+        else if (node->m_GroupID == m_ID)
+            result.push_back(node);
+    }
 
     for (auto index = firstNodeIndex; index < result.size(); ++index)
         result[index]->GetGroupedNodes(result, true);
