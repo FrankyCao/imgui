@@ -173,8 +173,10 @@ int main(int, char**)
             continue;
         }
         // Start the Dear ImGui frame
+        
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL2_NewFrame(window);
+
         ImGui::NewFrame();
 
         if (io.ConfigFlags & ImGuiConfigFlags_EnableLowRefreshMode)
