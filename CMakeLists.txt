@@ -98,7 +98,6 @@ _OPTION(IMGUI_FONT_SONG          "Internal Mono Song Fonts build in library" OFF
 _OPTION(IMGUI_FONT_YUAN          "Internal Mono Yuan Fonts build in library" OFF)
 _OPTION(IMGUI_ICONS              "Internal Icons build in library" ON)
 _OPTION(IMGUI_ADDONS             "build addons base on imgui" ON)
-_OPTION(IMGUI_ADDON_NODE_EDITOR  "build node editor base on imgui" ON)
 _OPTION(IMGUI_ADDON_IMNODES      "build imnodes base on imgui" OFF)
 _OPTION(IMGUI_ADDON_NODE_GRAPH   "build node graph editor base on imgui" OFF)
 _OPTION(IMGUI_APPS               "build apps base on imgui" ON)
@@ -861,34 +860,7 @@ if(IMGUI_ADDONS)
         ${IMGUI_INC_DIRS}
         ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiDateChooser
     )
-
-    # Node Editor
-    set(IMGUI_SRC
-        ${IMGUI_SRC}
-        addon/imgui_node_editor/imgui_json.cpp
-        addon/imgui_node_editor/imgui_logger.cpp
-        addon/imgui_node_editor/imgui_canvas.cpp
-        addon/imgui_node_editor/imgui_node_editor_api.cpp
-        addon/imgui_node_editor/imgui_node_editor.cpp
-    )
-    set(IMGUI_INCS
-        ${IMGUI_INCS}
-        addon/imgui_node_editor/imgui_json.h
-        addon/imgui_node_editor/imgui_logger.h
-        addon/imgui_node_editor/imgui_bezier_math.h
-        addon/imgui_node_editor/imgui_bezier_math.inl
-        addon/imgui_node_editor/imgui_canvas.h
-        addon/imgui_node_editor/imgui_extra_math.h
-        addon/imgui_node_editor/imgui_extra_math.inl
-        addon/imgui_node_editor/imgui_node_editor_internal.h
-        addon/imgui_node_editor/imgui_node_editor_internal.inl
-        addon/imgui_node_editor/imgui_node_editor.h
-    )
-    set(IMGUI_INC_DIRS
-        ${IMGUI_INC_DIRS}
-        ${CMAKE_CURRENT_SOURCE_DIR}/addon/imgui_node_editor
-    )
-
+    
     # Various Controls
     set(IMGUI_SRC
         ${IMGUI_SRC}
