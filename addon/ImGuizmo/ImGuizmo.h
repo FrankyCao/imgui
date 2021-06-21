@@ -104,8 +104,9 @@ void EditTransform(const Camera& camera, matrix_t& matrix)
 #endif
 #pragma once
 
+#if !defined(IMGUI_DISABLE_INCLUDE_IMCONFIG_H) || defined(IMGUI_INCLUDE_IMCONFIG_H)
 #include "imconfig.h"
-
+#endif
 namespace ImGuizmo
 {
    // call inside your own window and before Manipulate() in order to draw gizmo to that window.

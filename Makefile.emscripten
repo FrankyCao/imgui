@@ -23,8 +23,11 @@ SOURCES = test/example_emscripten_opengl3.cpp
 SOURCES += $(IMGUI_DIR)/imgui.cpp $(IMGUI_DIR)/imgui_demo.cpp $(IMGUI_DIR)/imgui_draw.cpp $(IMGUI_DIR)/imgui_tables.cpp $(IMGUI_DIR)/imgui_widgets.cpp
 SOURCES += $(IMGUI_DIR)/backends/imgui_impl_sdl.cpp $(IMGUI_DIR)/backends/imgui_impl_opengl3.cpp
 SOURCES += $(IMGUI_DIR)/fonts/SourceCodePro-Regular.cpp $(IMGUI_DIR)/fonts/Monaco.cpp $(IMGUI_DIR)/fonts/Cousine-Regular.cpp $(IMGUI_DIR)/fonts/DroidSans.cpp $(IMGUI_DIR)/fonts/Karla-Regular.cpp $(IMGUI_DIR)/fonts/ProggyTiny.cpp $(IMGUI_DIR)/fonts/ProggyClean.cpp $(IMGUI_DIR)/fonts/Roboto-Medium.cpp
-SOURCES += $(IMGUI_DIR)/fonts/mono_hei.cpp $(IMGUI_DIR)/fonts/mono_sarasa.cpp
-#SOURCES += $(IMGUI_DIR)/fonts/mono_kai.cpp $(IMGUI_DIR)/fonts/mono_song.cpp $(IMGUI_DIR)/fonts/mono_yuan.cpp
+SOURCES += $(IMGUI_DIR)/fonts/mono_hei.cpp 
+SOURCES += $(IMGUI_DIR)/fonts/mono_sarasa.cpp
+#SOURCES += $(IMGUI_DIR)/fonts/mono_kai.cpp 
+#SOURCES += $(IMGUI_DIR)/fonts/mono_song.cpp 
+#SOURCES += $(IMGUI_DIR)/fonts/mono_yuan.cpp
 SOURCES += $(IMGUI_DIR)/misc/cpp/imgui_stdlib.cpp $(IMGUI_DIR)/misc/cpp/dir_iterate.cpp
 SOURCES += $(IMGUI_DIR)/icons/icons.cpp $(IMGUI_DIR)/icons/folder.cpp $(IMGUI_DIR)/icons/fontaudio.cpp $(IMGUI_DIR)/icons/fa_brands.cpp $(IMGUI_DIR)/icons/fa_regular.cpp $(IMGUI_DIR)/icons/fa_solid.cpp $(IMGUI_DIR)/icons/webfont.cpp $(IMGUI_DIR)/icons/fork_webfont.cpp $(IMGUI_DIR)/icons/material_icons.cpp $(IMGUI_DIR)/icons/kenney.cpp $(IMGUI_DIR)/icons/StepMath.cpp
 SOURCES += $(IMGUI_DIR)/addon/implot/implot.cpp $(IMGUI_DIR)/addon/implot/implot_items.cpp $(IMGUI_DIR)/addon/implot/implot_demo.cpp
@@ -77,7 +80,7 @@ endif
 ## FINAL BUILD FLAGS
 ##---------------------------------------------------------------------
 
-CPPFLAGS = -I$(IMGUI_DIR) -I$(IMGUI_DIR)/backends -I$(IMGUI_DIR)/misc -I$(IMGUI_DIR)/../build/imgui -I$(IMGUI_DIR)/addon
+CPPFLAGS = -I$(IMGUI_DIR) -I$(IMGUI_DIR)/backends -I$(IMGUI_DIR)/misc -I$(IMGUI_DIR)/addon
 CPPFLAGS += -I$(IMGUI_DIR)/addon/implot
 CPPFLAGS += -I$(IMGUI_DIR)/addon/imnodes
 CPPFLAGS += -I$(IMGUI_DIR)/addon/ImGuiHelper
@@ -97,8 +100,14 @@ CPPFLAGS += -I$(IMGUI_DIR)/addon/ImGuiNodeGraphEditor
 CPPFLAGS += -I$(IMGUI_DIR)/addon/ImGuiFileSystem
 CPPFLAGS += -I$(IMGUI_DIR)/addon/ImGuizmo
 CPPFLAGS += -I$(IMGUI_DIR)/addon/HotKey
+CPPFLAGS += -DIMGUI_DISABLE_INCLUDE_IMCONFIG_H -DIMGUI_OPENGL=1 -DIMGUI_SDL2=1 -DIMGUI_RENDERING_GL3=1 
+CPPFLAGS += -DIMGUI_ADDONS=1 -DIMGUI_BUILD_EXAMPLE=1 -DIMGUI_INCLUDE_IMGUI_USER_H=1 
+CPPFLAGS += -DIMGUI_ICONS=1
+CPPFLAGS += -DIMGUI_FONT_HEI=1
+CPPFLAGS += -DIMGUI_FONT_SARASA=1
 #CPPFLAGS += -g
 CPPFLAGS += -Wall -O3
+#CPPFLAGS += -pthread
 CPPFLAGS += $(EMS)
 LIBS += $(EMS)
 LDFLAGS += --shell-file test/shell_minimal.html
