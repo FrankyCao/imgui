@@ -5,9 +5,7 @@
 #include <imgui_internal.h>
 #include "ImGuiHelper.h"
 
-#if !defined(__EMSCRIPTEN__)
 #include "ImGuiFileSystem.h"
-#endif
 
 #include <stdlib.h> // qsort
 #include <string>

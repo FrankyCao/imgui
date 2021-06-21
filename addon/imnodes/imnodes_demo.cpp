@@ -1328,6 +1328,8 @@ public:
 
     void load(const char * ini_path, const char * node_path)
     {
+        if (!ini_path || !node_path)
+            return;
         // Load the internal imnodes state
         ImNodes::LoadCurrentEditorStateFromIniFile(ini_path);
         // Load our editor state into memory

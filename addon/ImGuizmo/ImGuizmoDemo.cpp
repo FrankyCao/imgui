@@ -348,13 +348,15 @@ struct MySequence : public ImSequencer::SequenceInterface
     }
 };
 
+#define DEMO_TEXTURE_WIDTH  512
+#define DEMO_TEXTURE_HEIGHT 512
 void build_procedural_texture(ImTextureID & procTexture)
 {
-    uint32_t* tempBitmap = new uint32_t[256 * 256];
+    uint32_t* tempBitmap = new uint32_t[DEMO_TEXTURE_WIDTH * DEMO_TEXTURE_HEIGHT];
     int index = 0;
-    for (int y = 0; y < 256; y++)
+    for (int y = 0; y < DEMO_TEXTURE_HEIGHT; y++)
     {
-        for (int x = 0; x < 256; x++)
+        for (int x = 0; x < DEMO_TEXTURE_WIDTH; x++)
         {
             float dx = x + .5f;
             float dy = y + .5f;
@@ -368,7 +370,7 @@ void build_procedural_texture(ImTextureID & procTexture)
             index++;
         }
     }
-    procTexture = ImGui::ImCreateTexture(tempBitmap, 256, 256);
+    procTexture = ImGui::ImCreateTexture(tempBitmap, DEMO_TEXTURE_WIDTH, DEMO_TEXTURE_HEIGHT);
     delete [] tempBitmap;
 }
 

@@ -39,6 +39,10 @@ SOURCES += $(IMGUI_DIR)/addon/ImGuiHelper/ImGuiHelper.cpp
 SOURCES += $(IMGUI_DIR)/addon/imguiDock/imgui_dock.cpp
 SOURCES += $(IMGUI_DIR)/addon/ImGuiTabWindow/ImGuiTabWindow.cpp
 SOURCES += $(IMGUI_DIR)/addon/ImGuiNodeGraphEditor/ImGuiNodeGraphEditor.cpp
+SOURCES += $(IMGUI_DIR)/addon/imnodes/imnodes.cpp $(IMGUI_DIR)/addon/imnodes/imnodes_demo.cpp
+SOURCES += $(IMGUI_DIR)/addon/ImGuiFileSystem/ImGuiFileSystem.cpp
+SOURCES += $(IMGUI_DIR)/addon/ImGuiFileDialog/ImGuiFileDialog.cpp $(IMGUI_DIR)/addon/ImGuiFileDialog/ImGuiFileDialogDemo.cpp
+SOURCES += $(IMGUI_DIR)/addon/TextEditor/TextEditor.cpp
 SOURCES += $(IMGUI_DIR)/addon/ImGuizmo/ImCurveEdit.cpp $(IMGUI_DIR)/addon/ImGuizmo/ImGradient.cpp $(IMGUI_DIR)/addon/ImGuizmo/ImSequencer.cpp $(IMGUI_DIR)/addon/ImGuizmo/ImGuizmo.cpp $(IMGUI_DIR)/addon/ImGuizmo/ImGuizmoDemo.cpp
 OBJS = $(addprefix $(BUILD_DIR)/, $(addsuffix .o, $(basename $(notdir $(SOURCES)))))
 UNAME_S := $(shell uname -s)
@@ -61,12 +65,12 @@ EMS += -s TOTAL_MEMORY=67108864
 # The Makefile for this example project suggests embedding the misc/fonts/ folder into our application, it will then be accessible as "/fonts"
 # See documentation for more details: https://emscripten.org/docs/porting/files/packaging_files.html
 # (Default value is 0. Set to 1 to enable file-system and include the misc/fonts/ folder as part of the build.)
-USE_FILE_SYSTEM ?= 0
+USE_FILE_SYSTEM ?= 1
 ifeq ($(USE_FILE_SYSTEM), 0)
 EMS += -s NO_FILESYSTEM=1 -DIMGUI_DISABLE_FILE_FUNCTIONS
 endif
 ifeq ($(USE_FILE_SYSTEM), 1)
-LDFLAGS += --no-heap-copy --preload-file ../../misc/fonts@/fonts
+#LDFLAGS += --no-heap-copy --preload-file ../../misc/fonts@/fonts
 endif
 
 ##---------------------------------------------------------------------
@@ -75,17 +79,24 @@ endif
 
 CPPFLAGS = -I$(IMGUI_DIR) -I$(IMGUI_DIR)/backends -I$(IMGUI_DIR)/misc -I$(IMGUI_DIR)/../build/imgui -I$(IMGUI_DIR)/addon
 CPPFLAGS += -I$(IMGUI_DIR)/addon/implot
+CPPFLAGS += -I$(IMGUI_DIR)/addon/imnodes
 CPPFLAGS += -I$(IMGUI_DIR)/addon/ImGuiHelper
+CPPFLAGS += -I$(IMGUI_DIR)/addon/ImGuiFileDialog
 CPPFLAGS += -I$(IMGUI_DIR)/addon/ImGuiVariousControls
 CPPFLAGS += -I$(IMGUI_DIR)/addon/ImGuiDateChooser
 CPPFLAGS += -I$(IMGUI_DIR)/addon/ProgressIndicators
+CPPFLAGS += -I$(IMGUI_DIR)/addon/TextEditor
 CPPFLAGS += -I$(IMGUI_DIR)/addon/TimeLine
 CPPFLAGS += -I$(IMGUI_DIR)/addon/Splitter
+CPPFLAGS += -I$(IMGUI_DIR)/addon/ImGuiTabWindow
 CPPFLAGS += -I$(IMGUI_DIR)/addon/imgui_knob
 CPPFLAGS += -I$(IMGUI_DIR)/addon/imguiDock
-CPPFLAGS += -I$(IMGUI_DIR)/addon/ImGuiTabWindow
+CPPFLAGS += -I$(IMGUI_DIR)/addon/markdown
+CPPFLAGS += -I$(IMGUI_DIR)/addon/MemoryEditor
 CPPFLAGS += -I$(IMGUI_DIR)/addon/ImGuiNodeGraphEditor
+CPPFLAGS += -I$(IMGUI_DIR)/addon/ImGuiFileSystem
 CPPFLAGS += -I$(IMGUI_DIR)/addon/ImGuizmo
+CPPFLAGS += -I$(IMGUI_DIR)/addon/HotKey
 #CPPFLAGS += -g
 CPPFLAGS += -Wall -O3
 CPPFLAGS += $(EMS)
@@ -123,6 +134,9 @@ $(BUILD_DIR)/%.o:$(IMGUI_DIR)/addon/%.cpp
 $(BUILD_DIR)/%.o:$(IMGUI_DIR)/addon/implot/%.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
+$(BUILD_DIR)/%.o:$(IMGUI_DIR)/addon/imnodes/%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
 $(BUILD_DIR)/%.o:$(IMGUI_DIR)/addon/ImGuiHelper/%.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
@@ -151,6 +165,18 @@ $(BUILD_DIR)/%.o:$(IMGUI_DIR)/addon/ImGuiTabWindow/%.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 $(BUILD_DIR)/%.o:$(IMGUI_DIR)/addon/ImGuiNodeGraphEditor/%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+$(BUILD_DIR)/%.o:$(IMGUI_DIR)/addon/ImGuiFileSystem/%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+$(BUILD_DIR)/%.o:$(IMGUI_DIR)/addon/ImGuiFileDialog/%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+$(BUILD_DIR)/%.o:$(IMGUI_DIR)/addon/TextEditor/%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+$(BUILD_DIR)/%.o:$(IMGUI_DIR)/addon/MemoryEditor/%.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 $(BUILD_DIR)/%.o:$(IMGUI_DIR)/addon/ImGuizmo/%.cpp

@@ -26,6 +26,11 @@ struct IUnknown;
 #include <stdlib.h> // system
 #endif //_WIN32
 
+#if defined(__EMSCRIPTEN__)
+#define IMGUI_IMPL_OPENGL_ES2               // Emscripten    -> GL ES 2, "#version 100"
+#define IMGUI_OPENGL    1
+#endif
+
 #include <vector>
 #include <algorithm>
 
@@ -58,9 +63,6 @@ using namespace gl;
 #include <glbinding/glbinding.h>// Initialize with glbinding::initialize()
 #include <glbinding/gl/gl.h>
 using namespace gl;
-#elif defined(__EMSCRIPTEN__)
-#define IMGUI_IMPL_OPENGL_ES2               // Emscripten    -> GL ES 2, "#version 100"
-#include <GLES2/gl2.h>
 #else
 #include IMGUI_IMPL_OPENGL_LOADER_CUSTOM
 #endif

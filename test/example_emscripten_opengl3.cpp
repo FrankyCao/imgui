@@ -10,20 +10,113 @@
 #include "imgui.h"
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_opengl3.h"
-#include "implot.h"
-#include "addons_demo.h"
 #include <stdio.h>
 #include <emscripten.h>
 #include <SDL.h>
 #include <SDL_opengles2.h>
+#include "implot.h"
+#include "addons_demo.h"
+#include "ImGuiFileDialog.h"
+#include "ImGuiFileSystem.h"
+#include "TextEditor.h"
+#include "imgui_markdown.h"
+#include "imnodes.h"
 #include "ImGuiNodeGraphEditor.h"
+#include "imgui_memory_editor.h"
 #include "ImGuizmo.h"
+#include "HotKey.h"
+
+#include <fstream>
+#include <sstream>
+#include <string>
 
 // Emscripten requires to have full control over the main loop. We're going to store our SDL book-keeping variables globally.
 // Having a single function that acts as a loop prevents us to store state in the stack of said function. So we need some location for this.
 SDL_Window*     g_Window = NULL;
 SDL_GLContext   g_GLContext = NULL;
-ImGui::NodeGraphEditor nge;
+
+static std::vector<ImHotKey::HotKey> hotkeys = 
+{ 
+    {"Layout", "Reorder nodes in a simpler layout", 0xFFFF26E0},
+    {"Save", "Save the current graph", 0xFFFF1FE0},
+    {"Load", "Load an existing graph file", 0xFFFF18E0},
+    {"Play/Stop", "Play or stop the animation from the current graph", 0xFFFFFF3F},
+    {"SetKey", "Make a new animation key with the current parameters values at the current time", 0xFFFFFF1F}
+};
+
+static ImGuiFileDialog filedialog;
+static ImGuiFs::Dialog dlg;
+static TextEditor editor;
+static ImGui::NodeGraphEditor nge;
+static MemoryEditor mem_edit;
+static ImGui::MarkdownConfig mdConfig; 
+int8_t data[0x1000];
+
+static std::string get_file_contents()
+{
+    return "Dear ImGui \n" \
+        "===== \n" \
+        "[![Build Status](https://github.com/ocornut/imgui/workflows/build/badge.svg)](https://github.com/ocornut/imgui/actions?workflow=build) [![Static Analysis Status](https://github.com/ocornut/imgui/workflows/static-analysis/badge.svg)](https://github.com/ocornut/imgui/actions?workflow=static-analysis) \n" \
+        "<sub>(This library is available under a free and permissive license, but needs financial support to sustain its continued improvements. In addition to maintenance and stability there are many desirable features yet to be added. If your company is using Dear ImGui, please consider reaching out.)</sub> \n" \
+        "Businesses: support continued development and maintenance via invoiced technical support, maintenance, sponsoring contracts:" \
+        "<br>&nbsp;&nbsp;_E-mail: contact @ dearimgui dot com_ \n" \
+        "Individuals: support continued development and maintenance [here](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=WGHNC6MBFLZ2S). \n" \
+        "Also see [Sponsors](https://github.com/ocornut/imgui/wiki/Sponsors) page. \n";
+}
+
+inline ImGui::MarkdownImageData ImageCallback( ImGui::MarkdownLinkCallbackData data_ )
+{
+    // In your application you would load an image based on data_ input. Here we just use the imgui font texture.
+    ImTextureID image = ImGui::GetIO().Fonts->TexID;
+    // > C++14 can use ImGui::MarkdownImageData imageData{ true, false, image, ImVec2( 40.0f, 20.0f ) };
+    ImGui::MarkdownImageData imageData;
+    imageData.isValid =         true;
+    imageData.useLinkCallback = false;
+    imageData.user_texture_id = image;
+    imageData.size =            ImVec2( 40.0f, 20.0f );
+    return imageData;
+}
+
+static void LinkCallback( ImGui::MarkdownLinkCallbackData data_ )
+{
+    std::string url( data_.link, data_.linkLength );
+    std::string command = "open " + url;
+    if( !data_.isImage )
+    {
+        system(command.c_str());
+    }
+}
+
+static void ExampleMarkdownFormatCallback( const ImGui::MarkdownFormatInfo& markdownFormatInfo_, bool start_ )
+{
+    // Call the default first so any settings can be overwritten by our implementation.
+    // Alternatively could be called or not called in a switch statement on a case by case basis.
+    // See defaultMarkdownFormatCallback definition for furhter examples of how to use it.
+    ImGui::defaultMarkdownFormatCallback( markdownFormatInfo_, start_ );        
+    switch( markdownFormatInfo_.type )
+    {
+        // example: change the colour of heading level 2
+        case ImGui::MarkdownFormatType::HEADING:
+        {
+            if( markdownFormatInfo_.level == 2 )
+            {
+                if( start_ )
+                {
+                    ImGui::PushStyleColor( ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled] );
+                }
+                else
+                {
+                    ImGui::PopStyleColor();
+                }
+            }
+            break;
+        }
+        default:
+        {
+            break;
+        }
+    }
+}
 
 // For clarity, our main loop code is declared at the end.
 static void main_loop(void*);
@@ -101,6 +194,14 @@ int main(int, char**)
     //IM_ASSERT(font != NULL);
 #endif
 
+    prepare_file_dialog_demo_window(&filedialog, nullptr);
+
+    mem_edit.Open = false;
+    mem_edit.OptShowDataPreview = true;
+
+    ImNodes::CreateContext();
+    imnodes_example::NodeEditorInitialize(nullptr, nullptr);
+    
     // This function call won't return, and will engage in an infinite loop, processing events from the browser, and dispatching them.
     emscripten_set_main_loop_arg(main_loop, NULL, 0, true);
 }
@@ -114,10 +215,15 @@ static void main_loop(void* arg)
     static bool show_demo_window = true;
     static bool show_another_window = false;
     static bool show_implot_window = false;
-    static bool show_addon_widget = false;
+    static bool show_file_dialog_window = false;
+    static bool show_sample_file_dialog = false;
+    static bool show_text_edit_window = false;
+    static bool show_markdown_window = false;
     static bool show_dock_window = false;
     static bool show_tab_window = false;
+    static bool show_node_window = false;
     static bool show_node_edit_window = false;
+    static bool show_addon_widget = false;
     static bool show_zmo_window = false;
     static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
@@ -153,11 +259,31 @@ static void main_loop(void* arg)
         ImGui::Checkbox("Demo Window", &show_demo_window);            // Edit bools storing our window open/close state
         ImGui::Checkbox("Another Window", &show_another_window);
         ImGui::Checkbox("ImPlot Window", &show_implot_window);
-        ImGui::Checkbox("Show Addon Widgets", &show_addon_widget);
+        ImGui::Checkbox("File Dialog Window", &show_file_dialog_window);
+        ImGui::Checkbox("Sample File Dialog", &show_sample_file_dialog);
+        ImGui::Checkbox("Memory Edit Window", &mem_edit.Open);
+        ImGui::Checkbox("Show Text Edit Window", &show_text_edit_window);
+        ImGui::Checkbox("Show Markdown Window", &show_markdown_window);
         ImGui::Checkbox("Show Dock Window", &show_dock_window);
         ImGui::Checkbox("Show Tab Window", &show_tab_window);
+        ImGui::Checkbox("Show Node Sample Window", &show_node_window);
         ImGui::Checkbox("Show Node Edit Windows", &show_node_edit_window);
+        ImGui::Checkbox("Show Addon Widgets", &show_addon_widget);
         ImGui::Checkbox("Show ImGuizmo Window", &show_zmo_window);
+
+        // show hotkey window
+        if (ImGui::Button("Edit Hotkeys"))
+        {
+            ImGui::OpenPopup("HotKeys Editor");
+        }
+
+        // Handle hotkey popup
+        ImHotKey::Edit(hotkeys.data(), hotkeys.size(), "HotKeys Editor");
+        int hotkey = ImHotKey::GetHotKey(hotkeys.data(), hotkeys.size());
+        if (hotkey != -1)
+        {
+            // handle the hotkey index!
+        }
 
         ImGui::SliderFloat("float", &f, 0.0f, 1.0f);                  // Edit 1 float using a slider from 0.0f to 1.0f
         ImGui::ColorEdit3("clear color", (float*)&clear_color);       // Edit 3 floats representing a color
@@ -187,16 +313,54 @@ static void main_loop(void* arg)
         ImPlot::ShowDemoWindow(&show_implot_window);
     }
 
-    // 5. Show addons widget
-    if (show_addon_widget)
+    // 5. Show FileDialog demo window
+    if (show_file_dialog_window)
     {
-        ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
-        ImGui::Begin("Addon Widget", &show_addon_widget);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-        ImGui::ShowAddonsDemoWindowWidgets();
+        show_file_dialog_demo_window(&filedialog, &show_file_dialog_window);
+    }
+
+    // 6. Show Sample FileDialog
+    {
+        // dlg.WrapMode = false;
+        const char* filePath = dlg.chooseFileDialog(show_sample_file_dialog, dlg.getLastDirectory(), ".jpg;.jpeg;.png;.gif;.tga;.bmp", "Sample file dialog", ImVec2(400, 800), ImVec2(50, 50));
+        if (strlen(filePath) > 0) 
+        {
+	        //fprintf(stderr,"Browsed..: %s\n",filePath);
+        }
+        show_sample_file_dialog = false;
+    }
+
+    // 7. Show Memory Edit window
+    if (mem_edit.Open)
+    {
+        ImGui::Begin("Memory Window", &mem_edit.Open);
+        mem_edit.DrawWindow("Memory Editor", data, 0x1000);
         ImGui::End();
     }
 
-    // 6. Show Dock Window
+    // 8. Show Text Edit Window
+    if (show_text_edit_window)
+    {
+        editor.text_edit_demo(&show_text_edit_window);
+    }
+    
+    // 9. Show Markdown Window
+    if (show_markdown_window)
+    {
+        std::string help_doc = get_file_contents();
+        mdConfig.linkCallback =         LinkCallback;
+        mdConfig.tooltipCallback =      NULL;
+        mdConfig.imageCallback =        ImageCallback;
+        mdConfig.linkIcon =             ICON_FA5_LINK;
+        mdConfig.headingFormats[0] =    { io.Fonts->Fonts[0], true };
+        mdConfig.headingFormats[1] =    { io.Fonts->Fonts[1], true };
+        mdConfig.headingFormats[2] =    { io.Fonts->Fonts[2], false };
+        mdConfig.userData =             NULL;
+        mdConfig.formatCallback =       ExampleMarkdownFormatCallback;
+        ImGui::Markdown( help_doc.c_str(), help_doc.length(), mdConfig );
+    }
+
+    // 10. Show Dock Window
     if (show_dock_window)
     {
         ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
@@ -207,7 +371,7 @@ static void main_loop(void* arg)
         ImGui::End();
     }
 
-    // 7. Show Tab Window
+    // 11. Show Tab Window
     if (show_tab_window)
     {
         ImGui::SetNextWindowSize(ImVec2(700,600), ImGuiCond_FirstUseEver);
@@ -218,7 +382,13 @@ static void main_loop(void* arg)
         ImGui::End();
     }
 
-    // 8. Show Node Edit Window
+    // 12. Show Node Window
+    if (show_node_window)
+    {
+        imnodes_example::NodeEditorShow();
+    }
+
+    // 13. Show Node Edit Window
     if (show_node_edit_window)
     {
         ImGui::SetNextWindowSize(ImVec2(700,600), ImGuiCond_FirstUseEver);
@@ -231,7 +401,16 @@ static void main_loop(void* arg)
         ImGui::End();
     }
 
-    // 9. Show Zmo Window
+    // 14. Show addons widget
+    if (show_addon_widget)
+    {
+        ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
+        ImGui::Begin("Addon Widget", &show_addon_widget);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+        ImGui::ShowAddonsDemoWindowWidgets();
+        ImGui::End();
+    }
+
+    // 15. Show Zmo Window
     if (show_zmo_window)
     {
         ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
