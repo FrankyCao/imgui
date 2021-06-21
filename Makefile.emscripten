@@ -1,0 +1,178 @@
+#
+# Makefile to use with emscripten
+# See https://emscripten.org/docs/getting_started/downloads.html
+# for installation instructions.
+#
+# This Makefile assumes you have loaded emscripten's environment.
+# (On Windows, you may need to execute emsdk_env.bat or encmdprompt.bat ahead)
+#
+# Running `make` will produce three files:
+#  - web/index.html
+#  - web/index.js
+#  - web/index.wasm
+#
+# All three are needed to run the demo.
+
+CC = emcc
+CXX = em++
+WEB_DIR = web
+BUILD_DIR = emscripten_obj
+EXE = $(WEB_DIR)/index.html
+IMGUI_DIR = ./
+SOURCES = test/example_emscripten_opengl3.cpp
+SOURCES += $(IMGUI_DIR)/imgui.cpp $(IMGUI_DIR)/imgui_demo.cpp $(IMGUI_DIR)/imgui_draw.cpp $(IMGUI_DIR)/imgui_tables.cpp $(IMGUI_DIR)/imgui_widgets.cpp
+SOURCES += $(IMGUI_DIR)/backends/imgui_impl_sdl.cpp $(IMGUI_DIR)/backends/imgui_impl_opengl3.cpp
+SOURCES += $(IMGUI_DIR)/fonts/SourceCodePro-Regular.cpp $(IMGUI_DIR)/fonts/Monaco.cpp $(IMGUI_DIR)/fonts/Cousine-Regular.cpp $(IMGUI_DIR)/fonts/DroidSans.cpp $(IMGUI_DIR)/fonts/Karla-Regular.cpp $(IMGUI_DIR)/fonts/ProggyTiny.cpp $(IMGUI_DIR)/fonts/ProggyClean.cpp $(IMGUI_DIR)/fonts/Roboto-Medium.cpp
+SOURCES += $(IMGUI_DIR)/fonts/mono_hei.cpp $(IMGUI_DIR)/fonts/mono_sarasa.cpp
+#SOURCES += $(IMGUI_DIR)/fonts/mono_kai.cpp $(IMGUI_DIR)/fonts/mono_song.cpp $(IMGUI_DIR)/fonts/mono_yuan.cpp
+SOURCES += $(IMGUI_DIR)/misc/cpp/imgui_stdlib.cpp $(IMGUI_DIR)/misc/cpp/dir_iterate.cpp
+SOURCES += $(IMGUI_DIR)/icons/icons.cpp $(IMGUI_DIR)/icons/folder.cpp $(IMGUI_DIR)/icons/fontaudio.cpp $(IMGUI_DIR)/icons/fa_brands.cpp $(IMGUI_DIR)/icons/fa_regular.cpp $(IMGUI_DIR)/icons/fa_solid.cpp $(IMGUI_DIR)/icons/webfont.cpp $(IMGUI_DIR)/icons/fork_webfont.cpp $(IMGUI_DIR)/icons/material_icons.cpp $(IMGUI_DIR)/icons/kenney.cpp $(IMGUI_DIR)/icons/StepMath.cpp
+SOURCES += $(IMGUI_DIR)/addon/implot/implot.cpp $(IMGUI_DIR)/addon/implot/implot_items.cpp $(IMGUI_DIR)/addon/implot/implot_demo.cpp
+SOURCES += $(IMGUI_DIR)/addon/addons_demo.cpp
+SOURCES += $(IMGUI_DIR)/addon/imgui_knob/imgui_knob.cpp
+SOURCES += $(IMGUI_DIR)/addon/ImGuiDateChooser/ImGuiDateChooser.cpp
+SOURCES += $(IMGUI_DIR)/addon/ImGuiVariousControls/ImGuiVariousControls.cpp
+SOURCES += $(IMGUI_DIR)/addon/Timeline/Timeline.cpp
+SOURCES += $(IMGUI_DIR)/addon/Splitter/Splitter.cpp
+SOURCES += $(IMGUI_DIR)/addon/ProgressIndicators/ProgressIndicators.cpp
+SOURCES += $(IMGUI_DIR)/addon/ImGuiHelper/ImGuiHelper.cpp
+SOURCES += $(IMGUI_DIR)/addon/imguiDock/imgui_dock.cpp
+SOURCES += $(IMGUI_DIR)/addon/ImGuiTabWindow/ImGuiTabWindow.cpp
+SOURCES += $(IMGUI_DIR)/addon/ImGuiNodeGraphEditor/ImGuiNodeGraphEditor.cpp
+SOURCES += $(IMGUI_DIR)/addon/ImGuizmo/ImCurveEdit.cpp $(IMGUI_DIR)/addon/ImGuizmo/ImGradient.cpp $(IMGUI_DIR)/addon/ImGuizmo/ImSequencer.cpp $(IMGUI_DIR)/addon/ImGuizmo/ImGuizmo.cpp $(IMGUI_DIR)/addon/ImGuizmo/ImGuizmoDemo.cpp
+OBJS = $(addprefix $(BUILD_DIR)/, $(addsuffix .o, $(basename $(notdir $(SOURCES)))))
+UNAME_S := $(shell uname -s)
+
+##---------------------------------------------------------------------
+## EMSCRIPTEN OPTIONS
+##---------------------------------------------------------------------
+
+EMS += -s USE_SDL=2 -s WASM=1
+EMS += -s ALLOW_MEMORY_GROWTH=1
+EMS += -s DISABLE_EXCEPTION_CATCHING=1 -s NO_EXIT_RUNTIME=0
+EMS += -s ASSERTIONS=1
+EMS += -s TOTAL_MEMORY=67108864
+
+# Uncomment next line to fix possible rendering bugs with Emscripten version older then 1.39.0 (https://github.com/ocornut/imgui/issues/2877)
+#EMS += -s BINARYEN_TRAP_MODE=clamp
+#EMS += -s SAFE_HEAP=1    ## Adds overhead
+
+# Emscripten allows preloading a file or folder to be accessible at runtime.
+# The Makefile for this example project suggests embedding the misc/fonts/ folder into our application, it will then be accessible as "/fonts"
+# See documentation for more details: https://emscripten.org/docs/porting/files/packaging_files.html
+# (Default value is 0. Set to 1 to enable file-system and include the misc/fonts/ folder as part of the build.)
+USE_FILE_SYSTEM ?= 0
+ifeq ($(USE_FILE_SYSTEM), 0)
+EMS += -s NO_FILESYSTEM=1 -DIMGUI_DISABLE_FILE_FUNCTIONS
+endif
+ifeq ($(USE_FILE_SYSTEM), 1)
+LDFLAGS += --no-heap-copy --preload-file ../../misc/fonts@/fonts
+endif
+
+##---------------------------------------------------------------------
+## FINAL BUILD FLAGS
+##---------------------------------------------------------------------
+
+CPPFLAGS = -I$(IMGUI_DIR) -I$(IMGUI_DIR)/backends -I$(IMGUI_DIR)/misc -I$(IMGUI_DIR)/../build/imgui -I$(IMGUI_DIR)/addon
+CPPFLAGS += -I$(IMGUI_DIR)/addon/implot
+CPPFLAGS += -I$(IMGUI_DIR)/addon/ImGuiHelper
+CPPFLAGS += -I$(IMGUI_DIR)/addon/ImGuiVariousControls
+CPPFLAGS += -I$(IMGUI_DIR)/addon/ImGuiDateChooser
+CPPFLAGS += -I$(IMGUI_DIR)/addon/ProgressIndicators
+CPPFLAGS += -I$(IMGUI_DIR)/addon/TimeLine
+CPPFLAGS += -I$(IMGUI_DIR)/addon/Splitter
+CPPFLAGS += -I$(IMGUI_DIR)/addon/imgui_knob
+CPPFLAGS += -I$(IMGUI_DIR)/addon/imguiDock
+CPPFLAGS += -I$(IMGUI_DIR)/addon/ImGuiTabWindow
+CPPFLAGS += -I$(IMGUI_DIR)/addon/ImGuiNodeGraphEditor
+CPPFLAGS += -I$(IMGUI_DIR)/addon/ImGuizmo
+#CPPFLAGS += -g
+CPPFLAGS += -Wall -O3
+CPPFLAGS += $(EMS)
+LIBS += $(EMS)
+LDFLAGS += --shell-file test/shell_minimal.html
+
+##---------------------------------------------------------------------
+## BUILD RULES
+##---------------------------------------------------------------------
+
+$(BUILD_DIR)/%.o:%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+$(BUILD_DIR)/%.o:$(IMGUI_DIR)/%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+$(BUILD_DIR)/%.o:$(IMGUI_DIR)/backends/%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+$(BUILD_DIR)/%.o:$(IMGUI_DIR)/icons/%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+$(BUILD_DIR)/%.o:$(IMGUI_DIR)/fonts/%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+$(BUILD_DIR)/%.o:$(IMGUI_DIR)/misc/cpp/%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+$(BUILD_DIR)/%.o:$(IMGUI_DIR)/test/%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+$(BUILD_DIR)/%.o:$(IMGUI_DIR)/addon/%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+$(BUILD_DIR)/%.o:$(IMGUI_DIR)/addon/implot/%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+$(BUILD_DIR)/%.o:$(IMGUI_DIR)/addon/ImGuiHelper/%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+$(BUILD_DIR)/%.o:$(IMGUI_DIR)/addon/ImGuiVariousControls/%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+$(BUILD_DIR)/%.o:$(IMGUI_DIR)/addon/ImGuiDateChooser/%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+$(BUILD_DIR)/%.o:$(IMGUI_DIR)/addon/ProgressIndicators/%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+$(BUILD_DIR)/%.o:$(IMGUI_DIR)/addon/Timeline/%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+$(BUILD_DIR)/%.o:$(IMGUI_DIR)/addon/Splitter/%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+$(BUILD_DIR)/%.o:$(IMGUI_DIR)/addon/imgui_knob/%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+$(BUILD_DIR)/%.o:$(IMGUI_DIR)/addon/imguiDock/%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+$(BUILD_DIR)/%.o:$(IMGUI_DIR)/addon/ImGuiTabWindow/%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+$(BUILD_DIR)/%.o:$(IMGUI_DIR)/addon/ImGuiNodeGraphEditor/%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+$(BUILD_DIR)/%.o:$(IMGUI_DIR)/addon/ImGuizmo/%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+$(BUILD_DIR)/%.o:../libs/gl3w/GL/%.c
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
+
+all: $(EXE)
+	@echo Build complete for $(EXE)
+
+$(WEB_DIR):
+	mkdir $@
+
+$(BUILD_DIR):
+	mkdir $@
+
+serve: all
+	python3 -m http.server -d $(WEB_DIR)
+
+$(EXE): $(BUILD_DIR) $(OBJS) $(WEB_DIR)
+	$(CXX) -o $@ $(OBJS) $(LIBS) $(LDFLAGS)
+
+clean:
+	rm -rf $(WEB_DIR) $(BUILD_DIR)

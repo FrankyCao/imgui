@@ -4,7 +4,10 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
 #include "ImGuiHelper.h"
+
+#if !defined(__EMSCRIPTEN__)
 #include "ImGuiFileSystem.h"
+#endif
 
 #include <stdlib.h> // qsort
 #include <string>
@@ -2955,7 +2958,7 @@ class TextureNode : public Node {
 
         // TODO: check extension
 
-        FILE* f = ImFileOpen(path,"rb");
+        FILE* f = (FILE *)ImFileOpen(path,"rb");
         if (f) {fclose(f);f=NULL;return true;}
 
         return false;

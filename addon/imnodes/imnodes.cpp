@@ -3015,7 +3015,7 @@ void SaveEditorStateToIniFile(const ImNodesEditorContext* const editor, const ch
 {
     size_t      data_size = 0u;
     const char* data = SaveEditorStateToIniString(editor, &data_size);
-    FILE*       file = ImFileOpen(file_name, "wt");
+    FILE*       file = (FILE *)ImFileOpen(file_name, "wt");
     if (!file)
     {
         return;

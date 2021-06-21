@@ -858,7 +858,7 @@ struct AnimatedImageInternal {
         int gif_buffer_size;
         static stbi_uc* GetFileContent(const char *filePath,int* size_out)   {
             stbi_uc* f_data = NULL;FILE* f=NULL;long f_size=-1;size_t f_size_read=0;*size_out=0;
-            if (!filePath || (f = ImFileOpen(filePath, "rb")) == NULL) return NULL;
+            if (!filePath || (f = (FILE *)ImFileOpen(filePath, "rb")) == NULL) return NULL;
             if (fseek(f, 0, SEEK_END) ||  (f_size = ftell(f)) == -1 || fseek(f, 0, SEEK_SET))  {fclose(f);return NULL;}
             f_data = (stbi_uc*) STBI_MALLOC(f_size);
             f_size_read = f_size>0 ? fread(f_data, 1, f_size, f) : 0;

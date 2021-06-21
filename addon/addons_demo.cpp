@@ -12,7 +12,7 @@
 #if IMGUI_VULKAN_SHADER
 #include "ImVulkanShader.h"
 #endif
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__EMSCRIPTEN__)
 #include <time.h>
 #endif
 

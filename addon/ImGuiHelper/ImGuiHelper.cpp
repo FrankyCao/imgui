@@ -58,6 +58,9 @@ using namespace gl;
 #include <glbinding/glbinding.h>// Initialize with glbinding::initialize()
 #include <glbinding/gl/gl.h>
 using namespace gl;
+#elif defined(__EMSCRIPTEN__)
+#define IMGUI_IMPL_OPENGL_ES2               // Emscripten    -> GL ES 2, "#version 100"
+#include <GLES2/gl2.h>
 #else
 #include IMGUI_IMPL_OPENGL_LOADER_CUSTOM
 #endif
@@ -585,7 +588,7 @@ bool OpenWithDefaultApplication(const char* url,bool exploreModeForWindowsOS)
                 for (size_t i=0,sz=sizeof(openPrograms)/sizeof(openPrograms[0]);i<sz;i++) {
                     strcpy(tmp,"/usr/bin/");	// Well, we should check all the folders inside $PATH... and we ASSUME that /usr/bin IS inside $PATH (see below)
                     strcat(tmp,openPrograms[i]);
-                    FILE* fd = ImFileOpen(tmp,"r");
+                    FILE* fd = (FILE *)ImFileOpen(tmp,"r");
                     if (fd) {
                         fclose(fd);
                         openProgramIndex = (int)i;
@@ -1534,7 +1537,7 @@ bool Deserializer::loadFromFile(const char *filename) {
     clear();
     if (!filename) return false;
     FILE* f;
-    if ((f = ImFileOpen(filename, "rt")) == NULL) return false;
+    if ((f = (FILE *)ImFileOpen(filename, "rt")) == NULL) return false;
     if (fseek(f, 0, SEEK_END))  {
         fclose(f);
         return false;
@@ -1778,7 +1781,7 @@ bool GetFileContent(const char *filePath, ImVector<char> &contentOut, bool clear
     if (!filePath) return false;
     const bool appendTrailingZero = appendTrailingZeroIfModesIsNotBinary && modes && strlen(modes)>0 && modes[strlen(modes)-1]!='b';
     FILE* f;
-    if ((f = ImFileOpen(filePath, modes)) == NULL) return false;
+    if ((f = (FILE *)ImFileOpen(filePath, modes)) == NULL) return false;
     if (fseek(f, 0, SEEK_END))  {
         fclose(f);
         return false;
@@ -1803,7 +1806,7 @@ bool GetFileContent(const char *filePath, ImVector<char> &contentOut, bool clear
 }
 bool FileExists(const char *filePath)   {
     if (!filePath || strlen(filePath)==0) return false;
-    FILE* f = ImFileOpen(filePath, "rb");
+    FILE* f = (FILE *)ImFileOpen(filePath, "rb");
     if (!f) return false;
     fclose(f);f=NULL;
     return true;
@@ -1813,7 +1816,7 @@ bool FileExists(const char *filePath)   {
 bool SetFileContent(const char *filePath, const unsigned char* content, int contentSize,const char* modes)	{
     if (!filePath || !content) return false;
     FILE* f;
-    if ((f = ImFileOpen(filePath, modes)) == NULL) return false;
+    if ((f = (FILE *)ImFileOpen(filePath, modes)) == NULL) return false;
     fwrite(content, contentSize, 1, f);
     fclose(f);f=NULL;
     return true;
@@ -1837,7 +1840,7 @@ public:
     ~SerializeToFile() {close();}
     bool saveToFile(const char* filename) {
         close();
-        f = ImFileOpen(filename,"w");
+        f = (FILE *)ImFileOpen(filename,"w");
         return (f);
     }
     void close() {if (f) fclose(f);f=NULL;}
@@ -1893,7 +1896,7 @@ int Serializer::getBufferSize() const {
 }
 bool Serializer::WriteBufferToFile(const char* filename,const char* buffer,int bufferSize)   {
     if (!buffer) return false;
-    FILE* f = ImFileOpen(filename,"w");
+    FILE* f = (FILE *)ImFileOpen(filename,"w");
     if (!f) return false;
     fwrite((void*) buffer,bufferSize,1,f);
     fclose(f);
