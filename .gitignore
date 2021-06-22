@@ -4,8 +4,7 @@ build/*
 build_linux/*
 build_win/*
 config/*
-emscripten_obj/*
-web/*
+build_wasm/*
 .vscode/
 .cache/
 *.ini

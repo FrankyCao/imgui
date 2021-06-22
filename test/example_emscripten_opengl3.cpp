@@ -14,17 +14,24 @@
 #include <emscripten.h>
 #include <SDL.h>
 #include <SDL_opengles2.h>
+#if IMGUI_ADDONS
 #include "implot.h"
-#include "addons_demo.h"
+#include "imgui_markdown.h"
+#include "imgui_memory_editor.h"
+#if IMGUI_ADDON_IMNODES
+#include "imnodes.h"
+#endif
+#if IMGUI_ADDON_NODE_GRAPH
+#include "ImGuiNodeGraphEditor.h"
+#endif
+#include "TextEditor.h"
 #include "ImGuiFileDialog.h"
 #include "ImGuiFileSystem.h"
-#include "TextEditor.h"
-#include "imgui_markdown.h"
-#include "imnodes.h"
-#include "ImGuiNodeGraphEditor.h"
-#include "imgui_memory_editor.h"
-#include "ImGuizmo.h"
+#include "imgui_dock.h"
 #include "HotKey.h"
+#include "ImGuizmo.h"
+#include "addon/addons_demo.h"
+#endif
 
 #include <fstream>
 #include <sstream>
@@ -35,6 +42,7 @@
 SDL_Window*     g_Window = NULL;
 SDL_GLContext   g_GLContext = NULL;
 
+#if IMGUI_ADDONS
 static std::vector<ImHotKey::HotKey> hotkeys = 
 { 
     {"Layout", "Reorder nodes in a simpler layout", 0xFFFF26E0},
@@ -47,10 +55,13 @@ static std::vector<ImHotKey::HotKey> hotkeys =
 static ImGuiFileDialog filedialog;
 static ImGuiFs::Dialog dlg;
 static TextEditor editor;
-static ImGui::NodeGraphEditor nge;
 static MemoryEditor mem_edit;
 static ImGui::MarkdownConfig mdConfig; 
 int8_t data[0x1000];
+
+#if IMGUI_ADDON_NODE_GRAPH
+static ImGui::NodeGraphEditor nge;
+#endif
 
 static std::string get_file_contents()
 {
@@ -117,6 +128,7 @@ static void ExampleMarkdownFormatCallback( const ImGui::MarkdownFormatInfo& mark
         }
     }
 }
+#endif
 
 // For clarity, our main loop code is declared at the end.
 static void main_loop(void*);
@@ -159,7 +171,9 @@ int main(int, char**)
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
+#if IMGUI_ADDONS
     ImPlot::CreateContext();
+#endif
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
@@ -185,23 +199,19 @@ int main(int, char**)
     // - Remember that in C/C++ if you want to include a backslash \ in a string literal you need to write a double backslash \\ !
     // - Emscripten allows preloading a file or folder to be accessible at runtime. See Makefile for details.
     io.Fonts->AddFontDefault();
-#ifndef IMGUI_DISABLE_FILE_FUNCTIONS
-    //io.Fonts->AddFontFromFileTTF("fonts/Roboto-Medium.ttf", 16.0f);
-    //io.Fonts->AddFontFromFileTTF("fonts/Cousine-Regular.ttf", 15.0f);
-    //io.Fonts->AddFontFromFileTTF("fonts/DroidSans.ttf", 16.0f);
-    //io.Fonts->AddFontFromFileTTF("fonts/ProggyTiny.ttf", 10.0f);
-    //ImFont* font = io.Fonts->AddFontFromFileTTF("fonts/ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
-    //IM_ASSERT(font != NULL);
-#endif
 
+#if IMGUI_ADDONS
     prepare_file_dialog_demo_window(&filedialog, nullptr);
 
     mem_edit.Open = false;
     mem_edit.OptShowDataPreview = true;
 
+
+#if IMGUI_ADDON_IMNODES
     ImNodes::CreateContext();
     imnodes_example::NodeEditorInitialize(nullptr, nullptr);
-    
+#endif
+#endif
     // This function call won't return, and will engage in an infinite loop, processing events from the browser, and dispatching them.
     emscripten_set_main_loop_arg(main_loop, NULL, 0, true);
 }
@@ -214,6 +224,7 @@ static void main_loop(void* arg)
     // Our state (make them static = more or less global) as a convenience to keep the example terse.
     static bool show_demo_window = true;
     static bool show_another_window = false;
+#if IMGUI_ADDONS
     static bool show_implot_window = false;
     static bool show_file_dialog_window = false;
     static bool show_sample_file_dialog = false;
@@ -221,10 +232,15 @@ static void main_loop(void* arg)
     static bool show_markdown_window = false;
     static bool show_dock_window = false;
     static bool show_tab_window = false;
+#if IMGUI_ADDON_IMNODES
     static bool show_node_window = false;
+#endif
+#if IMGUI_ADDON_NODE_GRAPH
     static bool show_node_edit_window = false;
+#endif
     static bool show_addon_widget = false;
     static bool show_zmo_window = false;
+#endif
     static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     // Poll and handle events (inputs, window resize, etc.)
@@ -258,6 +274,7 @@ static void main_loop(void* arg)
         ImGui::Text("This is some useful text.");                     // Display some text (you can use a format strings too)
         ImGui::Checkbox("Demo Window", &show_demo_window);            // Edit bools storing our window open/close state
         ImGui::Checkbox("Another Window", &show_another_window);
+#if IMGUI_ADDONS
         ImGui::Checkbox("ImPlot Window", &show_implot_window);
         ImGui::Checkbox("File Dialog Window", &show_file_dialog_window);
         ImGui::Checkbox("Sample File Dialog", &show_sample_file_dialog);
@@ -266,8 +283,12 @@ static void main_loop(void* arg)
         ImGui::Checkbox("Show Markdown Window", &show_markdown_window);
         ImGui::Checkbox("Show Dock Window", &show_dock_window);
         ImGui::Checkbox("Show Tab Window", &show_tab_window);
+#if IMGUI_ADDON_IMNODES
         ImGui::Checkbox("Show Node Sample Window", &show_node_window);
+#endif
+#if IMGUI_ADDON_NODE_GRAPH
         ImGui::Checkbox("Show Node Edit Windows", &show_node_edit_window);
+#endif
         ImGui::Checkbox("Show Addon Widgets", &show_addon_widget);
         ImGui::Checkbox("Show ImGuizmo Window", &show_zmo_window);
 
@@ -284,7 +305,7 @@ static void main_loop(void* arg)
         {
             // handle the hotkey index!
         }
-
+#endif
         ImGui::SliderFloat("float", &f, 0.0f, 1.0f);                  // Edit 1 float using a slider from 0.0f to 1.0f
         ImGui::ColorEdit3("clear color", (float*)&clear_color);       // Edit 3 floats representing a color
 
@@ -307,6 +328,7 @@ static void main_loop(void* arg)
         ImGui::End();
     }
 
+#if IMGUI_ADDONS
     // 4. Show implot demo
     if (show_implot_window)
     {
@@ -381,13 +403,14 @@ static void main_loop(void* arg)
         }
         ImGui::End();
     }
-
+#if IMGUI_ADDON_IMNODES
     // 12. Show Node Window
     if (show_node_window)
     {
         imnodes_example::NodeEditorShow();
     }
-
+#endif
+#if IMGUI_ADDON_NODE_GRAPH
     // 13. Show Node Edit Window
     if (show_node_edit_window)
     {
@@ -400,7 +423,7 @@ static void main_loop(void* arg)
         }
         ImGui::End();
     }
-
+#endif
     // 14. Show addons widget
     if (show_addon_widget)
     {
@@ -419,7 +442,7 @@ static void main_loop(void* arg)
         ImGuizmo::ShowAddonsZMOWindow();
         ImGui::End();
     }
-
+#endif
     // Rendering
     ImGui::Render();
     SDL_GL_MakeCurrent(g_Window, g_GLContext);

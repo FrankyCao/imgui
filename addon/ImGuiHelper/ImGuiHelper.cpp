@@ -27,7 +27,6 @@ struct IUnknown;
 
 #if defined(__EMSCRIPTEN__)
 #define IMGUI_IMPL_OPENGL_ES2               // Emscripten    -> GL ES 2, "#version 100"
-#define IMGUI_OPENGL    1
 #endif
 
 #include <vector>

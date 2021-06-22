@@ -103,6 +103,7 @@ _OPTION(IMGUI_ADDON_NODE_GRAPH   "build node graph editor base on imgui" OFF)
 _OPTION(IMGUI_APPS               "build apps base on imgui" ON)
 _OPTION(IMGUI_APPLE_APP          "build apple app base on imgui(Apple only)" OFF IF APPLE)
 
+if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
 find_package(OpenGL)
 
 if (IMGUI_VULKAN)
@@ -161,6 +162,15 @@ if(PKG_CONFIG_FOUND)
         message("sdl2 found")
     endif()
 endif(PKG_CONFIG_FOUND)
+else()
+set(IMGUI_STATIC ON CACHE BOOL "Enable Static ImGui Build by Force" FORCE)
+set(IMGUI_OPENGL ON CACHE BOOL "Enable ImGui OpenGL by Force" FORCE)
+set(IMGUI_SDL2 ON CACHE BOOL "Build ImGui SDL2 backends by Force" FORCE)
+set(IMGUI_GL3 ON CACHE BOOL "Build ImGui OpenGL3 backends by Force" FORCE)
+set(IMGUI_VULKAN OFF CACHE BOOL "Disable ImGui Vulkan backends" FORCE)
+set(IMGUI_VULKAN_SHADER OFF CACHE BOOL "Disable ImGui With Vulkan compute support" FORCE)
+set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-s USE_SDL=2 -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s TOTAL_MEMORY=128MB -s DISABLE_EXCEPTION_CATCHING=1 -s NO_EXIT_RUNTIME=0 -s ASSERTIONS=1")
+endif()
 
 # base include
 set(IMGUI_INC_DIRS
@@ -314,6 +324,7 @@ if (IMGUI_VULKAN AND VULKAN_FOUND)
 endif(IMGUI_VULKAN AND VULKAN_FOUND)
 
 # OpenGL
+if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
 if(OPENGL_FOUND AND BACKEND_RENDERING MATCHES NONE)
     if(IMGUI_GL3)
         message(STATUS "    [ImGui backend rendering with OpenGL3]")
@@ -340,6 +351,18 @@ if(OPENGL_FOUND AND BACKEND_RENDERING MATCHES NONE)
             backends/imgui_impl_opengl2.h
         )
     endif()
+endif()
+else()
+    set(IMGUI_RENDERING_GL3 ON)
+    set(BACKEND_RENDERING OPENGL3)
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
+        backends/imgui_impl_opengl3.cpp
+    )
+    set(IMGUI_INCS
+        ${IMGUI_INCS}
+        backends/imgui_impl_opengl3.h
+    )
 endif()
 
 # DirectX support
@@ -436,7 +459,8 @@ if (APPLE AND IMGUI_MATAL AND BACKEND_RENDERING MATCHES NONE)
 endif()
 
 # Find Backend platform
-# SDL2 Support 
+# SDL2 Support
+if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
 if (IMGUI_SDL2 AND SDL2_FOUND)
     message(STATUS "    [ImGui backend platform with SDL2]")
     set(IMGUI_PLATFORM_SDL2 ON)
@@ -449,6 +473,17 @@ if (IMGUI_SDL2 AND SDL2_FOUND)
         backends/imgui_impl_sdl.h
     )
 endif(IMGUI_SDL2 AND SDL2_FOUND)
+else()
+set(IMGUI_PLATFORM_SDL2 ON)
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
+        backends/imgui_impl_sdl.cpp
+    )
+    set(IMGUI_INCS
+        ${IMGUI_INCS}
+        backends/imgui_impl_sdl.h
+    )
+endif()
 
 # GLFW support
 if (IMGUI_GLFW AND GLFW_FOUND)
@@ -860,7 +895,7 @@ if(IMGUI_ADDONS)
         ${IMGUI_INC_DIRS}
         ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiDateChooser
     )
-    
+
     # Various Controls
     set(IMGUI_SRC
         ${IMGUI_SRC}
@@ -1373,6 +1408,7 @@ if(IMGUI_BUILD_EXAMPLE AND WIN32)
 endif(IMGUI_BUILD_EXAMPLE AND WIN32)
 
 if (IMGUI_BUILD_EXAMPLE AND IMGUI_APPS)
+if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
     add_executable(
         example_application
         test/example_application.cpp
@@ -1383,6 +1419,28 @@ if (IMGUI_BUILD_EXAMPLE AND IMGUI_APPS)
         imgui
         ${LINK_LIBS}
     )
+else()
+    set(IMGUI_WEB_DIR ${PROJECT_BINARY_DIR}/web/)
+    SET(IMGUI_SHELL_FILE ${PROJECT_SOURCE_DIR}/test/shell_minimal.html)
+    add_executable(
+        example_application
+        test/example_emscripten_opengl3.cpp
+    )
+    target_link_libraries(
+        example_application
+        imgui
+    )
+    set_target_properties(
+        example_application
+        PROPERTIES
+        LIBRARY_OUTPUT_DIRECTORY ${IMGUI_WEB_DIR}
+        RUNTIME_OUTPUT_DIRECTORY ${IMGUI_WEB_DIR}
+        OUTPUT_NAME "index"
+        PREFIX ""
+        SUFFIX ".html"
+        LINK_FLAGS "--shell-file ${IMGUI_SHELL_FILE}"
+    )
+endif()
 endif(IMGUI_BUILD_EXAMPLE AND IMGUI_APPS)
 
 get_directory_property(hasParent PARENT_DIRECTORY)
