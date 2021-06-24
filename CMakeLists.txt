@@ -697,6 +697,7 @@ if(IMGUI_ADDONS)
             ${CMAKE_CURRENT_SOURCE_DIR}/addon/tinyfiledialog
         )
     endif(IMGUI_BUILD_EXAMPLE)
+
     # implot
     set(IMGUI_SRC
         ${IMGUI_SRC}
@@ -945,7 +946,7 @@ if(IMGUI_ADDONS)
         option(ENABLE_HLSL "" OFF)
         option(ENABLE_RTTI "" OFF)
         option(ENABLE_EXCEPTIONS "" OFF)
-        option(ENABLE_OPT "" OFF)
+        option(ENABLE_OPT "" ON)
         option(ENABLE_PCH "" OFF)
         option(ENABLE_CTEST "" OFF)
         option(SKIP_GLSLANG_INSTALL "" ON)
@@ -1014,7 +1015,7 @@ if(IMGUI_ADDONS)
             ${GLSLANG_LIBRARY}
         )
     endif(IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
-    
+
     # Addon Demo
     if (IMGUI_BUILD_EXAMPLE)
         set(IMGUI_SRC
