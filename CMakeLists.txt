@@ -734,20 +734,6 @@ if(IMGUI_ADDONS)
         ${CMAKE_CURRENT_SOURCE_DIR}/addon/ProgressIndicators
     )
 
-    # Splitter Window
-    set(IMGUI_SRC
-        ${IMGUI_SRC}
-        addon/Splitter/Splitter.cpp
-    )
-    set(IMGUI_INCS
-        ${IMGUI_INCS}
-        addon/Splitter/Splitter.h
-    )
-    set(IMGUI_INC_DIRS
-        ${IMGUI_INC_DIRS}
-        ${CMAKE_CURRENT_SOURCE_DIR}/addon/Splitter
-    )
-
     # Colorful Text Edit
     set(IMGUI_SRC
         ${IMGUI_SRC}

@@ -95,7 +95,6 @@ inline static void utf8_to_wide(const char* str,wchar_t* rv)    {
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif // IMGUI_DEFINE_MATH_OPERATORS
 #include "imgui_internal.h"
-#include "Splitter.h"  // Add By Dicky for ImGui::Splitter
 
 #include <cstdlib>
 #include <algorithm>
@@ -256,8 +255,6 @@ namespace IGFD
 #endif // IMGUI_TOGGLE_BUTTON
 #endif // USE_BOOKMARK
 
-        /*
-        // Disable By Dicky, we using ImGui::Splitter
 	// https://github.com/ocornut/imgui/issues/1720
 	bool Splitter(bool split_vertically, float thickness, float* size1, float* size2, float min_size1, float min_size2, float splitter_long_axis_size = -1.0f)
 	{
@@ -270,8 +267,7 @@ namespace IGFD
 		bb.Max = bb.Min + CalcItemSize(split_vertically ? ImVec2(thickness, splitter_long_axis_size) : ImVec2(splitter_long_axis_size, thickness), 0.0f, 0.0f);
 		return SplitterBehavior(bb, id, split_vertically ? ImGuiAxis_X : ImGuiAxis_Y, size1, size2, min_size1, min_size2, 1.0f);
 	}
-	// Disable By Dicky end
-        */
+
 	static std::string s_fs_root = std::string(1u, PATH_SEP);
 
 	inline int alphaSort(const struct dirent** a, const struct dirent** b)
@@ -1174,7 +1170,7 @@ namespace IGFD
 			//size.x -= m_BookmarkWidth;
 			ImGui::PushID("##splitterbookmark");
 			float otherWidth = size.x - m_BookmarkWidth;
-			ImGui::Splitter(true, 4.0f, &m_BookmarkWidth, &otherWidth, 10.0f, 10.0f + dlg_optionsPaneWidth, size.y); // Modify By Dicky
+			Splitter(true, 4.0f, &m_BookmarkWidth, &otherWidth, 10.0f, 10.0f + dlg_optionsPaneWidth, size.y); // Modify By Dicky
 			ImGui::PopID();
 			size.x -= otherWidth;
 			DrawBookmarkPane(size);
@@ -1187,7 +1183,7 @@ namespace IGFD
 		if (dlg_optionsPane)
 		{
 			ImGui::PushID("##splittersidepane");
-			ImGui::Splitter(true, 4.0f, &size.x, &dlg_optionsPaneWidth, 10.0f, 10.0f, size.y); // Modify By Dicky
+			Splitter(true, 4.0f, &size.x, &dlg_optionsPaneWidth, 10.0f, 10.0f, size.y); // Modify By Dicky
 			ImGui::PopID();
 		}
 

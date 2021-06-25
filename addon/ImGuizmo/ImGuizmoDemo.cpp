@@ -8,7 +8,7 @@
 #include "ImZoomSlider.h"
 #include "ImCurveEdit.h"
 #include "ImGuiHelper.h"
-#include "Splitter.h"
+#include "ImGuiVariousControls.h"
 #include <string>
 #include <vector>
 #include <algorithm>

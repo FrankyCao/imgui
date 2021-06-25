@@ -6,7 +6,6 @@
 #include "ProgressIndicators.h"
 #include "Timeline.h"
 #include "imgui_knob.h"
-#include "Splitter.h"
 #include "imgui_dock.h"
 #include "ImGuiTabWindow.h"
 #if IMGUI_VULKAN_SHADER

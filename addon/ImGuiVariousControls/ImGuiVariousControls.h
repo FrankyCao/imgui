@@ -407,6 +407,8 @@ IMGUI_API void LoadingIndicatorCircle(const char* label, float indicatorRadiusFa
 // Sligthly modified to provide default behaviour with default args
 void LoadingIndicatorCircle2(const char* label, float indicatorRadiusFactor=1.f, float indicatorRadiusThicknessFactor=1.f, const ImVec4* pOptionalColor=NULL);
 
+// Splitter
+IMGUI_API bool          Splitter(bool split_vertically, float thickness, float* size1, float* size2, float min_size1, float min_size2, float splitter_long_axis_size = -1.0f);
 } // namespace ImGui
 
 #endif
