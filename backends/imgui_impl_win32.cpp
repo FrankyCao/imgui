@@ -423,6 +423,8 @@ static BOOL _IsWindowsVersionOrGreater(WORD major, WORD minor, WORD)
 	if (RtlVerifyVersionInfoFn == NULL)
 		if (HMODULE ntdllModule = ::GetModuleHandleA("ntdll.dll"))
 			RtlVerifyVersionInfoFn = (PFN_RtlVerifyVersionInfo)GetProcAddress(ntdllModule, "RtlVerifyVersionInfo");
+    if (RtlVerifyVersionInfoFn == NULL)
+        return FALSE;
 
 	RTL_OSVERSIONINFOEXW versionInfo = { };
 	ULONGLONG conditionMask = 0;
@@ -562,7 +564,6 @@ void ImGui_ImplWin32_WaitForEvent()
     if (!(ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_EnablePowerSavingMode) &&
         !(ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_EnableLowRefreshMode))
         return;
-
     BOOL window_is_hidden = !IsWindowVisible(g_hWnd) || IsIconic(g_hWnd);
     double waiting_time = window_is_hidden ? INFINITE : ImGui::GetEventWaitingTime();
     if (waiting_time > 0.0)
