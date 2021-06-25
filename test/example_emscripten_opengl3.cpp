@@ -30,6 +30,7 @@
 #include "imgui_dock.h"
 #include "HotKey.h"
 #include "ImGuizmo.h"
+#include "imGuIZMOquat.h"
 #include "addon/addons_demo.h"
 #endif
 
@@ -240,6 +241,7 @@ static void main_loop(void* arg)
 #endif
     static bool show_addon_widget = false;
     static bool show_zmo_window = false;
+    static bool show_quat_window = false;
 #endif
     static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
@@ -291,6 +293,7 @@ static void main_loop(void* arg)
 #endif
         ImGui::Checkbox("Show Addon Widgets", &show_addon_widget);
         ImGui::Checkbox("Show ImGuizmo Window", &show_zmo_window);
+        ImGui::Checkbox("Show ZMOQuat Window", &show_quat_window);
 
         // show hotkey window
         if (ImGui::Button("Edit Hotkeys"))
@@ -442,6 +445,17 @@ static void main_loop(void* arg)
         ImGuizmo::ShowAddonsZMOWindow();
         ImGui::End();
     }
+    
+    // 16. Show Zmo Quat Window
+    if (show_quat_window)
+    {
+        ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(1280, 800), ImGuiCond_FirstUseEver);
+        ImGui::Begin("##ZMOQuat", &show_quat_window, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar);
+        ImGui::ShowGizmoDemo();
+        ImGui::End();
+    }
+
 #endif
     // Rendering
     ImGui::Render();
