@@ -2904,23 +2904,6 @@ void ImFontAtlasBuildFinish(ImFontAtlas* atlas)
     for (int i = 0; i < atlas->Fonts.Size; i++)
         if (atlas->Fonts[i]->DirtyLookupTables)
             atlas->Fonts[i]->BuildLookupTable();
-
-    // Ellipsis character is required for rendering elided text. We prefer using U+2026 (horizontal ellipsis).
-    // However some old fonts may contain ellipsis at U+0085. Here we auto-detect most suitable ellipsis character.
-    // FIXME: Also note that 0x2026 is currently seldom included in our font ranges. Because of this we are more likely to use three individual dots.
-    for (int i = 0; i < atlas->Fonts.size(); i++)
-    {
-        ImFont* font = atlas->Fonts[i];
-        if (font->EllipsisChar != (ImWchar)-1)
-            continue;
-        const ImWchar ellipsis_variants[] = { (ImWchar)0x2026, (ImWchar)0x0085 };
-        for (int j = 0; j < IM_ARRAYSIZE(ellipsis_variants); j++)
-            if (font->FindGlyphNoFallback(ellipsis_variants[j]) != NULL) // Verify glyph exists
-            {
-                font->EllipsisChar = ellipsis_variants[j];
-                break;
-            }
-    }
 }
 
 // Retrieve list of range (2 int per range, values are inclusive)
@@ -2941,6 +2924,7 @@ const ImWchar*  ImFontAtlas::GetGlyphRangesKorean()
         0x0020, 0x00FF, // Basic Latin + Latin Supplement
         0x3131, 0x3163, // Korean alphabets
         0xAC00, 0xD7A3, // Korean characters
+        0xFFFD, 0xFFFD, // Invalid
         0,
     };
     return &ranges[0];
@@ -2955,6 +2939,7 @@ const ImWchar*  ImFontAtlas::GetGlyphRangesChineseFull()
         0x3000, 0x30FF, // CJK Symbols and Punctuations, Hiragana, Katakana
         0x31F0, 0x31FF, // Katakana Phonetic Extensions
         0xFF00, 0xFFEF, // Half-width characters
+        0xFFFD, 0xFFFD, // Invalid
         0x4e00, 0x9FAF, // CJK Ideograms
         0,
     };
@@ -3031,7 +3016,8 @@ const ImWchar*  ImFontAtlas::GetGlyphRangesChineseSimplifiedCommon()
         0x2000, 0x206F, // General Punctuation
         0x3000, 0x30FF, // CJK Symbols and Punctuations, Hiragana, Katakana
         0x31F0, 0x31FF, // Katakana Phonetic Extensions
-        0xFF00, 0xFFEF  // Half-width characters
+        0xFF00, 0xFFEF, // Half-width characters
+        0xFFFD, 0xFFFD  // Invalid
     };
     static ImWchar full_ranges[IM_ARRAYSIZE(base_ranges) + IM_ARRAYSIZE(accumulative_offsets_from_0x4E00) * 2 + 1] = { 0 };
     if (!full_ranges[0])
@@ -3120,7 +3106,8 @@ const ImWchar*  ImFontAtlas::GetGlyphRangesJapanese()
         0x0020, 0x00FF, // Basic Latin + Latin Supplement
         0x3000, 0x30FF, // CJK Symbols and Punctuations, Hiragana, Katakana
         0x31F0, 0x31FF, // Katakana Phonetic Extensions
-        0xFF00, 0xFFEF  // Half-width characters
+        0xFF00, 0xFFEF, // Half-width characters
+        0xFFFD, 0xFFFD  // Invalid
     };
     static ImWchar full_ranges[IM_ARRAYSIZE(base_ranges) + IM_ARRAYSIZE(accumulative_offsets_from_0x4E00)*2 + 1] = { 0 };
     if (!full_ranges[0])
@@ -3219,8 +3206,9 @@ ImFont::ImFont()
 {
     FontSize = 0.0f;
     FallbackAdvanceX = 0.0f;
-    FallbackChar = (ImWchar)'?';
+    FallbackChar = (ImWchar)-1;
     EllipsisChar = (ImWchar)-1;
+    DotChar = (ImWchar)-1;
     FallbackGlyph = NULL;
     ContainerAtlas = NULL;
     ConfigData = NULL;
@@ -3249,6 +3237,14 @@ void    ImFont::ClearOutputData()
     DirtyLookupTables = true;
     Ascent = Descent = 0.0f;
     MetricsTotalSurface = 0;
+}
+
+static ImWchar FindFirstExistingGlyph(ImFont* font, const ImWchar* candidate_chars, int candidate_chars_count)
+{
+    for (int n = 0; n < candidate_chars_count; n++)
+        if (font->FindGlyphNoFallback(candidate_chars[n]) != NULL)
+            return candidate_chars[n];
+    return (ImWchar)-1;
 }
 
 void ImFont::BuildLookupTable()
@@ -3293,9 +3289,31 @@ void ImFont::BuildLookupTable()
     SetGlyphVisible((ImWchar)' ', false);
     SetGlyphVisible((ImWchar)'\t', false);
 
-    // Setup fall-backs
+    // Ellipsis character is required for rendering elided text. We prefer using U+2026 (horizontal ellipsis).
+    // However some old fonts may contain ellipsis at U+0085. Here we auto-detect most suitable ellipsis character.
+    // FIXME: Note that 0x2026 is rarely included in our font ranges. Because of this we are more likely to use three individual dots.
+    const ImWchar ellipsis_chars[] = { (ImWchar)0x2026, (ImWchar)0x0085 };
+    const ImWchar dots_chars[] = { (ImWchar)'.', (ImWchar)0xFF0E };
+    if (EllipsisChar == (ImWchar)-1)
+        EllipsisChar = FindFirstExistingGlyph(this, ellipsis_chars, IM_ARRAYSIZE(ellipsis_chars));
+    if (DotChar == (ImWchar)-1)
+        DotChar = FindFirstExistingGlyph(this, dots_chars, IM_ARRAYSIZE(dots_chars));
+
+    // Setup fallback character
+    const ImWchar fallback_chars[] = { (ImWchar)IM_UNICODE_CODEPOINT_INVALID, (ImWchar)'?', (ImWchar)' ' };
     FallbackGlyph = FindGlyphNoFallback(FallbackChar);
-    FallbackAdvanceX = FallbackGlyph ? FallbackGlyph->AdvanceX : 0.0f;
+    if (FallbackGlyph == NULL)
+    {
+        FallbackChar = FindFirstExistingGlyph(this, fallback_chars, IM_ARRAYSIZE(fallback_chars));
+        FallbackGlyph = FindGlyphNoFallback(FallbackChar);
+        if (FallbackGlyph == NULL)
+        {
+            FallbackGlyph = &Glyphs.back();
+            FallbackChar = FallbackGlyph->Codepoint;
+        }
+    }
+
+    FallbackAdvanceX = FallbackGlyph->AdvanceX;
     for (int i = 0; i < max_codepoint + 1; i++)
         if (IndexAdvanceX[i] < 0.0f)
             IndexAdvanceX[i] = FallbackAdvanceX;
@@ -3318,12 +3336,6 @@ void ImFont::SetGlyphVisible(ImWchar c, bool visible)
 {
     if (ImFontGlyph* glyph = (ImFontGlyph*)(void*)FindGlyph((ImWchar)c))
         glyph->Visible = visible ? 1 : 0;
-}
-
-void ImFont::SetFallbackChar(ImWchar c)
-{
-    FallbackChar = c;
-    BuildLookupTable();
 }
 
 void ImFont::GrowIndex(int new_size)
