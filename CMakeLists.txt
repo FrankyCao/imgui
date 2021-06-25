@@ -938,6 +938,30 @@ if(IMGUI_ADDONS)
         )
     endif(IMGUI_BUILD_EXAMPLE)
 
+    # ImGuiQuat
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
+        addon/ImGuiQuat/imGuIZMOquat.cpp
+    )
+    set(IMGUI_INCS
+        ${IMGUI_INCS}
+        addon/ImGuiQuat/imGuIZMOquat.h
+        addon/ImGuiQuat/vgConfig.h
+        addon/ImGuiQuat/vGizmo.h
+        addon/ImGuiQuat/vGizmoMath.h
+        addon/ImGuiQuat/vgMath.h
+    )
+    set(IMGUI_INC_DIRS
+        ${IMGUI_INC_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiQuat
+    )
+    if (IMGUI_BUILD_EXAMPLE)
+        set(IMGUI_SRC
+            ${IMGUI_SRC}
+            addon/ImGuiQuat/imGuIZMOquat_demo.cpp
+        )
+    endif(IMGUI_BUILD_EXAMPLE)
+
     # Vulkan Shader/Glslang
     if (IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
         option(BUILD_EXTERNAL "" OFF)

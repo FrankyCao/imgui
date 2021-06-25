@@ -2607,7 +2607,7 @@ bool ImGui::DragScalar(const char* label, ImGuiDataType data_type, void* p_data,
     ImGuiSliderFlags drag_flags = ImGuiSliderFlags_None;
     if (power != 1.0f)
     {
-        IM_ASSERT(power == 1.0f && "Call function with ImGuiSliderFlags_Logarithmic flags instead of using the old 'float power' function!");
+        //IM_ASSERT(power == 1.0f && "Call function with ImGuiSliderFlags_Logarithmic flags instead of using the old 'float power' function!"); // disable By Dicky
         IM_ASSERT(p_min != NULL && p_max != NULL);  // When using a power curve the drag needs to have known bounds
         drag_flags |= ImGuiSliderFlags_Logarithmic;   // Fallback for non-asserting paths
     }
@@ -2619,7 +2619,7 @@ bool ImGui::DragScalarN(const char* label, ImGuiDataType data_type, void* p_data
     ImGuiSliderFlags drag_flags = ImGuiSliderFlags_None;
     if (power != 1.0f)
     {
-        IM_ASSERT(power == 1.0f && "Call function with ImGuiSliderFlags_Logarithmic flags instead of using the old 'float power' function!");
+        //IM_ASSERT(power == 1.0f && "Call function with ImGuiSliderFlags_Logarithmic flags instead of using the old 'float power' function!"); // disable by Dicky
         IM_ASSERT(p_min != NULL && p_max != NULL);  // When using a power curve the drag needs to have known bounds
         drag_flags |= ImGuiSliderFlags_Logarithmic;   // Fallback for non-asserting paths
     }
@@ -3233,7 +3233,7 @@ bool ImGui::SliderScalar(const char* label, ImGuiDataType data_type, void* p_dat
     ImGuiSliderFlags slider_flags = ImGuiSliderFlags_None;
     if (power != 1.0f)
     {
-        IM_ASSERT(power == 1.0f && "Call function with ImGuiSliderFlags_Logarithmic flags instead of using the old 'float power' function!");
+        //IM_ASSERT(power == 1.0f && "Call function with ImGuiSliderFlags_Logarithmic flags instead of using the old 'float power' function!"); // disable by Dicky
         slider_flags |= ImGuiSliderFlags_Logarithmic;   // Fallback for non-asserting paths
     }
     return SliderScalar(label, data_type, p_data, p_min, p_max, format, slider_flags);
@@ -3244,7 +3244,7 @@ bool ImGui::SliderScalarN(const char* label, ImGuiDataType data_type, void* v, i
     ImGuiSliderFlags slider_flags = ImGuiSliderFlags_None;
     if (power != 1.0f)
     {
-        IM_ASSERT(power == 1.0f && "Call function with ImGuiSliderFlags_Logarithmic flags instead of using the old 'float power' function!");
+        //IM_ASSERT(power == 1.0f && "Call function with ImGuiSliderFlags_Logarithmic flags instead of using the old 'float power' function!"); // disable by Dicky
         slider_flags |= ImGuiSliderFlags_Logarithmic;   // Fallback for non-asserting paths
     }
     return SliderScalarN(label, data_type, v, components, v_min, v_max, format, slider_flags);
