@@ -79,7 +79,7 @@ void ImGui::ShowGizmoDemo()
     ImGuiStyle& style = ImGui::GetStyle();
     static bool vis = true;
     static quat qt(1.0, 0.0, 0.0, 0.0);
-    float sz=250;    
+    float sz=300;    
     ImGui::PushStyleColor(ImGuiCol_WindowBg,ImVec4(0.f,0.f,0.f,0.f));
     ImGui::PushStyleColor(ImGuiCol_FrameBg,ImVec4(0.f,0.f,0.f,0.f));
 
@@ -87,7 +87,7 @@ void ImGui::ShowGizmoDemo()
     style.WindowBorderSize = .0f;
 
     ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(sz, 400), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(sz, 600), ImGuiCond_FirstUseEver);
     ImGui::Begin("##giz");
     ImGui::PushItemWidth(sz*.25-2);
     ImVec4 oldTex(style.Colors[ImGuiCol_Text]);
@@ -144,10 +144,10 @@ void ImGui::ShowGizmoDemo()
 
     ImGui::End();
 
+    ImGui::SetNextWindowSize(ImVec2(350, 700), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(300, 0), ImGuiCond_FirstUseEver);
     ImGui::Begin("##Example");
     static bool otherExamples = false;
-    ImGui::SetNextWindowSize(ImVec2(250, 400), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowPos(ImVec2(0, 350), ImGuiCond_FirstUseEver);
     if(!otherExamples) {
         ImGui::TextColored(ImVec4(0.f, 1.f, 1.f, 1.f),"     imGuIZMO.quad usage");
         ImGui::NewLine();

@@ -206,7 +206,7 @@ int main(int, char**)
 
     mem_edit.Open = false;
     mem_edit.OptShowDataPreview = true;
-
+    mem_edit.OptAddrDigitsCount = 8;
 
 #if IMGUI_ADDON_IMNODES
     ImNodes::CreateContext();
@@ -358,9 +358,7 @@ static void main_loop(void* arg)
     // 7. Show Memory Edit window
     if (mem_edit.Open)
     {
-        ImGui::Begin("Memory Window", &mem_edit.Open);
-        mem_edit.DrawWindow("Memory Editor", data, 0x1000);
-        ImGui::End();
+        mem_edit.DrawWindow("Memory Editor", data, 0x1000, 0, &mem_edit.Open, 768);
     }
 
     // 8. Show Text Edit Window

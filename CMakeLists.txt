@@ -904,6 +904,7 @@ if(IMGUI_ADDONS)
         addon/ImGuizmo/ImCurveEdit.cpp
         addon/ImGuizmo/ImGradient.cpp
         addon/ImGuizmo/ImSequencer.cpp
+        addon/ImGuizmo/GraphEditor.cpp
     )
     set(IMGUI_INCS
         ${IMGUI_INCS}
@@ -912,6 +913,7 @@ if(IMGUI_ADDONS)
         addon/ImGuizmo/ImGradient.h
         addon/ImGuizmo/ImSequencer.h
         addon/ImGuizmo/ImZoomSlider.h
+        addon/ImGuizmo/GraphEditor.h
     )
     set(IMGUI_INC_DIRS
         ${IMGUI_INC_DIRS}

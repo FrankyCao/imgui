@@ -3,7 +3,7 @@
 //
 // The MIT License(MIT)
 // 
-// Copyright(c) 2016 Cedric Guillemet
+// Copyright(c) 2021 Cedric Guillemet
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files(the "Software"), to deal
@@ -107,6 +107,10 @@ void EditTransform(const Camera& camera, matrix_t& matrix)
 #if !defined(IMGUI_DISABLE_INCLUDE_IMCONFIG_H) || defined(IMGUI_INCLUDE_IMCONFIG_H)
 #include "imconfig.h"
 #endif
+#ifndef IMGUI_API
+#define IMGUI_API
+#endif
+
 namespace ImGuizmo
 {
    // call inside your own window and before Manipulate() in order to draw gizmo to that window.
@@ -179,7 +183,7 @@ namespace ImGuizmo
 
    inline OPERATION operator|(OPERATION lhs, OPERATION rhs)
    {
-      return static_cast<OPERATION>(static_cast<int>(lhs) | static_cast<int>(rhs));
+     return static_cast<OPERATION>(static_cast<int>(lhs) | static_cast<int>(rhs));
    }
 
    enum MODE

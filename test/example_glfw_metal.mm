@@ -355,9 +355,7 @@ int main(int, char**)
             // 7. Show Memory Edit window
             if (mem_edit.Open)
             {
-                ImGui::Begin("Memory Window", &mem_edit.Open);
-                mem_edit.DrawWindow("Memory Editor", data, data_size);
-                ImGui::End();
+                mem_edit.DrawWindow("Memory Editor", data, data_size, 0, &mem_edit.Open, 768);
             }
 
             // 8. Show Text Edit Window

@@ -56,7 +56,8 @@ public:
         // init memory edit
         mem_edit.Open = false;
         mem_edit.OptShowDataPreview = true;
-        data = malloc(0x1000);
+        mem_edit.OptAddrDigitsCount = 8;
+        data = malloc(0x400);
 
 #if IMGUI_ADDON_IMNODES
         // Init imnodes
@@ -234,6 +235,7 @@ const char* Application_GetName(void* handle)
 
 void Application_Initialize(void** handle)
 {
+    srand((unsigned int)time(0));
     *handle = new Example();
     Example * example = (Example *)*handle;
 #if IMGUI_ADDONS
@@ -368,10 +370,10 @@ bool Application_Frame(void* handle)
     // 8. Show Memory Edit window
     if (example->mem_edit.Open)
     {
-        ImGui::SetNextWindowSize(ImVec2(400, 768), ImGuiCond_FirstUseEver);
-        ImGui::Begin("Memory Window", &example->mem_edit.Open);
-        example->mem_edit.DrawWindow("Memory Editor", example->data, 0x1000);
-        ImGui::End();
+        static int i = 0;
+        int * test_point = (int *)example->data;
+        *test_point = i; i++;
+        example->mem_edit.DrawWindow("Memory Editor", example->data, 0x400, 0, &example->mem_edit.Open, 768);
     }
 
     // 9. Show Text Edit Window
