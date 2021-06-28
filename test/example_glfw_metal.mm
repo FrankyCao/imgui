@@ -6,22 +6,40 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_metal.h"
-#if IMGUI_ADDONS
+#if IMGUI_ADDON_IMPLOTS
 #include "implot.h"
+#endif
+#if IMGUI_ADDON_MARKDOWN
 #include "imgui_markdown.h"
+#endif
+#if IMGUI_ADDON_MEMORY_EDITOR
 #include "imgui_memory_editor.h"
+#endif
 #if IMGUI_ADDON_IMNODES
 #include "imnodes.h"
 #endif
 #if IMGUI_ADDON_NODE_GRAPH
 #include "ImGuiNodeGraphEditor.h"
 #endif
+#if IMGUI_ADDON_TEXT_EDITOR
 #include "TextEditor.h"
+#endif
+#if IMGUI_ADDON_FILE_DIALOG
 #include "ImGuiFileDialog.h"
+#endif
+#if IMGUI_ADDON_FILE_SYSTEM
 #include "ImGuiFileSystem.h"
+#endif
+#if IMGUI_ADDON_DOCK
 #include "imgui_dock.h"
+#endif
+#if IMGUI_ADDON_HOTKEY
 #include "HotKey.h"
+#endif
+#if IMGUI_ADDON_ZMO
 #include "ImGuizmo.h"
+#endif
+#if IMGUI_ADDON_DATE_CHOOSER || IMGUI_ADDON_KNOB || IMGUI_ADDON_VARIOUS || IMGUI_ADDON_DOCK || IMGUI_ADDON_TABWINDOW || IMGUI_ADDON_PROGRESSES || IMGUI_ADDON_TIMELINE || IMGUI_VULKAN_SHADER
 #include "addon/addons_demo.h"
 #endif
 #include <stdio.h>
@@ -42,7 +60,7 @@ static void glfw_error_callback(int error, const char* description)
     fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 
-#if IMGUI_ADDONS
+#if IMGUI_ADDON_MARKDOWN
 static std::string get_file_contents(const char *filename)
 {
     std::ifstream infile(filename, std::ios::in | std::ios::binary);
@@ -116,7 +134,7 @@ int main(int, char**)
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-#if IMGUI_ADDONS
+#if IMGUI_ADDON_IMPLOTS
     ImPlot::CreateContext();
 #endif
     ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -171,28 +189,32 @@ int main(int, char**)
 
     MTLRenderPassDescriptor *renderPassDescriptor = [MTLRenderPassDescriptor new];
 
-#if IMGUI_ADDONS
+#if IMGUI_ADDON_FILE_DIALOG
     // load file dialog resource
     ImGuiFileDialog filedialog;
     std::string bookmark_path = std::string(DEFAULT_CONFIG_PATH) + "bookmark.ini";
     prepare_file_dialog_demo_window(&filedialog, bookmark_path.c_str());
-
+#endif
+#if IMGUI_ADDON_FILE_SYSTEM
     // init sample file dialog
     ImGuiFs::Dialog dlg;
-
+#endif
+#if IMGUI_ADDON_MEMORY_EDITOR
     // init memory edit
     MemoryEditor mem_edit;
     mem_edit.Open = false;
     mem_edit.OptShowDataPreview = true;
     size_t data_size = 0x1000;
     void* data = malloc(data_size);
-
+#endif
+#if IMGUI_ADDON_TEXT_EDITOR
     // Init Text Edit
 	TextEditor editor;
-
+#endif
+#if IMGUI_ADDON_MARKDOWN
     // Init MarkDown
     ImGui::MarkdownConfig mdConfig; 
-
+#endif
 #if IMGUI_ADDON_IMNODES
     // Init imnodes
     std::string node_ini_path = std::string(DEFAULT_CONFIG_PATH) + "nodes_save_load.ini";
@@ -209,7 +231,7 @@ int main(int, char**)
     nge.save_node_path = nge_ini_path;
     nge.save_style_path = nge_style_path;
 #endif
-
+#if IMGUI_ADDON_HOTKEY
     // Init HotKey
     static std::vector<ImHotKey::HotKey> hotkeys = 
     { 
@@ -224,7 +246,6 @@ int main(int, char**)
     // Our state
     bool show_demo_window = true;
     bool show_another_window = false;
-#if IMGUI_ADDONS
     bool show_implot_window = false;
     bool show_file_dialog_window = false;
     bool show_sample_file_dialog = false;
@@ -236,7 +257,7 @@ int main(int, char**)
     bool show_node_edit_window = false;
     bool show_addon_widget = false;
     bool show_zmo_window = false;
-#endif
+
     float clear_color[4] = {0.45f, 0.55f, 0.60f, 1.00f};
 
     // Main loop
@@ -269,11 +290,11 @@ int main(int, char**)
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
 
-            // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
+            // Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
             if (show_demo_window)
                 ImGui::ShowDemoWindow(&show_demo_window);
 
-            // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
+            // Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
             {
                 static float f = 0.0f;
                 static int counter = 0;
@@ -283,24 +304,43 @@ int main(int, char**)
                 ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
                 ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
                 ImGui::Checkbox("Another Window", &show_another_window);
-#if IMGUI_ADDONS
+#if IMGUI_ADDON_IMPLOTS
                 ImGui::Checkbox("ImPlot Window", &show_implot_window);
+#endif
+#if IMGUI_ADDON_FILE_DIALOG
                 ImGui::Checkbox("File Dialog Window", &show_file_dialog_window);
+#endif
+#if IMGUI_ADDON_FILE_SYSTEM
                 ImGui::Checkbox("Sample File Dialog", &show_sample_file_dialog);
+#endif
+#if IMGUI_ADDON_MEMORY_EDITOR
                 ImGui::Checkbox("Memory Edit Window", &mem_edit.Open);
+#endif
+#if IMGUI_ADDON_TEXT_EDITOR
                 ImGui::Checkbox("Show Text Edit Window", &show_text_edit_window);
+#endif
+#if IMGUI_ADDON_MARKDOWN
                 ImGui::Checkbox("Show Markdown Window", &show_markdown_window);
+#endif
+#if IMGUI_ADDON_DOCK
                 ImGui::Checkbox("Show Dock Window", &show_dock_window);
+#endif
+#if IMGUI_ADDON_TABWINDOW
                 ImGui::Checkbox("Show Tab Window", &show_tab_window);
+#endif
 #if IMGUI_ADDON_IMNODES
                 ImGui::Checkbox("Show Node Sample Window", &show_node_window);
 #endif
 #if IMGUI_ADDON_NODE_GRAPH
                 ImGui::Checkbox("Show Node Edit Windows", &show_node_edit_window);
 #endif
+#if IMGUI_ADDON_DATE_CHOOSER || IMGUI_ADDON_KNOB || IMGUI_ADDON_VARIOUS || IMGUI_ADDON_DOCK || IMGUI_ADDON_TABWINDOW || IMGUI_ADDON_PROGRESSES || IMGUI_ADDON_TIMELINE
                 ImGui::Checkbox("Show Addon Widgets", &show_addon_widget);
+#endif
+#if IMGUI_ADDON_ZMO
                 ImGui::Checkbox("Show ImGuizmo Window", &show_zmo_window);
-
+#endif
+#if IMGUI_ADDON_HOTKEY
                 // show hotkey window
                 if (ImGui::Button("Edit Hotkeys"))
                 {
@@ -319,7 +359,7 @@ int main(int, char**)
                 ImGui::End();
             }
 
-            // 3. Show another simple window.
+            // Show another simple window.
             if (show_another_window)
             {
                 ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
@@ -328,20 +368,24 @@ int main(int, char**)
                     show_another_window = false;
                 ImGui::End();
             }
-#if IMGUI_ADDONS
-            // 4. Show ImPlot simple window
+#if IMGUI_ADDON_IMPLOTS
+            // Show ImPlot simple window
             if (show_implot_window)
             {
                 ImPlot::ShowDemoWindow(&show_implot_window);
             }
+#endif
 
-            // 5. Show FileDialog demo window
+#if IMGUI_ADDON_FILE_DIALOG
+            // Show FileDialog demo window
             if (show_file_dialog_window)
             {
                 show_file_dialog_demo_window(&filedialog, &show_file_dialog_window);
             }
+#endif
 
-            // 6. Show Sample FileDialog
+#if IMGUI_ADDON_FILE_SYSTEM
+            // Show Sample FileDialog
             {
                 // dlg.WrapMode = false;
                 const char* filePath = dlg.chooseFileDialog(show_sample_file_dialog, dlg.getLastDirectory(), ".jpg;.jpeg;.png;.gif;.tga;.bmp", "Sample file dialog", ImVec2(400, 800), ImVec2(50, 50));
@@ -351,20 +395,26 @@ int main(int, char**)
                 }
                 show_sample_file_dialog = false;
             }
+#endif
 
-            // 7. Show Memory Edit window
+#if IMGUI_ADDON_MEMORY_EDITOR
+            // Show Memory Edit window
             if (mem_edit.Open)
             {
                 mem_edit.DrawWindow("Memory Editor", data, data_size, 0, &mem_edit.Open, 768);
             }
+#endif
 
-            // 8. Show Text Edit Window
+#if IMGUI_ADDON_TEXT_EDITOR
+            // Show Text Edit Window
             if (show_text_edit_window)
             {
                 editor.text_edit_demo(&show_text_edit_window);
             }
+#endif
 
-            // 9. Show Markdown Window
+#if IMGUI_ADDON_MARKDOWN
+            // Show Markdown Window
             if (show_markdown_window)
             {
                 std::string help_doc = get_file_contents("docs/imgui.md");
@@ -379,8 +429,10 @@ int main(int, char**)
                 mdConfig.formatCallback =       ExampleMarkdownFormatCallback;
                 ImGui::Markdown( help_doc.c_str(), help_doc.length(), mdConfig );
             }
+#endif
 
-            // 10. Show Dock Window
+#if IMGUI_ADDON_DOCK
+            // Show Dock Window
             if (show_dock_window)
             {
                 ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
@@ -390,8 +442,10 @@ int main(int, char**)
                 }
                 ImGui::End();
             }
+#endif
 
-            // 11. Show Tab Window
+#if IMGUI_ADDON_TABWINDOW
+            // Show Tab Window
             if (show_tab_window)
             {
                 ImGui::SetNextWindowSize(ImVec2(700,600), ImGuiCond_FirstUseEver);
@@ -401,15 +455,18 @@ int main(int, char**)
                 }
                 ImGui::End();
             }
+#endif
+
 #if IMGUI_ADDON_IMNODES
-            // 12. Show Node  Window
+            // Show Node  Window
             if (show_node_window)
             {
                 imnodes_example::NodeEditorShow();
             }
 #endif
+
 #if IMGUI_ADDON_NODE_GRAPH
-            // 13. Show Node Edit Window
+            // Show Node Edit Window
             if (show_node_edit_window)
             {
                 ImGui::SetNextWindowSize(ImVec2(700,600), ImGuiCond_FirstUseEver);
@@ -423,7 +480,9 @@ int main(int, char**)
             }
 #endif
 
-            // 14. Show Addon Widget.
+
+#if IMGUI_ADDON_DATE_CHOOSER || IMGUI_ADDON_KNOB || IMGUI_ADDON_VARIOUS || IMGUI_ADDON_DOCK || IMGUI_ADDON_TABWINDOW || IMGUI_ADDON_PROGRESSES || IMGUI_ADDON_TIMELINE
+            // Show Addon Widget.
             if (show_addon_widget)
             {
                 ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
@@ -431,7 +490,9 @@ int main(int, char**)
                 ImGui::ShowAddonsDemoWindowWidgets();
                 ImGui::End();
             }
+#endif
 
+#if IMGUI_ADDON_ZMO
             // 15. Show Zmo Window
             if (show_zmo_window)
             {
@@ -454,13 +515,16 @@ int main(int, char**)
         }
     }
 
-#if IMGUI_ADDONS
+#if IMGUI_ADDON_MEMORY_EDITOR
     // Cleanup memory edit resource
     if (data)
         free(data);
+#endif
 
+#if IMGUI_ADDON_FILE_DIALOG
     // Store file dialog bookmark
     end_file_dialog_demo_window(&filedialog, bookmark_path.c_str());
+#endif
 
 #if IMGUI_ADDON_IMNODES
     // Clean Node Window
@@ -468,17 +532,20 @@ int main(int, char**)
     ImNodes::DestroyContext();
 #endif
 
+#if IMGUI_ADDON_DATE_CHOOSER || IMGUI_ADDON_KNOB || IMGUI_ADDON_VARIOUS || IMGUI_ADDON_DOCK || IMGUI_ADDON_TABWINDOW || IMGUI_ADDON_PROGRESSES || IMGUI_ADDON_TIMELINE
     // Cleanup Demo
     ImGui::CleanupDemo();
+#endif
+
     ImGuizmo::CleanupZMODemo();
 #if IMGUI_ADDON_NODE_GRAPH
     nge.clear();
 #endif
-#endif
+
     // Cleanup
     ImGui_ImplMetal_Shutdown();
     ImGui_ImplGlfw_Shutdown();
-#if IMGUI_ADDONS
+#if IMGUI_ADDON_IMPLOTS
     ImPlot::DestroyContext();
 #endif
     ImGui::DestroyContext();

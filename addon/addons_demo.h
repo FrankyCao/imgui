@@ -1,6 +1,7 @@
 #ifndef __ADDONS_DEMO_H
 #define __ADDONS_DEMO_H
-#include "imgui.h"
+#include <imgui.h>
+#include <imgui_helper.h>
 namespace ImGui
 {
     IMGUI_API void          ShowAddonsDemoWindowWidgets();

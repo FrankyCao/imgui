@@ -3,9 +3,10 @@
 #undef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
+#include <imgui_user.h>
 //-----------------------------------------------------------------------------------------------------------------
 
-#include "ImGuiHelper.h"
+#include "imgui_helper.h"
 #include <errno.h>
 
 #ifdef _WIN32
@@ -32,7 +33,6 @@ struct IUnknown;
 #include <vector>
 #include <algorithm>
 
-#include <imgui_internal.h>
 #if IMGUI_VULKAN_SHADER
 #include "ImVulkanShader.h"
 #endif

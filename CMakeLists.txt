@@ -73,35 +73,53 @@ include_directories(
 
 find_package(PkgConfig)
 
-_OPTION(IMGUI_STATIC             "Build ImGui as static library" OFF)
-_OPTION(IMGUI_BUILD_EXAMPLE      "Build ImGui example" OFF)
-_OPTION(IMGUI_GL2                "Build ImGui OpenGL2 backends" ON)
-_OPTION(IMGUI_GL3                "Build ImGui OpenGL3 backends" ON)
-_OPTION(IMGUI_SDL2               "Build ImGui SDL2 backends" ON)
-_OPTION(IMGUI_GLFW               "Build ImGui GLFW backends" ON)
-_OPTION(IMGUI_GLUT               "Build ImGui GLUT backends" OFF)
-_OPTION(IMGUI_GLEW               "Build ImGui GLEW backends" ON)
-_OPTION(IMGUI_GLES               "Build ImGui GLES backends" ON)
-_OPTION(IMGUI_MATAL              "Build ImGui Apple Metal backends(Apple only)" ON IF APPLE)
-_OPTION(IMGUI_VULKAN             "Build ImGui Vulkan backends" ON)
-_OPTION(IMGUI_VULKAN_SHADER      "Build ImGui With Vulkan compute support" ON)
-_OPTION(IMGUI_VULKAN_BENCHMARK   "Build ImGui With Vulkan Shader Benchmark" OFF)
-_OPTION(IMGUI_DX9                "Build ImGui Direct9 backends(Windows only)" ON IF WIN32)
-_OPTION(IMGUI_DX10               "Build ImGui Direct10 backends(Windows only)" ON IF WIN32)
-_OPTION(IMGUI_DX11               "Build ImGui Direct11 backends(Windows only)" ON IF WIN32)
-_OPTION(IMGUI_DX12               "Build ImGui Direct12 backends(Windows only)" ON IF WIN32)
-_OPTION(IMGUI_FREETYPE           "Build ImGui with FreeType support" OFF)
-_OPTION(IMGUI_FONT_SARASA        "Internal Mono Sarasa Fonts build in library" ON)
-_OPTION(IMGUI_FONT_HEI           "Internal Mono Hei Fonts build in library" ON)
-_OPTION(IMGUI_FONT_KAI           "Internal Mono Kai Fonts build in library" OFF)
-_OPTION(IMGUI_FONT_SONG          "Internal Mono Song Fonts build in library" OFF)
-_OPTION(IMGUI_FONT_YUAN          "Internal Mono Yuan Fonts build in library" OFF)
-_OPTION(IMGUI_ICONS              "Internal Icons build in library" ON)
-_OPTION(IMGUI_ADDONS             "build addons base on imgui" ON)
-_OPTION(IMGUI_ADDON_IMNODES      "build imnodes base on imgui" OFF)
-_OPTION(IMGUI_ADDON_NODE_GRAPH   "build node graph editor base on imgui" OFF)
-_OPTION(IMGUI_APPS               "build apps base on imgui" ON)
-_OPTION(IMGUI_APPLE_APP          "build apple app base on imgui(Apple only)" OFF IF APPLE)
+_OPTION(IMGUI_STATIC                "Build ImGui as static library" OFF)
+_OPTION(IMGUI_BUILD_EXAMPLE         "Build ImGui example" OFF)
+_OPTION(IMGUI_GL2                   "Build ImGui OpenGL2 backends" ON)
+_OPTION(IMGUI_GL3                   "Build ImGui OpenGL3 backends" ON)
+_OPTION(IMGUI_SDL2                  "Build ImGui SDL2 backends" ON)
+_OPTION(IMGUI_GLFW                  "Build ImGui GLFW backends" ON)
+_OPTION(IMGUI_GLUT                  "Build ImGui GLUT backends" OFF)
+_OPTION(IMGUI_GLEW                  "Build ImGui GLEW backends" ON)
+_OPTION(IMGUI_GLES                  "Build ImGui GLES backends" ON)
+_OPTION(IMGUI_MATAL                 "Build ImGui Apple Metal backends(Apple only)" ON IF APPLE)
+_OPTION(IMGUI_VULKAN                "Build ImGui Vulkan backends" ON)
+_OPTION(IMGUI_DX9                   "Build ImGui Direct9 backends(Windows only)" ON IF WIN32)
+_OPTION(IMGUI_DX10                  "Build ImGui Direct10 backends(Windows only)" ON IF WIN32)
+_OPTION(IMGUI_DX11                  "Build ImGui Direct11 backends(Windows only)" ON IF WIN32)
+_OPTION(IMGUI_DX12                  "Build ImGui Direct12 backends(Windows only)" ON IF WIN32)
+_OPTION(IMGUI_FREETYPE              "Build ImGui with FreeType support" OFF)
+_OPTION(IMGUI_FONT_SARASA           "Internal Mono Sarasa Fonts build in library" ON)
+_OPTION(IMGUI_FONT_HEI              "Internal Mono Hei Fonts build in library" ON)
+_OPTION(IMGUI_FONT_KAI              "Internal Mono Kai Fonts build in library" OFF)
+_OPTION(IMGUI_FONT_SONG             "Internal Mono Song Fonts build in library" OFF)
+_OPTION(IMGUI_FONT_YUAN             "Internal Mono Yuan Fonts build in library" OFF)
+_OPTION(IMGUI_ICONS                 "Internal Icons build in library" ON)
+_OPTION(IMGUI_APPS                  "build apps base on imgui" ON)
+_OPTION(IMGUI_APPLE_APP             "build apple app base on imgui(Apple only)" OFF IF APPLE)
+
+_OPTION(IMGUI_ADDON_DEAR_WIDGETS    "build Dear Widgets addon" OFF)
+_OPTION(IMGUI_ADDON_KNOB            "build ImGui Knob addon" OFF)
+_OPTION(IMGUI_ADDON_DATE_CHOOSER    "build Date chooser addon" OFF)
+_OPTION(IMGUI_ADDON_DOCK            "build ImGuiDock addon" OFF)
+_OPTION(IMGUI_ADDON_FILE_DIALOG     "build ImGuiFileDialog addon" OFF)
+_OPTION(IMGUI_ADDON_FILE_SYSTEM     "build ImGuiFileSystem addon" OFF)
+_OPTION(IMGUI_ADDON_TABWINDOW       "build ImGuiTabWindow addon" OFF)
+_OPTION(IMGUI_ADDON_ZMO             "build ImGuizmo addon" OFF)
+_OPTION(IMGUI_ADDON_ZMOQUAT         "build ImGuiZMO.quat addon" OFF)
+_OPTION(IMGUI_ADDON_IMNODES         "build imnodes base on imgui" OFF)
+_OPTION(IMGUI_ADDON_NODE_GRAPH      "build node graph editor base on imgui" OFF)
+_OPTION(IMGUI_ADDON_VARIOUS         "build Various Controls addon" OFF)
+_OPTION(IMGUI_ADDON_IMPLOTS         "build Implots addon" OFF)
+_OPTION(IMGUI_ADDON_MARKDOWN        "build ImGui Markdown addon" OFF)
+_OPTION(IMGUI_ADDON_MEMORY_EDITOR   "build ImGui Memory editor addon" OFF)
+_OPTION(IMGUI_ADDON_PROGRESSES      "build ImGui Progress indicators addon" OFF)
+_OPTION(IMGUI_ADDON_TEXT_EDITOR     "build ImGui Text editor addon" OFF)
+_OPTION(IMGUI_ADDON_TIMELINE        "build ImGui Timeline addon" OFF)
+_OPTION(IMGUI_ADDON_TINYFILE        "build ImGui tiny file dialog addon" OFF)
+_OPTION(IMGUI_ADDON_HOTKEY          "build ImGui Hot key addon" OFF)
+_OPTION(IMGUI_VULKAN_SHADER         "Build ImGui With Vulkan compute support" ON)
+_OPTION(IMGUI_VULKAN_BENCHMARK      "Build ImGui With Vulkan Shader Benchmark" OFF)
 
 if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
 find_package(OpenGL)
@@ -119,12 +137,10 @@ if (IMGUI_GLUT)
 endif (IMGUI_GLUT)
 
 if(PKG_CONFIG_FOUND)
-    if(IMGUI_ADDONS)
-        pkg_search_module(ZLIB REQUIRED zlib)
-        if(ZLIB_FOUND)
-            message("zlib found")
-        endif(ZLIB_FOUND)
-    endif(IMGUI_ADDONS)
+    pkg_search_module(ZLIB REQUIRED zlib)
+    if(ZLIB_FOUND)
+        message("zlib found")
+    endif(ZLIB_FOUND)
     if(IMGUI_GLEW)
         pkg_search_module(GLEW REQUIRED glew)
     endif(IMGUI_GLEW)
@@ -166,9 +182,21 @@ else()
 set(IMGUI_STATIC ON CACHE BOOL "Enable Static ImGui Build by Force" FORCE)
 set(IMGUI_OPENGL ON CACHE BOOL "Enable ImGui OpenGL by Force" FORCE)
 set(IMGUI_SDL2 ON CACHE BOOL "Build ImGui SDL2 backends by Force" FORCE)
+set(IMGUI_GL2 OFF CACHE BOOL "Build ImGui OpenGL2 backends by Force" FORCE)
 set(IMGUI_GL3 ON CACHE BOOL "Build ImGui OpenGL3 backends by Force" FORCE)
 set(IMGUI_VULKAN OFF CACHE BOOL "Disable ImGui Vulkan backends" FORCE)
 set(IMGUI_VULKAN_SHADER OFF CACHE BOOL "Disable ImGui With Vulkan compute support" FORCE)
+set(IMGUI_GLFW OFF CACHE BOOL "Disable ImGui GLFW support" FORCE)
+set(IMGUI_GLEW OFF CACHE BOOL "Disable ImGui GLEW support" FORCE)
+set(IMGUI_GLUT OFF CACHE BOOL "Disable ImGui GLUT support" FORCE)
+set(IMGUI_MATAL OFF CACHE BOOL "Disable ImGui Apple Matal support" FORCE)
+set(IMGUI_DX9 OFF CACHE BOOL "Disable ImGui Windows DX9 support" FORCE)
+set(IMGUI_DX10 OFF CACHE BOOL "Disable ImGui Windows DX10 support" FORCE)
+set(IMGUI_DX11 OFF CACHE BOOL "Disable ImGui Windows DX11 support" FORCE)
+set(IMGUI_DX12 OFF CACHE BOOL "Disable ImGui Windows DX12 support" FORCE)
+set(IMGUI_FREETYPE OFF CACHE BOOL "Disable ImGui with FreeType support" FORCE)
+set(IMGUI_APPS OFF CACHE BOOL "Disable apps base on imgui" FORCE)
+set(IMGUI_APPLE_APP OFF CACHE BOOL "Disable apple app base on imgui" FORCE)
 set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-s USE_SDL=2 -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s TOTAL_MEMORY=128MB -s DISABLE_EXCEPTION_CATCHING=1 -s NO_EXIT_RUNTIME=0 -s ASSERTIONS=1")
 endif()
 
@@ -211,6 +239,7 @@ set(IMGUI_SRC
     imgui_draw.cpp
     imgui_widgets.cpp
     imgui_tables.cpp
+    imgui_helper.cpp
     fonts/SourceCodePro-Regular.cpp
     fonts/Monaco.cpp
     fonts/Cousine-Regular.cpp
@@ -227,6 +256,7 @@ set(IMGUI_SRC
 set(IMGUI_INCS
     imgui.h
     imgui_internal.h
+    imgui_helper.h
     imstb_rectpack.h
     imstb_textedit.h
     imstb_truetype.h
@@ -612,55 +642,40 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/misc/freetype
 )
 
-# Add Addons
-if(IMGUI_ADDONS)
-    # ImGuiHelper
+if (IMGUI_ADDON_FILE_SYSTEM)
+    # ImGuiFileSystem
     set(IMGUI_SRC
         ${IMGUI_SRC}
-        addon/ImGuiHelper/ImGuiHelper.cpp
+        addon/ImGuiFileSystem/ImGuiFileSystem.cpp
     )
     set(IMGUI_INCS
         ${IMGUI_INCS}
-        addon/ImGuiHelper/ImGuiHelper.h
-    )
-    set(IMGUI_INC_DIRS
-        ${IMGUI_INC_DIRS}
-        ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiHelper
+        addon/ImGuiFileSystem/ImGuiFileSystem.h
     )
 
-    # ImGuiFileSystem
-    if (IMGUI_BUILD_EXAMPLE)
+    if (NOT WIN32 AND ZLIB_FOUND)
         set(IMGUI_SRC
             ${IMGUI_SRC}
-            addon/ImGuiFileSystem/ImGuiFileSystem.cpp
+            addon/ImGuiFileSystem/minizip/zip.c
+            addon/ImGuiFileSystem/minizip/unzip.c
+            addon/ImGuiFileSystem/minizip/ioapi.c
         )
         set(IMGUI_INCS
             ${IMGUI_INCS}
-            addon/ImGuiFileSystem/ImGuiFileSystem.h
+            addon/ImGuiFileSystem/minizip/zip.h
+            addon/ImGuiFileSystem/minizip/unzip.h
+            addon/ImGuiFileSystem/minizip/ioapi.h
+            addon/ImGuiFileSystem/minizip/crypt.h
         )
+    endif(NOT WIN32 AND ZLIB_FOUND)
 
-        if (NOT WIN32 AND ZLIB_FOUND)
-            set(IMGUI_SRC
-                ${IMGUI_SRC}
-                addon/ImGuiFileSystem/minizip/zip.c
-                addon/ImGuiFileSystem/minizip/unzip.c
-                addon/ImGuiFileSystem/minizip/ioapi.c
-            )
-            set(IMGUI_INCS
-                ${IMGUI_INCS}
-                addon/ImGuiFileSystem/minizip/zip.h
-                addon/ImGuiFileSystem/minizip/unzip.h
-                addon/ImGuiFileSystem/minizip/ioapi.h
-                addon/ImGuiFileSystem/minizip/crypt.h
-            )
-        endif(NOT WIN32 AND ZLIB_FOUND)
+    set(IMGUI_INC_DIRS
+        ${IMGUI_INC_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiFileSystem
+    )
+endif(IMGUI_ADDON_FILE_SYSTEM)
 
-        set(IMGUI_INC_DIRS
-            ${IMGUI_INC_DIRS}
-            ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiFileSystem
-        )
-    endif(IMGUI_BUILD_EXAMPLE)
-
+if (IMGUI_ADDON_FILE_DIALOG)
     # ImGuiFileDialog
     set(IMGUI_SRC
         ${IMGUI_SRC}
@@ -680,7 +695,9 @@ if(IMGUI_ADDONS)
             addon/ImGuiFileDialog/ImGuiFileDialogDemo.cpp
         )
     endif(IMGUI_BUILD_EXAMPLE)
+endif(IMGUI_ADDON_FILE_DIALOG)
 
+if (IMGUI_ADDON_TINYFILE)
     # TinyFileDialog
     if (IMGUI_BUILD_EXAMPLE)
         set(IMGUI_SRC
@@ -697,7 +714,9 @@ if(IMGUI_ADDONS)
             ${CMAKE_CURRENT_SOURCE_DIR}/addon/tinyfiledialog
         )
     endif(IMGUI_BUILD_EXAMPLE)
+endif(IMGUI_ADDON_TINYFILE)
 
+if (IMGUI_ADDON_IMPLOTS)
     # implot
     set(IMGUI_SRC
         ${IMGUI_SRC}
@@ -719,7 +738,9 @@ if(IMGUI_ADDONS)
             addon/implot/implot_demo.cpp
         )
     endif(IMGUI_BUILD_EXAMPLE)
+endif(IMGUI_ADDON_IMPLOTS)
 
+if (IMGUI_ADDON_PROGRESSES)
     # Progress Indicators
     set(IMGUI_SRC
         ${IMGUI_SRC}
@@ -733,7 +754,9 @@ if(IMGUI_ADDONS)
         ${IMGUI_INC_DIRS}
         ${CMAKE_CURRENT_SOURCE_DIR}/addon/ProgressIndicators
     )
+endif(IMGUI_ADDON_PROGRESSES)
 
+if (IMGUI_ADDON_TEXT_EDITOR)
     # Colorful Text Edit
     set(IMGUI_SRC
         ${IMGUI_SRC}
@@ -747,7 +770,9 @@ if(IMGUI_ADDONS)
         ${IMGUI_INC_DIRS}
         ${CMAKE_CURRENT_SOURCE_DIR}/addon/TextEditor
     )
+endif(IMGUI_ADDON_TEXT_EDITOR)
 
+if (IMGUI_ADDON_MEMORY_EDITOR)
     # Memory Editor
     set(IMGUI_INCS
         ${IMGUI_INCS}
@@ -757,13 +782,17 @@ if(IMGUI_ADDONS)
         ${IMGUI_INC_DIRS}
         ${CMAKE_CURRENT_SOURCE_DIR}/addon/MemoryEditor
     )
+endif(IMGUI_ADDON_MEMORY_EDITOR)
 
+if (IMGUI_ADDON_MARKDOWN)
     # Simple Markdown
     set(IMGUI_INC_DIRS
         ${IMGUI_INC_DIRS}
         ${CMAKE_CURRENT_SOURCE_DIR}/addon/markdown
     )
+endif(IMGUI_ADDON_MARKDOWN)
 
+if (IMGUI_ADDON_DOCK)
     # Simple dock window
     set(IMGUI_SRC
         ${IMGUI_SRC}
@@ -777,7 +806,9 @@ if(IMGUI_ADDONS)
         ${IMGUI_INC_DIRS}
         ${CMAKE_CURRENT_SOURCE_DIR}/addon/imguiDock
     )
+endif(IMGUI_ADDON_DOCK)
 
+if (IMGUI_ADDON_TABWINDOW)
     # Tab Window
     set(IMGUI_SRC
         ${IMGUI_SRC}
@@ -791,46 +822,50 @@ if(IMGUI_ADDONS)
         ${IMGUI_INC_DIRS}
         ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiTabWindow
     )
+endif(IMGUI_ADDON_TABWINDOW)
 
+    
+if (IMGUI_ADDON_IMNODES)
     # Simple nodes
-    if (IMGUI_ADDON_IMNODES)
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
+        addon/imnodes/imnodes.cpp
+    )
+    if (IMGUI_BUILD_EXAMPLE)
         set(IMGUI_SRC
             ${IMGUI_SRC}
-            addon/imnodes/imnodes.cpp
+            addon/imnodes/imnodes_demo.cpp
         )
-        if (IMGUI_BUILD_EXAMPLE)
-            set(IMGUI_SRC
-                ${IMGUI_SRC}
-                addon/imnodes/imnodes_demo.cpp
-            )
-        endif(IMGUI_BUILD_EXAMPLE)
-        set(IMGUI_INCS
-            ${IMGUI_INCS}
-            addon/imnodes/imnodes.h
-            addon/imnodes/imnodes_internal.h
-        )
-        set(IMGUI_INC_DIRS
-            ${IMGUI_INC_DIRS}
-            ${CMAKE_CURRENT_SOURCE_DIR}/addon/imnodes
-        )
-    endif(IMGUI_ADDON_IMNODES)
+    endif(IMGUI_BUILD_EXAMPLE)
+    set(IMGUI_INCS
+        ${IMGUI_INCS}
+        addon/imnodes/imnodes.h
+        addon/imnodes/imnodes_internal.h
+    )
+    set(IMGUI_INC_DIRS
+        ${IMGUI_INC_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/addon/imnodes
+    )
+endif(IMGUI_ADDON_IMNODES)
 
+    
+if (IMGUI_ADDON_NODE_GRAPH)
     # Node Graph Edit
-    if (IMGUI_ADDON_NODE_GRAPH)
-        set(IMGUI_SRC
-            ${IMGUI_SRC}
-            addon/ImGuiNodeGraphEditor/ImGuiNodeGraphEditor.cpp
-        )
-        set(IMGUI_INCS
-            ${IMGUI_INCS}
-            addon/ImGuiNodeGraphEditor/ImGuiNodeGraphEditor.h
-        )
-        set(IMGUI_INC_DIRS
-            ${IMGUI_INC_DIRS}
-            ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiNodeGraphEditor
-        )
-    endif(IMGUI_ADDON_NODE_GRAPH)
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
+        addon/ImGuiNodeGraphEditor/ImGuiNodeGraphEditor.cpp
+    )
+    set(IMGUI_INCS
+        ${IMGUI_INCS}
+        addon/ImGuiNodeGraphEditor/ImGuiNodeGraphEditor.h
+    )
+    set(IMGUI_INC_DIRS
+        ${IMGUI_INC_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiNodeGraphEditor
+    )
+endif(IMGUI_ADDON_NODE_GRAPH)
 
+if (IMGUI_ADDON_TIMELINE)
     # Simple TimeLine
     set(IMGUI_SRC
         ${IMGUI_SRC}
@@ -844,7 +879,9 @@ if(IMGUI_ADDONS)
         ${IMGUI_INC_DIRS}
         ${CMAKE_CURRENT_SOURCE_DIR}/addon/Timeline
     )
+endif(IMGUI_ADDON_TIMELINE)
 
+if (IMGUI_ADDON_KNOB)
     # KNob
     set(IMGUI_SRC
         ${IMGUI_SRC}
@@ -858,7 +895,9 @@ if(IMGUI_ADDONS)
         ${IMGUI_INC_DIRS}
         ${CMAKE_CURRENT_SOURCE_DIR}/addon/imgui_knob
     )
+endif(IMGUI_ADDON_KNOB)
 
+if (IMGUI_ADDON_HOTKEY)
     # HotKeys
     set(IMGUI_INCS
         ${IMGUI_INCS}
@@ -868,7 +907,9 @@ if(IMGUI_ADDONS)
         ${IMGUI_INC_DIRS}
         ${CMAKE_CURRENT_SOURCE_DIR}/addon/HotKey
     )
+endif(IMGUI_ADDON_HOTKEY)
 
+if (IMGUI_ADDON_DATE_CHOOSER)
     # Date Chooser
     set(IMGUI_SRC
         ${IMGUI_SRC}
@@ -882,7 +923,9 @@ if(IMGUI_ADDONS)
         ${IMGUI_INC_DIRS}
         ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiDateChooser
     )
+endif(IMGUI_ADDON_DATE_CHOOSER)
 
+if (IMGUI_ADDON_VARIOUS)
     # Various Controls
     set(IMGUI_SRC
         ${IMGUI_SRC}
@@ -896,7 +939,9 @@ if(IMGUI_ADDONS)
         ${IMGUI_INC_DIRS}
         ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiVariousControls
     )
+endif(IMGUI_ADDON_VARIOUS)
 
+if (IMGUI_ADDON_ZMO)
     # ImGuizmo
     set(IMGUI_SRC
         ${IMGUI_SRC}
@@ -925,7 +970,9 @@ if(IMGUI_ADDONS)
             addon/ImGuizmo/ImGuizmoDemo.cpp
         )
     endif(IMGUI_BUILD_EXAMPLE)
+endif(IMGUI_ADDON_ZMO)
 
+if (IMGUI_ADDON_ZMOQUAT)
     # ImGuiQuat
     set(IMGUI_SRC
         ${IMGUI_SRC}
@@ -949,7 +996,9 @@ if(IMGUI_ADDONS)
             addon/ImGuiQuat/imGuIZMOquat_demo.cpp
         )
     endif(IMGUI_BUILD_EXAMPLE)
+endif(IMGUI_ADDON_ZMOQUAT)
 
+if (IMGUI_ADDON_DEAR_WIDGETS)
     # Dear Widgets
     set(IMGUI_SRC
         ${IMGUI_SRC}
@@ -970,106 +1019,105 @@ if(IMGUI_ADDONS)
             addon/DearWidgets/dear_widgets_demo.cpp
         )
     endif(IMGUI_BUILD_EXAMPLE)
+endif(IMGUI_ADDON_DEAR_WIDGETS)
 
+if (IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
     # Vulkan Shader/Glslang
-    if (IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
-        option(BUILD_EXTERNAL "" OFF)
-        option(ENABLE_SPVREMAPPER "" OFF)
-        option(ENABLE_GLSLANG_BINARIES "" OFF)
-        option(ENABLE_HLSL "" OFF)
-        option(ENABLE_RTTI "" OFF)
-        option(ENABLE_EXCEPTIONS "" OFF)
-        option(ENABLE_OPT "" ON)
-        option(ENABLE_PCH "" OFF)
-        option(ENABLE_CTEST "" OFF)
-        option(SKIP_GLSLANG_INSTALL "" ON)
-        add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/addon/ImVulkanShader/glslang)
-        if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_SIMULATE_ID MATCHES "MSVC"))
-            target_compile_options(glslang PRIVATE -fvisibility=hidden -fvisibility-inlines-hidden)
-            target_compile_options(OGLCompiler PRIVATE -fvisibility=hidden -fvisibility-inlines-hidden)
-            target_compile_options(OSDependent PRIVATE -fvisibility=hidden -fvisibility-inlines-hidden)
-            target_compile_options(SPIRV PRIVATE -fvisibility=hidden -fvisibility-inlines-hidden)
-        endif()
-        if(IMGUI_VULKAN_BENCHMARK)
-            set(SHADER_BENCHMARK ON)
-        endif(IMGUI_VULKAN_BENCHMARK)
-        set(IMGUI_SRC
-            ${IMGUI_SRC}
-            addon/ImVulkanShader/option.cpp
-            addon/ImVulkanShader/allocator.cpp
-            addon/ImVulkanShader/gpu.cpp
-            addon/ImVulkanShader/command.cpp
-            addon/ImVulkanShader/colorspace_table.cpp
-            addon/ImVulkanShader/pipeline.cpp
-            addon/ImVulkanShader/pipelinecache.cpp
-            addon/ImVulkanShader/Cast_vulkan.cpp
-            addon/ImVulkanShader/Packing_vulkan.cpp
-            addon/ImVulkanShader/ColorConvert_vulkan.cpp
-            addon/ImVulkanShader/Resize_vulkan.cpp
-            addon/ImVulkanShader/ImVulkanShader.cpp
-        )
-        set(IMGUI_INCS
-            ${IMGUI_INCS}
-            addon/ImVulkanShader/platform.h
-            addon/ImVulkanShader/vulkan_header_fix.h
-            addon/ImVulkanShader/option.h
-            addon/ImVulkanShader/allocator.h
-            addon/ImVulkanShader/gpu.h
-            addon/ImVulkanShader/command.h
-            addon/ImVulkanShader/buffer.h
-            addon/ImVulkanShader/pipeline.h
-            addon/ImVulkanShader/pipelinecache.h
-            addon/ImVulkanShader/Cast_shader.h
-            addon/ImVulkanShader/Cast_vulkan.h
-            addon/ImVulkanShader/Packing_shader.h
-            addon/ImVulkanShader/Packing_vulkan.h
-            addon/ImVulkanShader/ColorConvert_shader.h
-            addon/ImVulkanShader/ColorConvert_vulkan.h
-            addon/ImVulkanShader/Resize_shader.h
-            addon/ImVulkanShader/Resize_vulkan.h
-            addon/ImVulkanShader/ImVulkanShader.h
-        )
-        set(IMGUI_INC_DIRS
-            ${IMGUI_INC_DIRS}
-            ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImVulkanShader
-            ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImVulkanShader/glslang
-            ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImVulkanShader/glslang/glslang/include
-            ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImVulkanShader/glslang/glslang/Public
-            ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImVulkanShader/glslang/SPIRV
-        )
-        set(GLSLANG_LIBRARY
-            glslang
-            OGLCompiler
-            OSDependent
-            SPIRV
-        )
-        set(LINK_LIBS
-            ${LINK_LIBS}
-            ${GLSLANG_LIBRARY}
-        )
-    endif(IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
+    option(BUILD_EXTERNAL "" OFF)
+    option(ENABLE_SPVREMAPPER "" OFF)
+    option(ENABLE_GLSLANG_BINARIES "" OFF)
+    option(ENABLE_HLSL "" OFF)
+    option(ENABLE_RTTI "" OFF)
+    option(ENABLE_EXCEPTIONS "" OFF)
+    option(ENABLE_OPT "" ON)
+    option(ENABLE_PCH "" OFF)
+    option(ENABLE_CTEST "" OFF)
+    option(SKIP_GLSLANG_INSTALL "" ON)
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/addon/ImVulkanShader/glslang)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_SIMULATE_ID MATCHES "MSVC"))
+        target_compile_options(glslang PRIVATE -fvisibility=hidden -fvisibility-inlines-hidden)
+        target_compile_options(OGLCompiler PRIVATE -fvisibility=hidden -fvisibility-inlines-hidden)
+        target_compile_options(OSDependent PRIVATE -fvisibility=hidden -fvisibility-inlines-hidden)
+        target_compile_options(SPIRV PRIVATE -fvisibility=hidden -fvisibility-inlines-hidden)
+    endif()
+    if(IMGUI_VULKAN_BENCHMARK)
+        set(SHADER_BENCHMARK ON)
+    endif(IMGUI_VULKAN_BENCHMARK)
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
+        addon/ImVulkanShader/option.cpp
+        addon/ImVulkanShader/allocator.cpp
+        addon/ImVulkanShader/gpu.cpp
+        addon/ImVulkanShader/command.cpp
+        addon/ImVulkanShader/colorspace_table.cpp
+        addon/ImVulkanShader/pipeline.cpp
+        addon/ImVulkanShader/pipelinecache.cpp
+        addon/ImVulkanShader/Cast_vulkan.cpp
+        addon/ImVulkanShader/Packing_vulkan.cpp
+        addon/ImVulkanShader/ColorConvert_vulkan.cpp
+        addon/ImVulkanShader/Resize_vulkan.cpp
+        addon/ImVulkanShader/ImVulkanShader.cpp
+    )
+    set(IMGUI_INCS
+        ${IMGUI_INCS}
+        addon/ImVulkanShader/platform.h
+        addon/ImVulkanShader/vulkan_header_fix.h
+        addon/ImVulkanShader/option.h
+        addon/ImVulkanShader/allocator.h
+        addon/ImVulkanShader/gpu.h
+        addon/ImVulkanShader/command.h
+        addon/ImVulkanShader/buffer.h
+        addon/ImVulkanShader/pipeline.h
+        addon/ImVulkanShader/pipelinecache.h
+        addon/ImVulkanShader/Cast_shader.h
+        addon/ImVulkanShader/Cast_vulkan.h
+        addon/ImVulkanShader/Packing_shader.h
+        addon/ImVulkanShader/Packing_vulkan.h
+        addon/ImVulkanShader/ColorConvert_shader.h
+        addon/ImVulkanShader/ColorConvert_vulkan.h
+        addon/ImVulkanShader/Resize_shader.h
+        addon/ImVulkanShader/Resize_vulkan.h
+        addon/ImVulkanShader/ImVulkanShader.h
+    )
+    set(IMGUI_INC_DIRS
+        ${IMGUI_INC_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImVulkanShader
+        ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImVulkanShader/glslang
+        ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImVulkanShader/glslang/glslang/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImVulkanShader/glslang/glslang/Public
+        ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImVulkanShader/glslang/SPIRV
+    )
+    set(GLSLANG_LIBRARY
+        glslang
+        OGLCompiler
+        OSDependent
+        SPIRV
+    )
+    set(LINK_LIBS
+        ${LINK_LIBS}
+        ${GLSLANG_LIBRARY}
+    )
+endif(IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
 
-    # Addon Demo
-    if (IMGUI_BUILD_EXAMPLE)
-        set(IMGUI_SRC
-            ${IMGUI_SRC}
-            addon/addons_demo.cpp
-            addon/NumberTexture.cpp
-        )
-
-        set(IMGUI_INCS
-            ${IMGUI_INCS}
-            addon/addons_demo.h
-            addon/NumberTexture.h
-        )
-    endif(IMGUI_BUILD_EXAMPLE)
-    if(ZLIB_FOUND)
-        set(LINK_LIBS
-            ${LINK_LIBS}
-            ${ZLIB_LDFLAGS}
-        )
-    endif(ZLIB_FOUND)
-endif(IMGUI_ADDONS)
+# Addon Demo
+if (IMGUI_BUILD_EXAMPLE)
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
+        addon/addons_demo.cpp
+        addon/NumberTexture.cpp
+    )
+    set(IMGUI_INCS
+        ${IMGUI_INCS}
+        addon/addons_demo.h
+        addon/NumberTexture.h
+    )
+endif(IMGUI_BUILD_EXAMPLE)
+if(ZLIB_FOUND)
+    set(LINK_LIBS
+        ${LINK_LIBS}
+        ${ZLIB_LDFLAGS}
+    )
+endif(ZLIB_FOUND)
 
 # Application Framework
 set(IMGUI_APP_SRC)
@@ -1250,17 +1298,15 @@ if (IMGUI_BUILD_EXAMPLE AND SDL2_FOUND AND IMGUI_SDL2)
             imgui
             ${LINK_LIBS}
         )
-        if(IMGUI_ADDONS)
-            add_executable(
-                example_sdl_rendering
-                test/example_sdl_rendering.cpp
-            )
-            target_link_libraries(
-                example_sdl_rendering
-                imgui
-                ${LINK_LIBS}
-            )
-        endif(IMGUI_ADDONS)
+        add_executable(
+            example_sdl_rendering
+            test/example_sdl_rendering.cpp
+        )
+        target_link_libraries(
+            example_sdl_rendering
+            imgui
+            ${LINK_LIBS}
+        )
     elseif(BACKEND_RENDERING MATCHES OPENGL2)
         add_executable(
             example_sdl_opengl2
@@ -1442,7 +1488,6 @@ if(IMGUI_BUILD_EXAMPLE AND WIN32)
 endif(IMGUI_BUILD_EXAMPLE AND WIN32)
 
 if (IMGUI_BUILD_EXAMPLE AND IMGUI_APPS)
-if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
     add_executable(
         example_application
         test/example_application.cpp
@@ -1453,7 +1498,9 @@ if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
         imgui
         ${LINK_LIBS}
     )
-else()
+endif(IMGUI_BUILD_EXAMPLE AND IMGUI_APPS)
+
+if (IMGUI_BUILD_EXAMPLE AND ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
     set(IMGUI_WEB_DIR ${PROJECT_BINARY_DIR}/web/)
     SET(IMGUI_SHELL_FILE ${PROJECT_SOURCE_DIR}/test/shell_minimal.html)
     add_executable(
@@ -1475,7 +1522,6 @@ else()
         LINK_FLAGS "--shell-file ${IMGUI_SHELL_FILE}"
     )
 endif()
-endif(IMGUI_BUILD_EXAMPLE AND IMGUI_APPS)
 
 get_directory_property(hasParent PARENT_DIRECTORY)
 if(hasParent)

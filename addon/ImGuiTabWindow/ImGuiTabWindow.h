@@ -4,7 +4,7 @@
 #ifndef IMGUI_API
 #include <imgui.h>
 #endif //IMGUI_API
-#include "ImGuiHelper.h"
+#include <imgui_helper.h>
 
 // This addon is bundled in the "ImGui Addons Branch" here: https://github.com/Flix01/imgui/tree/imgui_with_addons
 // Wiki about the "ImGui Addons Branch" is here:			https://github.com/Flix01/imgui/wiki/ImGui-Addons-Branch-Home

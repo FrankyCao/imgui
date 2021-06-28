@@ -7,31 +7,53 @@
 // It is possible to combine both code into a single source file that will compile properly on Desktop and using Emscripten.
 // See https://github.com/ocornut/imgui/pull/2492 as an example on how to do just that.
 
-#include "imgui.h"
-#include "imgui_impl_sdl.h"
-#include "imgui_impl_opengl3.h"
+#include <imgui.h>
+#include <imgui_impl_sdl.h>
+#include <imgui_impl_opengl3.h>
 #include <stdio.h>
 #include <emscripten.h>
 #include <SDL.h>
 #include <SDL_opengles2.h>
-#if IMGUI_ADDONS
+#if IMGUI_ADDON_IMPLOTS
 #include "implot.h"
+#endif
+#if IMGUI_ADDON_MARKDOWN
 #include "imgui_markdown.h"
+#endif
+#if IMGUI_ADDON_MEMORY_EDITOR
 #include "imgui_memory_editor.h"
+#endif
 #if IMGUI_ADDON_IMNODES
 #include "imnodes.h"
 #endif
 #if IMGUI_ADDON_NODE_GRAPH
 #include "ImGuiNodeGraphEditor.h"
 #endif
+#if IMGUI_ADDON_TEXT_EDITOR
 #include "TextEditor.h"
+#endif
+#if IMGUI_ADDON_FILE_DIALOG
 #include "ImGuiFileDialog.h"
+#endif
+#if IMGUI_ADDON_FILE_SYSTEM
 #include "ImGuiFileSystem.h"
+#endif
+#if IMGUI_ADDON_DOCK
 #include "imgui_dock.h"
+#endif
+#if IMGUI_ADDON_HOTKEY
 #include "HotKey.h"
+#endif
+#if IMGUI_ADDON_ZMO
 #include "ImGuizmo.h"
+#endif
+#if IMGUI_ADDON_ZMOQUAT
 #include "imGuIZMOquat.h"
+#endif
+#if IMGUI_ADDON_DEAR_WIDGETS
 #include "dear_widgets.h"
+#endif
+#if IMGUI_ADDON_DATE_CHOOSER || IMGUI_ADDON_KNOB || IMGUI_ADDON_VARIOUS || IMGUI_ADDON_DOCK || IMGUI_ADDON_TABWINDOW || IMGUI_ADDON_PROGRESSES || IMGUI_ADDON_TIMELINE || IMGUI_VULKAN_SHADER
 #include "addon/addons_demo.h"
 #endif
 
@@ -44,7 +66,7 @@
 SDL_Window*     g_Window = NULL;
 SDL_GLContext   g_GLContext = NULL;
 
-#if IMGUI_ADDONS
+#if IMGUI_ADDON_HOTKEY
 static std::vector<ImHotKey::HotKey> hotkeys = 
 { 
     {"Layout", "Reorder nodes in a simpler layout", 0xFFFF26E0},
@@ -53,18 +75,27 @@ static std::vector<ImHotKey::HotKey> hotkeys =
     {"Play/Stop", "Play or stop the animation from the current graph", 0xFFFFFF3F},
     {"SetKey", "Make a new animation key with the current parameters values at the current time", 0xFFFFFF1F}
 };
+#endif
 
+#if IMGUI_ADDON_FILE_DIALOG
 static ImGuiFileDialog filedialog;
+#endif
+#if IMGUI_ADDON_FILE_SYSTEM
 static ImGuiFs::Dialog dlg;
+#endif
+#if IMGUI_ADDON_TEXT_EDITOR
 static TextEditor editor;
-static MemoryEditor mem_edit;
-static ImGui::MarkdownConfig mdConfig; 
+#endif
+#if IMGUI_ADDON_MEMORY_EDITOR
 int8_t data[0x1000];
-
+static MemoryEditor mem_edit;
+#endif
 #if IMGUI_ADDON_NODE_GRAPH
 static ImGui::NodeGraphEditor nge;
 #endif
 
+#if IMGUI_ADDON_MARKDOWN
+static ImGui::MarkdownConfig mdConfig; 
 static std::string get_file_contents()
 {
     return "Dear ImGui \n" \
@@ -173,7 +204,7 @@ int main(int, char**)
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-#if IMGUI_ADDONS
+#if IMGUI_ADDON_IMPLOTS
     ImPlot::CreateContext();
 #endif
     ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -202,17 +233,17 @@ int main(int, char**)
     // - Emscripten allows preloading a file or folder to be accessible at runtime. See Makefile for details.
     io.Fonts->AddFontDefault();
 
-#if IMGUI_ADDONS
+#if IMGUI_ADDON_FILE_DIALOG
     prepare_file_dialog_demo_window(&filedialog, nullptr);
-
+#endif
+#if IMGUI_ADDON_MEMORY_EDITOR
     mem_edit.Open = false;
     mem_edit.OptShowDataPreview = true;
     mem_edit.OptAddrDigitsCount = 8;
-
+#endif
 #if IMGUI_ADDON_IMNODES
     ImNodes::CreateContext();
     imnodes_example::NodeEditorInitialize(nullptr, nullptr);
-#endif
 #endif
     // This function call won't return, and will engage in an infinite loop, processing events from the browser, and dispatching them.
     emscripten_set_main_loop_arg(main_loop, NULL, 0, true);
@@ -226,7 +257,6 @@ static void main_loop(void* arg)
     // Our state (make them static = more or less global) as a convenience to keep the example terse.
     static bool show_demo_window = true;
     static bool show_another_window = false;
-#if IMGUI_ADDONS
     static bool show_implot_window = false;
     static bool show_file_dialog_window = false;
     static bool show_sample_file_dialog = false;
@@ -234,17 +264,13 @@ static void main_loop(void* arg)
     static bool show_markdown_window = false;
     static bool show_dock_window = false;
     static bool show_tab_window = false;
-#if IMGUI_ADDON_IMNODES
     static bool show_node_window = false;
-#endif
-#if IMGUI_ADDON_NODE_GRAPH
     static bool show_node_edit_window = false;
-#endif
     static bool show_addon_widget = false;
     static bool show_zmo_window = false;
     static bool show_quat_window = false;
     static bool show_dear_widgets_window = false;
-#endif
+
     static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     // Poll and handle events (inputs, window resize, etc.)
@@ -264,11 +290,11 @@ static void main_loop(void* arg)
     ImGui_ImplSDL2_NewFrame(g_Window);
     ImGui::NewFrame();
 
-    // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
+    // Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
     if (show_demo_window)
         ImGui::ShowDemoWindow(&show_demo_window);
 
-    // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
+    // Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
     {
         static float f = 0.0f;
         static int counter = 0;
@@ -278,26 +304,49 @@ static void main_loop(void* arg)
         ImGui::Text("This is some useful text.");                     // Display some text (you can use a format strings too)
         ImGui::Checkbox("Demo Window", &show_demo_window);            // Edit bools storing our window open/close state
         ImGui::Checkbox("Another Window", &show_another_window);
-#if IMGUI_ADDONS
+#if IMGUI_ADDON_IMPLOTS
         ImGui::Checkbox("ImPlot Window", &show_implot_window);
+#endif
+#if IMGUI_ADDON_FILE_DIALOG
         ImGui::Checkbox("File Dialog Window", &show_file_dialog_window);
+#endif
+#if IMGUI_ADDON_FILE_SYSTEM
         ImGui::Checkbox("Sample File Dialog", &show_sample_file_dialog);
+#endif
+#if IMGUI_ADDON_MEMORY_EDITOR
         ImGui::Checkbox("Memory Edit Window", &mem_edit.Open);
+#endif
+#if IMGUI_ADDON_TEXT_EDITOR
         ImGui::Checkbox("Show Text Edit Window", &show_text_edit_window);
+#endif
+#if IMGUI_ADDON_MARKDOWN
         ImGui::Checkbox("Show Markdown Window", &show_markdown_window);
+#endif
+#if IMGUI_ADDON_DOCK
         ImGui::Checkbox("Show Dock Window", &show_dock_window);
+#endif
+#if IMGUI_ADDON_TABWINDOW
         ImGui::Checkbox("Show Tab Window", &show_tab_window);
+#endif
 #if IMGUI_ADDON_IMNODES
         ImGui::Checkbox("Show Node Sample Window", &show_node_window);
 #endif
 #if IMGUI_ADDON_NODE_GRAPH
         ImGui::Checkbox("Show Node Edit Windows", &show_node_edit_window);
 #endif
+#if IMGUI_ADDON_DATE_CHOOSER || IMGUI_ADDON_KNOB || IMGUI_ADDON_VARIOUS || IMGUI_ADDON_DOCK || IMGUI_ADDON_TABWINDOW || IMGUI_ADDON_PROGRESSES || IMGUI_ADDON_TIMELINE
         ImGui::Checkbox("Show Addon Widgets", &show_addon_widget);
+#endif
+#if IMGUI_ADDON_ZMO
         ImGui::Checkbox("Show ImGuizmo Window", &show_zmo_window);
+#endif
+#if IMGUI_ADDON_ZMOQUAT
         ImGui::Checkbox("Show ZMOQuat Window", &show_quat_window);
+#endif
+#if IMGUI_ADDON_DEAR_WIDGETS
         ImGui::Checkbox("Show DearWidgets Window", &show_dear_widgets_window);
-
+#endif
+#if IMGUI_ADDON_HOTKEY
         // show hotkey window
         if (ImGui::Button("Edit Hotkeys"))
         {
@@ -324,7 +373,7 @@ static void main_loop(void* arg)
         ImGui::End();
     }
 
-    // 3. Show another simple window.
+    // Show another simple window.
     if (show_another_window)
     {
         ImGui::Begin("Another Window", &show_another_window);         // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
@@ -334,20 +383,24 @@ static void main_loop(void* arg)
         ImGui::End();
     }
 
-#if IMGUI_ADDONS
-    // 4. Show implot demo
+#if IMGUI_ADDON_IMPLOTS
+    // Show implot demo
     if (show_implot_window)
     {
         ImPlot::ShowDemoWindow(&show_implot_window);
     }
+#endif
 
-    // 5. Show FileDialog demo window
+#if IMGUI_ADDON_FILE_DIALOG
+    // Show FileDialog demo window
     if (show_file_dialog_window)
     {
         show_file_dialog_demo_window(&filedialog, &show_file_dialog_window);
     }
+#endif
 
-    // 6. Show Sample FileDialog
+#if IMGUI_ADDON_FILE_SYSTEM
+    // Show Sample FileDialog
     {
         // dlg.WrapMode = false;
         const char* filePath = dlg.chooseFileDialog(show_sample_file_dialog, dlg.getLastDirectory(), ".jpg;.jpeg;.png;.gif;.tga;.bmp", "Sample file dialog", ImVec2(400, 800), ImVec2(50, 50));
@@ -357,20 +410,26 @@ static void main_loop(void* arg)
         }
         show_sample_file_dialog = false;
     }
+#endif
 
-    // 7. Show Memory Edit window
+#if IMGUI_ADDON_MEMORY_EDITOR
+    // Show Memory Edit window
     if (mem_edit.Open)
     {
         mem_edit.DrawWindow("Memory Editor", data, 0x1000, 0, &mem_edit.Open, 768);
     }
+#endif
 
-    // 8. Show Text Edit Window
+#if IMGUI_ADDON_TEXT_EDITOR
+    // Show Text Edit Window
     if (show_text_edit_window)
     {
         editor.text_edit_demo(&show_text_edit_window);
     }
-    
-    // 9. Show Markdown Window
+#endif
+
+#if IMGUI_ADDON_MARKDOWN
+    // Show Markdown Window
     if (show_markdown_window)
     {
         std::string help_doc = get_file_contents();
@@ -385,8 +444,10 @@ static void main_loop(void* arg)
         mdConfig.formatCallback =       ExampleMarkdownFormatCallback;
         ImGui::Markdown( help_doc.c_str(), help_doc.length(), mdConfig );
     }
+#endif
 
-    // 10. Show Dock Window
+#if IMGUI_ADDON_DOCK
+    // Show Dock Window
     if (show_dock_window)
     {
         ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
@@ -396,8 +457,10 @@ static void main_loop(void* arg)
         }
         ImGui::End();
     }
+#endif
 
-    // 11. Show Tab Window
+#if IMGUI_ADDON_TABWINDOW
+    // Show Tab Window
     if (show_tab_window)
     {
         ImGui::SetNextWindowSize(ImVec2(700,600), ImGuiCond_FirstUseEver);
@@ -407,15 +470,18 @@ static void main_loop(void* arg)
         }
         ImGui::End();
     }
+#endif
+
 #if IMGUI_ADDON_IMNODES
-    // 12. Show Node Window
+    // Show Node Window
     if (show_node_window)
     {
         imnodes_example::NodeEditorShow();
     }
 #endif
+
 #if IMGUI_ADDON_NODE_GRAPH
-    // 13. Show Node Edit Window
+    // Show Node Edit Window
     if (show_node_edit_window)
     {
         ImGui::SetNextWindowSize(ImVec2(700,600), ImGuiCond_FirstUseEver);
@@ -428,7 +494,9 @@ static void main_loop(void* arg)
         ImGui::End();
     }
 #endif
-    // 14. Show addons widget
+
+#if IMGUI_ADDON_DATE_CHOOSER || IMGUI_ADDON_KNOB || IMGUI_ADDON_VARIOUS || IMGUI_ADDON_DOCK || IMGUI_ADDON_TABWINDOW || IMGUI_ADDON_PROGRESSES || IMGUI_ADDON_TIMELINE
+    // Show addons widget
     if (show_addon_widget)
     {
         ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
@@ -436,8 +504,10 @@ static void main_loop(void* arg)
         ImGui::ShowAddonsDemoWindowWidgets();
         ImGui::End();
     }
+#endif
 
-    // 15. Show Zmo Window
+#if IMGUI_ADDON_ZMO
+    // Show Zmo Window
     if (show_zmo_window)
     {
         ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
@@ -446,8 +516,10 @@ static void main_loop(void* arg)
         ImGuizmo::ShowAddonsZMOWindow();
         ImGui::End();
     }
-    
-    // 16. Show Zmo Quat Window
+#endif
+
+#if IMGUI_ADDON_ZMOQUAT
+    // Show Zmo Quat Window
     if (show_quat_window)
     {
         ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
@@ -456,8 +528,10 @@ static void main_loop(void* arg)
         ImGui::ShowGizmoDemo();
         ImGui::End();
     }
+#endif
 
-    // 17. Show DearWidgets Window
+#if IMGUI_ADDON_DEAR_WIDGETS
+    // Show DearWidgets Window
     if (show_dear_widgets_window)
     {
         ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);

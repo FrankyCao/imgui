@@ -38,9 +38,26 @@
 #cmakedefine01 IMGUI_FONT_YUAN
 #cmakedefine01 IMGUI_FONT_SARASA
 #cmakedefine01 IMGUI_ICONS
-#cmakedefine01 IMGUI_ADDONS
+#cmakedefine01 IMGUI_ADDON_DEAR_WIDGETS
+#cmakedefine01 IMGUI_ADDON_KNOB
+#cmakedefine01 IMGUI_ADDON_DATE_CHOOSER
+#cmakedefine01 IMGUI_ADDON_DOCK
+#cmakedefine01 IMGUI_ADDON_FILE_DIALOG
+#cmakedefine01 IMGUI_ADDON_FILE_SYSTEM
+#cmakedefine01 IMGUI_ADDON_TABWINDOW
+#cmakedefine01 IMGUI_ADDON_ZMO
+#cmakedefine01 IMGUI_ADDON_ZMOQUAT
 #cmakedefine01 IMGUI_ADDON_IMNODES
 #cmakedefine01 IMGUI_ADDON_NODE_GRAPH
+#cmakedefine01 IMGUI_ADDON_VARIOUS
+#cmakedefine01 IMGUI_ADDON_IMPLOTS
+#cmakedefine01 IMGUI_ADDON_MARKDOWN
+#cmakedefine01 IMGUI_ADDON_MEMORY_EDITOR
+#cmakedefine01 IMGUI_ADDON_PROGRESSES
+#cmakedefine01 IMGUI_ADDON_TEXT_EDITOR
+#cmakedefine01 IMGUI_ADDON_TIMELINE
+#cmakedefine01 IMGUI_ADDON_TINYFILE
+#cmakedefine01 IMGUI_ADDON_HOTKEY
 #cmakedefine01 IMGUI_VULKAN_SHADER
 #cmakedefine01 SHADER_BENCHMARK
 #cmakedefine01 IMGUI_APPLICATION_RENDERING_VULKAN
@@ -94,9 +111,7 @@
 //#define IMGUI_DISABLE_SSE                                 // Disable use of SSE intrinsics even if available
 
 //---- Include imgui_user.h at the end of imgui.h as a convenience
-#if IMGUI_ADDONS
 #define IMGUI_INCLUDE_IMGUI_USER_H
-#endif
 
 //---- Pack colors to BGRA8 instead of RGBA8 (to avoid converting from one to another)
 //#define IMGUI_USE_BGRA_PACKED_COLOR

@@ -9,8 +9,10 @@
 #include <imgui.h>
 #endif //IMGUI_API
 #include <string>
-#include "ImGuiHelper.h"
+#include <imgui_helper.h>
+#if IMGUI_ADDON_TABWINDOW
 #include "ImGuiTabWindow.h"
+#endif
 /*
  *   // Basic usage:
     // Here we create a window (please skip if already in a window)

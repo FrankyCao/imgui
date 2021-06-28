@@ -2900,7 +2900,7 @@ enum ImDrawCornerFlags_
 #endif
 
 // add By Dicky for internal icons
-#if IMGUI_ICONS || IMGUI_ADDONS
+#if IMGUI_ICONS
 #include "icons/icons.h"
 #endif
 

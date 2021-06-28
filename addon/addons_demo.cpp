@@ -1,19 +1,34 @@
+
 #include "addons_demo.h"
 #include "NumberTexture.h"
-#include "ImGuiHelper.h"
+#if IMGUI_ADDON_VARIOUS
 #include "ImGuiVariousControls.h"
+#endif
+#if IMGUI_ADDON_DATE_CHOOSER
 #include "ImGuiDateChooser.h"
+#endif
+#if IMGUI_ADDON_PROGRESSES
 #include "ProgressIndicators.h"
+#endif
+#if IMGUI_ADDON_TIMELINE
 #include "Timeline.h"
+#endif
+#if IMGUI_ADDON_KNOB
 #include "imgui_knob.h"
+#endif
+#if IMGUI_ADDON_DOCK
 #include "imgui_dock.h"
+#endif
+#if IMGUI_ADDON_TABWINDOW
 #include "ImGuiTabWindow.h"
+#endif
 #if IMGUI_VULKAN_SHADER
 #include "ImVulkanShader.h"
 #endif
 #if defined(_WIN32) || defined(__EMSCRIPTEN__)
 #include <time.h>
 #endif
+#include <cmath>
 
 ImTextureID ImageTextureNumber = 0;
 
@@ -38,6 +53,7 @@ void ShowAddonsDemoWindowWidgets()
     {
         ImageTextureNumber = ImCreateTexture(NumberTexture_pixels, NumberTexture_width, NumberTexture_height);
     }
+#if IMGUI_ADDON_VARIOUS
     if (ImGui::TreeNode("Basic"))
     {
         static bool check = true;
@@ -255,34 +271,6 @@ void ShowAddonsDemoWindowWidgets()
         ImGui::TreePop();
     }
 
-    if (ImGui::TreeNode("Choose a date"))
-    {
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("Choose a date:");
-        ImGui::SameLine();
-        static tm myDate={}; 
-        ImGui::SetNextItemWidth(ImGui::GetWindowContentRegionWidth()*0.2f);
-        if (ImGui::DateChooser("Date Chooser ##MyDateChooser",myDate,"%d/%m/%Y")) {
-            // A new date has been chosen
-            //fprintf(stderr,"A new date has been chosen exacty now: \"%.2d-%.2d-%.4d\"\n",myDate.tm_mday,myDate.tm_mon+1,myDate.tm_year+1900);
-        }
-        ImGui::Text("Chosen date: \"%.2d-%.2d-%.4d\"",myDate.tm_mday,myDate.tm_mon+1,myDate.tm_year+1900);
-
-        ImGui::Spacing();
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("Choose another date:");
-        ImGui::SameLine();
-        static tm myDate2={};       // IMPORTANT: must be static! (plenty of compiler warnings here if we write: static tm myDate={0}; Is there any difference?)
-        ImGui::SetNextItemWidth(ImGui::GetWindowContentRegionWidth()*0.2f);
-        if (ImGui::DateChooser("##MyDateChooser2",myDate2,"%d/%m/%Y")) {
-            // A new date has been chosen
-            //fprintf(stderr,"A new date has been chosen exacty now: \"%.2d-%.2d-%.4d\"\n",myDate2.tm_mday,myDate2.tm_mon+1,myDate2.tm_year+1900);
-        }
-        ImGui::Text("Chosen date2: \"%.2d-%.2d-%.4d\"",myDate2.tm_mday,myDate2.tm_mon+1,myDate2.tm_year+1900);
-
-        ImGui::TreePop();
-    }
-
     if (ImGui::TreeNode("Passwd"))
     {
         ImGui::Text("Password Drawer Widget:");
@@ -313,6 +301,64 @@ void ShowAddonsDemoWindowWidgets()
         ImGui::TreePop();
     }
 
+    if (ImGui::TreeNode("Splitter windows"))
+    {
+        float h = 200;
+        static float hsz1 = 300;
+        static float hsz2 = 300;
+        static float vsz1 = 100;
+        static float vsz2 = 100;
+        ImGui::Splitter(true, 8.0f, &hsz1, &hsz2, 8, 8, h);
+        ImGui::BeginChild("1", ImVec2(hsz1, h), true);
+            ImGui::Text("Window 1");
+        ImGui::EndChild();
+        ImGui::SameLine();
+
+        ImGui::BeginChild("2", ImVec2(hsz2, h), true);
+            ImGui::Splitter(false, 8.0f, &vsz1, &vsz2, 8, 8, hsz2);
+            ImGui::BeginChild("3", ImVec2(hsz2, vsz1), false);
+                ImGui::Text("Window 2");
+            ImGui::EndChild();
+            ImGui::BeginChild("4", ImVec2(hsz2, vsz2), false);
+                ImGui::Text("Window 3");
+            ImGui::EndChild();
+        ImGui::EndChild();
+
+        ImGui::TreePop();
+    }
+#endif
+
+#if IMGUI_ADDON_DATE_CHOOSER
+    if (ImGui::TreeNode("Choose a date"))
+    {
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("Choose a date:");
+        ImGui::SameLine();
+        static tm myDate={}; 
+        ImGui::SetNextItemWidth(ImGui::GetWindowContentRegionWidth()*0.2f);
+        if (ImGui::DateChooser("Date Chooser ##MyDateChooser",myDate,"%d/%m/%Y")) {
+            // A new date has been chosen
+            //fprintf(stderr,"A new date has been chosen exacty now: \"%.2d-%.2d-%.4d\"\n",myDate.tm_mday,myDate.tm_mon+1,myDate.tm_year+1900);
+        }
+        ImGui::Text("Chosen date: \"%.2d-%.2d-%.4d\"",myDate.tm_mday,myDate.tm_mon+1,myDate.tm_year+1900);
+
+        ImGui::Spacing();
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("Choose another date:");
+        ImGui::SameLine();
+        static tm myDate2={};       // IMPORTANT: must be static! (plenty of compiler warnings here if we write: static tm myDate={0}; Is there any difference?)
+        ImGui::SetNextItemWidth(ImGui::GetWindowContentRegionWidth()*0.2f);
+        if (ImGui::DateChooser("##MyDateChooser2",myDate2,"%d/%m/%Y")) {
+            // A new date has been chosen
+            //fprintf(stderr,"A new date has been chosen exacty now: \"%.2d-%.2d-%.4d\"\n",myDate2.tm_mday,myDate2.tm_mon+1,myDate2.tm_year+1900);
+        }
+        ImGui::Text("Chosen date2: \"%.2d-%.2d-%.4d\"",myDate2.tm_mday,myDate2.tm_mon+1,myDate2.tm_year+1900);
+
+        ImGui::TreePop();
+    }
+#endif
+
+#if IMGUI_ADDON_PROGRESSES
     if (ImGui::TreeNode("Progress&Indicators"))
     {
         // Spin Test:
@@ -391,7 +437,9 @@ void ShowAddonsDemoWindowWidgets()
         ImGui::EndChild();
         ImGui::TreePop();
     }
+#endif
 
+#if IMGUI_ADDON_TIMELINE
     if (ImGui::TreeNode("TimeLine Widgets"))
     {
         if (ImGui::BeginTimeline("MyTimeline",50.f,6,6))  // label, max_value, num_visible_rows, opt_exact_num_rows (for item culling)
@@ -448,7 +496,9 @@ void ShowAddonsDemoWindowWidgets()
 
         ImGui::TreePop();
     }
+#endif
 
+#if IMGUI_ADDON_KNOB
     if (ImGui::TreeNode("Style Knob Widgets"))
     {
         static float val = 0.5, val_default = 0.5;
@@ -504,34 +554,10 @@ void ShowAddonsDemoWindowWidgets()
 
         ImGui::TreePop();
     }
-
-    if (ImGui::TreeNode("Splitter windows"))
-    {
-        float h = 200;
-        static float hsz1 = 300;
-        static float hsz2 = 300;
-        static float vsz1 = 100;
-        static float vsz2 = 100;
-        ImGui::Splitter(true, 8.0f, &hsz1, &hsz2, 8, 8, h);
-        ImGui::BeginChild("1", ImVec2(hsz1, h), true);
-            ImGui::Text("Window 1");
-        ImGui::EndChild();
-        ImGui::SameLine();
-
-        ImGui::BeginChild("2", ImVec2(hsz2, h), true);
-            ImGui::Splitter(false, 8.0f, &vsz1, &vsz2, 8, 8, hsz2);
-            ImGui::BeginChild("3", ImVec2(hsz2, vsz1), false);
-                ImGui::Text("Window 2");
-            ImGui::EndChild();
-            ImGui::BeginChild("4", ImVec2(hsz2, vsz2), false);
-                ImGui::Text("Window 3");
-            ImGui::EndChild();
-        ImGui::EndChild();
-
-        ImGui::TreePop();
-    }
+#endif
 }
 
+#if IMGUI_ADDON_DOCK
 void ShowAddonsDuckWindow()
 {
     static ImGui::DockContext* gDockContent = ImGui::CreateDockContext();
@@ -579,7 +605,9 @@ void ShowAddonsDuckWindow()
     //=========== END OPTIONAL STUFF ================================================
     ImGui::EndDockspace();
 }
+#endif
 
+#if IMGUI_ADDON_TABWINDOW
 void ShowAddonsTabWindow()
 {
     ImGui::Spacing();
@@ -652,6 +680,8 @@ void ShowAddonsTabWindow()
         //if (optionalHoveredVerticalTab>=0) ImGui::Text("Mouse is hovering Tab Label: \"%s\".\n\n",verticalTabNames[optionalHoveredVerticalTab]);
     }
 }
+#endif
+
 void CleanupDemo()
 {
     if (ImageTextureNumber) { ImDestroyTexture(ImageTextureNumber); ImageTextureNumber = 0; }
