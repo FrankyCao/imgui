@@ -389,9 +389,11 @@ IMGUI_API void LoadCurrentEditorStateFromIniFile(const char* file_name);
 IMGUI_API void LoadEditorStateFromIniFile(ImNodesEditorContext* editor, const char* file_name);
 } // namespace ImNodes
 
+#if IMGUI_BUILD_EXAMPLE
 namespace imnodes_example
 {
     IMGUI_API void NodeEditorInitialize(const char * ini_path, const char * node_path);
     IMGUI_API void NodeEditorShow(bool * open = (bool *)nullptr);
     IMGUI_API void NodeEditorShutdown(const char * ini_path, const char * node_path);
 } // namespace imnodes_example
+#endif // IMGUI_BUILD_EXAMPLE

@@ -31,6 +31,7 @@
 #include "HotKey.h"
 #include "ImGuizmo.h"
 #include "imGuIZMOquat.h"
+#include "dear_widgets.h"
 #include "addon/addons_demo.h"
 #endif
 
@@ -242,6 +243,7 @@ static void main_loop(void* arg)
     static bool show_addon_widget = false;
     static bool show_zmo_window = false;
     static bool show_quat_window = false;
+    static bool show_dear_widgets_window = false;
 #endif
     static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
@@ -294,6 +296,7 @@ static void main_loop(void* arg)
         ImGui::Checkbox("Show Addon Widgets", &show_addon_widget);
         ImGui::Checkbox("Show ImGuizmo Window", &show_zmo_window);
         ImGui::Checkbox("Show ZMOQuat Window", &show_quat_window);
+        ImGui::Checkbox("Show DearWidgets Window", &show_dear_widgets_window);
 
         // show hotkey window
         if (ImGui::Button("Edit Hotkeys"))
@@ -451,6 +454,16 @@ static void main_loop(void* arg)
         ImGui::SetNextWindowSize(ImVec2(1280, 800), ImGuiCond_FirstUseEver);
         ImGui::Begin("##ZMOQuat", &show_quat_window, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar);
         ImGui::ShowGizmoDemo();
+        ImGui::End();
+    }
+
+    // 17. Show DearWidgets Window
+    if (show_dear_widgets_window)
+    {
+        ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(1280, 800), ImGuiCond_FirstUseEver);
+        ImGui::Begin("##DearWidgets", &show_dear_widgets_window, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar);
+        ImWidgets::ShowDemo();
         ImGui::End();
     }
 

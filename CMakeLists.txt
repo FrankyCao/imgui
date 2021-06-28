@@ -950,6 +950,27 @@ if(IMGUI_ADDONS)
         )
     endif(IMGUI_BUILD_EXAMPLE)
 
+    # Dear Widgets
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
+        addon/DearWidgets/dear_widgets.cpp
+    )
+    set(IMGUI_INCS
+        ${IMGUI_INCS}
+        addon/DearWidgets/dear_widgets.h
+        addon/DearWidgets/dear_widgets.hpp
+    )
+    set(IMGUI_INC_DIRS
+        ${IMGUI_INC_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/addon/DearWidgets
+    )
+    if (IMGUI_BUILD_EXAMPLE)
+        set(IMGUI_SRC
+            ${IMGUI_SRC}
+            addon/DearWidgets/dear_widgets_demo.cpp
+        )
+    endif(IMGUI_BUILD_EXAMPLE)
+
     # Vulkan Shader/Glslang
     if (IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
         option(BUILD_EXTERNAL "" OFF)

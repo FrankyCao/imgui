@@ -796,9 +796,9 @@ class IMGUI_API NodeGraphEditor
 };
 
 
-#ifndef IMGUINODEGRAPHEDITOR_NOTESTDEMO
+#if IMGUI_BUILD_EXAMPLE
 IMGUI_API void TestNodeGraphEditor(ImGui::NodeGraphEditor * nge);
-#endif //IMGUINODEGRAPHEDITOR_NOTESTDEMO
+#endif //IMGUI_BUILD_EXAMPLE
 
 
 }	// namespace ImGui

@@ -26,6 +26,7 @@
 #include "HotKey.h"
 #include "ImGuizmo.h"
 #include "imGuIZMOquat.h"
+#include "dear_widgets.h"
 #include "addon/addons_demo.h"
 #endif
 #include "Config.h"
@@ -142,6 +143,7 @@ public:
     bool show_addon_widget = false;
     bool show_zmo_window = false;
     bool show_quat_window = false;
+    bool show_dear_widget_window = false;
 public:
     std::string get_file_contents(const char *filename);
     static ImGui::MarkdownImageData ImageCallback( ImGui::MarkdownLinkCallbackData data_ );
@@ -298,6 +300,7 @@ bool Application_Frame(void* handle)
         ImGui::Checkbox("Show Addon Widgets", &example->show_addon_widget);
         ImGui::Checkbox("Show ZMO Window", &example->show_zmo_window);
         ImGui::Checkbox("Show ZMOQuat Window", &example->show_quat_window);
+        ImGui::Checkbox("Show DearWidgets Window", &example->show_dear_widget_window);
 #if IMGUI_VULKAN_SHADER
         ImGui::Checkbox("Show Shader Window", &example->show_shader_window);
 #endif
@@ -471,8 +474,17 @@ bool Application_Frame(void* handle)
         ImGui::End();
     }
 
+    // 18. Show Dear Widgets Window
+    if (example->show_dear_widget_window)
+    {
+        ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(1280, 800), ImGuiCond_FirstUseEver);
+        ImGui::Begin("##DearWidgets", &example->show_dear_widget_window, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar);
+        ImWidgets::ShowDemo();
+        ImGui::End();
+    }
 #if IMGUI_VULKAN_SHADER
-    // 18. Show Shader Window
+    // 19. Show Shader Window
     if (example->show_shader_window)
     {
         ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
