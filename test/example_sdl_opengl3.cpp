@@ -233,7 +233,7 @@ int main(int, char**)
     io.IniFilename = ini_file.c_str();
     io.FontGlobalScale = window_scale;
 
-    io.Fonts->AddFontDefault();
+    //io.Fonts->AddFontDefault();
     
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();

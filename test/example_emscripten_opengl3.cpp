@@ -231,7 +231,7 @@ int main(int, char**)
     // - Read 'docs/FONTS.md' for more instructions and details.
     // - Remember that in C/C++ if you want to include a backslash \ in a string literal you need to write a double backslash \\ !
     // - Emscripten allows preloading a file or folder to be accessible at runtime. See Makefile for details.
-    io.Fonts->AddFontDefault();
+    //io.Fonts->AddFontDefault();
 
 #if IMGUI_ADDON_FILE_DIALOG
     prepare_file_dialog_demo_window(&filedialog, nullptr);
