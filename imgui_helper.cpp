@@ -36,6 +36,14 @@ struct IUnknown;
 #if IMGUI_VULKAN_SHADER
 #include "ImVulkanShader.h"
 #endif
+
+#if IMGUI_RENDERING_MATAL
+#ifdef IMGUI_OPENGL
+#undef IMGUI_OPENGL
+#define IMGUI_OPENGL 0
+#endif
+#endif
+
 #if IMGUI_OPENGL
 #if defined(IMGUI_IMPL_OPENGL_ES2)
 #include <GLES2/gl2.h>
