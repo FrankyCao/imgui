@@ -121,7 +121,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     init_info.ImageCount = wd->ImageCount;
     init_info.CheckVkResultFn = check_vk_result;
     // Setup ImGui binding
-    ImGui_ImplVulkan_Init(std::make_shared<ImGui_ImplVulkan_InitInfo>(init_info), wd->RenderPass);
+    ImGui_ImplVulkan_Init(&init_info, wd->RenderPass);
 
     UpdateVulkanFont(wd);
 

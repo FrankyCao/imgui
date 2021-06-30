@@ -19,6 +19,7 @@
 
 // CHANGELOG
 // (minor and older changes stripped away, please see git history for details)
+//  2021-06-29: Reorganized backend to pull data from a single structure to facilitate usage with multiple-contexts (all g_XXXX access changed to bd->XXXX).
 //  2021-05-19: OpenGL: Replaced direct access to ImDrawCmd::TextureId with a call to ImDrawCmd::GetTexID(). (will become a requirement)
 //  2021-01-03: OpenGL: Backup, setup and restore GL_SHADE_MODEL state, disable GL_STENCIL_TEST and disable GL_NORMAL_ARRAY client state to increase compatibility with legacy OpenGL applications.
 //  2020-01-23: OpenGL: Backup, setup and restore GL_TEXTURE_ENV to increase compatibility with legacy OpenGL applications.
@@ -55,44 +56,68 @@
 #include <GL/gl.h>
 #endif
 
-// OpenGL Data
-static GLuint       g_GlVersion = 0;                // Extracted at runtime using GL_MAJOR_VERSION, GL_MINOR_VERSION queries (e.g. 320 for GL 3.2)
-static GLuint       g_FontTexture = 0;
+struct ImGui_ImplOpenGL2_Data
+{
+    GLuint       GlVersion;     // add by Dicky
+    GLuint       FontTexture;
+
+    ImGui_ImplOpenGL2_Data() { memset(this, 0, sizeof(*this)); }
+};
+
+// Backend data stored in io.BackendRendererUserData to allow support for multiple Dear ImGui contexts
+// It is STRONGLY preferred that you use docking branch with multi-viewports (== single Dear ImGui context + multiple windows) instead of multiple Dear ImGui contexts.
+static ImGui_ImplOpenGL2_Data*  ImGui_ImplOpenGL2_CreateBackendData()   { return IM_NEW(ImGui_ImplOpenGL2_Data)(); }
+static ImGui_ImplOpenGL2_Data*  ImGui_ImplOpenGL2_GetBackendData()      { return (ImGui_ImplOpenGL2_Data*)ImGui::GetIO().BackendRendererUserData; }
+static void                     ImGui_ImplOpenGL2_DestroyBackendData()  { IM_DELETE(ImGui_ImplOpenGL2_GetBackendData()); }
 
 // Functions
 bool    ImGui_ImplOpenGL2_Init()
 {
-#if defined(GL_VERSION_2_1)
-    g_GlVersion = 210;
-#elif defined(GL_VERSION_2_0)
-    g_GlVersion = 200;
-#elif defined(GL_VERSION_1_5)
-    g_GlVersion = 150;
-#elif defined(GL_VERSION_1_4)
-    g_GlVersion = 140;
-#elif defined(GL_VERSION_1_3)
-    g_GlVersion = 130;
-#elif defined(GL_VERSION_1_2_1)
-    g_GlVersion = 121;
-#elif defined(GL_VERSION_1_2)
-    g_GlVersion = 120;
-#elif defined(GL_VERSION_1_1)
-    g_GlVersion = 110;
-#endif
-    // Setup backend capabilities flags
     ImGuiIO& io = ImGui::GetIO();
+    IM_ASSERT(io.BackendRendererUserData == NULL && "Already initialized a renderer backend!");
+
+    // Setup backend capabilities flags
+    ImGui_ImplOpenGL2_Data* bd = ImGui_ImplOpenGL2_CreateBackendData();
+    io.BackendRendererUserData = (void*)bd;
     io.BackendRendererName = "imgui_impl_opengl2";
+    // add by Dicky
+#if defined(GL_VERSION_2_1)
+    bd->GlVersion = 210;
+#elif defined(GL_VERSION_2_0)
+    bd->GlVersion = 200;
+#elif defined(GL_VERSION_1_5)
+    bd->GlVersion = 150;
+#elif defined(GL_VERSION_1_4)
+    bd->GlVersion = 140;
+#elif defined(GL_VERSION_1_3)
+    bd->GlVersion = 130;
+#elif defined(GL_VERSION_1_2_1)
+    bd->GlVersion = 121;
+#elif defined(GL_VERSION_1_2)
+    bd->GlVersion = 120;
+#elif defined(GL_VERSION_1_1)
+    bd->GlVersion = 110;
+#endif
+    // add by Dicky end
     return true;
 }
 
 void    ImGui_ImplOpenGL2_Shutdown()
 {
+    ImGuiIO& io = ImGui::GetIO();
+
     ImGui_ImplOpenGL2_DestroyDeviceObjects();
+    io.BackendRendererName = NULL;
+    io.BackendRendererUserData = NULL;
+    ImGui_ImplOpenGL2_DestroyBackendData();
 }
 
 void    ImGui_ImplOpenGL2_NewFrame()
 {
-    if (!g_FontTexture)
+    ImGui_ImplOpenGL2_Data* bd = ImGui_ImplOpenGL2_GetBackendData();
+    IM_ASSERT(bd != NULL && "Did you call ImGui_ImplOpenGL2_Init()?");
+
+    if (!bd->FontTexture)
         ImGui_ImplOpenGL2_CreateDeviceObjects();
 }
 
@@ -233,6 +258,7 @@ bool ImGui_ImplOpenGL2_CreateFontsTexture()
 {
     // Build texture atlas
     ImGuiIO& io = ImGui::GetIO();
+    ImGui_ImplOpenGL2_Data* bd = ImGui_ImplOpenGL2_GetBackendData();
     unsigned char* pixels;
     int width, height;
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);   // Load as RGBA 32-bit (75% of the memory is wasted, but default font is so small) because it is more likely to be compatible with user's existing shaders. If your ImTextureId represent a higher-level concept than just a GL texture id, consider calling GetTexDataAsAlpha8() instead to save on GPU memory.
@@ -240,15 +266,15 @@ bool ImGui_ImplOpenGL2_CreateFontsTexture()
     // Upload texture to graphics system
     GLint last_texture;
     glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture);
-    glGenTextures(1, &g_FontTexture);
-    glBindTexture(GL_TEXTURE_2D, g_FontTexture);
+    glGenTextures(1, &bd->FontTexture);
+    glBindTexture(GL_TEXTURE_2D, bd->FontTexture);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
     // Store our identifier
-    io.Fonts->SetTexID((ImTextureID)(intptr_t)g_FontTexture);
+    io.Fonts->SetTexID((ImTextureID)(intptr_t)bd->FontTexture);
 
     // Restore state
     glBindTexture(GL_TEXTURE_2D, last_texture);
@@ -258,12 +284,13 @@ bool ImGui_ImplOpenGL2_CreateFontsTexture()
 
 void ImGui_ImplOpenGL2_DestroyFontsTexture()
 {
-    if (g_FontTexture)
+    ImGuiIO& io = ImGui::GetIO();
+    ImGui_ImplOpenGL2_Data* bd = ImGui_ImplOpenGL2_GetBackendData();
+    if (bd->FontTexture)
     {
-        ImGuiIO& io = ImGui::GetIO();
-        glDeleteTextures(1, &g_FontTexture);
+        glDeleteTextures(1, &bd->FontTexture);
         io.Fonts->SetTexID(0);
-        g_FontTexture = 0;
+        bd->FontTexture = 0;
     }
 }
 
@@ -279,7 +306,8 @@ void    ImGui_ImplOpenGL2_DestroyDeviceObjects()
 
 std::string ImGui_ImplOpenGL2_GetVerion()
 {
-    return std::to_string(g_GlVersion);
+    ImGui_ImplOpenGL2_Data* bd = ImGui_ImplOpenGL2_GetBackendData();
+    return std::to_string(bd->GlVersion);
 }
 
 std::string ImGui_ImplOpenGL2_GLLoaderName()

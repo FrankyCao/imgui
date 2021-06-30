@@ -384,7 +384,8 @@ static void glfw_error_callback(int error, const char* description)
 #if IMGUI_ADDON_MARKDOWN
 static std::string get_file_contents(const char *filename)
 {
-    std::ifstream infile(filename, std::ios::in | std::ios::binary);
+    std::string file_path = std::string(DEFAULT_DOCUMENT_PATH) + std::string(filename);
+    std::ifstream infile(file_path, std::ios::in | std::ios::binary);
     if (infile.is_open())
     {
         std::ostringstream contents;
@@ -479,15 +480,16 @@ int main(int, char**)
     VkResult err = glfwCreateWindowSurface(g_Instance, window, g_Allocator, &surface);
     check_vk_result(err);
 
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+
     // Create Framebuffers
     int w, h;
     glfwGetFramebufferSize(window, &w, &h);
     ImGui_ImplVulkanH_Window* wd = &g_MainWindowData;
     SetupVulkanWindow(wd, surface, w, h);
 
-    // Setup Dear ImGui context
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
 #if IMGUI_ADDON_IMPLOTS
     ImPlot::CreateContext();
 #endif
@@ -516,7 +518,7 @@ int main(int, char**)
     init_info.MinImageCount = g_MinImageCount;
     init_info.ImageCount = wd->ImageCount;
     init_info.CheckVkResultFn = check_vk_result;
-    ImGui_ImplVulkan_Init(std::make_shared<ImGui_ImplVulkan_InitInfo>(init_info), wd->RenderPass);
+    ImGui_ImplVulkan_Init(&init_info, wd->RenderPass);
 
     // Load Fonts
     // - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
@@ -791,14 +793,14 @@ int main(int, char**)
         // Show Markdown Window
         if (show_markdown_window)
         {
-            std::string help_doc = get_file_contents("docs/imgui.md");
+            std::string help_doc = get_file_contents("imgui.md");
             mdConfig.linkCallback =         LinkCallback;
             mdConfig.tooltipCallback =      NULL;
             mdConfig.imageCallback =        ImageCallback;
             mdConfig.linkIcon =             ICON_FA5_LINK;
             mdConfig.headingFormats[0] =    { io.Fonts->Fonts[0], true };
-            mdConfig.headingFormats[1] =    { io.Fonts->Fonts[1], true };
-            mdConfig.headingFormats[2] =    { io.Fonts->Fonts[2], false };
+            mdConfig.headingFormats[1] =    { io.Fonts->Fonts.size() > 1 ? io.Fonts->Fonts[1] : nullptr, true };
+            mdConfig.headingFormats[2] =    { io.Fonts->Fonts.size() > 2 ? io.Fonts->Fonts[2] : nullptr, false };
             mdConfig.userData =             NULL;
             mdConfig.formatCallback =       ExampleMarkdownFormatCallback;
             ImGui::Markdown( help_doc.c_str(), help_doc.length(), mdConfig );

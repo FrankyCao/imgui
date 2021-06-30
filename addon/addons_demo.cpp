@@ -445,7 +445,7 @@ void ShowAddonsDemoWindowWidgets()
         if (ImGui::BeginTimeline("MyTimeline",50.f,6,6))  // label, max_value, num_visible_rows, opt_exact_num_rows (for item culling)
         {
             static float events[12]={10.f,20.f,0.5f,30.f,40.f,50.f,20.f,40.f,15.f,22.5f,35.f,45.f};
-            if (ImGui::TimelineEvent("Event1",&events[0])) {/*events[0] and/or events[1] modified*/}
+            if (ImGui::TimelineEvent("Event1",&events[0])) {} // events[0] and/or events[1] modified
             ImGui::TimelineEvent("Event2",&events[2]);
             ImGui::TimelineEvent("Event3",&events[4],true);    // Event3 can only be shifted
             ImGui::TimelineEvent("Event4",&events[6]);
@@ -493,7 +493,7 @@ void ShowAddonsDemoWindowWidgets()
             if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s","Stop");
         }
         // End COMPLETELY Optional (And Manual) Stuff-----------------------------
-
+        
         ImGui::TreePop();
     }
 #endif

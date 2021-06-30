@@ -64,6 +64,7 @@ if(WIN32)
 endif() 
 
 SET(SDK_CONFIG_DIR ${PROJECT_SOURCE_DIR}/config/)
+SET(SDK_DOC_DIR ${PROJECT_SOURCE_DIR}/docs/)
 CONFIGURE_FILE(Config.h.in Config.h)
 
 include_directories( 

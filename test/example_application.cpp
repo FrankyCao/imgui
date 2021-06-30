@@ -203,7 +203,8 @@ public:
 #if IMGUI_ADDON_MARKDOWN
 std::string Example::get_file_contents(const char *filename)
 {
-    std::ifstream infile(filename, std::ios::in | std::ios::binary);
+    std::string file_path = std::string(DEFAULT_DOCUMENT_PATH) + std::string(filename);
+    std::ifstream infile(file_path, std::ios::in | std::ios::binary);
     if (infile.is_open())
     {
         std::ostringstream contents;
@@ -471,7 +472,7 @@ bool Application_Frame(void* handle)
     {
         ImGui::SetNextWindowSize(ImVec2(1024, 768), ImGuiCond_FirstUseEver);
         ImGui::Begin("iMarkdown window",&example->show_markdown_window, ImGuiWindowFlags_NoScrollbar);
-        std::string help_doc =                   example->get_file_contents("docs/imgui.md");
+        std::string help_doc =                   example->get_file_contents("imgui.md");
         example->mdConfig.linkCallback =         example->LinkCallback;
         example->mdConfig.tooltipCallback =      NULL;
         example->mdConfig.imageCallback =        example->ImageCallback;

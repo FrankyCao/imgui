@@ -365,12 +365,6 @@ int main(int, char**)
         return 1;
     }
 
-    // Create Framebuffers
-    int w, h;
-    SDL_GetWindowSize(window, &w, &h);
-    ImGui_ImplVulkanH_Window* wd = &g_MainWindowData;
-    SetupVulkanWindow(wd, surface, w, h);
-
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -379,6 +373,12 @@ int main(int, char**)
     io.IniFilename = ini_file.c_str();
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+
+    // Create Framebuffers
+    int w, h;
+    SDL_GetWindowSize(window, &w, &h);
+    ImGui_ImplVulkanH_Window* wd = &g_MainWindowData;
+    SetupVulkanWindow(wd, surface, w, h);
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
@@ -398,7 +398,7 @@ int main(int, char**)
     init_info.MinImageCount = g_MinImageCount;
     init_info.ImageCount = wd->ImageCount;
     init_info.CheckVkResultFn = check_vk_result;
-    ImGui_ImplVulkan_Init(std::make_shared<ImGui_ImplVulkan_InitInfo>(init_info), wd->RenderPass);
+    ImGui_ImplVulkan_Init(&init_info, wd->RenderPass);
 
     // Load Fonts
     // - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.

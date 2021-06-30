@@ -60,15 +60,16 @@ int main(int, char**)
     VkResult err = glfwCreateWindowSurface(g_Instance, window, g_Allocator, &surface);
     check_vk_result(err);
 
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+
     // Create Framebuffers
     int w, h;
     glfwGetWindowSize(window, &w, &h);
     ImGui_ImplVulkanH_Window* wd = &g_MainWindowData;
     SetupVulkanWindow(wd, surface, w, h);
 
-    // Setup Dear ImGui context
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.FontGlobalScale = window_scale;
     io.DisplayFramebufferScale = display_scale;
@@ -90,7 +91,7 @@ int main(int, char**)
     init_info.ImageCount = wd->ImageCount;
     init_info.CheckVkResultFn = check_vk_result;
     // Setup ImGui binding
-    ImGui_ImplVulkan_Init(std::make_shared<ImGui_ImplVulkan_InitInfo>(init_info), wd->RenderPass);
+    ImGui_ImplVulkan_Init(&init_info, wd->RenderPass);
 
     UpdateVulkanFont(wd);
 
