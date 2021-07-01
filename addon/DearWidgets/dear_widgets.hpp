@@ -251,12 +251,12 @@ void	DrawColorRingEx(ImDrawList* pDrawList, ImVec2 const curPos, ImVec2 const si
 		pDrawList->PrimWriteIdx((ImDrawIdx)(pDrawList->_VtxCurrentIdx + 2));
 		pDrawList->PrimWriteIdx((ImDrawIdx)(pDrawList->_VtxCurrentIdx + 3));
 
-		float const t0 = std::fmodf(colorOffset + ((float)i) / ((float)division), 1.0f);
+		float const t0 = fmodf(colorOffset + ((float)i) / ((float)division), 1.0f);
 		ImU32 const uCol0 = func(t0);
 
 		if (IsBilinear)
 		{
-			float const t1 = std::fmodf(colorOffset + ((float)(i + 1)) / ((float)division), 1.0f);
+			float const t1 = fmodf(colorOffset + ((float)(i + 1)) / ((float)division), 1.0f);
 			ImU32 const uCol1 = func(t1);
 			pDrawList->PrimWriteVtx(offset + ImVec2(x0, y0), uv, uCol0);
 			pDrawList->PrimWriteVtx(offset + ImVec2(x1, y1), uv, uCol1);
