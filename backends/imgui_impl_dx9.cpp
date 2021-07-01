@@ -368,3 +368,12 @@ void ImGui_ImplDX9_NewFrame()
     if (!bd->FontTexture)
         ImGui_ImplDX9_CreateDeviceObjects();
 }
+
+// Add By Dicky
+void * ImGui_ImplDX9_GetDevice()
+{
+    ImGui_ImplDX9_Data* bd = ImGui_ImplDX9_GetBackendData();
+    IM_ASSERT(bd != NULL && "Did you call ImGui_ImplDX9_Init()?");
+    return bd->pd3dDevice;
+}
+// Add By Dicky end

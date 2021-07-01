@@ -585,3 +585,12 @@ void ImGui_ImplDX11_NewFrame()
     if (!bd->pFontSampler)
         ImGui_ImplDX11_CreateDeviceObjects();
 }
+
+// Add By Dicky
+void * ImGui_ImplDX11_GetDevice()
+{
+    ImGui_ImplDX11_Data* bd = ImGui_ImplDX11_GetBackendData();
+    IM_ASSERT(bd != NULL && "Did you call ImGui_ImplDX11_Init()?");
+    return bd->pd3dDevice;
+}
+// Add By Dicky end

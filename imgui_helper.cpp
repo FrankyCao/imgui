@@ -108,7 +108,7 @@ struct ImTexture
     int     Height    = 0;
 };
 #elif IMGUI_RENDERING_DX11
-extern ID3D11Device* g_pd3dDevice;
+#include <imgui_impl_dx11.h>
 struct ImTexture
 {
     ID3D11ShaderResourceView * TextureID = nullptr;
@@ -116,7 +116,7 @@ struct ImTexture
     int    Height    = 0;
 };
 #elif IMGUI_RENDERING_DX9
-extern LPDIRECT3DDEVICE9 g_pd3dDevice;
+#include <imgui_impl_dx9.h>
 struct ImTexture
 {
     LPDIRECT3DTEXTURE9 TextureID = nullptr;
@@ -279,8 +279,10 @@ void ImGenerateOrUpdateTexture(ImTextureID& imtexid,int width,int height,int cha
     }
     imtexid = ImCreateTexture(pixels, width, height);
 #elif IMGUI_RENDERING_DX9
+    LPDIRECT3DDEVICE9 pd3dDevice = (LPDIRECT3DDEVICE9)ImGui_ImplDX9_GetDevice();
+    if (!pd3dDevice) return;
     LPDIRECT3DTEXTURE9& texid = reinterpret_cast<LPDIRECT3DTEXTURE9&>(imtexid);
-    if (texid==0 && g_pd3dDevice->CreateTexture(width, height, useMipmapsIfPossible ? 0 : 1, 0, channels==1 ? D3DFMT_A8 : channels==2 ? D3DFMT_A8L8 : channels==3 ? D3DFMT_R8G8B8 : D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &texid, NULL) < 0) return;
+    if (texid==0 && pd3dDevice->CreateTexture(width, height, useMipmapsIfPossible ? 0 : 1, 0, channels==1 ? D3DFMT_A8 : channels==2 ? D3DFMT_A8L8 : channels==3 ? D3DFMT_R8G8B8 : D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &texid, NULL) < 0) return;
 
     D3DLOCKED_RECT tex_locked_rect;
     if (texid->LockRect(0, &tex_locked_rect, NULL, 0) != D3D_OK) {texid->Release();texid=0;return;}
@@ -411,7 +413,8 @@ ImTextureID ImCreateTexture(const void* data, int width, int height)
     texture.Height = height;
     return (ImTextureID)texture.TextureID;
 #elif IMGUI_RENDERING_DX11
-    if (!g_pd3dDevice)
+    ID3D11Device* pd3dDevice = (ID3D11Device*)ImGui_ImplDX11_GetDevice();
+    if (!pd3dDevice)
         return nullptr;
     g_Textures.resize(g_Textures.size() + 1);
     ImTexture& texture = g_Textures.back();
@@ -434,7 +437,7 @@ ImTextureID ImCreateTexture(const void* data, int width, int height)
     subResource.pSysMem = data;
     subResource.SysMemPitch = desc.Width * 4;
     subResource.SysMemSlicePitch = 0;
-    g_pd3dDevice->CreateTexture2D(&desc, &subResource, &pTexture);
+    pd3dDevice->CreateTexture2D(&desc, &subResource, &pTexture);
 
     // Create texture view
     //ID3D11ShaderResourceView * texture = nullptr;
@@ -444,17 +447,18 @@ ImTextureID ImCreateTexture(const void* data, int width, int height)
     srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
     srvDesc.Texture2D.MipLevels = desc.MipLevels;
     srvDesc.Texture2D.MostDetailedMip = 0;
-    g_pd3dDevice->CreateShaderResourceView(pTexture, &srvDesc, &texture.TextureID);
+    pd3dDevice->CreateShaderResourceView(pTexture, &srvDesc, &texture.TextureID);
     pTexture->Release();
     texture.Width  = width;
     texture.Height = height;
     return (ImTextureID)texture.TextureID;
 #elif IMGUI_RENDERING_DX9
-    if (!g_pd3dDevice)
+    LPDIRECT3DDEVICE9 pd3dDevice = (LPDIRECT3DDEVICE9)ImGui_ImplDX9_GetDevice();
+    if (!pd3dDevice)
         return nullptr;
     g_Textures.resize(g_Textures.size() + 1);
     ImTexture& texture = g_Textures.back();
-    if (g_pd3dDevice->CreateTexture(width, height, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &texture.TextureID, NULL) < 0)
+    if (pd3dDevice->CreateTexture(width, height, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &texture.TextureID, NULL) < 0)
         return nullptr;
     D3DLOCKED_RECT tex_locked_rect;
     int bytes_per_pixel = 4;
