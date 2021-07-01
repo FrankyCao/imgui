@@ -175,7 +175,7 @@ int main(int, char**)
         // Start the Dear ImGui frame
         
         ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplSDL2_NewFrame(window);
+        ImGui_ImplSDL2_NewFrame();
 
         ImGui::NewFrame();
 
