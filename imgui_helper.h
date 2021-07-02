@@ -445,6 +445,32 @@ IMGUI_API void StringAppend(char*& destText, const char* textToAppend, bool allo
 // returns the number of chars appended.
 IMGUI_API int StringAppend(ImVector<char>& v,const char* fmt, ...);
 
+// ImGui Theme generator
+IMGUI_API void ThemeGenerator();
+
+// https://github.com/CedricGuillemet/imgInspect
+/*
+//example
+Image pickerImage;
+ImGui::ImageButton(pickerImage.textureID, ImVec2(pickerImage.mWidth, pickerImage.mHeight));
+ImRect rc = ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+ImVec2 mouseUVCoord = (io.MousePos - rc.Min) / rc.GetSize();
+mouseUVCoord.y = 1.f - mouseUVCoord.y;
+if (io.KeyShift && io.MouseDown[0] && mouseUVCoord.x >= 0.f && mouseUVCoord.y >= 0.f)
+{
+        int width = pickerImage.mWidth;
+        int height = pickerImage.mHeight;
+
+        ImGuiHelper::ImageInspect(width, height, pickerImage.GetBits(), mouseUVCoord, displayedTextureSize);
+}
+*/
+IMGUI_API void ImageInspect(const int width,
+                            const int height,
+                            const unsigned char* const bits,
+                            ImVec2 mouseUVCoord,
+                            ImVec2 displayedTextureSize,
+                            bool histogram_full = false,
+                            int zoom_size = 8);
 } // ImGuiHelper
 
 #ifndef NO_IMGUIKNOWNCOLOR_DEFINITIONS

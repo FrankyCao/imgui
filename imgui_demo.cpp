@@ -76,6 +76,7 @@ Index of this file:
 #endif
 
 #include "imgui.h"
+#include "imgui_helper.h"
 #ifndef IMGUI_DISABLE
 
 // System includes
@@ -295,6 +296,7 @@ void ImGui::ShowDemoWindow(bool* p_open)
     // Dear ImGui Apps (accessible from the "Tools" menu)
     static bool show_app_metrics = false;
     static bool show_app_style_editor = false;
+    static bool show_app_theme_generator = false;   // Add By Dicky
     static bool show_app_about = false;
 
     if (show_app_metrics)       { ImGui::ShowMetricsWindow(&show_app_metrics); }
@@ -305,6 +307,12 @@ void ImGui::ShowDemoWindow(bool* p_open)
         ImGui::ShowStyleEditor();
         ImGui::End();
     }
+    // Add By Dicky
+    if (show_app_theme_generator)
+    {
+        ImGuiHelper::ThemeGenerator();
+    }
+    // Add By Dicky end
 
     // Demonstrate the various window flags. Typically you would just use the default!
     static bool no_titlebar = false;
@@ -383,6 +391,7 @@ void ImGui::ShowDemoWindow(bool* p_open)
         {
             ImGui::MenuItem("Metrics/Debugger", NULL, &show_app_metrics);
             ImGui::MenuItem("Style Editor", NULL, &show_app_style_editor);
+            ImGui::MenuItem("Theme Generator", NULL, &show_app_theme_generator); // Add By Dicky
             ImGui::MenuItem("About Dear ImGui", NULL, &show_app_about);
             ImGui::EndMenu();
         }
