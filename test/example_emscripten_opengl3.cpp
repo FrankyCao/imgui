@@ -523,8 +523,8 @@ static void main_loop(void* arg)
     if (show_quat_window)
     {
         ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
-        ImGui::SetNextWindowSize(ImVec2(1280, 800), ImGuiCond_FirstUseEver);
-        ImGui::Begin("##ZMOQuat", &show_quat_window, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar);
+        ImGui::SetNextWindowSize(ImVec2(1280, 900), ImGuiCond_FirstUseEver);
+        ImGui::Begin("ZMOQuat", &show_quat_window, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar);
         ImGui::ShowGizmoDemo();
         ImGui::End();
     }

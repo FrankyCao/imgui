@@ -2340,7 +2340,7 @@ namespace ImWidgets {
 		return false;
 	}
 
-	IMGUI_API bool MoveLine2D(const char* label, float* buffer_aot, int float2_count, float minX, float maxX, float minY, float maxY, bool closeLoop)
+	IMGUI_API bool MoveLine2D(const char* label, float size_full, float* buffer_aot, int float2_count, float minX, float maxX, float minY, float maxY, bool closeLoop)
 	{
 		assert(minX < maxX);
 		assert(minY < maxY);
@@ -2350,7 +2350,7 @@ namespace ImWidgets {
 		ImGuiID const iID = ImGui::GetID(label);
 		ImGui::PushID(iID);
 
-		float const vSizeFull = ImGui::GetContentRegionAvail().x;
+		float const vSizeFull = size_full;
 		//ImVec2 const vSecurity(15.0f, 15.0f);
 		//ImVec2 const vSize(vSizeFull - vSecurity.x, vSizeFull - vSecurity.y);
 		ImVec2 const vSize(vSizeFull, vSizeFull);

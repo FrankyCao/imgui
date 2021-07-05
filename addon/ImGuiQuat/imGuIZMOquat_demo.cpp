@@ -14,10 +14,7 @@ void ImGui::ShowGizmoDemo()
     static bool useAO                  = false;
     static bool isFullRender           = false;
 
-    ImGui::SetNextWindowSize(ImVec2(250, 400), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowPos(ImVec2(GetContentRegionAvailWidth() - 250,0), ImGuiCond_FirstUseEver);
-    static bool isVisible = true;
-    if(ImGui::Begin("qaternion Julia set", &isVisible)) 
+    if(ImGui::BeginChild("qaternion Julia set", ImVec2(350, 520)))
     {
         ImGui::BeginGroup();
         {
@@ -72,24 +69,24 @@ void ImGui::ShowGizmoDemo()
             if(ImGui::gizmo3D("Light dir", vL) )  tLight = -vL;
         }
         ImGui::EndGroup();
-        ImGui::End();
+        ImGui::EndChild();
     }
 
     // Right Side Widgets
     ImGuiStyle& style = ImGui::GetStyle();
     static bool vis = true;
     static quat qt(1.0, 0.0, 0.0, 0.0);
-    float sz=300;    
+    float sz=400;    
     ImGui::PushStyleColor(ImGuiCol_WindowBg,ImVec4(0.f,0.f,0.f,0.f));
     ImGui::PushStyleColor(ImGuiCol_FrameBg,ImVec4(0.f,0.f,0.f,0.f));
 
     const float prevWindowBorderSize = style.WindowBorderSize;
     style.WindowBorderSize = .0f;
 
-    ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(sz, 600), ImGuiCond_FirstUseEver);
-    ImGui::Begin("##giz");
-    ImGui::PushItemWidth(sz*.25-2);
+    ImGui::SameLine();
+    ImGui::BeginChild("##giz", ImVec2(sz, 520));
+
+    ImGui::PushItemWidth(sz*.2-2);
     ImVec4 oldTex(style.Colors[ImGuiCol_Text]);
     bool quatChanged=false;
     style.Colors[ImGuiCol_Text].x = 1.0, style.Colors[ImGuiCol_Text].y = style.Colors[ImGuiCol_Text].z =0.f;
@@ -106,12 +103,12 @@ void ImGui::ShowGizmoDemo()
     //if(quatChanged) setRotation(normalize(qt));
     ImGui::DragFloat3("Light",value_ptr(tLight),0.01f);
     vec3 lL(-tLight);
-    if(ImGui::gizmo3D("##aaa", qt, lL, sz))  { 
+    if(ImGui::gizmo3D("##aaa", qt, lL, sz * 0.8))  { 
         tLight = -lL;
         //setRotation(qt);
     }
 
-    sz*=.5;
+    sz*=.3;
     static quat qt2(1.0f,0,0,0);
     static quat qt3(1.0f,0,0,0);
     static quat qt4(1.0f,0,0,0);
@@ -142,11 +139,10 @@ void ImGui::ShowGizmoDemo()
     vec3 vL(-tLight);
     if(ImGui::gizmo3D("##Dir1", vL,sz, imguiGizmo::sphereAtOrigin) )  tLight = -vL;
 
-    ImGui::End();
+    ImGui::EndChild();
 
-    ImGui::SetNextWindowSize(ImVec2(350, 700), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowPos(ImVec2(300, 0), ImGuiCond_FirstUseEver);
-    ImGui::Begin("##Example");
+    ImGui::SameLine();
+    ImGui::BeginChild("##Example", ImVec2(350, 520));
     static bool otherExamples = false;
     if(!otherExamples) {
         ImGui::TextColored(ImVec4(0.f, 1.f, 1.f, 1.f),"     imGuIZMO.quad usage");
@@ -223,7 +219,7 @@ void ImGui::ShowGizmoDemo()
         imguiGizmo::restoreDirectionColor();
         imguiGizmo::restoreAxesSize();
     }
-    ImGui::End();
+    ImGui::EndChild();
     
     ImGui::PopStyleColor();
     ImGui::PopStyleColor();
@@ -231,12 +227,7 @@ void ImGui::ShowGizmoDemo()
     style.WindowBorderSize = prevWindowBorderSize;
 
     const int dimY =300;
-    ImGui::SetNextWindowSize(ImVec2(540, dimY), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowPos(ImVec2(ImGui::GetWindowContentRegionMax().x - 540, ImGui::GetWindowContentRegionMax().y - dimY), ImGuiCond_FirstUseEver);
-
-    static bool vertexChange = false;
-    // imGuIZMO.quat - Window Settings 
-    if (ImGui::Begin("gizmo options", &isVisible, ImGuiWindowFlags_NoScrollbar)) 
+    if (ImGui::BeginChild("gizmo options", ImVec2(540, dimY), false, ImGuiWindowFlags_NoScrollbar))
     {
         ImGui::BeginGroup(); 
         {
@@ -337,16 +328,12 @@ void ImGui::ShowGizmoDemo()
                 ImGui::NewLine();
             }
 
-            if(ImGui::Button(" -= Change solids attributes =- ")) vertexChange ^=1;
-
-
             ImGui::NextColumn();
             imguiGizmo::resizeAxesOf(resAxes);
             imguiGizmo::resizeSolidOf(resSolid); // sphere bigger
             imguiGizmo::setSphereColors(ImGui::ColorConvertFloat4ToU32(sphCol1), ImGui::ColorConvertFloat4ToU32(sphCol2));            
             imguiGizmo::setDirectionColor(ImVec4(dirCol.x,dirCol.y, dirCol.z, 1.0),ImVec4(planeCol.x,planeCol.y, planeCol.z, planeCol.w));
             //plane & dir with same color - > imguiGizmo::setDirectionColor(ImVec4(dirCol.x,dirCol.y, dirCol.z, 1.0)); 
-
 
             //quat qv1(getRotation()); // my saved rotation
             static quat qv1(1.0f,0,0,0);
@@ -378,50 +365,45 @@ void ImGui::ShowGizmoDemo()
         } 
         ImGui::EndGroup();
     } 
-    ImGui::End();
+    ImGui::EndChild();
 
-    const int dimYz =200;
-    ImGui::SetNextWindowSize(ImVec2(600, dimYz), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowPos(ImVec2(250,0), ImGuiCond_FirstUseEver);
-    if(vertexChange)
+    ImGui::SameLine();
+    if(ImGui::BeginChild("Vertex rebuild", ImVec2(600, 200)))
     {
-        if(ImGui::Begin("Vertex rebuild", &vertexChange))
+        ImGui::BeginGroup();
         {
-            ImGui::BeginGroup();
+            ImGui::Columns(2);
+            ImGui::TextWrapped("All vertexes of all solids (cube, cone, cyl, sphere) are processed only once on startup and are invariant for all widgets in application.\nAlthough the proportion can be modified for each individual control (as already seen), the ratio and # faces are fixed.\nAnyhow the static variables can be modified to change the 3d aspect of all solids, and rebuild they... una tantum");
+
+            ImGui::NextColumn();
+            static bool needRebuild=false;
+            if(ImGui::SliderInt("Cone Slices", &imguiGizmo::coneSlices, 3, 30)) needRebuild=true;
+            if(ImGui::SliderFloat("Cone Len", &imguiGizmo::coneLength, 0.01, .5))  needRebuild=true;
+            if(ImGui::SliderFloat("Cone Radius", &imguiGizmo::coneRadius, 0.01, .3))  needRebuild=true;
+
+            if(ImGui::SliderInt("Cyl Slices", &imguiGizmo::cylSlices, 3, 30))  needRebuild=true;
+            if(ImGui::SliderFloat("Cyl Radius", &imguiGizmo::cylRadius, 0.001, .5))  needRebuild=true;
+
+            static int sphTess_idx = 2;
+            if (ImGui::Combo("SphereTessel##combo", &sphTess_idx,   "16x32\0"\
+                                                                    "8x16\0"\
+                                                                    "4x8 (default)\0"\
+                                                                    "2x4\0"\
+                            )) 
             {
-                ImGui::Columns(2);
-                ImGui::TextWrapped("All vertexes of all solids (cube, cone, cyl, sphere) are processed only once on startup and are invariant for all widgets in application.\nAlthough the proportion can be modified for each individual control (as already seen), the ratio and # faces are fixed.\nAnyhow the static variables can be modified to change the 3d aspect of all solids, and rebuild they... una tantum");
-
-                ImGui::NextColumn();
-                static bool needRebuild=false;
-                if(ImGui::SliderInt("Cone Slices", &imguiGizmo::coneSlices, 3, 30)) needRebuild=true;
-                if(ImGui::SliderFloat("Cone Len", &imguiGizmo::coneLength, 0.01, .5))  needRebuild=true;
-                if(ImGui::SliderFloat("Cone Radius", &imguiGizmo::coneRadius, 0.01, .3))  needRebuild=true;
-
-                if(ImGui::SliderInt("Cyl Slices", &imguiGizmo::cylSlices, 3, 30))  needRebuild=true;
-                if(ImGui::SliderFloat("Cyl Radius", &imguiGizmo::cylRadius, 0.001, .5))  needRebuild=true;
-
-                static int sphTess_idx = 2;
-                if (ImGui::Combo("SphereTessel##combo", &sphTess_idx,   "16x32\0"\
-                                                                        "8x16\0"\
-                                                                        "4x8 (default)\0"\
-                                                                        "2x4\0"\
-                                )) 
+                switch (sphTess_idx)
                 {
-                    switch (sphTess_idx)
-                    {
-                        case imguiGizmo::sphereTess16: imguiGizmo::sphereTessFactor = imguiGizmo::sphereTess16; break;
-                        case imguiGizmo::sphereTess8 : imguiGizmo::sphereTessFactor = imguiGizmo::sphereTess8 ; break;
-                        case imguiGizmo::sphereTess4 : imguiGizmo::sphereTessFactor = imguiGizmo::sphereTess4 ; break;
-                        case imguiGizmo::sphereTess2 : imguiGizmo::sphereTessFactor = imguiGizmo::sphereTess2 ; break;
-                    }
-                    needRebuild=true;
+                    case imguiGizmo::sphereTess16: imguiGizmo::sphereTessFactor = imguiGizmo::sphereTess16; break;
+                    case imguiGizmo::sphereTess8 : imguiGizmo::sphereTessFactor = imguiGizmo::sphereTess8 ; break;
+                    case imguiGizmo::sphereTess4 : imguiGizmo::sphereTessFactor = imguiGizmo::sphereTess4 ; break;
+                    case imguiGizmo::sphereTess2 : imguiGizmo::sphereTessFactor = imguiGizmo::sphereTess2 ; break;
                 }
-                // sizeCylLength = defined in base to control size minus coneLenght
-                if(needRebuild)  needRebuild = imguiGizmo::solidAreBuilded = false;
+                needRebuild=true;
             }
-            ImGui::EndGroup();
-        } 
-        ImGui::End();
-    }
+            // sizeCylLength = defined in base to control size minus coneLenght
+            if(needRebuild)  needRebuild = imguiGizmo::solidAreBuilded = false;
+        }
+        ImGui::EndGroup();
+    } 
+    ImGui::EndChild();
 }

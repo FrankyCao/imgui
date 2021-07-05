@@ -114,13 +114,11 @@ void ImWidgets::ShowDemo()
 	static StaticInit s_StaticInit;
 	static float f = 0.0f;
 	static int counter = 0;
-	ImGui::Begin("Dear Widgets");
-	float const width = ImGui::GetContentRegionAvail().x * 0.75;
+	float const width = ImGui::GetContentRegionAvail().x * 0.5;
 	if (ImGui::TreeNode("Draw"))
 	{
 		if (ImGui::TreeNode("Triangles Pointers"))
 		{
-			float const width = ImGui::GetContentRegionAvail().x;
 			ImVec2 curPos = ImGui::GetCursorScreenPos();
 			ImDrawList* pDrawList = ImGui::GetWindowDrawList();
 			ImGui::InvisibleButton("##Zone", ImVec2(width, 72.0f), 0);
@@ -142,7 +140,6 @@ void ImWidgets::ShowDemo()
 		{
 			static float col[4] = { 1, 0, 0, 1 };
 			ImGui::ColorEdit4("Color", col);
-			float const width = ImGui::GetContentRegionAvail().x;
 			float const height = 32.0f;
 			static float gamma = 1.0f;
 			ImGui::DragFloat("Gamma##Color", &gamma, 0.01f, 0.1f, 10.0f);
@@ -188,7 +185,6 @@ void ImWidgets::ShowDemo()
 			ImGui::SliderFloat("Thickness", &thickness, 1.0f / width, 1.0f);
 			ImDrawList* pDrawList = ImGui::GetWindowDrawList();
 			{
-				float const width = ImGui::GetContentRegionAvail().x;
 				ImVec2 curPos = ImGui::GetCursorScreenPos();
 				ImGui::InvisibleButton("##Zone", ImVec2(width, width), 0);
 				DrawColorRingEx< true >(pDrawList, curPos, ImVec2(width, width), thickness,
@@ -207,7 +203,6 @@ void ImWidgets::ShowDemo()
 			ImGui::SliderInt("Frequency", &frequency, 1, 32);
 			{
 				ImGui::Text("Nearest");
-				float const width = ImGui::GetContentRegionAvail().x;
 				ImVec2 curPos = ImGui::GetCursorScreenPos();
 				ImGui::InvisibleButton("##Zone", ImVec2(width, width) * 0.5f, 0);
 				float fCenter = center;
@@ -226,7 +221,6 @@ void ImWidgets::ShowDemo()
 			}
 			{
 				ImGui::Text("Custom");
-				float const width = ImGui::GetContentRegionAvail().x;
 				ImVec2 curPos = ImGui::GetCursorScreenPos();
 				ImGui::InvisibleButton("##Zone", ImVec2(width, width) * 0.5f, 0);
 				float const fFreq = (float)frequency;
@@ -241,7 +235,6 @@ void ImWidgets::ShowDemo()
 		}
 		if (ImGui::TreeNode("Color2D"))
 		{
-			float const width = ImGui::GetContentRegionAvail().x;
 			ImDrawList* pDrawList = ImGui::GetWindowDrawList();
 			float const fTime = static_cast<float>(ImGui::GetTime());
 			static int resX = 124;
@@ -282,7 +275,6 @@ void ImWidgets::ShowDemo()
 		}
 		if (ImGui::TreeNode("Convex Mask"))
 		{
-			float const width = ImGui::GetContentRegionAvail().x;
 			ImDrawList* pDrawList = ImGui::GetWindowDrawList();
 			static bool showDensityPlot = true;
 			static ImVec4 vMaskColor = ImVec4(1.0f, 0.5f, 0.0f, 0.5f);
@@ -300,7 +292,7 @@ void ImWidgets::ShowDemo()
 					}, -4.0f, 4.0f, -4.0f, 4.0f, curPos, ImVec2(width, width), 32, 32);
 			}
 			DrawConvexMaskMesh(pDrawList, curPos, ImVec2(width, width), maskColor, &maskShape_values[0], maskShape_values.size() / 2, -1.0f, 1.0f, -1.0f, 1.0f);
-			MoveLine2D("Shape", &maskShape_values[0], maskShape_values.size() / 2, -1.0f, 1.0f, -1.0f, 1.0f, true);
+			MoveLine2D("Shape", width, &maskShape_values[0], maskShape_values.size() / 2, -1.0f, 1.0f, -1.0f, 1.0f, true);
 			ImGui::TreePop();
 		}
 		ImGui::TreePop();
@@ -309,7 +301,6 @@ void ImWidgets::ShowDemo()
 	{
 		if (ImGui::TreeNode("Hue Selector"))
 		{
-			float const width = ImGui::GetContentRegionAvail().x;
 			float const height = 32.0f;
 			static float offset = 0.0f;
 			static int division = 32;
@@ -348,7 +339,6 @@ void ImWidgets::ShowDemo()
 			static bool bShowSurface = true;
 			ImGui::Checkbox("Show Surface", &bShowSurface);
 			ImGui::Text("Isoline Values");
-			float const width = ImGui::GetContentRegionAvail().x;
 			ImGui::PushMultiItemsWidths(4, width);
 			ImGui::DragFloat("##IsoLine0", &isoLines[0], 0.001f, -1.0f, 1.0f); ImGui::SameLine();
 			ImGui::DragFloat("##IsoLine1", &isoLines[1], 0.001f, -1.0f, 1.0f); ImGui::SameLine();
@@ -378,7 +368,6 @@ void ImWidgets::ShowDemo()
 		}
 		if (ImGui::TreeNode("Analytic Plot"))
 		{
-			float const width = ImGui::GetContentRegionAvail().x;
 			ImGui::Text("ImGui::PlotLines: 128 samples");
 			ImGui::Dummy(ImVec2(1.0f, ImGui::GetTextLineHeightWithSpacing()));
 			ImGui::PlotLines("##PlotLines", [](void* data, int idx)
@@ -440,7 +429,6 @@ void ImWidgets::ShowDemo()
 				ImGui::Combo("Illuminance", &curIllum, illum, IM_ARRAYSIZE(illum));
 				ImGui::Combo("ColorSpace", &curColorSpace, colorSpace, IM_ARRAYSIZE(colorSpace));
 				ImDrawList* pDrawList = ImGui::GetWindowDrawList();
-				float const width = ImGui::GetContentRegionAvail().x;
 				static ImVec4 vMaskColor(1.0f, 0.5f, 0.0f, 1.0f);
 				ImGui::ColorEdit4("Mask Color", &vMaskColor.x);
 				ImU32 maskColor = ImGui::ColorConvertFloat4ToU32(vMaskColor);
@@ -530,12 +518,11 @@ void ImWidgets::ShowDemo()
 			{
 				static bool closeLoop = true;
 				ImGui::Checkbox("Closed Loop", &closeLoop);
-				MoveLine2D("Region", &linear_values[0], linear_values.size() / 2, -1.0f, 1.0f, -1.0f, 1.0f, closeLoop);
+				MoveLine2D("Region", width, &linear_values[0], linear_values.size() / 2, -1.0f, 1.0f, -1.0f, 1.0f, closeLoop);
 				ImGui::TreePop();
 			}
 			if (ImGui::TreeNode("Line Slider"))
 			{
-				float const width = ImGui::GetContentRegionAvail().x;
 				ImVec2 curPos = ImGui::GetCursorScreenPos();
 				ImVec2 center = curPos + ImVec2(width, width) * 0.5f;
 				ImGui::Dummy(ImVec2(width, width));
@@ -562,7 +549,4 @@ void ImWidgets::ShowDemo()
 		}
 		ImGui::TreePop();
 	}
-	ImGui::End();
-	bool show_app_metrics = true;
-	ImGui::ShowMetricsWindow(&show_app_metrics);
 }
