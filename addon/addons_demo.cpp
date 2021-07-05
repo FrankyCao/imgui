@@ -78,23 +78,6 @@ void ShowAddonsDemoWindowWidgets()
         }
         ImageTexture = ImGui::ImCreateTexture(ImageBitmap, DEMO_IMAGE_WIDTH, DEMO_IMAGE_HEIGHT);
     }
-    if (ImGui::TreeNode("Image Tooltips"))
-    {
-        ImVec2 displayedTextureSize(512,512);
-        ImGui::Image((ImTextureID)(uint64_t)ImageTexture, displayedTextureSize);
-        {
-            ImGuiIO& io = ImGui::GetIO();
-            ImRect rc = ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
-            ImVec2 mouseUVCoord = (io.MousePos - rc.Min) / rc.GetSize();
-            if (ImGui::IsItemHovered() && mouseUVCoord.x >= 0.f && mouseUVCoord.y >= 0.f)
-            {
-                ImGuiHelper::ImageInspect(DEMO_IMAGE_WIDTH, DEMO_IMAGE_HEIGHT, 
-                                        (const unsigned char*)ImageBitmap, mouseUVCoord, 
-                                        displayedTextureSize);
-            }
-        }
-        ImGui::TreePop();
-    }
 #if IMGUI_ADDON_VARIOUS
     if (ImGui::TreeNode("Basic"))
     {
@@ -123,6 +106,19 @@ void ShowAddonsDemoWindowWidgets()
         const ImVec2 checkBoxSizeScale(1.5f,2.f);   // (checkBoxSizeScale.y max is 2.f)
         const float checkBoxRounding = 6.f;         // -1 defaults to style.WindowRounding. Note that is scales with the font height)
         ImGui::CheckboxStyled("Checkbox Styled 2 (custom style)",&checkStyled[1],optionalEightColors,checkBoxSizeScale,checkBoxRounding);
+        
+        ImGui::Separator();
+        // RangeSliderFloat
+        ImGui::Text("Range Slider:");
+        static float v1 = 0;
+        static float v2 = 1;
+        static float v_min = 0;
+        static float v_max = 1;
+        static float v3 = 0;
+        static float v4 = 1;
+        ImGui::RangeSliderFloat("range 1", &v1, &v2, v_min, v_max, "%.1f  %.1f", 1.0f);
+        ImGui::RangeSliderFloat("range 2", &v3, &v4, v_min, v_max);
+
         ImGui::Separator();
         // PopupMenuSimple
         static const char* recentFileList[] = {"filename01","filename02","filename03","filename04","filename05","filename06","filename07","filename08","filename09","filename10"};
@@ -621,6 +617,23 @@ void ShowAddonsDemoWindowWidgets()
         ImGui::TreePop();
     }
 #endif
+    if (ImGui::TreeNode("Image Tooltips"))
+    {
+        ImVec2 displayedTextureSize(512,512);
+        ImGui::Image((ImTextureID)(uint64_t)ImageTexture, displayedTextureSize);
+        {
+            ImGuiIO& io = ImGui::GetIO();
+            ImRect rc = ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+            ImVec2 mouseUVCoord = (io.MousePos - rc.Min) / rc.GetSize();
+            if (ImGui::IsItemHovered() && mouseUVCoord.x >= 0.f && mouseUVCoord.y >= 0.f)
+            {
+                ImGuiHelper::ImageInspect(DEMO_IMAGE_WIDTH, DEMO_IMAGE_HEIGHT, 
+                                        (const unsigned char*)ImageBitmap, mouseUVCoord, 
+                                        displayedTextureSize);
+            }
+        }
+        ImGui::TreePop();
+    }
 }
 
 #if IMGUI_ADDON_DOCK

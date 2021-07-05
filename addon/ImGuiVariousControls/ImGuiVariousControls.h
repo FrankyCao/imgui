@@ -408,9 +408,14 @@ IMGUI_API void LoadingIndicatorCircle(const char* label, float indicatorRadiusFa
 void LoadingIndicatorCircle2(const char* label, float indicatorRadiusFactor=1.f, float indicatorRadiusThicknessFactor=1.f, const ImVec4* pOptionalColor=NULL);
 
 // Splitter
-IMGUI_API bool          Splitter(bool split_vertically, float thickness, float* size1, float* size2, float min_size1, float min_size2, float splitter_long_axis_size = -1.0f);
+IMGUI_API bool Splitter(bool split_vertically, float thickness, float* size1, float* size2, float min_size1, float min_size2, float splitter_long_axis_size = -1.0f);
+
+// Range Slider
+IMGUI_API bool RangeSliderFloat(const char* label, float* v1, float* v2, float v_min, float v_max, const char* display_format = "(%.3f, %.3f)", float power = 1.0f);
 } // namespace ImGui
 
+
+// ImGui Sample Notify
 #define NOTIFY_MAX_MSG_LENGTH		255			// Max message content length
 #define NOTIFY_PADDING_X			20.f		// Bottom-left X padding
 #define NOTIFY_PADDING_Y			20.f		// Bottom-left Y padding
