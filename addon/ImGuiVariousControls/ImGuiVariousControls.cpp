@@ -2291,3 +2291,8 @@ bool Splitter(bool split_vertically, float thickness, float* size1, float* size2
     return SplitterBehavior(bb, id, split_vertically ? ImGuiAxis_X : ImGuiAxis_Y, size1, size2, min_size1, min_size2, 0.0f);
 }
 } // namespace ImGui
+
+namespace notify
+{
+    std::vector<toast> toast_list;
+}

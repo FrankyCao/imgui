@@ -90,6 +90,7 @@ _OPTION(IMGUI_DX10                  "Build ImGui Direct10 backends(Windows only)
 _OPTION(IMGUI_DX11                  "Build ImGui Direct11 backends(Windows only)" ON IF WIN32)
 _OPTION(IMGUI_DX12                  "Build ImGui Direct12 backends(Windows only)" ON IF WIN32)
 _OPTION(IMGUI_FREETYPE              "Build ImGui with FreeType support" OFF)
+_OPTION(IMGUI_FONT_TAHOMA           "Internal Tahoma Fonts build in library" ON)
 _OPTION(IMGUI_FONT_SARASA           "Internal Mono Sarasa Fonts build in library" ON)
 _OPTION(IMGUI_FONT_HEI              "Internal Mono Hei Fonts build in library" ON)
 _OPTION(IMGUI_FONT_KAI              "Internal Mono Kai Fonts build in library" OFF)
@@ -612,7 +613,6 @@ if (IMGUI_FONT_SARASA)
         fonts/mono_sarasa.cpp
     )
 endif (IMGUI_FONT_SARASA)
-
 # Add Icons
 if (IMGUI_ICONS)
     set(IMGUI_SRC

@@ -3,6 +3,7 @@
 #include "NumberTexture.h"
 #if IMGUI_ADDON_VARIOUS
 #include "ImGuiVariousControls.h"
+#include "notify.h"
 #endif
 #if IMGUI_ADDON_DATE_CHOOSER
 #include "ImGuiDateChooser.h"
@@ -181,7 +182,31 @@ void ShowAddonsDemoWindowWidgets()
 
         ImGui::TreePop();
     }
-
+    if (ImGui::TreeNode("Notify"))
+    {
+        if (ImGui::Button("success!"))
+        {
+            notify::insert({ toast_type::toast_type_success, 3000, "Hello World! This is a success! %s", "We can also format here:)" });
+        }
+        if (ImGui::Button("warning!"))
+        {
+            notify::insert({ toast_type::toast_type_warning, 3000, "Hello World! This is a warning!" });
+        }
+        if (ImGui::Button("error!"))
+        {
+            notify::insert({ toast_type::toast_type_error, 3000, "Hello World! This is an error!" });
+        }
+        if (ImGui::Button("info!"))
+        {
+            notify::insert({ toast_type::toast_type_info, 3000, "Hello World! This is an info!" });
+        }
+        if (ImGui::Button("info2!"))
+        {
+            notify::insert({ toast_type::toast_type_info, 3000, "Hello World! This is an info! Yes I also support multiline text! Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation" });
+        }
+        notify::render();
+        ImGui::TreePop();
+    }
     if (ImGui::TreeNode("AutoCompletion Stuff (UP/DOWN/TAB keys)"))
     {
         // Bad implementation: users think they can click on the autocompletion-menu, instead of using TAB+ARROWS
