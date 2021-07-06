@@ -1,5 +1,6 @@
 #ifndef __IMGUI_MAT_H__
 #define __IMGUI_MAT_H__
+#include <imgui.h>
 #if __AVX__
 // the alignment of all the allocated buffers
 #define IM_MALLOC_ALIGN 32
@@ -46,6 +47,56 @@ static inline int IM_XADD(int* addr, int delta)
     return tmp;
 }
 #endif
+
+//////////////////////////////////////////////////
+//  memory functions
+/////////////////////////////////////////////////
+template<typename _Tp>
+inline _Tp* alignPtr(_Tp* ptr, int n = (int)sizeof(_Tp))
+{
+    return (_Tp*)(((size_t)ptr + n - 1) & -n);
+}
+inline size_t alignSize(size_t sz, int n)
+{
+    return (sz + n - 1) & -n;
+}
+inline void* fastMalloc(size_t size)
+{
+#if _MSC_VER
+    return _aligned_malloc(size, IM_MALLOC_ALIGN);
+#elif (defined(__unix__) || defined(__APPLE__)) && _POSIX_C_SOURCE >= 200112L || (__ANDROID__ && __ANDROID_API__ >= 17)
+    void* ptr = 0;
+    if (posix_memalign(&ptr, IM_MALLOC_ALIGN, size))
+        ptr = 0;
+    return ptr;
+#elif __ANDROID__ && __ANDROID_API__ < 17
+    return memalign(IM_MALLOC_ALIGN, size);
+#else
+    unsigned char* udata = (unsigned char*)malloc(size + sizeof(void*) + IM_MALLOC_ALIGN);
+    if (!udata)
+        return 0;
+    unsigned char** adata = alignPtr((unsigned char**)udata + 1, IM_MALLOC_ALIGN);
+    adata[-1] = udata;
+    return adata;
+#endif
+}
+inline void fastFree(void* ptr)
+{
+    if (ptr)
+    {
+#if _MSC_VER
+        _aligned_free(ptr);
+#elif (defined(__unix__) || defined(__APPLE__)) && _POSIX_C_SOURCE >= 200112L || (__ANDROID__ && __ANDROID_API__ >= 17)
+        free(ptr);
+#elif __ANDROID__ && __ANDROID_API__ < 17
+        free(ptr);
+#else
+        unsigned char* udata = ((unsigned char**)ptr)[-1];
+        free(udata);
+#endif
+    }
+}
+////////////////////////////////////////////////////////////////////
 
 namespace ImGui
 {
@@ -105,11 +156,11 @@ enum ImMatInterpolateMode {
     IMMAT_NB_INTERP_MODE
 };
 
-#define IM_ESIZE(a)    (a == IMMAT_INT8 ? (size_t)1u : (a == IMMAT_INT16 || a == IMMAT_FLOAT16) ? (size_t)2u : (a == IMMAT_INT32 || a == IMMAT_FLOAT32) ? (size_t)4u : (a == IMMAT_INT64 || a == IMMAT_FLOAT64) ? (size_t)8u : (size_t)0u)
-#define IM_ISMONO(a)   (a == IMMAT_GRAY)
-#define IM_ISRGB(a)    (a == IMMAT_BGR || a == IMMAT_RGB || a == IMMAT_ABGR || a == IMMAT_ARGB)
-#define IM_ISYUV(a)    (a == IMMAT_YUV420 || a == IMMAT_YUV422 || a == IMMAT_YUV444 || a == IMMAT_YUVA || a == IMMAT_NV12)
-#define IM_ISALPHA(a)  (a == IMMAT_ABGR || a == IMMAT_ARGB || a == IMMAT_YUVA)
+#define IM_ESIZE(a)    (a == ImGui::IMMAT_INT8 ? (size_t)1u : (a == ImGui::IMMAT_INT16 || a == ImGui::IMMAT_FLOAT16) ? (size_t)2u : (a == ImGui::IMMAT_INT32 || a == ImGui::IMMAT_FLOAT32) ? (size_t)4u : (a == ImGui::IMMAT_INT64 || a == ImGui::IMMAT_FLOAT64) ? (size_t)8u : (size_t)0u)
+#define IM_ISMONO(a)   (a == ImGui::IMMAT_GRAY)
+#define IM_ISRGB(a)    (a == ImGui::IMMAT_BGR || a == ImGui::IMMAT_RGB || a == ImGui::IMMAT_ABGR || a == ImGui::IMMAT_ARGB)
+#define IM_ISYUV(a)    (a == ImGui::IMMAT_YUV420 || a == ImGui::IMMAT_YUV422 || a == ImGui::IMMAT_YUV444 || a == ImGui::IMMAT_YUVA || a == ImGui::IMMAT_NV12)
+#define IM_ISALPHA(a)  (a == ImGui::IMMAT_ABGR || a == ImGui::IMMAT_ARGB || a == ImGui::IMMAT_YUVA)
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -251,59 +302,6 @@ public:
     ImMat range(int x, int n);
     const ImMat range(int x, int n) const;
 
-    //////////////////////////////////////////////////
-    //  memory functions
-    /////////////////////////////////////////////////
-    template<typename _Tp>
-    inline _Tp* alignPtr(_Tp* ptr, int n = (int)sizeof(_Tp)) const
-    {
-        return (_Tp*)(((size_t)ptr + n - 1) & -n);
-    }
-
-    inline size_t alignSize(size_t sz, int n) const
-    {
-        return (sz + n - 1) & -n;
-    }
-
-    inline void* fastMalloc(size_t size) const
-    {
-#if _MSC_VER
-        eturn _aligned_malloc(size, IM_MALLOC_ALIGN);
-#elif (defined(__unix__) || defined(__APPLE__)) && _POSIX_C_SOURCE >= 200112L || (__ANDROID__ && __ANDROID_API__ >= 17)
-        void* ptr = 0;
-        if (posix_memalign(&ptr, IM_MALLOC_ALIGN, size))
-            ptr = 0;
-        return ptr;
-#elif __ANDROID__ && __ANDROID_API__ < 17
-        return memalign(IM_MALLOC_ALIGN, size);
-#else
-        unsigned char* udata = (unsigned char*)malloc(size + sizeof(void*) + IM_MALLOC_ALIGN);
-        if (!udata)
-            return 0;
-        unsigned char** adata = alignPtr((unsigned char**)udata + 1, IM_MALLOC_ALIGN);
-        adata[-1] = udata;
-        return adata;
-#endif
-    }
-
-    inline void fastFree(void* ptr) const
-    {
-        if (ptr)
-        {
-#if _MSC_VER
-            _aligned_free(ptr);
-#elif (defined(__unix__) || defined(__APPLE__)) && _POSIX_C_SOURCE >= 200112L || (__ANDROID__ && __ANDROID_API__ >= 17)
-            free(ptr);
-#elif __ANDROID__ && __ANDROID_API__ < 17
-            free(ptr);
-#else
-            unsigned char* udata = ((unsigned char**)ptr)[-1];
-            free(udata);
-#endif
-        }
-    }
-    ////////////////////////////////////////////////////////////////////
-
     // access raw data
     template<typename T>
     operator T*();
@@ -384,7 +382,6 @@ public:
     // 7 = YUV444
     // 8 = YUVA
     // 9 = NV12
-
     ImMatColorFormat color_format;
 
     // range

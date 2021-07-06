@@ -1,4 +1,5 @@
 #include "buffer.h"
+using namespace ImGui;
 
 namespace ImVulkan 
 {
@@ -81,23 +82,23 @@ const float srgb[3][3] = {
     {1.000000f, 1.000000f, 1.000000f}
 };
 
-const ImageBuffer matrix_yr_601_full   (3, 3, (void *)y2r_601_full,   sizeof(float));
-const ImageBuffer matrix_yr_601_narrow (3, 3, (void *)y2r_601_narrow, sizeof(float));
-const ImageBuffer matrix_yr_709_full   (3, 3, (void *)y2r_709_full,   sizeof(float));
-const ImageBuffer matrix_yr_709_narrow (3, 3, (void *)y2r_709_narrow, sizeof(float));
-const ImageBuffer matrix_yr_2020_full  (3, 3, (void *)y2r_2020_full,  sizeof(float));
-const ImageBuffer matrix_yr_2020_narrow(3, 3, (void *)y2r_2020_full,  sizeof(float));
+const ImMat matrix_yr_601_full   (3, 3, (void *)y2r_601_full,   sizeof(float));
+const ImMat matrix_yr_601_narrow (3, 3, (void *)y2r_601_narrow, sizeof(float));
+const ImMat matrix_yr_709_full   (3, 3, (void *)y2r_709_full,   sizeof(float));
+const ImMat matrix_yr_709_narrow (3, 3, (void *)y2r_709_narrow, sizeof(float));
+const ImMat matrix_yr_2020_full  (3, 3, (void *)y2r_2020_full,  sizeof(float));
+const ImMat matrix_yr_2020_narrow(3, 3, (void *)y2r_2020_full,  sizeof(float));
 
-const ImageBuffer matrix_ry_601_full   (3, 3, (void *)r2y_601_full,   sizeof(float));
-const ImageBuffer matrix_ry_601_narrow (3, 3, (void *)r2y_601_narrow, sizeof(float));
-const ImageBuffer matrix_ry_709_full   (3, 3, (void *)r2y_709_full,   sizeof(float));
-const ImageBuffer matrix_ry_709_narrow (3, 3, (void *)r2y_709_narrow, sizeof(float));
-const ImageBuffer matrix_ry_2020_full  (3, 3, (void *)r2y_2020_full,  sizeof(float));
-const ImageBuffer matrix_ry_2020_narrow(3, 3, (void *)r2y_2020_full,  sizeof(float));
+const ImMat matrix_ry_601_full   (3, 3, (void *)r2y_601_full,   sizeof(float));
+const ImMat matrix_ry_601_narrow (3, 3, (void *)r2y_601_narrow, sizeof(float));
+const ImMat matrix_ry_709_full   (3, 3, (void *)r2y_709_full,   sizeof(float));
+const ImMat matrix_ry_709_narrow (3, 3, (void *)r2y_709_narrow, sizeof(float));
+const ImMat matrix_ry_2020_full  (3, 3, (void *)r2y_2020_full,  sizeof(float));
+const ImMat matrix_ry_2020_narrow(3, 3, (void *)r2y_2020_full,  sizeof(float));
 
-const ImageBuffer matrix_srgb(3, 3, (void *)srgb,  sizeof(float));
+const ImMat matrix_srgb(3, 3, (void *)srgb,  sizeof(float));
 
-const ImageBuffer * color_table[2][2][4] = {
+const ImMat * color_table[2][2][4] = {
     {
         { &matrix_srgb, &matrix_yr_601_full,   &matrix_yr_709_full,   &matrix_yr_2020_full},
         { &matrix_srgb, &matrix_yr_601_narrow, &matrix_yr_709_narrow, &matrix_yr_2020_narrow}

@@ -4,6 +4,7 @@
 #include "option.h"
 
 #include <math.h>
+using namespace ImGui;
 
 namespace ImVulkan 
 {
@@ -54,10 +55,10 @@ Pipeline& Pipeline::operator=(const Pipeline&)
 
 void Pipeline::set_optimal_local_size_xyz(int w, int h, int c)
 {
-    set_optimal_local_size_xyz(ImageBuffer(w, h, c, (void*)0));
+    set_optimal_local_size_xyz(ImMat(w, h, c));
 }
 
-void Pipeline::set_optimal_local_size_xyz(const ImageBuffer& local_size_xyz)
+void Pipeline::set_optimal_local_size_xyz(const ImMat& local_size_xyz)
 {
     int w = local_size_xyz.w;
     int h = local_size_xyz.h;

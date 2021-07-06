@@ -17,6 +17,7 @@
 #define ENABLE_VALIDATION_LAYER 0
 
 #define DEBUG_INFO  0
+using namespace ImGui;
 
 namespace ImVulkan 
 {
@@ -1551,7 +1552,7 @@ public:
     {
     }
 
-    void record_dummy(const VkImageBuffer& buffer)
+    void record_dummy(const VkMat& buffer)
     {
         barrier_readwrite(buffer);
     }
@@ -1613,7 +1614,7 @@ public:
 
     // dummy buffer and image
     VkAllocator* dummy_allocator;
-    VkImageBuffer dummy_buffer;
+    VkMat dummy_buffer;
     VkImageMat dummy_image;
     VkImageMat dummy_image_readonly;
 
@@ -2698,7 +2699,7 @@ const VkSampler* VulkanDevice::immutable_texelfetch_sampler() const
     return &d->texelfetch_sampler;
 }
 
-VkImageBuffer VulkanDevice::get_dummy_buffer() const
+VkMat VulkanDevice::get_dummy_buffer() const
 {
     return d->dummy_buffer;
 }
@@ -2722,7 +2723,7 @@ const PipelineCache* VulkanDevice::get_pipeline_cache() const
     return d->pipeline_cache;
 }
 
-bool VulkanDevice::shape_support_image_storage(const ImageBuffer& shape) const
+bool VulkanDevice::shape_support_image_storage(const ImMat& shape) const
 {
     int dims = shape.dims;
     int width = shape.w;
@@ -2803,7 +2804,7 @@ uint32_t VulkanDevice::get_heap_budget() const
     return memoryBudgetProperties.heapBudget[device_local_heap_index] / 1024 / 1024;
 }
 
-void VulkanDevice::convert_packing(const VkImageBuffer& src, VkImageBuffer& dst, int dst_elempack, VkCompute& cmd, const Option& _opt) const
+void VulkanDevice::convert_packing(const VkMat& src, VkMat& dst, int dst_elempack, VkCompute& cmd, const Option& _opt) const
 {
     // buffer2buffer uop is created with use_image_storage disabled
     Option opt = _opt;
@@ -2871,7 +2872,7 @@ void VulkanDevice::convert_packing(const VkImageMat& src, VkImageMat& dst, int d
     uop->forward(src, dst, cmd, opt);
 }
 
-void VulkanDevice::convert_packing(const VkImageBuffer& src, VkImageMat& dst, int dst_elempack, VkCompute& cmd, const Option& opt) const
+void VulkanDevice::convert_packing(const VkMat& src, VkImageMat& dst, int dst_elempack, VkCompute& cmd, const Option& opt) const
 {
     int cast_type_to_index = opt.use_fp16_storage ? 2 : opt.use_fp16_packed ? 1 : 0;
     int packing_type_to_index = dst_elempack == 1 ? 0 : dst_elempack == 4 ? 1 : 2;
@@ -2903,7 +2904,7 @@ void VulkanDevice::convert_packing(const VkImageBuffer& src, VkImageMat& dst, in
     uop->forward(src, dst, cmd, opt);
 }
 
-void VulkanDevice::convert_packing(const VkImageMat& src, VkImageBuffer& dst, int dst_elempack, VkCompute& cmd, const Option& opt) const
+void VulkanDevice::convert_packing(const VkImageMat& src, VkMat& dst, int dst_elempack, VkCompute& cmd, const Option& opt) const
 {
     int cast_type_to_index = opt.use_fp16_storage ? 2 : opt.use_fp16_packed ? 1 : 0;
     int packing_type_to_index = dst_elempack == 1 ? 0 : dst_elempack == 4 ? 1 : 2;
@@ -3760,7 +3761,7 @@ int resolve_shader_info(const uint32_t* spv_data, size_t spv_data_size, ShaderIn
     return 0;
 }
 
-void cast_float32_to_float16(const ImageBuffer& src, ImageBuffer& dst, const Option& opt)
+void cast_float32_to_float16(const ImMat& src, ImMat& dst, const Option& opt)
 {
     Cast_vulkan cast;
     cast.type_from = 1;
@@ -3770,7 +3771,7 @@ void cast_float32_to_float16(const ImageBuffer& src, ImageBuffer& dst, const Opt
     cast.destroy_pipeline(opt);
 }
 
-void cast_float16_to_float32(const ImageBuffer& src, ImageBuffer& dst, const Option& opt)
+void cast_float16_to_float32(const ImMat& src, ImMat& dst, const Option& opt)
 {
     Cast_vulkan cast;
     cast.type_from = 2;
@@ -3780,7 +3781,7 @@ void cast_float16_to_float32(const ImageBuffer& src, ImageBuffer& dst, const Opt
     cast.destroy_pipeline(opt);
 }
 
-void cast_int8_to_float32(const ImageBuffer& src, ImageBuffer& dst, const Option& opt)
+void cast_int8_to_float32(const ImMat& src, ImMat& dst, const Option& opt)
 {
     Cast_vulkan cast;
     cast.type_from = 3;
@@ -3790,7 +3791,7 @@ void cast_int8_to_float32(const ImageBuffer& src, ImageBuffer& dst, const Option
     cast.destroy_pipeline(opt);
 }
 
-void cast_int8_to_float16(const ImageBuffer& src, ImageBuffer& dst, const Option& opt)
+void cast_int8_to_float16(const ImMat& src, ImMat& dst, const Option& opt)
 {
     Cast_vulkan cast;
     cast.type_from = 3;
@@ -3800,7 +3801,7 @@ void cast_int8_to_float16(const ImageBuffer& src, ImageBuffer& dst, const Option
     cast.destroy_pipeline(opt);
 }
 
-void cast_float32_to_bfloat16(const ImageBuffer& src, ImageBuffer& dst, const Option& opt)
+void cast_float32_to_bfloat16(const ImMat& src, ImMat& dst, const Option& opt)
 {
     Cast_vulkan cast;
     cast.type_from = 1;
@@ -3810,7 +3811,7 @@ void cast_float32_to_bfloat16(const ImageBuffer& src, ImageBuffer& dst, const Op
     cast.destroy_pipeline(opt);
 }
 
-void cast_bfloat16_to_float32(const ImageBuffer& src, ImageBuffer& dst, const Option& opt)
+void cast_bfloat16_to_float32(const ImMat& src, ImMat& dst, const Option& opt)
 {
     Cast_vulkan cast;
     cast.type_from = 4;

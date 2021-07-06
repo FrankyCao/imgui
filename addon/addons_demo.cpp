@@ -940,9 +940,9 @@ static float vkpeak(ImVulkan::VulkanDevice* vkdev, int loop, int count_mb, int c
 
     // prepare storage
     {
-        ImVulkan::VkImageBuffer a;
-        ImVulkan::VkImageBuffer b;
-        ImVulkan::VkImageBuffer c;
+        ImVulkan::VkMat a;
+        ImVulkan::VkMat b;
+        ImVulkan::VkMat c;
         {
             if (opt.use_fp16_packed || opt.use_fp16_storage)
             {
@@ -963,7 +963,7 @@ static float vkpeak(ImVulkan::VulkanDevice* vkdev, int loop, int count_mb, int c
         for (int i = 0; i < cmd_loop; i++)
         {
             {
-                std::vector<ImVulkan::VkImageBuffer> bindings(3);
+                std::vector<ImVulkan::VkMat> bindings(3);
                 bindings[0] = a;
                 bindings[1] = b;
                 bindings[2] = c;
@@ -1037,8 +1037,8 @@ void PrepareVulkanDemo()
             }
         }
     }
-    ImVulkan::ImageBuffer test_image;
-    test_image.create_type(TEST_WIDTH, TEST_HEIGHT, TEST_CHANNEL, tempBitmap, ImVulkan::FLOAT32);
+    ImGui::ImMat test_image;
+    test_image.create_type(TEST_WIDTH, TEST_HEIGHT, TEST_CHANNEL, tempBitmap, ImGui::IMMAT_FLOAT32);
     g_cmd = new ImVulkan::VkCompute(g_vkdev);
     g_cmd->record_upload(test_image, test_vkimage, g_opt);
     g_cmd->submit_and_wait();

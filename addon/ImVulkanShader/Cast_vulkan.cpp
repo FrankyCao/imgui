@@ -1,6 +1,7 @@
 #include "Cast_vulkan.h"
 #include "command.h"
 #include "Cast_shader.h"
+using namespace ImGui;
 
 static inline unsigned short float32_to_float16(float value)
 {
@@ -143,8 +144,8 @@ Cast_vulkan::Cast_vulkan()
 
 int Cast_vulkan::create_pipeline(const Option& opt)
 {
-    const ImageBuffer& shape = bottom_shapes.empty() ? ImageBuffer() : bottom_shapes[0];
-    const ImageBuffer& out_shape = top_shapes.empty() ? ImageBuffer() : top_shapes[0];
+    const ImMat& shape = bottom_shapes.empty() ? ImMat() : bottom_shapes[0];
+    const ImMat& out_shape = top_shapes.empty() ? ImMat() : top_shapes[0];
 
     int elempack = 1;
     if (shape.dims == 1) elempack = opt.use_shader_pack8 && shape.w % 8 == 0 ? 8 : shape.w % 4 == 0 ? 4 : 1;
@@ -174,15 +175,15 @@ int Cast_vulkan::create_pipeline(const Option& opt)
         out_elemsize = out_elempack * 4u;
     }
 
-    ImageBuffer shape_packed;
-    if (shape.dims == 1) shape_packed = ImageBuffer(shape.w / elempack, (void*)0, elemsize, elempack);
-    if (shape.dims == 2) shape_packed = ImageBuffer(shape.w, shape.h / elempack, (void*)0, elemsize, elempack);
-    if (shape.dims == 3) shape_packed = ImageBuffer(shape.w, shape.h, shape.c / elempack, (void*)0, elemsize, elempack);
+    ImMat shape_packed;
+    if (shape.dims == 1) shape_packed = ImMat(shape.w / elempack, (void*)0, elemsize, elempack);
+    if (shape.dims == 2) shape_packed = ImMat(shape.w, shape.h / elempack, (void*)0, elemsize, elempack);
+    if (shape.dims == 3) shape_packed = ImMat(shape.w, shape.h, shape.c / elempack, (void*)0, elemsize, elempack);
 
-    ImageBuffer out_shape_packed;
-    if (out_shape.dims == 1) out_shape_packed = ImageBuffer(out_shape.w / out_elempack, (void*)0, out_elemsize, out_elempack);
-    if (out_shape.dims == 2) out_shape_packed = ImageBuffer(out_shape.w, out_shape.h / out_elempack, (void*)0, out_elemsize, out_elempack);
-    if (out_shape.dims == 3) out_shape_packed = ImageBuffer(out_shape.w, out_shape.h, out_shape.c / out_elempack, (void*)0, out_elemsize, out_elempack);
+    ImMat out_shape_packed;
+    if (out_shape.dims == 1) out_shape_packed = ImMat(out_shape.w / out_elempack, (void*)0, out_elemsize, out_elempack);
+    if (out_shape.dims == 2) out_shape_packed = ImMat(out_shape.w, out_shape.h / out_elempack, (void*)0, out_elemsize, out_elempack);
+    if (out_shape.dims == 3) out_shape_packed = ImMat(out_shape.w, out_shape.h, out_shape.c / out_elempack, (void*)0, out_elemsize, out_elempack);
 
     std::vector<vk_specialization_type> specializations(0 + 10);
     specializations[0 + 0].i = shape_packed.dims;
@@ -196,7 +197,7 @@ int Cast_vulkan::create_pipeline(const Option& opt)
     specializations[0 + 8].i = out_shape_packed.c;
     specializations[0 + 9].i = out_shape_packed.cstep;
 
-    ImageBuffer local_size_xyz;
+    ImMat local_size_xyz;
     if (out_shape_packed.dims == 1)
     {
         local_size_xyz.w = std::min(64, out_shape_packed.w);
@@ -302,7 +303,7 @@ int Cast_vulkan::destroy_pipeline(const Option& /*opt*/)
     return 0;
 }
 
-int Cast_vulkan::forward(const ImageBuffer& bottom_blob, ImageBuffer& top_blob, const Option& opt) const
+int Cast_vulkan::forward(const ImMat& bottom_blob, ImMat& top_blob, const Option& opt) const
 {
     if (type_from == type_to)
     {
@@ -341,15 +342,15 @@ int Cast_vulkan::forward(const ImageBuffer& bottom_blob, ImageBuffer& top_blob, 
 
     if (dims == 1)
     {
-        top_blob.create(w, out_elemsize, elempack, opt.blob_allocator);
+        top_blob.create(w, out_elemsize, elempack);
     }
     else if (dims == 2)
     {
-        top_blob.create(w, h, out_elemsize, elempack, opt.blob_allocator);
+        top_blob.create(w, h, out_elemsize, elempack);
     }
     else if (dims == 3)
     {
-        top_blob.create(w, h, channels, out_elemsize, elempack, opt.blob_allocator);
+        top_blob.create(w, h, channels, out_elemsize, elempack);
     }
     if (top_blob.empty())
         return -100;
@@ -447,7 +448,7 @@ int Cast_vulkan::forward(const ImageBuffer& bottom_blob, ImageBuffer& top_blob, 
     }
     // TODO more cast type
 
-    top_blob.type = type_to == 1 ? FLOAT32 : type_to == 2 ? FLOAT16 : type_to == 3 ? INT8 : type_to == 4 ? FLOAT16 : INT8;
+    top_blob.type = type_to == 1 ? IMMAT_FLOAT32 : type_to == 2 ? IMMAT_FLOAT16 : type_to == 3 ? IMMAT_INT8 : type_to == 4 ? IMMAT_FLOAT16 : IMMAT_INT8;
     top_blob.color_space = bottom_blob.color_space;
     top_blob.color_format = bottom_blob.color_format;
     top_blob.color_range = bottom_blob.color_range;
@@ -455,7 +456,7 @@ int Cast_vulkan::forward(const ImageBuffer& bottom_blob, ImageBuffer& top_blob, 
     return 0;
 }
 
-int Cast_vulkan::forward(const VkImageBuffer& bottom_blob, VkImageBuffer& top_blob, VkCompute& cmd, const Option& opt) const
+int Cast_vulkan::forward(const VkMat& bottom_blob, VkMat& top_blob, VkCompute& cmd, const Option& opt) const
 {
     if (type_from == type_to)
     {
@@ -515,7 +516,7 @@ int Cast_vulkan::forward(const VkImageBuffer& bottom_blob, VkImageBuffer& top_bl
     if (top_blob.empty())
         return -100;
 
-    std::vector<VkImageBuffer> bindings(2);
+    std::vector<VkMat> bindings(2);
     bindings[0] = bottom_blob;
     bindings[1] = top_blob;
 
@@ -550,7 +551,7 @@ int Cast_vulkan::forward(const VkImageBuffer& bottom_blob, VkImageBuffer& top_bl
 
     cmd.record_pipeline(pipeline, bindings, constants, top_blob);
 
-    top_blob.type = type_to == 1 ? FLOAT32 : type_to == 2 ? FLOAT16 : type_to == 3 ? INT8 : type_to == 4 ? FLOAT16 : INT8;
+    top_blob.type = type_to == 1 ? IMMAT_FLOAT32 : type_to == 2 ? IMMAT_FLOAT16 : type_to == 3 ? IMMAT_INT8 : type_to == 4 ? IMMAT_FLOAT16 : IMMAT_INT8;
     top_blob.color_space = bottom_blob.color_space;
     top_blob.color_format = bottom_blob.color_format;
     top_blob.color_range = bottom_blob.color_range;
@@ -653,7 +654,7 @@ int Cast_vulkan::forward(const VkImageMat& bottom_blob, VkImageMat& top_blob, Vk
 
     cmd.record_pipeline(pipeline, bindings, constants, top_blob);
 
-    top_blob.type = type_to == 1 ? FLOAT32 : type_to == 2 ? FLOAT16 : type_to == 3 ? INT8 : type_to == 4 ? FLOAT16 : INT8;
+    top_blob.type = type_to == 1 ? IMMAT_FLOAT32 : type_to == 2 ? IMMAT_FLOAT16 : type_to == 3 ? IMMAT_INT8 : type_to == 4 ? IMMAT_FLOAT16 : IMMAT_INT8;
     top_blob.color_space = bottom_blob.color_space;
     top_blob.color_format = bottom_blob.color_format;
     top_blob.color_range = bottom_blob.color_range;

@@ -1,6 +1,7 @@
 #include "Resize_vulkan.h"
 #include "Resize_shader.h"
 #include "ImVulkanShader.h"
+using namespace ImGui;
 namespace ImVulkan 
 {
 Resize_vulkan::Resize_vulkan(int gpu)
@@ -41,15 +42,15 @@ Resize_vulkan::~Resize_vulkan()
 }
 
 // input CPU Buffer and output to RGBA8888 CPU buffer
-void Resize_vulkan::Resize(const ImageBuffer& src, ImageBuffer& dst, float fx, float fy, InterpolateMode type) const
+void Resize_vulkan::Resize(const ImMat& src, ImMat& dst, float fx, float fy, ImMatInterpolateMode type) const
 {
-    VkImageBuffer dst_buffer;
-    VkImageBuffer vk_src;
+    VkMat dst_buffer;
+    VkMat vk_src;
     cmd->record_clone(src, vk_src, opt);
     int dst_width = src.w * fx;
     int dst_height = fy == 0.f ? src.h * fx : src.h * fy;
-    dst_buffer.create_type(dst_width, dst_height, 4, INT8, opt.blob_vkallocator);
-    std::vector<VkImageBuffer> bindings(3);
+    dst_buffer.create_type(dst_width, dst_height, 4, IMMAT_INT8, opt.blob_vkallocator);
+    std::vector<VkMat> bindings(3);
     bindings[0] = vk_src;
     bindings[1] = dst_buffer;
     std::vector<vk_constant_type> constants(8);
@@ -59,11 +60,11 @@ void Resize_vulkan::Resize(const ImageBuffer& src, ImageBuffer& dst, float fx, f
     constants[3].i = dst_width;
     constants[4].i = dst_height;
     constants[5].i = type;
-    constants[6].f = src.type == FLOAT32 || src.type == FLOAT16 ? 1.0f : src.type == INT16 ? (float)(1 << 16) : (float)(1 << 8);
+    constants[6].f = src.type == IMMAT_FLOAT32 || src.type == IMMAT_FLOAT16 ? 1.0f : src.type == IMMAT_INT16 ? (float)(1 << 16) : (float)(1 << 8);
     constants[7].i = 1;
-    if (src.type == FLOAT32)
+    if (src.type == IMMAT_FLOAT32)
         cmd->record_pipeline(pipeline_rgb_f, bindings, constants, dst_buffer);
-    else if (src.type == INT16)
+    else if (src.type == IMMAT_INT16)
         cmd->record_pipeline(pipeline_rgb_16, bindings, constants, dst_buffer);
     else
         cmd->record_pipeline(pipeline_rgb_8, bindings, constants, dst_buffer);
@@ -73,14 +74,14 @@ void Resize_vulkan::Resize(const ImageBuffer& src, ImageBuffer& dst, float fx, f
 }
 
 // input CPU Buffer and output to RGBA GPU buffer
-void Resize_vulkan::Resize(const ImageBuffer& src, VkImageBuffer& dst, float fx, float fy, InterpolateMode type) const
+void Resize_vulkan::Resize(const ImMat& src, VkMat& dst, float fx, float fy, ImMatInterpolateMode type) const
 {
-    VkImageBuffer vk_src;
+    VkMat vk_src;
     cmd->record_clone(src, vk_src, opt);
     int dst_width = src.w * fx;
     int dst_height = fy == 0.f ? src.h * fx : src.h * fy;
-    dst.create_type(dst_width, dst_height, 4, FLOAT32, opt.blob_vkallocator);
-    std::vector<VkImageBuffer> bindings(3);
+    dst.create_type(dst_width, dst_height, 4, IMMAT_FLOAT32, opt.blob_vkallocator);
+    std::vector<VkMat> bindings(3);
     bindings[0] = vk_src;
     bindings[1] = dst;
     std::vector<vk_constant_type> constants(8);
@@ -90,11 +91,11 @@ void Resize_vulkan::Resize(const ImageBuffer& src, VkImageBuffer& dst, float fx,
     constants[3].i = dst_width;
     constants[4].i = dst_height;
     constants[5].i = type;
-    constants[6].f = src.type == FLOAT32 || src.type == FLOAT16 ? 1.0f : src.type == INT16 ? (float)(1 << 16) : (float)(1 << 8);
+    constants[6].f = src.type == IMMAT_FLOAT32 || src.type == IMMAT_FLOAT16 ? 1.0f : src.type == IMMAT_INT16 ? (float)(1 << 16) : (float)(1 << 8);
     constants[7].i = 0;
-    if (src.type == FLOAT32)
+    if (src.type == IMMAT_FLOAT32)
         cmd->record_pipeline(pipeline_rgb_f, bindings, constants, dst);
-    else if (src.type == INT16)
+    else if (src.type == IMMAT_INT16)
         cmd->record_pipeline(pipeline_rgb_16, bindings, constants, dst);
     else
         cmd->record_pipeline(pipeline_rgb_8, bindings, constants, dst);
@@ -103,12 +104,12 @@ void Resize_vulkan::Resize(const ImageBuffer& src, VkImageBuffer& dst, float fx,
 }
 
 // input GPU Buffer and output to RGBA GPU buffer
-void Resize_vulkan::Resize(const VkImageBuffer& src, VkImageBuffer& dst, float fx, float fy, InterpolateMode type) const
+void Resize_vulkan::Resize(const VkMat& src, VkMat& dst, float fx, float fy, ImMatInterpolateMode type) const
 {
     int dst_width = src.w * fx;
     int dst_height = fy == 0.f ? src.h * fx : src.h * fy;
-    dst.create_type(dst_width, dst_height, 4, FLOAT32, opt.blob_vkallocator);
-    std::vector<VkImageBuffer> bindings(3);
+    dst.create_type(dst_width, dst_height, 4, IMMAT_FLOAT32, opt.blob_vkallocator);
+    std::vector<VkMat> bindings(3);
     bindings[0] = src;
     bindings[1] = dst;
     std::vector<vk_constant_type> constants(8);
@@ -118,11 +119,11 @@ void Resize_vulkan::Resize(const VkImageBuffer& src, VkImageBuffer& dst, float f
     constants[3].i = dst_width;
     constants[4].i = dst_height;
     constants[5].i = type;
-    constants[6].f = src.type == FLOAT32 || src.type == FLOAT16 ? 1.0f : src.type == INT16 ? (float)(1 << 16) : (float)(1 << 8);
+    constants[6].f = src.type == IMMAT_FLOAT32 || src.type == IMMAT_FLOAT16 ? 1.0f : src.type == IMMAT_INT16 ? (float)(1 << 16) : (float)(1 << 8);
     constants[7].i = 0;
-    if (src.type == FLOAT32)
+    if (src.type == IMMAT_FLOAT32)
         cmd->record_pipeline(pipeline_rgb_f, bindings, constants, dst);
-    else if (src.type == INT16)
+    else if (src.type == IMMAT_INT16)
         cmd->record_pipeline(pipeline_rgb_16, bindings, constants, dst);
     else
         cmd->record_pipeline(pipeline_rgb_8, bindings, constants, dst);
@@ -131,13 +132,13 @@ void Resize_vulkan::Resize(const VkImageBuffer& src, VkImageBuffer& dst, float f
 }
 
 // input GPU Buffer and output to GPU Image3D
-void Resize_vulkan::Resize(const VkImageBuffer& src, VkImageMat& dst, float fx, float fy, InterpolateMode type) const
+void Resize_vulkan::Resize(const VkMat& src, VkImageMat& dst, float fx, float fy, ImMatInterpolateMode type) const
 {
-    VkImageBuffer dst_buffer;
+    VkMat dst_buffer;
     int dst_width = src.w * fx;
     int dst_height = fy == 0.f ? src.h * fx : src.h * fy;
-    dst_buffer.create_type(dst_width, dst_height, 4, FLOAT32, opt.blob_vkallocator);
-    std::vector<VkImageBuffer> bindings(3);
+    dst_buffer.create_type(dst_width, dst_height, 4, IMMAT_FLOAT32, opt.blob_vkallocator);
+    std::vector<VkMat> bindings(3);
     bindings[0] = src;
     bindings[1] = dst_buffer;
     std::vector<vk_constant_type> constants(8);
@@ -147,11 +148,11 @@ void Resize_vulkan::Resize(const VkImageBuffer& src, VkImageMat& dst, float fx, 
     constants[3].i = dst_width;
     constants[4].i = dst_height;
     constants[5].i = type;
-    constants[6].f = src.type == FLOAT32 || src.type == FLOAT16 ? 1.0f : src.type == INT16 ? (float)(1 << 16) : (float)(1 << 8);
+    constants[6].f = src.type == IMMAT_FLOAT32 || src.type == IMMAT_FLOAT16 ? 1.0f : src.type == IMMAT_INT16 ? (float)(1 << 16) : (float)(1 << 8);
     constants[7].i = 0;
-    if (src.type == FLOAT32)
+    if (src.type == IMMAT_FLOAT32)
         cmd->record_pipeline(pipeline_rgb_f, bindings, constants, dst_buffer);
-    else if (src.type == INT16)
+    else if (src.type == IMMAT_INT16)
         cmd->record_pipeline(pipeline_rgb_16, bindings, constants, dst_buffer);
     else
         cmd->record_pipeline(pipeline_rgb_8, bindings, constants, dst_buffer);
@@ -161,15 +162,15 @@ void Resize_vulkan::Resize(const VkImageBuffer& src, VkImageMat& dst, float fx, 
 }
 
 // input CPU Buffer and output to GPU Image3D
-void Resize_vulkan::Resize(const ImageBuffer& src, VkImageMat& dst, float fx, float fy, InterpolateMode type) const
+void Resize_vulkan::Resize(const ImMat& src, VkImageMat& dst, float fx, float fy, ImMatInterpolateMode type) const
 {
-    VkImageBuffer vk_src;
+    VkMat vk_src;
     cmd->record_clone(src, vk_src, opt);
-    VkImageBuffer dst_buffer;
+    VkMat dst_buffer;
     int dst_width = src.w * fx;
     int dst_height = fy == 0.f ? src.h * fx : src.h * fy;
-    dst_buffer.create_type(dst_width, dst_height, 4, FLOAT32, opt.blob_vkallocator);
-    std::vector<VkImageBuffer> bindings(3);
+    dst_buffer.create_type(dst_width, dst_height, 4, IMMAT_FLOAT32, opt.blob_vkallocator);
+    std::vector<VkMat> bindings(3);
     bindings[0] = vk_src;
     bindings[1] = dst_buffer;
     std::vector<vk_constant_type> constants(8);
@@ -179,11 +180,11 @@ void Resize_vulkan::Resize(const ImageBuffer& src, VkImageMat& dst, float fx, fl
     constants[3].i = dst_width;
     constants[4].i = dst_height;
     constants[5].i = type;
-    constants[6].f = src.type == FLOAT32 || src.type == FLOAT16 ? 1.0f : src.type == INT16 ? (float)(1 << 16) : (float)(1 << 8);
+    constants[6].f = src.type == IMMAT_FLOAT32 || src.type == IMMAT_FLOAT16 ? 1.0f : src.type == IMMAT_INT16 ? (float)(1 << 16) : (float)(1 << 8);
     constants[7].i = 0;
-    if (src.type == FLOAT32)
+    if (src.type == IMMAT_FLOAT32)
         cmd->record_pipeline(pipeline_rgb_f, bindings, constants, dst_buffer);
-    else if (src.type == INT16)
+    else if (src.type == IMMAT_INT16)
         cmd->record_pipeline(pipeline_rgb_16, bindings, constants, dst_buffer);
     else
         cmd->record_pipeline(pipeline_rgb_8, bindings, constants, dst_buffer);

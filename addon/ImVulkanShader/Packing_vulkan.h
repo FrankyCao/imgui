@@ -12,10 +12,10 @@ public:
     virtual int create_pipeline(const Option& opt);
     virtual int destroy_pipeline(const Option& opt);
 
-    virtual int forward(const VkImageBuffer& bottom_blob, VkImageBuffer& top_blob, VkCompute& cmd, const Option& opt) const;
+    virtual int forward(const VkMat& bottom_blob, VkMat& top_blob, VkCompute& cmd, const Option& opt) const;
     virtual int forward(const VkImageMat& bottom_blob, VkImageMat& top_blob, VkCompute& cmd, const Option& opt) const;
-    virtual int forward(const VkImageBuffer& bottom_blob, VkImageMat& top_blob, VkCompute& cmd, const Option& opt) const;
-    virtual int forward(const VkImageMat& bottom_blob, VkImageBuffer& top_blob, VkCompute& cmd, const Option& opt) const;
+    virtual int forward(const VkMat& bottom_blob, VkImageMat& top_blob, VkCompute& cmd, const Option& opt) const;
+    virtual int forward(const VkImageMat& bottom_blob, VkMat& top_blob, VkCompute& cmd, const Option& opt) const;
 
 public:
     Pipeline* pipeline_packing;
@@ -48,8 +48,8 @@ public:
 
 public:
     const VulkanDevice* vkdev;
-    std::vector<ImageBuffer> bottom_shapes;
-    std::vector<ImageBuffer> top_shapes;
+    std::vector<ImGui::ImMat> bottom_shapes;
+    std::vector<ImGui::ImMat> top_shapes;
 
 public:
     std::vector<uint32_t> spirv_packing_fp16_to_fp32;

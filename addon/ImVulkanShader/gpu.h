@@ -1,5 +1,6 @@
 #pragma once
 #include "imgui.h"
+#include "imgui_mat.h"
 #include "platform.h"
 #include <vulkan/vulkan.h>
 #include "allocator.h"
@@ -208,7 +209,7 @@ public:
     const VkSampler* immutable_texelfetch_sampler() const;
 
     // dummy buffer image
-    VkImageBuffer get_dummy_buffer() const;
+    VkMat get_dummy_buffer() const;
     VkImageMat get_dummy_image() const;
     VkImageMat get_dummy_image_readonly() const;
 
@@ -216,16 +217,16 @@ public:
     const PipelineCache* get_pipeline_cache() const;
 
     // test image allocation
-    bool shape_support_image_storage(const ImageBuffer& shape) const;
+    bool shape_support_image_storage(const ImGui::ImMat& shape) const;
 
     // current gpu heap memory budget in MB
     uint32_t get_heap_budget() const;
 
     // utility operator
-    void convert_packing(const VkImageBuffer& src, VkImageBuffer& dst, int dst_elempack, VkCompute& cmd, const Option& opt) const;
+    void convert_packing(const VkMat& src, VkMat& dst, int dst_elempack, VkCompute& cmd, const Option& opt) const;
     void convert_packing(const VkImageMat& src, VkImageMat& dst, int dst_elempack, VkCompute& cmd, const Option& opt) const;
-    void convert_packing(const VkImageBuffer& src, VkImageMat& dst, int dst_elempack, VkCompute& cmd, const Option& opt) const;
-    void convert_packing(const VkImageMat& src, VkImageBuffer& dst, int dst_elempack, VkCompute& cmd, const Option& opt) const;
+    void convert_packing(const VkMat& src, VkImageMat& dst, int dst_elempack, VkCompute& cmd, const Option& opt) const;
+    void convert_packing(const VkImageMat& src, VkMat& dst, int dst_elempack, VkCompute& cmd, const Option& opt) const;
 
     // VK_KHR_bind_memory2
     PFN_vkBindBufferMemory2KHR vkBindBufferMemory2KHR;
@@ -308,11 +309,11 @@ public:
 
 IMGUI_API int resolve_shader_info(const uint32_t* spv_data, size_t spv_data_size, ShaderInfo& shader_info);
 
-IMGUI_API void cast_float32_to_float16(const ImageBuffer& src, ImageBuffer& dst, const Option& opt = Option());
-IMGUI_API void cast_float16_to_float32(const ImageBuffer& src, ImageBuffer& dst, const Option& opt = Option());
-IMGUI_API void cast_int8_to_float32(const ImageBuffer& src, ImageBuffer& dst, const Option& opt = Option());
-IMGUI_API void cast_int8_to_float16(const ImageBuffer& src, ImageBuffer& dst, const Option& opt = Option());
-IMGUI_API void cast_float32_to_bfloat16(const ImageBuffer& src, ImageBuffer& dst, const Option& opt = Option());
-IMGUI_API void cast_bfloat16_to_float32(const ImageBuffer& src, ImageBuffer& dst, const Option& opt = Option());
+IMGUI_API void cast_float32_to_float16(const ImGui::ImMat& src, ImGui::ImMat& dst, const Option& opt = Option());
+IMGUI_API void cast_float16_to_float32(const ImGui::ImMat& src, ImGui::ImMat& dst, const Option& opt = Option());
+IMGUI_API void cast_int8_to_float32(const ImGui::ImMat& src, ImGui::ImMat& dst, const Option& opt = Option());
+IMGUI_API void cast_int8_to_float16(const ImGui::ImMat& src, ImGui::ImMat& dst, const Option& opt = Option());
+IMGUI_API void cast_float32_to_bfloat16(const ImGui::ImMat& src, ImGui::ImMat& dst, const Option& opt = Option());
+IMGUI_API void cast_bfloat16_to_float32(const ImGui::ImMat& src, ImGui::ImMat& dst, const Option& opt = Option());
 
 } // namespace ImVulkan

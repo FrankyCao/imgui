@@ -60,7 +60,7 @@ void PoolAllocator::clear()
     for (; it != d->budgets.end(); ++it)
     {
         void* ptr = it->second;
-        ImVulkan::fastFree(ptr);
+        fastFree(ptr);
     }
     d->budgets.clear();
 
@@ -110,7 +110,7 @@ void* PoolAllocator::fastMalloc(size_t size)
     d->budgets_lock.unlock();
 
     // new
-    void* ptr = ImVulkan::fastMalloc(size);
+    void* ptr = fastMalloc(size);
 
     d->payouts_lock.lock();
 
@@ -150,7 +150,7 @@ void PoolAllocator::fastFree(void* ptr)
     d->payouts_lock.unlock();
 
     fprintf(stderr, "FATAL ERROR! pool allocator get wild %p", ptr);
-    ImVulkan::fastFree(ptr);
+    fastFree(ptr);
 }
 
 class UnlockedPoolAllocatorPrivate
@@ -201,7 +201,7 @@ void UnlockedPoolAllocator::clear()
     for (; it != d->budgets.end(); ++it)
     {
         void* ptr = it->second;
-        ImVulkan::fastFree(ptr);
+        fastFree(ptr);
     }
     d->budgets.clear();
 }
@@ -239,7 +239,7 @@ void* UnlockedPoolAllocator::fastMalloc(size_t size)
     }
 
     // new
-    void* ptr = ImVulkan::fastMalloc(size);
+    void* ptr = fastMalloc(size);
 
     d->payouts.push_back(std::make_pair(size, ptr));
 
@@ -265,7 +265,7 @@ void UnlockedPoolAllocator::fastFree(void* ptr)
     }
 
     fprintf(stderr, "FATAL ERROR! unlocked pool allocator get wild %p", ptr);
-    ImVulkan::fastFree(ptr);
+    fastFree(ptr);
 }
 
 VkAllocator::VkAllocator(const VulkanDevice* _vkdev)

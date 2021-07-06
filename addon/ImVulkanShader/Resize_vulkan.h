@@ -11,15 +11,15 @@ public:
     ~Resize_vulkan();
 
     // input CPU Buffer and output to RGBA8888 CPU buffer
-    virtual void Resize(const ImageBuffer& src, ImageBuffer& dst, float fx, float fy = 0.f, InterpolateMode type = INTERPOLATE_BICUBIC) const;
+    virtual void Resize(const ImGui::ImMat& src, ImGui::ImMat& dst, float fx, float fy = 0.f, ImGui::ImMatInterpolateMode type = ImGui::IMMAT_INTERPOLATE_BICUBIC) const;
     // input CPU Buffer and output to RGBA GPU buffer
-    virtual void Resize(const ImageBuffer& src, VkImageBuffer& dst, float fx, float fy = 0.f, InterpolateMode type = INTERPOLATE_BICUBIC) const;
+    virtual void Resize(const ImGui::ImMat& src, VkMat& dst, float fx, float fy = 0.f, ImGui::ImMatInterpolateMode type = ImGui::IMMAT_INTERPOLATE_BICUBIC) const;
     // input GPU Buffer and output to RGBA GPU buffer
-    virtual void Resize(const VkImageBuffer& src, VkImageBuffer& dst, float fx, float fy = 0.f, InterpolateMode type = INTERPOLATE_BICUBIC) const;
+    virtual void Resize(const VkMat& src, VkMat& dst, float fx, float fy = 0.f, ImGui::ImMatInterpolateMode type = ImGui::IMMAT_INTERPOLATE_BICUBIC) const;
     // input GPU Buffer and output to GPU Image3D
-    virtual void Resize(const VkImageBuffer& src, VkImageMat& dst, float fx, float fy = 0.f, InterpolateMode type = INTERPOLATE_BICUBIC) const;
+    virtual void Resize(const VkMat& src, VkImageMat& dst, float fx, float fy = 0.f, ImGui::ImMatInterpolateMode type = ImGui::IMMAT_INTERPOLATE_BICUBIC) const;
     // input CPU Buffer and output to GPU Image3D
-    virtual void Resize(const ImageBuffer& src, VkImageMat& dst, float fx, float fy = 0.f, InterpolateMode type = INTERPOLATE_BICUBIC) const;
+    virtual void Resize(const ImGui::ImMat& src, VkImageMat& dst, float fx, float fy = 0.f, ImGui::ImMatInterpolateMode type = ImGui::IMMAT_INTERPOLATE_BICUBIC) const;
 
 public:
     const VulkanDevice* vkdev;

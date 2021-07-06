@@ -15,41 +15,41 @@ public:
     virtual ~VkCompute();
 
 public:
-    void record_upload(const ImageBuffer& src, VkImageBuffer& dst, const Option& opt);
+    void record_upload(const ImGui::ImMat& src, VkMat& dst, const Option& opt);
 
-    void record_upload(const ImageBuffer& src, VkImageMat& dst, const Option& opt);
+    void record_upload(const ImGui::ImMat& src, VkImageMat& dst, const Option& opt);
 
-    void record_download(const VkImageBuffer& src, ImageBuffer& dst, const Option& opt);
+    void record_download(const VkMat& src, ImGui::ImMat& dst, const Option& opt);
 
-    void record_download(const VkImageMat& src, ImageBuffer& dst, const Option& opt);
+    void record_download(const VkImageMat& src, ImGui::ImMat& dst, const Option& opt);
 
-    void record_buffer_to_image(const VkImageBuffer& src, VkImageMat& dst, const Option& opt);
+    void record_buffer_to_image(const VkMat& src, VkImageMat& dst, const Option& opt);
 
-    void record_image_to_buffer(const VkImageMat& src, VkImageBuffer& dst, const Option& opt);
+    void record_image_to_buffer(const VkImageMat& src, VkMat& dst, const Option& opt);
 
-    void record_clone(const ImageBuffer& src, VkImageBuffer& dst, const Option& opt);
+    void record_clone(const ImGui::ImMat& src, VkMat& dst, const Option& opt);
 
-    void record_clone(const ImageBuffer& src, VkImageMat& dst, const Option& opt);
+    void record_clone(const ImGui::ImMat& src, VkImageMat& dst, const Option& opt);
 
-    void record_clone(const VkImageBuffer& src, ImageBuffer& dst, const Option& opt);
+    void record_clone(const VkMat& src, ImGui::ImMat& dst, const Option& opt);
 
-    void record_clone(const VkImageMat& src, ImageBuffer& dst, const Option& opt);
+    void record_clone(const VkImageMat& src, ImGui::ImMat& dst, const Option& opt);
 
-    void record_clone(const VkImageBuffer& src, VkImageBuffer& dst, const Option& opt);
+    void record_clone(const VkMat& src, VkMat& dst, const Option& opt);
 
     void record_clone(const VkImageMat& src, VkImageMat& dst, const Option& opt);
 
-    void record_clone(const VkImageBuffer& src, VkImageMat& dst, const Option& opt);
+    void record_clone(const VkMat& src, VkImageMat& dst, const Option& opt);
 
-    void record_clone(const VkImageMat& src, VkImageBuffer& dst, const Option& opt);
+    void record_clone(const VkImageMat& src, VkMat& dst, const Option& opt);
 
-    void record_pipeline(const Pipeline* pipeline, const std::vector<VkImageBuffer>& bindings, const std::vector<vk_constant_type>& constants, const VkImageBuffer& dispatcher);
+    void record_pipeline(const Pipeline* pipeline, const std::vector<VkMat>& bindings, const std::vector<vk_constant_type>& constants, const VkMat& dispatcher);
 
     void record_pipeline(const Pipeline* pipeline, const std::vector<VkImageMat>& bindings, const std::vector<vk_constant_type>& constants, const VkImageMat& dispatcher);
 
-    void record_pipeline(const Pipeline* pipeline, const std::vector<VkImageBuffer>& buffer_bindings, const std::vector<VkImageMat>& image_bindings, const std::vector<vk_constant_type>& constants, const VkImageBuffer& dispatcher);
-    void record_pipeline(const Pipeline* pipeline, const std::vector<VkImageBuffer>& buffer_bindings, const std::vector<VkImageMat>& image_bindings, const std::vector<vk_constant_type>& constants, const VkImageMat& dispatcher);
-    void record_pipeline(const Pipeline* pipeline, const std::vector<VkImageBuffer>& buffer_bindings, const std::vector<VkImageMat>& image_bindings, const std::vector<vk_constant_type>& constants, const ImageBuffer& dispatcher);
+    void record_pipeline(const Pipeline* pipeline, const std::vector<VkMat>& buffer_bindings, const std::vector<VkImageMat>& image_bindings, const std::vector<vk_constant_type>& constants, const VkMat& dispatcher);
+    void record_pipeline(const Pipeline* pipeline, const std::vector<VkMat>& buffer_bindings, const std::vector<VkImageMat>& image_bindings, const std::vector<vk_constant_type>& constants, const VkImageMat& dispatcher);
+    void record_pipeline(const Pipeline* pipeline, const std::vector<VkMat>& buffer_bindings, const std::vector<VkImageMat>& image_bindings, const std::vector<vk_constant_type>& constants, const ImGui::ImMat& dispatcher);
 
 #if SHADER_BENCHMARK
     void record_write_timestamp(uint32_t query);
@@ -70,7 +70,7 @@ public:
 protected:
     const VulkanDevice* vkdev;
 
-    void barrier_readwrite(const VkImageBuffer& binding);
+    void barrier_readwrite(const VkMat& binding);
     void barrier_readwrite(const VkImageMat& binding);
     void barrier_readonly(const VkImageMat& binding);
 
@@ -86,9 +86,9 @@ public:
     virtual ~VkTransfer();
 
 public:
-    void record_upload(const ImageBuffer& src, VkImageBuffer& dst, const Option& opt, bool flatten = true);
+    void record_upload(const ImGui::ImMat& src, VkMat& dst, const Option& opt, bool flatten = true);
 
-    void record_upload(const ImageBuffer& src, VkImageMat& dst, const Option& opt);
+    void record_upload(const ImGui::ImMat& src, VkImageMat& dst, const Option& opt);
 
     int submit_and_wait();
 

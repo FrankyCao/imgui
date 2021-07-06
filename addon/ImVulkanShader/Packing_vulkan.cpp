@@ -1,6 +1,7 @@
 #include "Packing_vulkan.h"
 #include "Packing_shader.h"
 #include "command.h"
+using namespace ImGui;
 
 namespace ImVulkan 
 {
@@ -22,7 +23,7 @@ Packing_vulkan::Packing_vulkan()
 int Packing_vulkan::create_pipeline(const Option& _opt)
 {
     Option opt = _opt;
-    const ImageBuffer& out_shape = top_shapes.empty() ? ImageBuffer() : top_shapes[0];
+    const ImMat& out_shape = top_shapes.empty() ? ImMat() : top_shapes[0];
 
     size_t out_elemsize = out_elempack;
     if (cast_type_to == 0)
@@ -57,10 +58,10 @@ int Packing_vulkan::create_pipeline(const Option& _opt)
         out_elemsize = out_elempack * 2u;
     }
 
-    ImageBuffer out_shape_packed;
-    if (out_shape.dims == 1) out_shape_packed = ImageBuffer(out_shape.w / out_elempack, (void*)0, out_elemsize, out_elempack);
-    if (out_shape.dims == 2) out_shape_packed = ImageBuffer(out_shape.w, out_shape.h / out_elempack, (void*)0, out_elemsize, out_elempack);
-    if (out_shape.dims == 3) out_shape_packed = ImageBuffer(out_shape.w, out_shape.h, out_shape.c / out_elempack, (void*)0, out_elemsize, out_elempack);
+    ImMat out_shape_packed;
+    if (out_shape.dims == 1) out_shape_packed = ImMat(out_shape.w / out_elempack, (void*)0, out_elemsize, out_elempack);
+    if (out_shape.dims == 2) out_shape_packed = ImMat(out_shape.w, out_shape.h / out_elempack, (void*)0, out_elemsize, out_elempack);
+    if (out_shape.dims == 3) out_shape_packed = ImMat(out_shape.w, out_shape.h, out_shape.c / out_elempack, (void*)0, out_elemsize, out_elempack);
 
     // check blob shape
     if (!vkdev->shape_support_image_storage(out_shape_packed))
@@ -83,7 +84,7 @@ int Packing_vulkan::create_pipeline(const Option& _opt)
     specializations[2 + 8].i = out_shape_packed.c;
     specializations[2 + 9].i = out_shape_packed.cstep;
 
-    ImageBuffer local_size_xyz; // TODO more precise group size guessed from out_shape_packed
+    ImMat local_size_xyz; // TODO more precise group size guessed from out_shape_packed
     if (out_shape_packed.dims == 1)
     {
         local_size_xyz.w = 64;
@@ -258,7 +259,7 @@ int Packing_vulkan::destroy_pipeline(const Option& /*opt*/)
     return 0;
 }
 
-int Packing_vulkan::forward(const VkImageBuffer& bottom_blob, VkImageBuffer& top_blob, VkCompute& cmd, const Option& opt) const
+int Packing_vulkan::forward(const VkMat& bottom_blob, VkMat& top_blob, VkCompute& cmd, const Option& opt) const
 {
     int elempack = bottom_blob.elempack;
 
@@ -369,7 +370,7 @@ int Packing_vulkan::forward(const VkImageBuffer& bottom_blob, VkImageBuffer& top
     top_blob.color_format = bottom_blob.color_format;
     top_blob.color_range = bottom_blob.color_range;
 
-    std::vector<VkImageBuffer> buffer_bindings(2);
+    std::vector<VkMat> buffer_bindings(2);
     buffer_bindings[0] = bottom_blob;
     buffer_bindings[1] = top_blob;
 
@@ -531,7 +532,7 @@ int Packing_vulkan::forward(const VkImageMat& bottom_blob, VkImageMat& top_blob,
     top_blob.color_format = bottom_blob.color_format;
     top_blob.color_range = bottom_blob.color_range;
 
-    std::vector<VkImageBuffer> buffer_bindings(2);
+    std::vector<VkMat> buffer_bindings(2);
 
     std::vector<VkImageMat> image_bindings(2);
     image_bindings[0] = bottom_blob;
@@ -589,7 +590,7 @@ int Packing_vulkan::forward(const VkImageMat& bottom_blob, VkImageMat& top_blob,
     return 0;
 }
 
-int Packing_vulkan::forward(const VkImageBuffer& bottom_blob, VkImageMat& top_blob, VkCompute& cmd, const Option& opt) const
+int Packing_vulkan::forward(const VkMat& bottom_blob, VkImageMat& top_blob, VkCompute& cmd, const Option& opt) const
 {
     int elempack = bottom_blob.elempack;
 
@@ -663,7 +664,7 @@ int Packing_vulkan::forward(const VkImageBuffer& bottom_blob, VkImageMat& top_bl
     top_blob.color_format = bottom_blob.color_format;
     top_blob.color_range = bottom_blob.color_range;
 
-    std::vector<VkImageBuffer> buffer_bindings(2);
+    std::vector<VkMat> buffer_bindings(2);
     buffer_bindings[0] = bottom_blob;
 
     std::vector<VkImageMat> image_bindings(2);
@@ -721,7 +722,7 @@ int Packing_vulkan::forward(const VkImageBuffer& bottom_blob, VkImageMat& top_bl
     return 0;
 }
 
-int Packing_vulkan::forward(const VkImageMat& bottom_blob, VkImageBuffer& top_blob, VkCompute& cmd, const Option& opt) const
+int Packing_vulkan::forward(const VkImageMat& bottom_blob, VkMat& top_blob, VkCompute& cmd, const Option& opt) const
 {
     int elempack = bottom_blob.elempack;
 
@@ -795,7 +796,7 @@ int Packing_vulkan::forward(const VkImageMat& bottom_blob, VkImageBuffer& top_bl
     top_blob.color_format = bottom_blob.color_format;
     top_blob.color_range = bottom_blob.color_range;
 
-    std::vector<VkImageBuffer> buffer_bindings(2);
+    std::vector<VkMat> buffer_bindings(2);
     buffer_bindings[1] = top_blob;
 
     std::vector<VkImageMat> image_bindings(2);

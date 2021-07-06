@@ -2,6 +2,7 @@
 
 #include "option.h"
 #include "pipeline.h"
+using namespace ImGui;
 
 namespace ImVulkan
 {
@@ -23,10 +24,10 @@ public:
 
     VkFence compute_command_fence;
 
-    std::vector<VkImageBuffer> upload_staging_buffers;
-    std::vector<VkImageBuffer> download_post_buffers;
-    std::vector<ImageBuffer> download_post_mats_fp16;
-    std::vector<ImageBuffer> download_post_mats;
+    std::vector<VkMat> upload_staging_buffers;
+    std::vector<VkMat> download_post_buffers;
+    std::vector<ImMat> download_post_mats_fp16;
+    std::vector<ImMat> download_post_mats;
 
     std::vector<VkImageMemory*> image_blocks_to_destroy;
 
@@ -194,7 +195,7 @@ VkComputePrivate::~VkComputePrivate()
     {
         VkImageMemory* ptr = image_blocks_to_destroy[i];
 
-        int old_command_refcount = _XADD(&ptr->command_refcount, -1);
+        int old_command_refcount = IM_XADD(&ptr->command_refcount, -1);
         if (ptr->refcount == 0 && old_command_refcount == 1)
         {
             // no userspace reference and we are the last command reference
@@ -338,9 +339,9 @@ VkCompute::~VkCompute()
     delete d;
 }
 
-void VkCompute::record_upload(const ImageBuffer& src, VkImageBuffer& dst, const Option& opt)
+void VkCompute::record_upload(const ImMat& src, VkMat& dst, const Option& opt)
 {
-    ImageBuffer src_fp16;
+    ImMat src_fp16;
     if (src.elemsize == src.elempack * 4u)
     {
         // cpu cast to fp16 (discrete gpu)
@@ -359,7 +360,7 @@ void VkCompute::record_upload(const ImageBuffer& src, VkImageBuffer& dst, const 
     }
 
     // upload
-    VkImageBuffer dst_staging;
+    VkMat dst_staging;
     dst_staging.create_like(src_fp16, opt.staging_vkallocator);
     if (dst_staging.empty() || !dst_staging.mapped_ptr())
         return;
@@ -392,9 +393,9 @@ void VkCompute::record_upload(const ImageBuffer& src, VkImageBuffer& dst, const 
     vkdev->convert_packing(dst_staging, dst, dst_elempack, *this, opt);
 }
 
-void VkCompute::record_upload(const ImageBuffer& src, VkImageMat& dst, const Option& opt)
+void VkCompute::record_upload(const ImMat& src, VkImageMat& dst, const Option& opt)
 {
-    ImageBuffer src_fp16;
+    ImMat src_fp16;
     if (src.elemsize == src.elempack * 4u)
     {
         // cpu cast to fp16 (discrete gpu)
@@ -409,14 +410,14 @@ void VkCompute::record_upload(const ImageBuffer& src, VkImageMat& dst, const Opt
     }
     else
     {
-        if (src.type == INT8)
+        if (src.type == IMMAT_INT8)
             cast_int8_to_float32(src, src_fp16, opt);
         else
             src_fp16 = src;
     }
 
     // upload
-    VkImageBuffer dst_staging;
+    VkMat dst_staging;
     dst_staging.create_like(src_fp16, opt.staging_vkallocator);
     if (dst_staging.empty())
         return;
@@ -457,7 +458,7 @@ void VkCompute::record_upload(const ImageBuffer& src, VkImageMat& dst, const Opt
         vkdev->convert_packing(dst_image, dst, dst_elempack, *this, opt);
 
         // image and imageview can not be destroyed until command execution ends
-        _XADD(&dst_image.data->command_refcount, 1);
+        IM_XADD(&dst_image.data->command_refcount, 1);
         d->image_blocks_to_destroy.push_back(dst_image.data);
 
         submit_and_wait();
@@ -469,7 +470,7 @@ void VkCompute::record_upload(const ImageBuffer& src, VkImageMat& dst, const Opt
     }
 }
 
-void VkCompute::record_download(const VkImageBuffer& src, ImageBuffer& dst, const Option& opt)
+void VkCompute::record_download(const VkMat& src, ImMat& dst, const Option& opt)
 {
     // resolve dst_elempack
     int dims = src.dims;
@@ -496,7 +497,7 @@ void VkCompute::record_download(const VkImageBuffer& src, ImageBuffer& dst, cons
         opt_staging.blob_vkallocator = opt.staging_vkallocator;
     }
 
-    VkImageBuffer dst_staging;
+    VkMat dst_staging;
     vkdev->convert_packing(src, dst_staging, dst_elempack, *this, opt_staging);
 
     // barrier device any @ compute to host-read @ compute
@@ -539,10 +540,21 @@ void VkCompute::record_download(const VkImageBuffer& src, ImageBuffer& dst, cons
     }
 
     // create dst
-    ImageBuffer dst_fp16;
-    dst_fp16.create_like(dst_staging, opt.blob_allocator);
+    ImMat dst_fp16;
+    //dst_fp16.create_like(dst_staging);
+    switch(dst_staging.dims)
+    {
+        case 1: dst_fp16.create(dst_staging.w, dst_staging.elemsize, dst_staging.elempack); break;
+        case 2: dst_fp16.create(dst_staging.w, dst_staging.h, dst_staging.elemsize, dst_staging.elempack); break;
+        case 3: dst_fp16.create(dst_staging.w, dst_staging.h, dst_staging.c, dst_staging.elemsize, dst_staging.elempack); break;
+        default: break;
+    }
     if (dst_fp16.empty())
         return;
+    dst_fp16.type = dst_staging.type;
+    dst_fp16.color_space = dst_staging.color_space;
+    dst_fp16.color_format = dst_staging.color_format;
+    dst_fp16.color_range = dst_staging.color_range;
 
     // download
     d->download_post_buffers.push_back(dst_staging);
@@ -565,11 +577,11 @@ void VkCompute::record_download(const VkImageBuffer& src, ImageBuffer& dst, cons
         {
             int dims = dst_fp16.dims;
             if (dims == 1)
-                dst.create(dst_fp16.w, (size_t)(dst_fp16.elempack * 4u), dst_fp16.elempack, opt.blob_allocator);
+                dst.create(dst_fp16.w, (size_t)(dst_fp16.elempack * 4u), dst_fp16.elempack);
             if (dims == 2)
-                dst.create(dst_fp16.w, dst_fp16.h, (size_t)(dst_fp16.elempack * 4u), dst_fp16.elempack, opt.blob_allocator);
+                dst.create(dst_fp16.w, dst_fp16.h, (size_t)(dst_fp16.elempack * 4u), dst_fp16.elempack);
             if (dims == 3)
-                dst.create(dst_fp16.w, dst_fp16.h, dst_fp16.c, (size_t)(dst_fp16.elempack * 4u), dst_fp16.elempack, opt.blob_allocator);
+                dst.create(dst_fp16.w, dst_fp16.h, dst_fp16.c, (size_t)(dst_fp16.elempack * 4u), dst_fp16.elempack);
 
             d->download_post_mats.push_back(dst);
 
@@ -591,7 +603,7 @@ void VkCompute::record_download(const VkImageBuffer& src, ImageBuffer& dst, cons
     }
 }
 
-void VkCompute::record_download(const VkImageMat& src, ImageBuffer& dst, const Option& opt)
+void VkCompute::record_download(const VkImageMat& src, ImMat& dst, const Option& opt)
 {
     // resolve dst_elempack
     int dims = src.dims;
@@ -618,7 +630,7 @@ void VkCompute::record_download(const VkImageMat& src, ImageBuffer& dst, const O
         opt_staging.blob_vkallocator = opt.staging_vkallocator;
     }
 
-    VkImageBuffer dst_staging;
+    VkMat dst_staging;
     if (vkdev->info.bug_buffer_image_load_zero())
     {
         VkImageMat src_image;
@@ -629,7 +641,7 @@ void VkCompute::record_download(const VkImageMat& src, ImageBuffer& dst, const O
         record_clone(src_image, dst_staging, opt_staging);
 
         // image and imageview can not be destroyed until command execution ends
-        _XADD(&src_image.data->command_refcount, 1);
+        IM_XADD(&src_image.data->command_refcount, 1);
         d->image_blocks_to_destroy.push_back(src_image.data);
     }
     else
@@ -638,7 +650,7 @@ void VkCompute::record_download(const VkImageMat& src, ImageBuffer& dst, const O
     }
 
     // image and imageview can not be destroyed until command execution ends
-    _XADD(&src.data->command_refcount, 1);
+    IM_XADD(&src.data->command_refcount, 1);
     d->image_blocks_to_destroy.push_back(src.data);
 
     // barrier device any @ compute to host-read @ compute
@@ -681,8 +693,15 @@ void VkCompute::record_download(const VkImageMat& src, ImageBuffer& dst, const O
     }
 
     // create dst
-    ImageBuffer dst_fp16;
-    dst_fp16.create_like(dst_staging, opt.blob_allocator);
+    ImMat dst_fp16;
+    //dst_fp16.create_like(dst_staging, opt.blob_allocator);
+    switch(dst_staging.dims)
+    {
+        case 1: dst_fp16.create(dst_staging.w, dst_staging.elemsize, dst_staging.elempack); break;
+        case 2: dst_fp16.create(dst_staging.w, dst_staging.h, dst_staging.elemsize, dst_staging.elempack); break;
+        case 3: dst_fp16.create(dst_staging.w, dst_staging.h, dst_staging.c, dst_staging.elemsize, dst_staging.elempack); break;
+        default: break;
+    }
     if (dst_fp16.empty())
         return;
 
@@ -707,11 +726,11 @@ void VkCompute::record_download(const VkImageMat& src, ImageBuffer& dst, const O
         {
             int dims = dst_fp16.dims;
             if (dims == 1)
-                dst.create(dst_fp16.w, (size_t)(dst_fp16.elempack * 4u), dst_fp16.elempack, opt.blob_allocator);
+                dst.create(dst_fp16.w, (size_t)(dst_fp16.elempack * 4u), dst_fp16.elempack);
             if (dims == 2)
-                dst.create(dst_fp16.w, dst_fp16.h, (size_t)(dst_fp16.elempack * 4u), dst_fp16.elempack, opt.blob_allocator);
+                dst.create(dst_fp16.w, dst_fp16.h, (size_t)(dst_fp16.elempack * 4u), dst_fp16.elempack);
             if (dims == 3)
-                dst.create(dst_fp16.w, dst_fp16.h, dst_fp16.c, (size_t)(dst_fp16.elempack * 4u), dst_fp16.elempack, opt.blob_allocator);
+                dst.create(dst_fp16.w, dst_fp16.h, dst_fp16.c, (size_t)(dst_fp16.elempack * 4u), dst_fp16.elempack);
 
             d->download_post_mats.push_back(dst);
 
@@ -733,7 +752,7 @@ void VkCompute::record_download(const VkImageMat& src, ImageBuffer& dst, const O
     }
 }
 
-void VkCompute::record_buffer_to_image(const VkImageBuffer& src, VkImageMat& dst, const Option& opt)
+void VkCompute::record_buffer_to_image(const VkMat& src, VkImageMat& dst, const Option& opt)
 {
     // resolve dst_elempack
     int dims = src.dims;
@@ -759,7 +778,7 @@ void VkCompute::record_buffer_to_image(const VkImageBuffer& src, VkImageMat& dst
         vkdev->convert_packing(src_image, dst, dst_elempack, *this, opt);
 
         // image and imageview can not be destroyed until command execution ends
-        _XADD(&src_image.data->command_refcount, 1);
+        IM_XADD(&src_image.data->command_refcount, 1);
         d->image_blocks_to_destroy.push_back(src_image.data);
     }
     else
@@ -768,7 +787,7 @@ void VkCompute::record_buffer_to_image(const VkImageBuffer& src, VkImageMat& dst
     }
 }
 
-void VkCompute::record_image_to_buffer(const VkImageMat& src, VkImageBuffer& dst, const Option& opt)
+void VkCompute::record_image_to_buffer(const VkImageMat& src, VkMat& dst, const Option& opt)
 {
     // resolve dst_elempack
     int dims = src.dims;
@@ -795,7 +814,7 @@ void VkCompute::record_image_to_buffer(const VkImageMat& src, VkImageBuffer& dst
         record_clone(src_image, dst, opt);
 
         // image and imageview can not be destroyed until command execution ends
-        _XADD(&src_image.data->command_refcount, 1);
+        IM_XADD(&src_image.data->command_refcount, 1);
         d->image_blocks_to_destroy.push_back(src_image.data);
     }
     else
@@ -804,14 +823,14 @@ void VkCompute::record_image_to_buffer(const VkImageMat& src, VkImageBuffer& dst
     }
 
     // image and imageview can not be destroyed until command execution ends
-    _XADD(&src.data->command_refcount, 1);
+    IM_XADD(&src.data->command_refcount, 1);
     d->image_blocks_to_destroy.push_back(src.data);
 }
 
-void VkCompute::record_clone(const ImageBuffer& src, VkImageBuffer& dst, const Option& opt)
+void VkCompute::record_clone(const ImMat& src, VkMat& dst, const Option& opt)
 {
     // host to staging
-    VkImageBuffer dst_staging;
+    VkMat dst_staging;
     dst_staging.create_like(src, opt.staging_vkallocator);
     if (dst_staging.empty())
         return;
@@ -831,10 +850,10 @@ void VkCompute::record_clone(const ImageBuffer& src, VkImageBuffer& dst, const O
     d->upload_staging_buffers.push_back(dst_staging);
 }
 
-void VkCompute::record_clone(const ImageBuffer& src, VkImageMat& dst, const Option& opt)
+void VkCompute::record_clone(const ImMat& src, VkImageMat& dst, const Option& opt)
 {
     // host to staging
-    VkImageBuffer dst_staging;
+    VkMat dst_staging;
     Option opt_staging = opt;
     opt_staging.blob_vkallocator = opt.staging_vkallocator;
     record_clone(src, dst_staging, opt_staging);
@@ -848,12 +867,12 @@ void VkCompute::record_clone(const ImageBuffer& src, VkImageMat& dst, const Opti
     d->upload_staging_buffers.push_back(dst_staging);
 }
 
-void VkCompute::record_clone(const VkImageBuffer& src, ImageBuffer& dst, const Option& opt)
+void VkCompute::record_clone(const VkMat& src, ImMat& dst, const Option& opt)
 {
     if (!src.allocator->mappable)
     {
         // device to staging
-        VkImageBuffer src_staging;
+        VkMat src_staging;
         Option opt_staging = opt;
         opt_staging.blob_vkallocator = opt.staging_vkallocator;
         record_clone(src, src_staging, opt_staging);
@@ -867,7 +886,14 @@ void VkCompute::record_clone(const VkImageBuffer& src, ImageBuffer& dst, const O
     }
 
     // create dst
-    dst.create_like(src, opt.blob_allocator);
+    //dst.create_like(src, opt.blob_allocator);
+    switch (src.dims)
+    {
+        case 1: dst.create(src.w, src.elemsize, src.elempack); break;
+        case 2: dst.create(src.w, src.h, src.elemsize, src.elempack); break;
+        case 3: dst.create(src.w, src.h, src.c, src.elemsize, src.elempack); break;
+        default: break;
+    }
     if (dst.empty())
         return;
 
@@ -925,10 +951,10 @@ void VkCompute::record_clone(const VkImageBuffer& src, ImageBuffer& dst, const O
     }
 }
 
-void VkCompute::record_clone(const VkImageMat& src, ImageBuffer& dst, const Option& opt)
+void VkCompute::record_clone(const VkImageMat& src, ImMat& dst, const Option& opt)
 {
     // image to staging
-    VkImageBuffer src_staging;
+    VkMat src_staging;
     Option opt_staging = opt;
     opt_staging.blob_vkallocator = opt.staging_vkallocator;
     record_clone(src, src_staging, opt_staging);
@@ -939,7 +965,7 @@ void VkCompute::record_clone(const VkImageMat& src, ImageBuffer& dst, const Opti
     record_clone(src_staging, dst, opt);
 }
 
-void VkCompute::record_clone(const VkImageBuffer& src, VkImageBuffer& dst, const Option& opt)
+void VkCompute::record_clone(const VkMat& src, VkMat& dst, const Option& opt)
 {
     // create dst
     dst.create_like(src, opt.blob_vkallocator);
@@ -1157,13 +1183,13 @@ void VkCompute::record_clone(const VkImageMat& src, VkImageMat& dst, const Optio
     }
 
     // image and imageview can not be destroyed until command execution ends
-    _XADD(&src.data->command_refcount, 1);
-    _XADD(&dst.data->command_refcount, 1);
+    IM_XADD(&src.data->command_refcount, 1);
+    IM_XADD(&dst.data->command_refcount, 1);
     d->image_blocks_to_destroy.push_back(src.data);
     d->image_blocks_to_destroy.push_back(dst.data);
 }
 
-void VkCompute::record_clone(const VkImageBuffer& src, VkImageMat& dst, const Option& opt)
+void VkCompute::record_clone(const VkMat& src, VkImageMat& dst, const Option& opt)
 {
     // create dst
     dst.create_like(src, opt.blob_vkallocator);
@@ -1317,11 +1343,11 @@ void VkCompute::record_clone(const VkImageBuffer& src, VkImageMat& dst, const Op
     }
 
     // image and imageview can not be destroyed until command execution ends
-    _XADD(&dst.data->command_refcount, 1);
+    IM_XADD(&dst.data->command_refcount, 1);
     d->image_blocks_to_destroy.push_back(dst.data);
 }
 
-void VkCompute::record_clone(const VkImageMat& src, VkImageBuffer& dst, const Option& opt)
+void VkCompute::record_clone(const VkImageMat& src, VkMat& dst, const Option& opt)
 {
     // create dst
     dst.create_like(src, opt.blob_vkallocator);
@@ -1445,35 +1471,35 @@ void VkCompute::record_clone(const VkImageMat& src, VkImageBuffer& dst, const Op
     }
 
     // image and imageview can not be destroyed until command execution ends
-    _XADD(&src.data->command_refcount, 1);
+    IM_XADD(&src.data->command_refcount, 1);
     d->image_blocks_to_destroy.push_back(src.data);
 }
 
-void VkCompute::record_pipeline(const Pipeline* pipeline, const std::vector<VkImageBuffer>& bindings, const std::vector<vk_constant_type>& constants, const VkImageBuffer& dispatcher)
+void VkCompute::record_pipeline(const Pipeline* pipeline, const std::vector<VkMat>& bindings, const std::vector<vk_constant_type>& constants, const VkMat& dispatcher)
 {
     record_pipeline(pipeline, bindings, std::vector<VkImageMat>(), constants, dispatcher);
 }
 
 void VkCompute::record_pipeline(const Pipeline* pipeline, const std::vector<VkImageMat>& bindings, const std::vector<vk_constant_type>& constants, const VkImageMat& dispatcher)
 {
-    record_pipeline(pipeline, std::vector<VkImageBuffer>(), bindings, constants, dispatcher);
+    record_pipeline(pipeline, std::vector<VkMat>(), bindings, constants, dispatcher);
 }
 
-void VkCompute::record_pipeline(const Pipeline* pipeline, const std::vector<VkImageBuffer>& buffer_bindings, const std::vector<VkImageMat>& image_bindings, const std::vector<vk_constant_type>& constants, const VkImageBuffer& dispatcher)
+void VkCompute::record_pipeline(const Pipeline* pipeline, const std::vector<VkMat>& buffer_bindings, const std::vector<VkImageMat>& image_bindings, const std::vector<vk_constant_type>& constants, const VkMat& dispatcher)
 {
-    ImageBuffer dispatcher_mat(dispatcher.w, dispatcher.h, dispatcher.c, (void*)0);
+    ImMat dispatcher_mat(dispatcher.w, dispatcher.h, dispatcher.c, (void*)0);
 
     record_pipeline(pipeline, buffer_bindings, image_bindings, constants, dispatcher_mat);
 }
 
-void VkCompute::record_pipeline(const Pipeline* pipeline, const std::vector<VkImageBuffer>& buffer_bindings, const std::vector<VkImageMat>& image_bindings, const std::vector<vk_constant_type>& constants, const VkImageMat& dispatcher)
+void VkCompute::record_pipeline(const Pipeline* pipeline, const std::vector<VkMat>& buffer_bindings, const std::vector<VkImageMat>& image_bindings, const std::vector<vk_constant_type>& constants, const VkImageMat& dispatcher)
 {
-    ImageBuffer dispatcher_mat(dispatcher.w, dispatcher.h, dispatcher.c, (void*)0);
+    ImMat dispatcher_mat(dispatcher.w, dispatcher.h, dispatcher.c, (void*)0);
 
     record_pipeline(pipeline, buffer_bindings, image_bindings, constants, dispatcher_mat);
 }
 
-void VkCompute::record_pipeline(const Pipeline* pipeline, const std::vector<VkImageBuffer>& buffer_bindings, const std::vector<VkImageMat>& image_bindings, const std::vector<vk_constant_type>& constants, const ImageBuffer& dispatcher)
+void VkCompute::record_pipeline(const Pipeline* pipeline, const std::vector<VkMat>& buffer_bindings, const std::vector<VkImageMat>& image_bindings, const std::vector<vk_constant_type>& constants, const ImMat& dispatcher)
 {
     const int buffer_binding_count = (int)buffer_bindings.size();
     const int image_binding_count = (int)image_bindings.size();
@@ -1500,7 +1526,7 @@ void VkCompute::record_pipeline(const Pipeline* pipeline, const std::vector<VkIm
 
         if (binding_type == 1)
         {
-            const VkImageBuffer& binding = buffer_bindings[buffer_index].empty() ? vkdev->get_dummy_buffer() : buffer_bindings[buffer_index];
+            const VkMat& binding = buffer_bindings[buffer_index].empty() ? vkdev->get_dummy_buffer() : buffer_bindings[buffer_index];
             buffer_index++;
 
             barrier_readwrite(binding);
@@ -1513,7 +1539,7 @@ void VkCompute::record_pipeline(const Pipeline* pipeline, const std::vector<VkIm
             barrier_readwrite(binding);
 
             // image and imageview can not be destroyed until command execution ends
-            _XADD(&binding.data->command_refcount, 1);
+            IM_XADD(&binding.data->command_refcount, 1);
             d->image_blocks_to_destroy.push_back(binding.data);
         }
         else // if (binding_type == 3)
@@ -1539,7 +1565,7 @@ void VkCompute::record_pipeline(const Pipeline* pipeline, const std::vector<VkIm
             barrier_readonly(binding);
 
             // image and imageview can not be destroyed until command execution ends
-            _XADD(&binding.data->command_refcount, 1);
+            IM_XADD(&binding.data->command_refcount, 1);
             d->image_blocks_to_destroy.push_back(binding.data);
         }
     }
@@ -1577,7 +1603,7 @@ void VkCompute::record_pipeline(const Pipeline* pipeline, const std::vector<VkIm
 
                 if (binding_type == 1)
                 {
-                    const VkImageBuffer& binding = buffer_bindings[descriptorBufferInfo_index].empty() ? vkdev->get_dummy_buffer() : buffer_bindings[descriptorBufferInfo_index];
+                    const VkMat& binding = buffer_bindings[descriptorBufferInfo_index].empty() ? vkdev->get_dummy_buffer() : buffer_bindings[descriptorBufferInfo_index];
                     descriptorBufferInfo_index++;
 
                     VkDescriptorBufferInfo descriptorBufferInfo;
@@ -1954,8 +1980,8 @@ int VkCompute::submit_and_wait()
         {
         case VkComputePrivate::record::TYPE_post_download:
         {
-            const VkImageBuffer& src = d->download_post_buffers[r.post_download.download_post_buffer_mat_offset];
-            ImageBuffer& dst = d->download_post_mats_fp16[r.post_download.download_post_mat_fp16_offset];
+            const VkMat& src = d->download_post_buffers[r.post_download.download_post_buffer_mat_offset];
+            ImMat& dst = d->download_post_mats_fp16[r.post_download.download_post_mat_fp16_offset];
 
             src.allocator->invalidate(src.data);
             memcpy(dst.data, src.mapped_ptr(), dst.total() * dst.elemsize);
@@ -1963,11 +1989,11 @@ int VkCompute::submit_and_wait()
         }
         case VkComputePrivate::record::TYPE_post_cast_float16_to_float32:
         {
-            const ImageBuffer& src = d->download_post_mats_fp16[r.post_cast_float16_to_float32.download_post_mat_fp16_offset];
-            ImageBuffer& dst = d->download_post_mats[r.post_cast_float16_to_float32.download_post_mat_offset];
+            const ImMat& src = d->download_post_mats_fp16[r.post_cast_float16_to_float32.download_post_mat_fp16_offset];
+            ImMat& dst = d->download_post_mats[r.post_cast_float16_to_float32.download_post_mat_offset];
 
             Option opt;
-            opt.blob_allocator = dst.allocator;
+            //opt.blob_allocator = dst.allocator;
             cast_float16_to_float32(src, dst, opt);
             break;
         }
@@ -2024,7 +2050,7 @@ int VkCompute::reset()
     {
         VkImageMemory* ptr = d->image_blocks_to_destroy[i];
 
-        int old_command_refcount = _XADD(&ptr->command_refcount, -1);
+        int old_command_refcount = IM_XADD(&ptr->command_refcount, -1);
         if (ptr->refcount == 0 && old_command_refcount == 1)
         {
             // no userspace reference and we are the last command reference
@@ -2133,7 +2159,7 @@ int VkCompute::get_query_pool_results(uint32_t first_query, uint32_t query_count
 }
 #endif // SHADER_BENCHMARK
 
-void VkCompute::barrier_readwrite(const VkImageBuffer& binding)
+void VkCompute::barrier_readwrite(const VkMat& binding)
 {
     if (binding.data->access_flags & VK_ACCESS_SHADER_WRITE_BIT || binding.data->stage_flags != VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT)
     {
@@ -2294,7 +2320,7 @@ public:
     VkFence upload_command_fence;
     VkFence compute_command_fence;
 
-    std::vector<VkImageBuffer> upload_staging_buffers;
+    std::vector<VkMat> upload_staging_buffers;
 };
 
 VkTransferPrivate::VkTransferPrivate(const VulkanDevice* _vkdev)
@@ -2527,14 +2553,14 @@ VkTransfer::~VkTransfer()
     delete d;
 }
 
-void VkTransfer::record_upload(const ImageBuffer& src, VkImageBuffer& dst, const Option& opt, bool flatten)
+void VkTransfer::record_upload(const ImMat& src, VkMat& dst, const Option& opt, bool flatten)
 {
     // NOTE keep the hack here ?
     if (src.elembits() == 32)
     {
         if (opt.use_fp16_storage || (opt.use_fp16_packed && src.elempack % 4 == 0))
         {
-            ImageBuffer src_fp16;
+            ImMat src_fp16;
             cast_float32_to_float16(src, src_fp16);
 
             record_upload(src_fp16, dst, opt, flatten);
@@ -2543,7 +2569,7 @@ void VkTransfer::record_upload(const ImageBuffer& src, VkImageBuffer& dst, const
         }
     }
 
-    ImageBuffer src_flattened = flatten ? src.reshape(src.w * src.h * src.c) : src;
+    ImMat src_flattened = flatten ? src.reshape(src.w * src.h * src.c) : src;
 
     // create dst
     dst.create_like(src_flattened, opt.blob_vkallocator);
@@ -2586,7 +2612,7 @@ void VkTransfer::record_upload(const ImageBuffer& src, VkImageBuffer& dst, const
     }
 
     // create staging
-    VkImageBuffer dst_staging;
+    VkMat dst_staging;
     dst_staging.create_like(src_flattened, opt.staging_vkallocator);
     if (dst_staging.empty() || !dst_staging.mapped_ptr())
         return;
@@ -2706,14 +2732,14 @@ void VkTransfer::record_upload(const ImageBuffer& src, VkImageBuffer& dst, const
     d->upload_staging_buffers.push_back(dst_staging);
 }
 
-void VkTransfer::record_upload(const ImageBuffer& src, VkImageMat& dst, const Option& opt)
+void VkTransfer::record_upload(const ImMat& src, VkImageMat& dst, const Option& opt)
 {
     // NOTE keep the hack here ?
     if (src.elemsize == src.elempack * 4u)
     {
         if (opt.use_fp16_storage || (opt.use_fp16_packed && src.elempack % 4 == 0))
         {
-            ImageBuffer src_fp16;
+            ImMat src_fp16;
             cast_float32_to_float16(src, src_fp16);
 
             record_upload(src_fp16, dst, opt);
@@ -2728,7 +2754,7 @@ void VkTransfer::record_upload(const ImageBuffer& src, VkImageMat& dst, const Op
         return;
 
     // create staging
-    VkImageBuffer dst_staging;
+    VkMat dst_staging;
     dst_staging.create_like(src, opt.staging_vkallocator);
     if (dst_staging.empty() || !dst_staging.mapped_ptr())
         return;
