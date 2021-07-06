@@ -263,6 +263,7 @@ set(IMGUI_INCS
     imstb_textedit.h
     imstb_truetype.h
     imgui_user.h
+    imgui_mat.h
     misc/cpp/imgui_stdlib.h
     misc/cpp/dir_iterate.h
     misc/stb_image.h

@@ -1,6 +1,7 @@
 #include <imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
+#include <imgui_mat.h>
 #include <application.h>
 #include <fstream>
 #include <sstream>
@@ -65,6 +66,38 @@ static std::vector<ImHotKey::HotKey> hotkeys =
 };
 #endif
 
+static inline void box(ImGui::ImMat& image, int x1, int y1, int x2, int y2, int R, int G, int B)
+{
+    for (int j = y1; j <= y2; j++)
+    {
+        for (int i = x1; i <= x2; i++)
+        {
+            unsigned int color = 0xFF000000 | (R << 16) | (G << 8) | B;
+            image.at<unsigned int>(i, j) = color;
+        }
+    }
+}
+
+static inline void color_bar(ImGui::ImMat& image, int x1, int y1, int x2, int y2)
+{
+    const unsigned char r[8] = {255,255,0,0,255,255,0,0};
+    const unsigned char g[8] = {255,255,255,255,0,0,0,0};
+    const unsigned char b[8] = {255,0,255,0,255,0,255,0};
+    int len = x2 - x1 + 1;
+    for (int i = 0; i < 8; i++)
+    {
+        box(image, x1 + len * i / 8, y1, x1 + len * (i + 1) / 8 - 1, y2, r[i], g[i], b[i]);
+    }
+}
+
+static inline void gray_bar(ImGui::ImMat& image, int x1,int y1,int x2,int y2,int step)
+{
+    int len = x2 - x1 + 1;
+    for (int i = 0; i < step; i++)
+    {
+        box(image, x1 + len * i / step, y1, x1 + len * (i + 1) / step - 1, y2, 255 * i / step, 255 * i / step, 255 * i / step);
+    }
+}
 class Example
 {
 public:
@@ -102,6 +135,9 @@ public:
 #if IMGUI_VULKAN_SHADER
         ImGui::PrepareVulkanDemo();
 #endif
+        color_bar(image, 0, 0, 255, 191);
+        gray_bar(image, 0, 192, 255, 255, 13);
+        ImageTexture = ImGui::ImCreateTexture(image.data, image.w, image.h);
     };
     ~Example() 
     {
@@ -135,6 +171,7 @@ public:
 #if IMGUI_VULKAN_SHADER
         ImGui::CleanVulkanDemo();
 #endif
+        if (ImageTexture) { ImGui::ImDestroyTexture(ImageTexture); ImageTexture = 0; }
     }
 
 public:
@@ -198,6 +235,9 @@ public:
 public:
     bool show_shader_window = false;
 #endif
+public:
+    ImGui::ImMat image {ImGui::ImMat(256, 256, 1u, 4)};
+    ImTextureID ImageTexture = 0;
 };
 
 #if IMGUI_ADDON_MARKDOWN
@@ -389,6 +429,18 @@ bool Application_Frame(void* handle)
             // handle the hotkey index!
         }
 #endif
+        ImVec2 displayedTextureSize(256,256);
+        ImGui::Image((ImTextureID)(uint64_t)example->ImageTexture, displayedTextureSize);
+        {
+            ImRect rc = ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+            ImVec2 mouseUVCoord = (io.MousePos - rc.Min) / rc.GetSize();
+            if (ImGui::IsItemHovered() && mouseUVCoord.x >= 0.f && mouseUVCoord.y >= 0.f)
+            {
+                ImGuiHelper::ImageInspect(example->image.w, example->image.h, 
+                                        (const unsigned char*)example->image.data, mouseUVCoord, 
+                                        displayedTextureSize);
+            }
+        }
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", ImGui::GetIO().DeltaTime * 1000.f, ImGui::GetIO().Framerate);
         ImGui::Text("Frames since last input: %d", ImGui::GetIO().FrameCountSinceLastInput);
         ImGui::End();

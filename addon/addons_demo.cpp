@@ -30,11 +30,7 @@
 #include <time.h>
 #endif
 #include <cmath>
-#define DEMO_IMAGE_WIDTH    256
-#define DEMO_IMAGE_HEIGHT   256
 ImTextureID ImageTextureNumber = 0;
-ImTextureID ImageTexture = 0;
-static uint32_t* ImageBitmap = nullptr;
 namespace ImGui
 {
 static void HelpMarker(const char* desc)
@@ -55,28 +51,6 @@ void ShowAddonsDemoWindowWidgets()
     if (ImageTextureNumber == 0)
     {
         ImageTextureNumber = ImCreateTexture(NumberTexture_pixels, NumberTexture_width, NumberTexture_height);
-    }
-    if (!ImageBitmap && ImageTexture == 0)
-    {
-        srand(time(NULL));
-        ImageBitmap = new uint32_t[DEMO_IMAGE_WIDTH * DEMO_IMAGE_HEIGHT];
-        int index = 0;
-        for (int y = 0; y < DEMO_IMAGE_HEIGHT; y++)
-        {
-            for (int x = 0; x < DEMO_IMAGE_WIDTH; x++)
-            {
-                unsigned char R, G, B;
-                R = (x) / (rand() % 2 + 1);
-                G = (x + y) / (rand() % 4 + 1);
-                B = (y) / (rand() % 8 + 1);
-                ImageBitmap[index] = 0xFF000000 +
-                                    (B << 16) +
-                                    (G << 8) +
-                                    R;
-                index++;
-            }
-        }
-        ImageTexture = ImGui::ImCreateTexture(ImageBitmap, DEMO_IMAGE_WIDTH, DEMO_IMAGE_HEIGHT);
     }
 #if IMGUI_ADDON_VARIOUS
     if (ImGui::TreeNode("Basic"))
@@ -617,23 +591,6 @@ void ShowAddonsDemoWindowWidgets()
         ImGui::TreePop();
     }
 #endif
-    if (ImGui::TreeNode("Image Tooltips"))
-    {
-        ImVec2 displayedTextureSize(512,512);
-        ImGui::Image((ImTextureID)(uint64_t)ImageTexture, displayedTextureSize);
-        {
-            ImGuiIO& io = ImGui::GetIO();
-            ImRect rc = ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
-            ImVec2 mouseUVCoord = (io.MousePos - rc.Min) / rc.GetSize();
-            if (ImGui::IsItemHovered() && mouseUVCoord.x >= 0.f && mouseUVCoord.y >= 0.f)
-            {
-                ImGuiHelper::ImageInspect(DEMO_IMAGE_WIDTH, DEMO_IMAGE_HEIGHT, 
-                                        (const unsigned char*)ImageBitmap, mouseUVCoord, 
-                                        displayedTextureSize);
-            }
-        }
-        ImGui::TreePop();
-    }
 }
 
 #if IMGUI_ADDON_DOCK
@@ -764,7 +721,6 @@ void ShowAddonsTabWindow()
 void CleanupDemo()
 {
     if (ImageTextureNumber) { ImDestroyTexture(ImageTextureNumber); ImageTextureNumber = 0; }
-    if (ImageBitmap) { delete[] ImageBitmap; ImageBitmap = nullptr; }
 }
 
 #if IMGUI_VULKAN_SHADER
