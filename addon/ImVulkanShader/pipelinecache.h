@@ -2,10 +2,10 @@
 #include "platform.h"
 
 #include <vulkan/vulkan.h>
-#include "mat.h"
+#include "vkmat.h"
 #include "gpu.h"
 
-namespace ImVulkan 
+namespace ImGui 
 {
 class VulkanDevice;
 class PipelineCachePrivate;
@@ -45,5 +45,5 @@ private:
     PipelineCachePrivate* const d;
 };
 
-} // namespace ImVulkan
+} // namespace ImGui
 

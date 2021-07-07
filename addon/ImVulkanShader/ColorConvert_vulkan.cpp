@@ -1,9 +1,8 @@
 #include "ColorConvert_vulkan.h"
 #include "ColorConvert_shader.h"
 #include "ImVulkanShader.h"
-using namespace ImGui;
 
-namespace ImVulkan 
+namespace ImGui 
 {
 ColorConvert_vulkan::ColorConvert_vulkan(int gpu)
 {
@@ -40,8 +39,8 @@ ColorConvert_vulkan::~ColorConvert_vulkan()
 void ColorConvert_vulkan::YUV2RGBA(const ImMat& im_Y, const ImMat& im_U, const ImMat& im_V, ImMat & im_RGB, ImMatColorFormat color_format, ImMatColorSpace color_space, ImMatColorRange color_range, int video_depth, int video_shift) const
 {
     VkMat matrix_y2r_gpu;
-    ImVulkan::VkMat vk_Y, vk_U, vk_V;
-    ImVulkan::VkMat vk_RGB;
+    VkMat vk_Y, vk_U, vk_V;
+    VkMat vk_RGB;
     im_RGB.create_type(im_Y.w, im_Y.h, 4, IMMAT_INT8);
     vk_RGB.create_like(im_RGB, opt.blob_vkallocator);
     cmd->record_clone(im_Y, vk_Y, opt);
@@ -52,14 +51,14 @@ void ColorConvert_vulkan::YUV2RGBA(const ImMat& im_Y, const ImMat& im_U, const I
     }
     const ImMat conv_mat_y2r = *color_table[0][color_range][color_space];
     cmd->record_clone(conv_mat_y2r, matrix_y2r_gpu, opt);
-    std::vector<ImVulkan::VkMat> bindings(6);
+    std::vector<VkMat> bindings(6);
     bindings[0] = vk_Y;
     bindings[1] = vk_U;
     if (color_format != IMMAT_NV12)
         bindings[2] = vk_V;
     bindings[4] = vk_RGB;
     bindings[5] = matrix_y2r_gpu;
-    std::vector<ImVulkan::vk_constant_type> constants(8);
+    std::vector<vk_constant_type> constants(8);
     constants[0].i = vk_RGB.w;
     constants[1].i = vk_RGB.h;
     constants[2].i = vk_RGB.c;
@@ -84,7 +83,7 @@ void ColorConvert_vulkan::YUV2RGBA(const ImMat& im_Y, const ImMat& im_U, const I
 void ColorConvert_vulkan::YUV2RGBA(const ImMat& im_Y, const ImMat& im_U, const ImMat& im_V, VkMat & im_RGB, ImMatColorFormat color_format, ImMatColorSpace color_space, ImMatColorRange color_range, int video_depth, int video_shift) const
 {
     VkMat matrix_y2r_gpu;
-    ImVulkan::VkMat vk_Y, vk_U, vk_V;
+    VkMat vk_Y, vk_U, vk_V;
     im_RGB.create_type(im_Y.w, im_Y.h, 4, IMMAT_INT8, opt.blob_vkallocator);
     im_RGB.color_format = IMMAT_ABGR;   // for render
     cmd->record_clone(im_Y, vk_Y, opt);
@@ -95,14 +94,14 @@ void ColorConvert_vulkan::YUV2RGBA(const ImMat& im_Y, const ImMat& im_U, const I
     }
     const ImMat conv_mat_y2r = *color_table[0][color_range][color_space];
     cmd->record_clone(conv_mat_y2r, matrix_y2r_gpu, opt);
-    std::vector<ImVulkan::VkMat> bindings(6);
+    std::vector<VkMat> bindings(6);
     bindings[0] = vk_Y;
     bindings[1] = vk_U;
     if (color_format != IMMAT_NV12)
         bindings[2] = vk_V;
     bindings[4] = im_RGB;
     bindings[5] = matrix_y2r_gpu;
-    std::vector<ImVulkan::vk_constant_type> constants(8);
+    std::vector<vk_constant_type> constants(8);
     constants[0].i = im_RGB.w;
     constants[1].i = im_RGB.h;
     constants[2].i = im_RGB.c;
@@ -126,8 +125,8 @@ void ColorConvert_vulkan::YUV2RGBA(const ImMat& im_Y, const ImMat& im_U, const I
 void ColorConvert_vulkan::YUV2RGBA(const ImMat& im_Y, const ImMat& im_U, const ImMat& im_V, VkImageMat & im_RGB, ImMatColorFormat color_format, ImMatColorSpace color_space, ImMatColorRange color_range, int video_depth, int video_shift) const
 {
     VkMat matrix_y2r_gpu;
-    ImVulkan::VkMat vk_Y, vk_U, vk_V;
-    ImVulkan::VkMat vk_RGB;
+    VkMat vk_Y, vk_U, vk_V;
+    VkMat vk_RGB;
     vk_RGB.create_type(im_Y.w, im_Y.h, 4, IMMAT_FLOAT32, opt.blob_vkallocator);
     cmd->record_clone(im_Y, vk_Y, opt);
     cmd->record_clone(im_U, vk_U, opt);
@@ -137,14 +136,14 @@ void ColorConvert_vulkan::YUV2RGBA(const ImMat& im_Y, const ImMat& im_U, const I
     }
     const ImMat conv_mat_y2r = *color_table[0][color_range][color_space];
     cmd->record_clone(conv_mat_y2r, matrix_y2r_gpu, opt);
-    std::vector<ImVulkan::VkMat> bindings(6);
+    std::vector<VkMat> bindings(6);
     bindings[0] = vk_Y;
     bindings[1] = vk_U;
     if (color_format != IMMAT_NV12)
         bindings[2] = vk_V;
     bindings[3] = vk_RGB;
     bindings[5] = matrix_y2r_gpu;
-    std::vector<ImVulkan::vk_constant_type> constants(8);
+    std::vector<vk_constant_type> constants(8);
     constants[0].i = vk_RGB.w;
     constants[1].i = vk_RGB.h;
     constants[2].i = vk_RGB.c;
@@ -166,4 +165,4 @@ void ColorConvert_vulkan::YUV2RGBA(const ImMat& im_Y, const ImMat& im_U, const I
     cmd->reset();
 }
 
-} // namespace ImVulkan 
+} // namespace ImGui 

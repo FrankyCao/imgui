@@ -1,11 +1,11 @@
 #pragma once
-#include "mat.h"
+#include "vkmat.h"
 #include "platform.h"
 #include "gpu.h"
 
 #include <vulkan/vulkan.h>
 
-namespace ImVulkan 
+namespace ImGui 
 {
 class Option;
 class PipelinePrivate;
@@ -18,7 +18,7 @@ public:
 
 public:
     void set_optimal_local_size_xyz(int w = 4, int h = 4, int c = 4);
-    void set_optimal_local_size_xyz(const ImGui::ImMat& local_size_xyz);
+    void set_optimal_local_size_xyz(const ImMat& local_size_xyz);
     void set_local_size_xyz(int w, int h, int c);
 
     int create(const uint32_t* spv_data, size_t spv_data_size, const std::vector<vk_specialization_type>& specializations);
@@ -57,5 +57,5 @@ private:
     PipelinePrivate* const d;
 };
 
-} // namespace ImVulkan
+} // namespace ImGui
 

@@ -2,7 +2,7 @@
 #include "gpu.h"
 #include "pipeline.h"
 
-namespace ImVulkan 
+namespace ImGui 
 {
 Allocator::~Allocator()
 {
@@ -278,6 +278,11 @@ VkAllocator::VkAllocator(const VulkanDevice* _vkdev)
     coherent = false;
 }
 
+int VkAllocator::getDeviceIndex()
+{
+    return vkdev->get_device_index();
+}
+
 VkAllocator::~VkAllocator()
 {
     clear();
@@ -516,7 +521,7 @@ VkBlobAllocator::VkBlobAllocator(const VulkanDevice* _vkdev, size_t preferred_bl
         d->buffer_offset_alignment = least_common_multiple(d->buffer_offset_alignment, vkdev->info.non_coherent_atom_size());
     }
 
-    d->block_size = alignSize(preferred_block_size, d->buffer_offset_alignment);
+    d->block_size = Im_AlignSize(preferred_block_size, d->buffer_offset_alignment);
 }
 
 VkBlobAllocator::~VkBlobAllocator()
@@ -566,7 +571,7 @@ void VkBlobAllocator::clear()
 
 VkBufferMemory* VkBlobAllocator::fastMalloc(size_t size)
 {
-    size_t aligned_size = alignSize(size, d->buffer_offset_alignment);
+    size_t aligned_size = Im_AlignSize(size, d->buffer_offset_alignment);
 
     const int buffer_block_count = d->buffer_blocks.size();
 
@@ -800,7 +805,7 @@ VkImageMemory* VkBlobAllocator::fastMalloc(int w, int h, int c, size_t elemsize,
     const size_t size = memoryRequirements.size;
     const size_t alignment = std::max((size_t)memoryRequirements.alignment, d->bind_memory_offset_alignment);
 
-    size_t aligned_size = alignSize(size, alignment);
+    size_t aligned_size = Im_AlignSize(size, alignment);
 
     const int image_memory_block_count = d->image_memory_blocks.size();
 
@@ -812,7 +817,7 @@ VkImageMemory* VkBlobAllocator::fastMalloc(int w, int h, int c, size_t elemsize,
         {
             // we cannot use it->first directly for base offset alignment
             size_t bind_base_offset = it->first;
-            size_t bind_offset = alignSize(bind_base_offset, alignment);
+            size_t bind_offset = Im_AlignSize(bind_base_offset, alignment);
             size_t budget_size = it->second;
             if (budget_size < aligned_size + (bind_offset - bind_base_offset))
             {
@@ -1026,7 +1031,7 @@ VkWeightAllocator::VkWeightAllocator(const VulkanDevice* _vkdev, size_t preferre
         d->buffer_offset_alignment = least_common_multiple(d->buffer_offset_alignment, vkdev->info.non_coherent_atom_size());
     }
 
-    d->block_size = alignSize(preferred_block_size, d->buffer_offset_alignment);
+    d->block_size = Im_AlignSize(preferred_block_size, d->buffer_offset_alignment);
 }
 
 VkWeightAllocator::~VkWeightAllocator()
@@ -1101,7 +1106,7 @@ void VkWeightAllocator::clear()
 
 VkBufferMemory* VkWeightAllocator::fastMalloc(size_t size)
 {
-    size_t aligned_size = alignSize(size, d->buffer_offset_alignment);
+    size_t aligned_size = Im_AlignSize(size, d->buffer_offset_alignment);
 
     const int buffer_block_count = d->buffer_blocks.size();
 
@@ -1389,7 +1394,7 @@ VkImageMemory* VkWeightAllocator::fastMalloc(int w, int h, int c, size_t elemsiz
     const size_t size = memoryRequirements.size;
     const size_t alignment = std::max((size_t)memoryRequirements.alignment, d->bind_memory_offset_alignment);
 
-    size_t aligned_size = alignSize(size, alignment);
+    size_t aligned_size = Im_AlignSize(size, alignment);
 
     const int image_memory_block_count = d->image_memory_blocks.size();
 
@@ -1398,7 +1403,7 @@ VkImageMemory* VkWeightAllocator::fastMalloc(int w, int h, int c, size_t elemsiz
     {
         // we cannot use image_memory_block_free_spaces[i] directly for base offset alignment
         size_t bind_base_offset = d->block_size - d->image_memory_block_free_spaces[i];
-        size_t bind_offset = alignSize(bind_base_offset, alignment);
+        size_t bind_offset = Im_AlignSize(bind_base_offset, alignment);
         if (d->image_memory_block_free_spaces[i] >= aligned_size + (bind_offset - bind_base_offset))
         {
             // bind at memory offset
@@ -1717,4 +1722,4 @@ void VkWeightStagingAllocator::fastFree(VkImageMemory* /*ptr*/)
 {
 }
 
-} // namespace ImVulkan
+} // namespace ImGui

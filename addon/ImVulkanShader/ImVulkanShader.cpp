@@ -1,7 +1,7 @@
 #include "ImVulkanShader.h"
 #include "imgui_impl_vulkan.h"
 
-namespace ImVulkan
+namespace ImGui
 {
 static void check_vk_result(VkResult err)
 {

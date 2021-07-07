@@ -1,7 +1,6 @@
 #include "Cast_vulkan.h"
 #include "command.h"
 #include "Cast_shader.h"
-using namespace ImGui;
 
 static inline unsigned short float32_to_float16(float value)
 {
@@ -128,7 +127,7 @@ static inline float bfloat16_to_float32(unsigned short value)
     return tmp.f;
 }
 
-namespace ImVulkan 
+namespace ImGui 
 {
 Cast_vulkan::Cast_vulkan()
 {
@@ -662,4 +661,4 @@ int Cast_vulkan::forward(const VkImageMat& bottom_blob, VkImageMat& top_blob, Vk
     return 0;
 }
 
-} // namespace ImVulkan 
+} // namespace ImGui 

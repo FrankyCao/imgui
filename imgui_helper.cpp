@@ -228,10 +228,10 @@ void ShowImGuiInfo()
 #endif
 #if IMGUI_VULKAN_SHADER
     ImGui::Text("Vulkan Shader:");
-    int count = ImVulkan::get_gpu_count();
+    int count = ImGui::get_gpu_count();
     for (int i = 0; i < count; i++)
     {
-        const ImVulkan::GpuInfo& info = ImVulkan::get_gpu_info(i);
+        const ImGui::GpuInfo& info = ImGui::get_gpu_info(i);
         ImGui::Text("  %s:", info.device_name());
         ImGui::Text("    bugs: sbn1=%d bilz=%d copc=%d ihfa=%d", 
                     info.bug_storage_buffer_no_l1(), info.bug_buffer_image_load_zero(), info.bug_corrupted_online_pipeline_cache(), info.bug_implicit_fp16_arithmetic()); 
@@ -492,7 +492,7 @@ ImTextureID ImCreateTexture(const void* data, int width, int height)
 }
 
 #if IMGUI_VULKAN_SHADER
-ImTextureID ImCreateTexture(ImVulkan::VkImageMat & image)
+ImTextureID ImCreateTexture(ImGui::VkImageMat & image)
 {
     g_Textures.resize(g_Textures.size() + 1);
     ImTexture& texture = g_Textures.back();

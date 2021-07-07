@@ -12,7 +12,7 @@
 #define VK_USE_PLATFORM_ANDROID_KHR
 #endif // __ANDROID_API__ >= 26
 
-namespace ImVulkan 
+namespace ImGui 
 {
 #if (defined _WIN32 && !(defined __MINGW32__))
 class Mutex
@@ -125,7 +125,7 @@ private:
     Mutex& mutex;
 };
 
-} // namespace ImVulkan
+} // namespace ImGui
 
 
 #include <algorithm>

@@ -5,10 +5,10 @@
 #include <vulkan/vulkan.h>
 #include "allocator.h"
 #include "option.h"
-#include "mat.h"
+#include "vkmat.h"
 #include "vulkan_header_fix.h"
 
-namespace ImVulkan 
+namespace ImGui 
 {
 // instance
 IMGUI_API int create_gpu_instance();
@@ -217,10 +217,13 @@ public:
     const PipelineCache* get_pipeline_cache() const;
 
     // test image allocation
-    bool shape_support_image_storage(const ImGui::ImMat& shape) const;
+    bool shape_support_image_storage(const ImMat& shape) const;
 
     // current gpu heap memory budget in MB
     uint32_t get_heap_budget() const;
+
+    // get current device index
+    int get_device_index() const { return device_number; }
 
     // utility operator
     void convert_packing(const VkMat& src, VkMat& dst, int dst_elempack, VkCompute& cmd, const Option& opt) const;
@@ -279,6 +282,7 @@ private:
 
 private:
     VulkanDevicePrivate* const d;
+    int device_number {-1};
 };
 
 IMGUI_API VulkanDevice* get_gpu_device(int device_index = get_default_gpu_index());
@@ -309,11 +313,11 @@ public:
 
 IMGUI_API int resolve_shader_info(const uint32_t* spv_data, size_t spv_data_size, ShaderInfo& shader_info);
 
-IMGUI_API void cast_float32_to_float16(const ImGui::ImMat& src, ImGui::ImMat& dst, const Option& opt = Option());
-IMGUI_API void cast_float16_to_float32(const ImGui::ImMat& src, ImGui::ImMat& dst, const Option& opt = Option());
-IMGUI_API void cast_int8_to_float32(const ImGui::ImMat& src, ImGui::ImMat& dst, const Option& opt = Option());
-IMGUI_API void cast_int8_to_float16(const ImGui::ImMat& src, ImGui::ImMat& dst, const Option& opt = Option());
-IMGUI_API void cast_float32_to_bfloat16(const ImGui::ImMat& src, ImGui::ImMat& dst, const Option& opt = Option());
-IMGUI_API void cast_bfloat16_to_float32(const ImGui::ImMat& src, ImGui::ImMat& dst, const Option& opt = Option());
+IMGUI_API void cast_float32_to_float16(const ImMat& src, ImMat& dst, const Option& opt = Option());
+IMGUI_API void cast_float16_to_float32(const ImMat& src, ImMat& dst, const Option& opt = Option());
+IMGUI_API void cast_int8_to_float32(const ImMat& src, ImMat& dst, const Option& opt = Option());
+IMGUI_API void cast_int8_to_float16(const ImMat& src, ImMat& dst, const Option& opt = Option());
+IMGUI_API void cast_float32_to_bfloat16(const ImMat& src, ImMat& dst, const Option& opt = Option());
+IMGUI_API void cast_bfloat16_to_float32(const ImMat& src, ImMat& dst, const Option& opt = Option());
 
-} // namespace ImVulkan
+} // namespace ImGui

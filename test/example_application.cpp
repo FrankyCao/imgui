@@ -72,8 +72,12 @@ static inline void box(ImGui::ImMat& image, int x1, int y1, int x2, int y2, int 
     {
         for (int i = x1; i <= x2; i++)
         {
-            unsigned int color = 0xFF000000 | (R << 16) | (G << 8) | B;
-            image.at<unsigned int>(i, j) = color;
+            //unsigned int color = 0xFF000000 | (R << 16) | (G << 8) | B;
+            //image.at<unsigned int>(i, j) = color;
+            image.at<unsigned char>(i, j, 3) = 0xFF;
+            image.at<unsigned char>(i, j, 2) = B;
+            image.at<unsigned char>(i, j, 1) = G;
+            image.at<unsigned char>(i, j, 0) = R;
         }
     }
 }
@@ -236,7 +240,7 @@ public:
     bool show_shader_window = false;
 #endif
 public:
-    ImGui::ImMat image {ImGui::ImMat(256, 256, 1u, 4)};
+    ImGui::ImMat image {ImGui::ImMat(256, 256, 4, 1u, 4)};
     ImTextureID ImageTexture = 0;
 };
 

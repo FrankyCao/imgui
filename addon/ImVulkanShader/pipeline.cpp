@@ -1,12 +1,11 @@
 #include "pipeline.h"
-#include "mat.h"
+#include "vkmat.h"
 #include "pipelinecache.h"
 #include "option.h"
 
 #include <math.h>
-using namespace ImGui;
 
-namespace ImVulkan 
+namespace ImGui 
 {
 class PipelinePrivate
 {
@@ -192,4 +191,4 @@ void Pipeline::set_shader_info(const ShaderInfo& shader_info)
     d->shader_info = shader_info;
 }
 
-} // namespace ImVulkan
+} // namespace ImGui

@@ -52,15 +52,15 @@ static inline int IM_XADD(int* addr, int delta)
 //  memory functions
 /////////////////////////////////////////////////
 template<typename _Tp>
-inline _Tp* alignPtr(_Tp* ptr, int n = (int)sizeof(_Tp))
+inline _Tp* Im_AlignPtr(_Tp* ptr, int n = (int)sizeof(_Tp))
 {
     return (_Tp*)(((size_t)ptr + n - 1) & -n);
 }
-inline size_t alignSize(size_t sz, int n)
+inline size_t Im_AlignSize(size_t sz, int n)
 {
     return (sz + n - 1) & -n;
 }
-inline void* fastMalloc(size_t size)
+inline void* Im_FastMalloc(size_t size)
 {
 #if _MSC_VER
     return _aligned_malloc(size, IM_MALLOC_ALIGN);
@@ -75,12 +75,12 @@ inline void* fastMalloc(size_t size)
     unsigned char* udata = (unsigned char*)malloc(size + sizeof(void*) + IM_MALLOC_ALIGN);
     if (!udata)
         return 0;
-    unsigned char** adata = alignPtr((unsigned char**)udata + 1, IM_MALLOC_ALIGN);
+    unsigned char** adata = Im_AlignPtr((unsigned char**)udata + 1, IM_MALLOC_ALIGN);
     adata[-1] = udata;
     return adata;
 #endif
 }
-inline void fastFree(void* ptr)
+inline void Im_FastFree(void* ptr)
 {
     if (ptr)
     {
@@ -266,32 +266,39 @@ public:
     template<typename _Tp> _Tp& at(int i=0) 
     {
         IM_ASSERT(device == IMMAT_DD_CPU && dims == 1);
-        return *(_Tp*)((unsigned char*)data + i * elemsize * elempack); 
+        return *(_Tp*)((unsigned char*)data + i * elemsize); 
     };
     template<typename _Tp> const _Tp& at(int i=0) const 
     {
         IM_ASSERT(device == IMMAT_DD_CPU && dims == 1);
-        return *(const _Tp*)((unsigned char*)data + i * elemsize * elempack); 
+        return *(const _Tp*)((unsigned char*)data + i * elemsize); 
     };
     template<typename _Tp> _Tp& at(int x, int y) 
     {
         IM_ASSERT(device == IMMAT_DD_CPU && dims == 2);
-        return *(_Tp*)((unsigned char*)data + (y * w + x) * elemsize * elempack); 
+        return *(_Tp*)((unsigned char*)data + (y * w + x) * elemsize); 
     };
     template<typename _Tp> const _Tp& at(int x, int y) const 
     {
         IM_ASSERT(device == IMMAT_DD_CPU && dims == 2);
-        return *(const _Tp*)((unsigned char*)data + (y * w + x) * elemsize * elempack); 
+        return *(const _Tp*)((unsigned char*)data + (y * w + x) * elemsize); 
     };
+    // TODO::Dicky check layout from elempack? 
     template<typename _Tp> _Tp& at(int x, int y, int _c) 
     {
         IM_ASSERT(device == IMMAT_DD_CPU && dims == 3);
-        return *(_Tp*)((unsigned char*)data + _c * cstep * elemsize * elempack + (y * w + x) * elemsize * elempack); 
+        if (elempack == 1)
+            return *(_Tp*)((unsigned char*)data + _c * cstep * elemsize + (y * w + x) * elemsize); 
+        else
+            return *(_Tp*)((unsigned char*)data + (y * w + x) * elemsize * c + _c); 
     };
     template<typename _Tp> const _Tp& at(int x, int y, int _c) const 
     {
         IM_ASSERT(device == IMMAT_DD_CPU && dims == 3);
-        return *(const _Tp*)((unsigned char*)data + _c * cstep * elemsize * elempack + (y * w + x) * elemsize * elempack); 
+        if (elempack == 1)
+            return *(const _Tp*)((unsigned char*)data + _c * cstep * elemsize + (y * w + x) * elemsize);
+        else
+            return *(const _Tp*)((unsigned char*)data + (y * w + x) * elemsize * c + _c); 
     };
 
     // range reference
@@ -473,7 +480,7 @@ inline ImMat::ImMat(int _w, int _h, void* _data, size_t _elemsize, ImMatDataDevi
 inline ImMat::ImMat(int _w, int _h, int _c, void* _data, size_t _elemsize, ImMatDataDevice _device, int _dev_num)
     : data(_data), device(_device), device_number(_dev_num), refcount(0), elemsize(_elemsize), elempack(1), dims(3), w(_w), h(_h), c(_c)
 {
-    cstep = alignSize((size_t)w * h * elemsize, 16) / elemsize;
+    cstep = Im_AlignSize((size_t)w * h * elemsize, 16) / elemsize;
     type = _elemsize == 1 ? IMMAT_INT8 : _elemsize == 2 ? IMMAT_INT16 : IMMAT_FLOAT32;
     color_space = IMMAT_SRGB;
     color_format = c == 1 ? IMMAT_GRAY : IMMAT_RGB;
@@ -503,7 +510,7 @@ inline ImMat::ImMat(int _w, int _h, void* _data, size_t _elemsize, int _elempack
 inline ImMat::ImMat(int _w, int _h, int _c, void* _data, size_t _elemsize, int _elempack, ImMatDataDevice _device, int _dev_num)
     : data(_data), device(_device), device_number(_dev_num), refcount(0), elemsize(_elemsize), elempack(_elempack), dims(3), w(_w), h(_h), c(_c)
 {
-    cstep = alignSize((size_t)w * h * elemsize, 16) / elemsize;
+    cstep = Im_AlignSize((size_t)w * h * elemsize, 16) / elemsize;
     type = _elemsize == 1 ? IMMAT_INT8 : _elemsize == 2 ? IMMAT_INT16 : IMMAT_FLOAT32;
     color_space = IMMAT_SRGB;
     color_format = c == 1 ? IMMAT_GRAY : IMMAT_RGB;
@@ -685,7 +692,7 @@ inline ImMat ImMat::reshape(int _w, int _h, int _c) const
 
     if (dims < 3)
     {
-        if ((size_t)_w * _h != alignSize((size_t)_w * _h * elemsize, 16) / elemsize)
+        if ((size_t)_w * _h != Im_AlignSize((size_t)_w * _h * elemsize, 16) / elemsize)
         {
             ImMat m;
             m.create(_w, _h, _c, elemsize, elempack);
@@ -724,7 +731,7 @@ inline ImMat ImMat::reshape(int _w, int _h, int _c) const
     m.h = _h;
     m.c = _c;
     m.color_format = _c == 1 ? IMMAT_GRAY : IMMAT_RGB;
-    m.cstep = alignSize((size_t)_w * _h * elemsize, 16) / elemsize;
+    m.cstep = Im_AlignSize((size_t)_w * _h * elemsize, 16) / elemsize;
 
     return m;
 }
@@ -752,8 +759,8 @@ inline void ImMat::create(int _w, size_t _elemsize, ImMatDataDevice _device, int
 
     if (_device == IMMAT_DD_CPU && total() > 0)
     {
-        size_t totalsize = alignSize(total() * elemsize, 4);
-        data = fastMalloc(totalsize + (int)sizeof(*refcount));
+        size_t totalsize = Im_AlignSize(total() * elemsize, 4);
+        data = Im_FastMalloc(totalsize + (int)sizeof(*refcount));
         refcount = (int*)(((unsigned char*)data) + totalsize);
         *refcount = 1;
     }
@@ -788,8 +795,8 @@ inline void ImMat::create(int _w, int _h, size_t _elemsize, ImMatDataDevice _dev
 
     if (_device == IMMAT_DD_CPU && total() > 0)
     {
-        size_t totalsize = alignSize(total() * elemsize, 4);
-        data = fastMalloc(totalsize + (int)sizeof(*refcount));
+        size_t totalsize = Im_AlignSize(total() * elemsize, 4);
+        data = Im_FastMalloc(totalsize + (int)sizeof(*refcount));
         refcount = (int*)(((unsigned char*)data) + totalsize);
         *refcount = 1;
     }
@@ -820,12 +827,12 @@ inline void ImMat::create(int _w, int _h, int _c, size_t _elemsize, ImMatDataDev
     color_format = c == 1 ? IMMAT_GRAY : IMMAT_RGB;
     color_range = IMMAT_FULL_RANGE;
 
-    cstep = alignSize((size_t)w * h * elemsize, 16) / elemsize;
+    cstep = Im_AlignSize((size_t)w * h * elemsize, 16) / elemsize;
 
     if (_device == IMMAT_DD_CPU && total() > 0)
     {
-        size_t totalsize = alignSize(total() * elemsize, 4);
-        data = fastMalloc(totalsize + (int)sizeof(*refcount));
+        size_t totalsize = Im_AlignSize(total() * elemsize, 4);
+        data = Im_FastMalloc(totalsize + (int)sizeof(*refcount));
         refcount = (int*)(((unsigned char*)data) + totalsize);
         *refcount = 1;
     }
@@ -860,8 +867,8 @@ inline void ImMat::create(int _w, size_t _elemsize, int _elempack, ImMatDataDevi
 
     if (_device == IMMAT_DD_CPU && total() > 0)
     {
-        size_t totalsize = alignSize(total() * elemsize, 4);
-        data = fastMalloc(totalsize + (int)sizeof(*refcount));
+        size_t totalsize = Im_AlignSize(total() * elemsize, 4);
+        data = Im_FastMalloc(totalsize + (int)sizeof(*refcount));
         refcount = (int*)(((unsigned char*)data) + totalsize);
         *refcount = 1;
     }
@@ -896,8 +903,8 @@ inline void ImMat::create(int _w, int _h, size_t _elemsize, int _elempack, ImMat
 
     if (_device == IMMAT_DD_CPU && total() > 0)
     {
-        size_t totalsize = alignSize(total() * elemsize, 4);
-        data = fastMalloc(totalsize + (int)sizeof(*refcount));
+        size_t totalsize = Im_AlignSize(total() * elemsize, 4);
+        data = Im_FastMalloc(totalsize + (int)sizeof(*refcount));
         refcount = (int*)(((unsigned char*)data) + totalsize);
         *refcount = 1;
     }
@@ -929,12 +936,12 @@ inline void ImMat::create(int _w, int _h, int _c, size_t _elemsize, int _elempac
     color_range = IMMAT_FULL_RANGE;
 
 
-    cstep = alignSize((size_t)w * h * elemsize, 16) / elemsize;
+    cstep = Im_AlignSize((size_t)w * h * elemsize, 16) / elemsize;
 
     if (_device == IMMAT_DD_CPU && total() > 0)
     {
-        size_t totalsize = alignSize(total() * elemsize, 4);
-        data = fastMalloc(totalsize + (int)sizeof(*refcount));
+        size_t totalsize = Im_AlignSize(total() * elemsize, 4);
+        data = Im_FastMalloc(totalsize + (int)sizeof(*refcount));
         refcount = (int*)(((unsigned char*)data) + totalsize);
         *refcount = 1;
     }
@@ -984,8 +991,8 @@ inline void ImMat::create_type(int _w, ImMatDataType _t, ImMatDataDevice _device
 
     if (_device == IMMAT_DD_CPU && total() > 0)
     {
-        size_t totalsize = alignSize(total() * elemsize, 4);
-        data = fastMalloc(totalsize + (int)sizeof(*refcount));
+        size_t totalsize = Im_AlignSize(total() * elemsize, 4);
+        data = Im_FastMalloc(totalsize + (int)sizeof(*refcount));
         refcount = (int*)(((unsigned char*)data) + totalsize);
         *refcount = 1;
     }
@@ -1019,8 +1026,8 @@ inline void ImMat::create_type(int _w, int _h, ImMatDataType _t, ImMatDataDevice
 
     if (_device == IMMAT_DD_CPU && total() > 0)
     {
-        size_t totalsize = alignSize(total() * elemsize, 4);
-        data = fastMalloc(totalsize + (int)sizeof(*refcount));
+        size_t totalsize = Im_AlignSize(total() * elemsize, 4);
+        data = Im_FastMalloc(totalsize + (int)sizeof(*refcount));
         refcount = (int*)(((unsigned char*)data) + totalsize);
         *refcount = 1;
     }
@@ -1046,7 +1053,7 @@ inline void ImMat::create_type(int _w, int _h, int _c, ImMatDataType _t, ImMatDa
     h = _h;
     c = _c;
 
-    cstep = alignSize((size_t)w * h * elemsize, 4) / elemsize;
+    cstep = Im_AlignSize((size_t)w * h * elemsize, 4) / elemsize;
     type = _t;
     color_space = IMMAT_SRGB;
     color_format = c == 1 ? IMMAT_GRAY : IMMAT_RGB;
@@ -1054,8 +1061,8 @@ inline void ImMat::create_type(int _w, int _h, int _c, ImMatDataType _t, ImMatDa
 
     if (_device == IMMAT_DD_CPU && total() > 0)
     {
-        size_t totalsize = alignSize(total() * elemsize, 4);
-        data = fastMalloc(totalsize + (int)sizeof(*refcount));
+        size_t totalsize = Im_AlignSize(total() * elemsize, 4);
+        data = Im_FastMalloc(totalsize + (int)sizeof(*refcount));
         refcount = (int*)(((unsigned char*)data) + totalsize);
         *refcount = 1;
     }
@@ -1132,7 +1139,7 @@ inline void ImMat::create_type(int _w, int _h, int _c, void* _data, ImMatDataTyp
     h = _h;
     c = _c;
 
-    cstep = alignSize((size_t)w * h * elemsize, 4) / elemsize;
+    cstep = Im_AlignSize((size_t)w * h * elemsize, 4) / elemsize;
     type = _t;
     color_space = IMMAT_SRGB;
     color_format = c == 1 ? IMMAT_GRAY : IMMAT_RGB;
@@ -1153,7 +1160,7 @@ inline void ImMat::release()
     {
         if (device == IMMAT_DD_CPU) 
         {
-            fastFree(data);
+            Im_FastFree(data);
             data = 0;
         }
         else

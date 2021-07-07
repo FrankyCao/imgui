@@ -1,9 +1,8 @@
 #include "Packing_vulkan.h"
 #include "Packing_shader.h"
 #include "command.h"
-using namespace ImGui;
 
-namespace ImVulkan 
+namespace ImGui 
 {
 Packing_vulkan::Packing_vulkan()
 {
@@ -853,4 +852,4 @@ int Packing_vulkan::forward(const VkImageMat& bottom_blob, VkMat& top_blob, VkCo
 
     return 0;
 }
-} //namespace ImVulkan 
+} //namespace ImGui 

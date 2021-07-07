@@ -25,7 +25,7 @@ IMGUI_API void ImDestroyTexture(ImTextureID texture);
 IMGUI_API int ImGetTextureWidth(ImTextureID texture);
 IMGUI_API int ImGetTextureHeight(ImTextureID texture);
 #if IMGUI_VULKAN_SHADER
-IMGUI_API ImTextureID ImCreateTexture(ImVulkan::VkImageMat & image);
+IMGUI_API ImTextureID ImCreateTexture(ImGui::VkImageMat & image);
 #endif
 // Experimental: tested on Ubuntu only. Should work with urls, folders and files.
 IMGUI_API bool OpenWithDefaultApplication(const char* url,bool exploreModeForWindowsOS=false);

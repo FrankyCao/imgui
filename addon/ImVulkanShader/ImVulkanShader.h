@@ -6,7 +6,7 @@
 #include "ColorConvert_vulkan.h"
 #include <vulkan/vulkan.h>
 
-namespace ImVulkan
+namespace ImGui
 {
     IMGUI_API ImTextureID ImVulkanImageToImTexture(const VkImageMat & image_vk);
-} //namespace ImVulkan
+} //namespace ImGui

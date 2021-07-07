@@ -2,9 +2,8 @@
 
 #include "option.h"
 #include "pipeline.h"
-using namespace ImGui;
 
-namespace ImVulkan
+namespace ImGui
 {
 class VkComputePrivate
 {
@@ -3053,5 +3052,5 @@ int VkTransfer::submit_and_wait()
     return 0;
 }
 
-} // namespace ImVulkan
+} // namespace ImGui
 

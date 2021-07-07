@@ -724,7 +724,7 @@ void CleanupDemo()
 }
 
 #if IMGUI_VULKAN_SHADER
-int g_gpu_count = ImVulkan::get_gpu_count();
+int g_gpu_count = ImGui::get_gpu_count();
 
 static const char glsl_p1_data[] = R"(
 #version 450
@@ -868,13 +868,13 @@ void main()
 )";
 
 static ImTextureID g_texture = nullptr;
-static ImVulkan::VkImageMat test_vkimage;
-static ImVulkan::VulkanDevice* g_vkdev = nullptr;
-static ImVulkan::VkAllocator* g_blob_allocator = nullptr;
-static ImVulkan::VkAllocator* g_staging_allocator = nullptr;
-static ImVulkan::Option g_opt;
-static ImVulkan::Pipeline * g_pipeline = nullptr;
-static ImVulkan::VkCompute * g_cmd = nullptr;
+static ImGui::VkImageMat test_vkimage;
+static ImGui::VulkanDevice* g_vkdev = nullptr;
+static ImGui::VkAllocator* g_blob_allocator = nullptr;
+static ImGui::VkAllocator* g_staging_allocator = nullptr;
+static ImGui::Option g_opt;
+static ImGui::Pipeline * g_pipeline = nullptr;
+static ImGui::VkCompute * g_cmd = nullptr;
 static float fp32[8] = {0.f};
 static float fp32v4[8] = {0.f};
 static float fp32v8[8] = {0.f};
@@ -890,7 +890,7 @@ static int cmd_count = 1;
 #define TEST_HEIGHT     256
 #define TEST_CHANNEL    4
 
-static float vkpeak(ImVulkan::VulkanDevice* vkdev, int loop, int count_mb, int cmd_loop, int storage_type, int arithmetic_type, int packing_type)
+static float vkpeak(ImGui::VulkanDevice* vkdev, int loop, int count_mb, int cmd_loop, int storage_type, int arithmetic_type, int packing_type)
 {
     const int count = count_mb * 1024 * 1024;
     int elempack = packing_type == 0 ? 1 : packing_type == 1 ? 4 : 8;
@@ -903,18 +903,18 @@ static float vkpeak(ImVulkan::VulkanDevice* vkdev, int loop, int count_mb, int c
         return -233;
     }
     double max_gflops = 0;
-    ImVulkan::Option opt;
+    ImGui::Option opt;
     opt.use_fp16_packed = storage_type == 1;
     opt.use_fp16_storage = storage_type == 2;
     opt.use_fp16_arithmetic = arithmetic_type == 1;
     opt.use_shader_pack8 = packing_type == 2;
 
     // setup pipeline
-    ImVulkan::Pipeline pipeline(vkdev);
+    ImGui::Pipeline pipeline(vkdev);
     {
         int local_size_x = std::min(128, std::max(32, (int)vkdev->info.subgroup_size()));
         pipeline.set_local_size_xyz(local_size_x, 1, 1);
-        std::vector<ImVulkan::vk_specialization_type> specializations(2);
+        std::vector<ImGui::vk_specialization_type> specializations(2);
         specializations[0].i = count;
         specializations[1].i = loop;
         // glsl to spirv
@@ -922,27 +922,27 @@ static float vkpeak(ImVulkan::VulkanDevice* vkdev, int loop, int count_mb, int c
         std::vector<uint32_t> spirv;
         if (packing_type == 0)
         {
-            ImVulkan::compile_spirv_module(glsl_p1_data, opt, spirv);
+            ImGui::compile_spirv_module(glsl_p1_data, opt, spirv);
         }
         if (packing_type == 1)
         {
-            ImVulkan::compile_spirv_module(glsl_p4_data, opt, spirv);
+            ImGui::compile_spirv_module(glsl_p4_data, opt, spirv);
         }
         if (packing_type == 2)
         {
-            ImVulkan::compile_spirv_module(glsl_p8_data, opt, spirv);
+            ImGui::compile_spirv_module(glsl_p8_data, opt, spirv);
         }
 
         pipeline.create(spirv.data(), spirv.size() * 4, specializations);
     }
 
-    ImVulkan::VkAllocator* allocator = vkdev->acquire_blob_allocator();
+    ImGui::VkAllocator* allocator = vkdev->acquire_blob_allocator();
 
     // prepare storage
     {
-        ImVulkan::VkMat a;
-        ImVulkan::VkMat b;
-        ImVulkan::VkMat c;
+        ImGui::VkMat a;
+        ImGui::VkMat b;
+        ImGui::VkMat c;
         {
             if (opt.use_fp16_packed || opt.use_fp16_storage)
             {
@@ -959,15 +959,15 @@ static float vkpeak(ImVulkan::VulkanDevice* vkdev, int loop, int count_mb, int c
         }
 
         // encode command
-        ImVulkan::VkCompute cmd(vkdev);
+        ImGui::VkCompute cmd(vkdev);
         for (int i = 0; i < cmd_loop; i++)
         {
             {
-                std::vector<ImVulkan::VkMat> bindings(3);
+                std::vector<ImGui::VkMat> bindings(3);
                 bindings[0] = a;
                 bindings[1] = b;
                 bindings[2] = c;
-                std::vector<ImVulkan::vk_constant_type> constants(0);
+                std::vector<ImGui::vk_constant_type> constants(0);
                 cmd.record_pipeline(&pipeline, bindings, constants, c);
             }
 
@@ -1012,43 +1012,37 @@ static std::string print_result(float gflops)
 
 void PrepareVulkanDemo()
 {
-    g_vkdev = ImVulkan::get_gpu_device(-1); // auto get gpu
+    g_vkdev = ImGui::get_gpu_device(-1); // auto get gpu
     g_blob_allocator = g_vkdev->acquire_blob_allocator();
     g_staging_allocator = g_vkdev->acquire_staging_allocator();
     g_opt.blob_vkallocator = g_blob_allocator;
     g_opt.staging_vkallocator = g_staging_allocator;
     g_opt.use_image_storage = true;
 
-    float * tempBitmap = new float[TEST_WIDTH * TEST_HEIGHT * TEST_CHANNEL];
-    for (int y = 0; y < TEST_HEIGHT; y++)
+    ImGui::ImMat test_image;
+    test_image.create_type(TEST_WIDTH, TEST_HEIGHT, TEST_CHANNEL, ImGui::IMMAT_FLOAT32);
+    for (int y = 0; y < test_image.h; y++)
     {
-        for (int x = 0; x < TEST_WIDTH; x++)
+        for (int x = 0; x < test_image.w; x++)
         {
             float dx = x + .5f;
             float dy = y + .5f;
             float dv = sinf(x * 0.02f) + sinf(0.03f * (x + y)) + sinf(sqrtf(0.4f * (dx * dx + dy * dy) + 1.f));
-            
-            for (int c = 0; c < TEST_CHANNEL; c++)
+            for (int c = 0; c < test_image.c; c++)
             {
-                if (c == 3)
-                    tempBitmap[(TEST_WIDTH * TEST_HEIGHT) * c + y * TEST_WIDTH + x] = 1.f;
-                else
-                    tempBitmap[(TEST_WIDTH * TEST_HEIGHT) * c + y * TEST_WIDTH + x] = fabsf(sinf(dv * 3.141592f + (c + 1) * 3.141592f / 3.f));
+                test_image.at<float>(x, y, c) = c == 3 ? 1.f : fabsf(sinf(dv * 3.141592f + (c + 1) * 3.141592f / 3.f));
             }
         }
     }
-    ImGui::ImMat test_image;
-    test_image.create_type(TEST_WIDTH, TEST_HEIGHT, TEST_CHANNEL, tempBitmap, ImGui::IMMAT_FLOAT32);
-    g_cmd = new ImVulkan::VkCompute(g_vkdev);
+    g_cmd = new ImGui::VkCompute(g_vkdev);
     g_cmd->record_upload(test_image, test_vkimage, g_opt);
     g_cmd->submit_and_wait();
-    delete [] tempBitmap;
     g_texture = ImGui::ImCreateTexture(test_vkimage);
 
     static std::vector<uint32_t> spirv;
-    ImVulkan::compile_spirv_module(inverse_data, g_opt, spirv);
-    g_pipeline = new ImVulkan::Pipeline(g_vkdev);
-    std::vector<ImVulkan::vk_specialization_type> specializations(0);
+    ImGui::compile_spirv_module(inverse_data, g_opt, spirv);
+    g_pipeline = new ImGui::Pipeline(g_vkdev);
+    std::vector<ImGui::vk_specialization_type> specializations(0);
     g_pipeline->create(spirv.data(), spirv.size() * 4, specializations);
     g_cmd->flash();
 }
@@ -1067,7 +1061,7 @@ void ShowAddonsVulkanShaderWindow()
 {
     for (int i = 0; i < g_gpu_count; i++)
     {
-        ImVulkan::VulkanDevice* vkdev = ImVulkan::get_gpu_device(i);
+        ImGui::VulkanDevice* vkdev = ImGui::get_gpu_device(i);
         uint32_t driver_version = vkdev->info.driver_version();
         uint32_t api_version = vkdev->info.api_version();
         std::string driver_ver = std::to_string(VK_VERSION_MAJOR(driver_version)) + "." + 
@@ -1111,10 +1105,10 @@ void ShowAddonsVulkanShaderWindow()
     static float color_fading = 1.0f;
     static float fading_step = -0.01f;
     {
-        std::vector<ImVulkan::VkImageMat> bindings(2);
+        std::vector<ImGui::VkImageMat> bindings(2);
         bindings[0] = test_vkimage;
         bindings[1] = test_vkimage;
-        std::vector<ImVulkan::vk_constant_type> constants(1);
+        std::vector<ImGui::vk_constant_type> constants(1);
         constants[0].f = color_fading;
         g_cmd->record_pipeline(g_pipeline, bindings, constants, test_vkimage);
         g_cmd->submit_and_wait();

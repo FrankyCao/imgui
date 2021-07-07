@@ -2,7 +2,7 @@
 
 #include "gpu.h"
 
-namespace ImVulkan 
+namespace ImGui 
 {
 static uint32_t murmur3_32(const uint32_t* data, int size)
 {
@@ -478,4 +478,4 @@ ERROR_PipelineCache:
 
     return -1;
 }
-} // namespace ImVulkan
+} // namespace ImGui

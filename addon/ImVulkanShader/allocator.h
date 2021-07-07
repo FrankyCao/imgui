@@ -10,7 +10,7 @@
 
 #include <vulkan/vulkan.h>
 
-namespace ImVulkan 
+namespace ImGui 
 {
 class Allocator
 {
@@ -137,6 +137,7 @@ public:
 
     virtual VkImageMemory* fastMalloc(int w, int h, int c, size_t elemsize, int elempack) = 0;
     virtual void fastFree(VkImageMemory* ptr) = 0;
+    virtual int getDeviceIndex();
 
 public:
     const VulkanDevice* vkdev;
@@ -253,5 +254,5 @@ private:
     VkWeightStagingAllocatorPrivate* const d;
 };
 
-} // namespace ImVulkan
+} // namespace ImGui
 

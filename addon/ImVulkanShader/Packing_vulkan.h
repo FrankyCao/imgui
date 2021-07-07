@@ -2,7 +2,7 @@
 #include "gpu.h"
 #include "pipeline.h"
 
-namespace ImVulkan 
+namespace ImGui 
 {
 class Packing_vulkan
 {
@@ -48,8 +48,8 @@ public:
 
 public:
     const VulkanDevice* vkdev;
-    std::vector<ImGui::ImMat> bottom_shapes;
-    std::vector<ImGui::ImMat> top_shapes;
+    std::vector<ImMat> bottom_shapes;
+    std::vector<ImMat> top_shapes;
 
 public:
     std::vector<uint32_t> spirv_packing_fp16_to_fp32;
@@ -80,4 +80,4 @@ public:
     std::vector<uint32_t> spirv_packing_pack8to4;
     std::vector<uint32_t> spirv_packing;
 };
-} // namespace ImVulkan 
+} // namespace ImGui 

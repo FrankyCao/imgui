@@ -2,7 +2,7 @@
 
 //#include "cpu.h"
 
-namespace ImVulkan 
+namespace ImGui 
 {
 Option::Option()
 {
@@ -35,4 +35,4 @@ Option::Option()
     use_shader_pack8 = false;
 }
 
-} // namespace ImVulkan
+} // namespace ImGui

@@ -1,7 +1,7 @@
 #pragma once
 #include "platform.h"
 
-namespace ImVulkan 
+namespace ImGui 
 {
 class VkAllocator;
 class PipelineCache;
@@ -75,5 +75,5 @@ public:
     bool use_reserved_11;
 };
 
-} // namespace ImVulkan
+} // namespace ImGui
 

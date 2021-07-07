@@ -1,7 +1,6 @@
-#include "mat.h"
-using namespace ImGui;
+#include "vkmat.h"
 
-namespace ImVulkan 
+namespace ImGui 
 {
 // color space matrix
 const float r2y_601_full[3][3] = {
@@ -108,5 +107,5 @@ const ImMat * color_table[2][2][4] = {
         { &matrix_srgb, &matrix_ry_601_narrow, &matrix_ry_709_narrow, &matrix_ry_2020_narrow}
     }
 };
-} // namespace ImVulkan 
+} // namespace ImGui 
 

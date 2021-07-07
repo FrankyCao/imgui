@@ -7,7 +7,7 @@
 #include "ShaderLang.h"
 
 #include "command.h"
-#include "mat.h"
+#include "vkmat.h"
 #include "pipelinecache.h"
 #include "Packing_vulkan.h"
 #include "Cast_vulkan.h"
@@ -17,9 +17,8 @@
 #define ENABLE_VALIDATION_LAYER 0
 
 #define DEBUG_INFO  0
-using namespace ImGui;
 
-namespace ImVulkan 
+namespace ImGui 
 {
 // global
 static Mutex g_instance_lock;
@@ -1793,7 +1792,7 @@ void VulkanDevicePrivate::destroy_utility_operator()
 }
 
 VulkanDevice::VulkanDevice(int device_index)
-    : info(get_gpu_info(device_index)), d(new VulkanDevicePrivate(this))
+    : info(get_gpu_info(device_index)), d(new VulkanDevicePrivate(this)), device_number(device_index)
 {
     try_create_gpu_instance();
 
@@ -3821,5 +3820,5 @@ void cast_bfloat16_to_float32(const ImMat& src, ImMat& dst, const Option& opt)
     cast.destroy_pipeline(opt);
 }
 
-} // namespace ImVulkan
+} // namespace ImGui
 
