@@ -310,7 +310,7 @@ void ImGui::ShowDemoWindow(bool* p_open)
     // Add By Dicky
     if (show_app_theme_generator)
     {
-        ImGuiHelper::ThemeGenerator();
+        ImGuiHelper::ThemeGenerator("ImGui Theme Generator", &show_app_theme_generator);
     }
     // Add By Dicky end
 

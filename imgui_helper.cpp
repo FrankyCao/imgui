@@ -2141,10 +2141,10 @@ inline ImVec4 make_text(float alpha)
     return ImVec4(text.x, text.y, text.z, alpha);
 }
 
-void ThemeGenerator() 
+void ThemeGenerator(const char* name, bool* p_open, ImGuiWindowFlags flags) 
 {
     ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
-    ImGui::Begin("Theme generator");
+    ImGui::Begin(name, p_open, flags);
     ImGui::ColorEdit3("base", (float*) &base, ImGuiColorEditFlags_PickerHueWheel);
     ImGui::ColorEdit3("bg", (float*) &bg, ImGuiColorEditFlags_PickerHueWheel);
     ImGui::ColorEdit3("text", (float*) &text, ImGuiColorEditFlags_PickerHueWheel);

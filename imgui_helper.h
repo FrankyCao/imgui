@@ -446,7 +446,7 @@ IMGUI_API void StringAppend(char*& destText, const char* textToAppend, bool allo
 IMGUI_API int StringAppend(ImVector<char>& v,const char* fmt, ...);
 
 // ImGui Theme generator
-IMGUI_API void ThemeGenerator();
+IMGUI_API void ThemeGenerator(const char* name, bool* p_open = NULL, ImGuiWindowFlags flags = 0);
 
 // https://github.com/CedricGuillemet/imgInspect
 /*

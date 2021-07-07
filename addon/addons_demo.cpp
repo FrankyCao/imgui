@@ -3,7 +3,6 @@
 #include "NumberTexture.h"
 #if IMGUI_ADDON_VARIOUS
 #include "ImGuiVariousControls.h"
-#include "notify.h"
 #endif
 #if IMGUI_ADDON_DATE_CHOOSER
 #include "ImGuiDateChooser.h"

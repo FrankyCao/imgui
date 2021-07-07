@@ -8,6 +8,7 @@
 // See https://github.com/ocornut/imgui/pull/2492 as an example on how to do just that.
 
 #include <imgui.h>
+#include <imgui_mat.h>
 #include <imgui_impl_sdl.h>
 #include <imgui_impl_opengl3.h>
 #include <stdio.h>
@@ -163,6 +164,45 @@ static void ExampleMarkdownFormatCallback( const ImGui::MarkdownFormatInfo& mark
 }
 #endif
 
+static inline void box(ImGui::ImMat& image, int x1, int y1, int x2, int y2, int R, int G, int B)
+{
+    for (int j = y1; j <= y2; j++)
+    {
+        for (int i = x1; i <= x2; i++)
+        {
+            //unsigned int color = 0xFF000000 | (R << 16) | (G << 8) | B;
+            //image.at<unsigned int>(i, j) = color;
+            image.at<unsigned char>(i, j, 3) = 0xFF;
+            image.at<unsigned char>(i, j, 2) = B;
+            image.at<unsigned char>(i, j, 1) = G;
+            image.at<unsigned char>(i, j, 0) = R;
+        }
+    }
+}
+
+static inline void color_bar(ImGui::ImMat& image, int x1, int y1, int x2, int y2)
+{
+    const unsigned char r[8] = {255,255,0,0,255,255,0,0};
+    const unsigned char g[8] = {255,255,255,255,0,0,0,0};
+    const unsigned char b[8] = {255,0,255,0,255,0,255,0};
+    int len = x2 - x1 + 1;
+    for (int i = 0; i < 8; i++)
+    {
+        box(image, x1 + len * i / 8, y1, x1 + len * (i + 1) / 8 - 1, y2, r[i], g[i], b[i]);
+    }
+}
+
+static inline void gray_bar(ImGui::ImMat& image, int x1,int y1,int x2,int y2,int step)
+{
+    int len = x2 - x1 + 1;
+    for (int i = 0; i < step; i++)
+    {
+        box(image, x1 + len * i / step, y1, x1 + len * (i + 1) / step - 1, y2, 255 * i / step, 255 * i / step, 255 * i / step);
+    }
+}
+
+static ImGui::ImMat image(256, 256, 4, 1u, 4);
+static ImTextureID ImageTexture = 0;
 // For clarity, our main loop code is declared at the end.
 static void main_loop(void*);
 
@@ -245,6 +285,9 @@ int main(int, char**)
     ImNodes::CreateContext();
     imnodes_example::NodeEditorInitialize(nullptr, nullptr);
 #endif
+    color_bar(image, 0, 0, 255, 191);
+    gray_bar(image, 0, 192, 255, 255, 13);
+    ImageTexture = ImGui::ImCreateTexture(image.data, image.w, image.h);
     // This function call won't return, and will engage in an infinite loop, processing events from the browser, and dispatching them.
     emscripten_set_main_loop_arg(main_loop, NULL, 0, true);
 }
@@ -361,13 +404,19 @@ static void main_loop(void* arg)
             // handle the hotkey index!
         }
 #endif
-        ImGui::SliderFloat("float", &f, 0.0f, 1.0f);                  // Edit 1 float using a slider from 0.0f to 1.0f
-        ImGui::ColorEdit3("clear color", (float*)&clear_color);       // Edit 3 floats representing a color
 
-        if (ImGui::Button("Button"))                                  // Buttons return true when clicked (most widgets return true when edited/activated)
-            counter++;
-        ImGui::SameLine();
-        ImGui::Text("counter = %d", counter);
+        ImVec2 displayedTextureSize(256,256);
+        ImGui::Image((ImTextureID)(uint64_t)ImageTexture, displayedTextureSize);
+        {
+            ImRect rc = ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+            ImVec2 mouseUVCoord = (io.MousePos - rc.Min) / rc.GetSize();
+            if (ImGui::IsItemHovered() && mouseUVCoord.x >= 0.f && mouseUVCoord.y >= 0.f)
+            {
+                ImGuiHelper::ImageInspect(image.w, image.h, 
+                                        (const unsigned char*)image.data, mouseUVCoord, 
+                                        displayedTextureSize);
+            }
+        }
 
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
         ImGui::End();
