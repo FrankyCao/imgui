@@ -1,5 +1,5 @@
 #include "pipeline.h"
-#include "buffer.h"
+#include "mat.h"
 #include "pipelinecache.h"
 #include "option.h"
 
