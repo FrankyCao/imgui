@@ -1183,7 +1183,7 @@ static void ShowDemoWindowWidgets()
         {
             static bool selected[10] = {};
 
-            if (ImGui::BeginTable("split1", 3, ImGuiTableFlags_Resizable | ImGuiTableFlags_NoSavedSettings))
+            if (ImGui::BeginTable("split1", 3, ImGuiTableFlags_Resizable | ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Borders))
             {
                 for (int i = 0; i < 10; i++)
                 {
@@ -1194,8 +1194,8 @@ static void ShowDemoWindowWidgets()
                 }
                 ImGui::EndTable();
             }
-            ImGui::Separator();
-            if (ImGui::BeginTable("split2", 3, ImGuiTableFlags_Resizable | ImGuiTableFlags_NoSavedSettings))
+            ImGui::Spacing();
+            if (ImGui::BeginTable("split2", 3, ImGuiTableFlags_Resizable | ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Borders))
             {
                 for (int i = 0; i < 10; i++)
                 {
