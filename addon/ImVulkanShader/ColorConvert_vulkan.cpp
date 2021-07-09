@@ -4,6 +4,7 @@
 
 namespace ImGui 
 {
+extern const ImMat * color_table[2][2][4];
 ColorConvert_vulkan::ColorConvert_vulkan(int gpu)
 {
     vkdev = get_gpu_device(gpu);

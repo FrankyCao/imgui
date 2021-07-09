@@ -29,6 +29,8 @@
 #include <time.h>
 #endif
 #include <cmath>
+#include <thread>
+
 ImTextureID ImageTextureNumber = 0;
 namespace ImGui
 {
@@ -882,8 +884,8 @@ static float fp16pv8[8] = {0.f};
 static float fp16s[8] = {0.f};
 static float fp16sv4[8] = {0.f};
 static float fp16sv8[8] = {0.f};
-static int loop_count = 100;
-static int block_count = 10;
+static int loop_count = 200;
+static int block_count = 20;
 static int cmd_count = 1;
 #define TEST_WIDTH      256
 #define TEST_HEIGHT     256
@@ -1063,6 +1065,7 @@ void ShowAddonsVulkanShaderWindow()
         ImGui::VulkanDevice* vkdev = ImGui::get_gpu_device(i);
         uint32_t driver_version = vkdev->info.driver_version();
         uint32_t api_version = vkdev->info.api_version();
+        int device_type = vkdev->info.type();
         std::string driver_ver = std::to_string(VK_VERSION_MAJOR(driver_version)) + "." + 
                                 std::to_string(VK_VERSION_MINOR(driver_version)) + "." +
                                 std::to_string(VK_VERSION_PATCH(driver_version));
@@ -1077,17 +1080,19 @@ void ShowAddonsVulkanShaderWindow()
         ImGui::Text("   API:%s", api_ver.c_str());
         ImGui::Text("  Name:%s", device_name.c_str());
         ImGui::Text("Memory:%uMB", gpu_memory_budget);
+        ImGui::Text("Device Type:%s", device_type == 0 ? "Discrete" : device_type == 1 ? "Integrated" : device_type == 2 ? "Virtual" : "CPU");
         std::string buffon_label = "Perf Test##" + std::to_string(i);
         if (ImGui::Button(buffon_label.c_str(), ImVec2(120, 20)))
         {
-            fp32[i] = vkpeak(vkdev, loop_count, block_count, cmd_count, 0, 0, 0);
-            fp32v4[i] = vkpeak(vkdev, loop_count, block_count, cmd_count, 0, 0, 1);
-            fp32v8[i] = vkpeak(vkdev, loop_count, block_count, cmd_count, 0, 0, 2);
-            fp16pv4[i] = vkpeak(vkdev, loop_count, block_count, cmd_count, 1, 1, 1);
-            fp16pv8[i] = vkpeak(vkdev, loop_count, block_count, cmd_count, 1, 1, 2);
-            fp16s[i] = vkpeak(vkdev, loop_count, block_count, cmd_count, 2, 1, 0);
-            fp16sv4[i] = vkpeak(vkdev, loop_count, block_count, cmd_count, 2, 1, 1);
-            fp16sv8[i] = vkpeak(vkdev, loop_count, block_count, cmd_count, 2, 1, 2);
+            int _loop_count = device_type == 0 ? loop_count : loop_count / 5;
+            fp32[i]     = vkpeak(vkdev, _loop_count, block_count, cmd_count, 0, 0, 0);
+            fp32v4[i]   = vkpeak(vkdev, _loop_count, block_count, cmd_count, 0, 0, 1);
+            fp32v8[i]   = vkpeak(vkdev, _loop_count, block_count, cmd_count, 0, 0, 2);
+            fp16pv4[i]  = vkpeak(vkdev, _loop_count, block_count, cmd_count, 1, 1, 1);
+            fp16pv8[i]  = vkpeak(vkdev, _loop_count, block_count, cmd_count, 1, 1, 2);
+            fp16s[i]    = vkpeak(vkdev, _loop_count, block_count, cmd_count, 2, 1, 0);
+            fp16sv4[i]  = vkpeak(vkdev, _loop_count, block_count, cmd_count, 2, 1, 1);
+            fp16sv8[i]  = vkpeak(vkdev, _loop_count, block_count, cmd_count, 2, 1, 2);
         }
         ImGui::Text(" FP32 Scalar :%s", print_result(fp32[i]).c_str());
         ImGui::Text("   FP32 Vec4 :%s", print_result(fp32v4[i]).c_str());
