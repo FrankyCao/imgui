@@ -176,6 +176,7 @@ class Allocator
 public:
     virtual ~Allocator() {};
     virtual void* fastMalloc(size_t size) = 0;
+    virtual void* fastMalloc(int w, int h, int c, size_t elemsize, int elempack) = 0;
     virtual void fastFree(void* ptr) = 0;
 };
 
@@ -1021,16 +1022,13 @@ inline void ImMat::release()
 {
     if (refcount && IM_XADD(refcount, -1) == 1)
     {
-/*
-        if (device == IM_DD_CPU && data)
-            Im_FastFree(data);
-        else if (allocator && data)
-            allocator->fastFree(data);
-*/
-        if (allocator && data)
-            allocator->fastFree(data);
-        else if (data)
-            Im_FastFree(data);
+        if (device == IM_DD_CPU)
+        {
+            if (allocator && data)
+                allocator->fastFree(data);
+            else if (data)
+                Im_FastFree(data);
+        }
     }
 
     data = 0;
