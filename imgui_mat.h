@@ -1021,6 +1021,12 @@ inline void ImMat::release()
 {
     if (refcount && IM_XADD(refcount, -1) == 1)
     {
+/*
+        if (device == IM_DD_CPU && data)
+            Im_FastFree(data);
+        else if (allocator && data)
+            allocator->fastFree(data);
+*/
         if (allocator && data)
             allocator->fastFree(data);
         else if (data)
@@ -1045,9 +1051,6 @@ inline void ImMat::release()
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
-
-    device = IM_DD_CPU;
-    device_number = 0;
     time_stamp = NAN;
 }
 
