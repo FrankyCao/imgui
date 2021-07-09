@@ -53,6 +53,7 @@ Other Changes:
 - Tables: Fix invalid data in TableGetSortSpecs() when SpecsDirty flag is unset. (#4233)
 - TabBar: Fixed using more than 32 KB-worth of tab names. (#4176)
 - Drag and Drop: drop target highlight doesn't try to bypass host clipping rectangle. (#4281, #3272)
+- Menus: MenuItem() and BeginMenu() are not affected/overlapping when style.SelectableTextAlign is altered.
 - Fixed printf-style format checks on non-MinGW flavors. (#4183, #3592)
 - Fonts: Functions with a 'float size_pixels' parameter can accept zero if it is set in ImFontSize::SizePixels.
 - Fonts: Prefer using U+FFFD character for fallback instead of '?', if available. (#4269)
@@ -70,6 +71,8 @@ Other Changes:
 - Backends: Win32: Rework to handle certains Windows 8.1/10 features without a manifest. (#4200, #4191)
   - ImGui_ImplWin32_GetDpiScaleForMonitor() will handle per-monitor DPI on Windows 10 without a manifest.
   - ImGui_ImplWin32_EnableDpiAwareness() will call SetProcessDpiAwareness() fallback on Windows 8.1 without a manifest.
+- Backends: Win32: IME functions are disabled by default for non-Visual Studio compilers (MinGW etc.). Enable with
+  '#define IMGUI_ENABLE_WIN32_DEFAULT_IME_FUNCTIONS' for those compilers. Undo change from 1.82. (#2590, #738, #4185, #4301)
 - Backends: DX9: Explicitly disable texture state stages after >= 1. (#4268) [@NZJenkins]
 - Backends: DX12: Fix texture casting crash on 32-bit systems (introduced on 2021/05/19 and v1.83) + added comments
   about building on 32-bit systems. (#4225) [@kingofthebongo2008]
@@ -210,6 +213,7 @@ Breaking Changes:
 - Win32+MinGW: Re-enabled IME functions by default even under MinGW. In July 2016, issue #738 had me incorrectly
   disable those default functions for MinGW. MinGW users should: either link with -limm32, either set their
   imconfig file with '#define IMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCTIONS'. (#2590, #738) [@actboy168]
+  *EDIT* Undid in 1.84.
 - Backends: Win32: Pragma linking with dwmapi.lib (Vista-era, ~9 kb). MinGW users will need to link with -ldwmapi.
 
 Other Changes:

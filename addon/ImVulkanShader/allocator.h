@@ -3,23 +3,13 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #endif
-
+#include <imgui_mat.h>
 #include "platform.h"
-
 #include <stdlib.h>
-
 #include <vulkan/vulkan.h>
 
 namespace ImGui 
 {
-class Allocator
-{
-public:
-    virtual ~Allocator();
-    virtual void* fastMalloc(size_t size) = 0;
-    virtual void fastFree(void* ptr) = 0;
-};
-
 class PoolAllocatorPrivate;
 class PoolAllocator : public Allocator
 {

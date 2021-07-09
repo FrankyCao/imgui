@@ -1019,7 +1019,7 @@ void PrepareVulkanDemo()
     g_opt.use_image_storage = true;
 
     ImGui::ImMat test_image;
-    test_image.create_type(TEST_WIDTH, TEST_HEIGHT, TEST_CHANNEL, ImGui::IMMAT_FLOAT32);
+    test_image.create_type(TEST_WIDTH, TEST_HEIGHT, TEST_CHANNEL, IM_DT_FLOAT32);
     for (int y = 0; y < test_image.h; y++)
     {
         for (int x = 0; x < test_image.w; x++)

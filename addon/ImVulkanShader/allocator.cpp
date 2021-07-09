@@ -4,10 +4,6 @@
 
 namespace ImGui 
 {
-Allocator::~Allocator()
-{
-}
-
 class PoolAllocatorPrivate
 {
 public:

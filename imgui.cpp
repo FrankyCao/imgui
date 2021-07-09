@@ -396,7 +396,7 @@ CODE
                         - ImGui::SetScrollHere()              -> use ImGui::SetScrollHereY()
  - 2021/03/11 (1.82) - clarified that ImDrawList::PathArcTo(), ImDrawList::PathArcToFast() won't render with radius < 0.0f. Previously it sorts of accidentally worked but would generally lead to counter-clockwise paths and have an effect on anti-aliasing.
  - 2021/03/10 (1.82) - upgraded ImDrawList::AddPolyline() and PathStroke() "bool closed" parameter to "ImDrawFlags flags". The matching ImDrawFlags_Closed value is guaranteed to always stay == 1 in the future.
- - 2021/02/22 (1.82) - win32+mingw: Re-enabled IME functions by default even under MinGW. In July 2016, issue #738 had me incorrectly disable those default functions for MinGW. MinGW users should: either link with -limm32, either set their imconfig file  with '#define IMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCTIONS'.
+ - 2021/02/22 (1.82) - (*undone in 1.84*) win32+mingw: Re-enabled IME functions by default even under MinGW. In July 2016, issue #738 had me incorrectly disable those default functions for MinGW. MinGW users should: either link with -limm32, either set their imconfig file  with '#define IMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCTIONS'.
  - 2021/02/17 (1.82) - renamed rarely used style.CircleSegmentMaxError (old default = 1.60f) to style.CircleTessellationMaxError (new default = 0.30f) as the meaning of the value changed.
  - 2021/02/03 (1.81) - renamed ListBoxHeader(const char* label, ImVec2 size) to BeginListBox(). Kept inline redirection function (will obsolete).
                      - removed ListBoxHeader(const char* label, int items_count, int height_in_items = -1) in favor of specifying size. Kept inline redirection function (will obsolete).
@@ -783,6 +783,11 @@ CODE
 #include <stddef.h>     // intptr_t
 #else
 #include <stdint.h>     // intptr_t
+#endif
+
+// [Windows] On non-Visual Studio compilers, we default to IMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCTIONS unless explicitly enabled
+#if defined(_WIN32) && !defined(_MSC_VER) && !defined(IMGUI_ENABLE_WIN32_DEFAULT_IME_FUNCTIONS) && !defined(IMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCTIONS)
+#define IMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCTIONS
 #endif
 
 // [Windows] OS specific includes (optional)
@@ -6658,24 +6663,27 @@ void ImGui::PopItemFlag()
 }
 
 // PushDisabled()/PopDisabled()
+// - Those can be nested but this cannot be used to enable an already disabled section (a single PushDisabled(true) in the stack is enough to keep things disabled)
 // - Those are not yet exposed in imgui.h because we are unsure of how to alter the style in a way that works for everyone.
 //   We may rework this. Hypothetically, a future styling system may set a flag which make widgets use different colors.
 // - Feedback welcome at https://github.com/ocornut/imgui/issues/211
 // - You may trivially implement your own variation of this if needed.
 //   Here we test (CurrentItemFlags & ImGuiItemFlags_Disabled) to allow nested PushDisabled() calls.
-void ImGui::PushDisabled()
+void ImGui::PushDisabled(bool disabled)
 {
     ImGuiContext& g = *GImGui;
-    if ((g.CurrentItemFlags & ImGuiItemFlags_Disabled) == 0)
+    bool was_disabled = (g.CurrentItemFlags & ImGuiItemFlags_Disabled) != 0;
+    if (!was_disabled && disabled)
         PushStyleVar(ImGuiStyleVar_Alpha, g.Style.Alpha * 0.6f);
-    PushItemFlag(ImGuiItemFlags_Disabled, true);
+    PushItemFlag(ImGuiItemFlags_Disabled, was_disabled || disabled);
 }
 
 void ImGui::PopDisabled()
 {
     ImGuiContext& g = *GImGui;
+    bool was_disabled = (g.CurrentItemFlags & ImGuiItemFlags_Disabled) != 0;
     PopItemFlag();
-    if ((g.CurrentItemFlags & ImGuiItemFlags_Disabled) == 0)
+    if (was_disabled && (g.CurrentItemFlags & ImGuiItemFlags_Disabled) == 0)
         PopStyleVar();
 }
 
@@ -7485,12 +7493,13 @@ void ImGui::ItemSize(const ImVec2& size, float text_baseline_y)
     window->DC.CurrLineSize.y = 0.0f;
     window->DC.PrevLineTextBaseOffset = ImMax(window->DC.CurrLineTextBaseOffset, text_baseline_y);
     window->DC.CurrLineTextBaseOffset = 0.0f;
+
+    // Horizontal layout mode
+    if (window->DC.LayoutType == ImGuiLayoutType_Horizontal)
+        SameLine();
     */
 
     // modify By Dicky
-    // Horizontal layout mode
-    //if (window->DC.LayoutType == ImGuiLayoutType_Horizontal)
-    //    SameLine();
     const ImVec2 line_size = ImMax(window->DC.CurrLineSize, size);
     ImGuiLayoutType layout_type = window->DC.LayoutType;
     if (window->DC.CurrentLayout)

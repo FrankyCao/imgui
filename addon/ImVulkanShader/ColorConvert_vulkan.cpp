@@ -36,16 +36,16 @@ ColorConvert_vulkan::~ColorConvert_vulkan()
     }
 }
 
-void ColorConvert_vulkan::YUV2RGBA(const ImMat& im_Y, const ImMat& im_U, const ImMat& im_V, ImMat & im_RGB, ImMatColorFormat color_format, ImMatColorSpace color_space, ImMatColorRange color_range, int video_depth, int video_shift) const
+void ColorConvert_vulkan::YUV2RGBA(const ImMat& im_Y, const ImMat& im_U, const ImMat& im_V, ImMat & im_RGB, ImColorFormat color_format, ImColorSpace color_space, ImColorRange color_range, int video_depth, int video_shift) const
 {
     VkMat matrix_y2r_gpu;
     VkMat vk_Y, vk_U, vk_V;
     VkMat vk_RGB;
-    im_RGB.create_type(im_Y.w, im_Y.h, 4, IMMAT_INT8);
+    im_RGB.create_type(im_Y.w, im_Y.h, 4, IM_DT_INT8);
     vk_RGB.create_like(im_RGB, opt.blob_vkallocator);
     cmd->record_clone(im_Y, vk_Y, opt);
     cmd->record_clone(im_U, vk_U, opt);
-    if (color_format != IMMAT_NV12)
+    if (color_format != IM_CF_NV12)
     {
         cmd->record_clone(im_V, vk_V, opt);
     }
@@ -54,7 +54,7 @@ void ColorConvert_vulkan::YUV2RGBA(const ImMat& im_Y, const ImMat& im_U, const I
     std::vector<VkMat> bindings(6);
     bindings[0] = vk_Y;
     bindings[1] = vk_U;
-    if (color_format != IMMAT_NV12)
+    if (color_format != IM_CF_NV12)
         bindings[2] = vk_V;
     bindings[4] = vk_RGB;
     bindings[5] = matrix_y2r_gpu;
@@ -80,15 +80,15 @@ void ColorConvert_vulkan::YUV2RGBA(const ImMat& im_Y, const ImMat& im_U, const I
     cmd->flash();
 }
 
-void ColorConvert_vulkan::YUV2RGBA(const ImMat& im_Y, const ImMat& im_U, const ImMat& im_V, VkMat & im_RGB, ImMatColorFormat color_format, ImMatColorSpace color_space, ImMatColorRange color_range, int video_depth, int video_shift) const
+void ColorConvert_vulkan::YUV2RGBA(const ImMat& im_Y, const ImMat& im_U, const ImMat& im_V, VkMat & im_RGB, ImColorFormat color_format, ImColorSpace color_space, ImColorRange color_range, int video_depth, int video_shift) const
 {
     VkMat matrix_y2r_gpu;
     VkMat vk_Y, vk_U, vk_V;
-    im_RGB.create_type(im_Y.w, im_Y.h, 4, IMMAT_INT8, opt.blob_vkallocator);
-    im_RGB.color_format = IMMAT_ABGR;   // for render
+    im_RGB.create_type(im_Y.w, im_Y.h, 4, IM_DT_INT8, opt.blob_vkallocator);
+    im_RGB.color_format = IM_CF_ABGR;   // for render
     cmd->record_clone(im_Y, vk_Y, opt);
     cmd->record_clone(im_U, vk_U, opt);
-    if (color_format != IMMAT_NV12)
+    if (color_format != IM_CF_NV12)
     {
         cmd->record_clone(im_V, vk_V, opt);
     }
@@ -97,7 +97,7 @@ void ColorConvert_vulkan::YUV2RGBA(const ImMat& im_Y, const ImMat& im_U, const I
     std::vector<VkMat> bindings(6);
     bindings[0] = vk_Y;
     bindings[1] = vk_U;
-    if (color_format != IMMAT_NV12)
+    if (color_format != IM_CF_NV12)
         bindings[2] = vk_V;
     bindings[4] = im_RGB;
     bindings[5] = matrix_y2r_gpu;
@@ -122,15 +122,15 @@ void ColorConvert_vulkan::YUV2RGBA(const ImMat& im_Y, const ImMat& im_U, const I
     cmd->flash();
 }
 
-void ColorConvert_vulkan::YUV2RGBA(const ImMat& im_Y, const ImMat& im_U, const ImMat& im_V, VkImageMat & im_RGB, ImMatColorFormat color_format, ImMatColorSpace color_space, ImMatColorRange color_range, int video_depth, int video_shift) const
+void ColorConvert_vulkan::YUV2RGBA(const ImMat& im_Y, const ImMat& im_U, const ImMat& im_V, VkImageMat & im_RGB, ImColorFormat color_format, ImColorSpace color_space, ImColorRange color_range, int video_depth, int video_shift) const
 {
     VkMat matrix_y2r_gpu;
     VkMat vk_Y, vk_U, vk_V;
     VkMat vk_RGB;
-    vk_RGB.create_type(im_Y.w, im_Y.h, 4, IMMAT_FLOAT32, opt.blob_vkallocator);
+    vk_RGB.create_type(im_Y.w, im_Y.h, 4, IM_DT_FLOAT32, opt.blob_vkallocator);
     cmd->record_clone(im_Y, vk_Y, opt);
     cmd->record_clone(im_U, vk_U, opt);
-    if (color_format != IMMAT_NV12)
+    if (color_format != IM_CF_NV12)
     {
         cmd->record_clone(im_V, vk_V, opt);
     }
@@ -139,7 +139,7 @@ void ColorConvert_vulkan::YUV2RGBA(const ImMat& im_Y, const ImMat& im_U, const I
     std::vector<VkMat> bindings(6);
     bindings[0] = vk_Y;
     bindings[1] = vk_U;
-    if (color_format != IMMAT_NV12)
+    if (color_format != IM_CF_NV12)
         bindings[2] = vk_V;
     bindings[3] = vk_RGB;
     bindings[5] = matrix_y2r_gpu;

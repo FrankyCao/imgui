@@ -447,7 +447,7 @@ int Cast_vulkan::forward(const ImMat& bottom_blob, ImMat& top_blob, const Option
     }
     // TODO more cast type
 
-    top_blob.type = type_to == 1 ? IMMAT_FLOAT32 : type_to == 2 ? IMMAT_FLOAT16 : type_to == 3 ? IMMAT_INT8 : type_to == 4 ? IMMAT_FLOAT16 : IMMAT_INT8;
+    top_blob.type = type_to == 1 ? IM_DT_FLOAT32 : type_to == 2 ? IM_DT_FLOAT16 : type_to == 3 ? IM_DT_INT8 : type_to == 4 ? IM_DT_FLOAT16 : IM_DT_INT8;
     top_blob.color_space = bottom_blob.color_space;
     top_blob.color_format = bottom_blob.color_format;
     top_blob.color_range = bottom_blob.color_range;
@@ -550,7 +550,7 @@ int Cast_vulkan::forward(const VkMat& bottom_blob, VkMat& top_blob, VkCompute& c
 
     cmd.record_pipeline(pipeline, bindings, constants, top_blob);
 
-    top_blob.type = type_to == 1 ? IMMAT_FLOAT32 : type_to == 2 ? IMMAT_FLOAT16 : type_to == 3 ? IMMAT_INT8 : type_to == 4 ? IMMAT_FLOAT16 : IMMAT_INT8;
+    top_blob.type = type_to == 1 ? IM_DT_FLOAT32 : type_to == 2 ? IM_DT_FLOAT16 : type_to == 3 ? IM_DT_INT8 : type_to == 4 ? IM_DT_FLOAT16 : IM_DT_INT8;
     top_blob.color_space = bottom_blob.color_space;
     top_blob.color_format = bottom_blob.color_format;
     top_blob.color_range = bottom_blob.color_range;
@@ -653,7 +653,7 @@ int Cast_vulkan::forward(const VkImageMat& bottom_blob, VkImageMat& top_blob, Vk
 
     cmd.record_pipeline(pipeline, bindings, constants, top_blob);
 
-    top_blob.type = type_to == 1 ? IMMAT_FLOAT32 : type_to == 2 ? IMMAT_FLOAT16 : type_to == 3 ? IMMAT_INT8 : type_to == 4 ? IMMAT_FLOAT16 : IMMAT_INT8;
+    top_blob.type = type_to == 1 ? IM_DT_FLOAT32 : type_to == 2 ? IM_DT_FLOAT16 : type_to == 3 ? IM_DT_INT8 : type_to == 4 ? IM_DT_FLOAT16 : IM_DT_INT8;
     top_blob.color_space = bottom_blob.color_space;
     top_blob.color_format = bottom_blob.color_format;
     top_blob.color_range = bottom_blob.color_range;

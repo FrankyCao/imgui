@@ -1,5 +1,4 @@
 #pragma once
-#include "vkmat.h"
 #include "platform.h"
 #include "gpu.h"
 

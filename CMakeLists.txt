@@ -1067,7 +1067,8 @@ if (IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
         addon/ImVulkanShader/allocator.h
         addon/ImVulkanShader/gpu.h
         addon/ImVulkanShader/command.h
-        addon/ImVulkanShader/vkmat.h
+        addon/ImVulkanShader/vk_mat.h
+        addon/ImVulkanShader/vk_image_mat.h
         addon/ImVulkanShader/pipeline.h
         addon/ImVulkanShader/pipelinecache.h
         addon/ImVulkanShader/Cast_shader.h

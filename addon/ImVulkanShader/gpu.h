@@ -5,11 +5,25 @@
 #include <vulkan/vulkan.h>
 #include "allocator.h"
 #include "option.h"
-#include "vkmat.h"
+#include "vk_mat.h"
+#include "vk_image_mat.h"
 #include "vulkan_header_fix.h"
 
 namespace ImGui 
 {
+// type for vulkan specialization constant and push constant
+union vk_specialization_type
+{
+    int i;
+    float f;
+    uint32_t u32;
+};
+union vk_constant_type
+{
+    int i;
+    float f;
+};
+
 // instance
 IMGUI_API int create_gpu_instance();
 IMGUI_API void destroy_gpu_instance();

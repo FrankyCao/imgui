@@ -1,8 +1,6 @@
 #pragma once
 #include "platform.h"
-
 #include <vulkan/vulkan.h>
-#include "vkmat.h"
 #include "gpu.h"
 
 namespace ImGui 
