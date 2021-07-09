@@ -990,6 +990,7 @@ static float vkpeak(ImGui::VulkanDevice* vkdev, int loop, int count_mb, int cmd_
             }
             cmd.flash();
         }
+        cmd.reset();
     }
     vkdev->reclaim_blob_allocator(allocator);
     return max_gflops / cmd_loop;

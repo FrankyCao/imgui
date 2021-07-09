@@ -46,8 +46,10 @@ public:
     VkMat(int w, int h, int c, VkBufferMemory* data, size_t elemsize, int elempack, VkAllocator* allocator);
     // release
     ~VkMat();
-    // assign
+    // assign from VkMat
     VkMat& operator=(const VkMat& m);
+    // assign from ImMat
+    VkMat& operator=(const ImMat& m);
     // allocate vec
     void create(int w, size_t elemsize, VkAllocator* allocator);
     // allocate image
@@ -203,6 +205,43 @@ inline VkMat& VkMat::operator=(const VkMat& m)
     elemsize = m.elemsize;
     elempack = m.elempack;
     allocator = m.allocator;
+
+    dims = m.dims;
+    w = m.w;
+    h = m.h;
+    c = m.c;
+
+    cstep = m.cstep;
+
+    type = m.type;
+    color_space = m.color_space;
+    color_format = m.color_format;
+    color_range = m.color_range;
+
+    device = m.device;
+    device_number = m.device_number;
+    time_stamp = m.time_stamp;
+
+    ImMat::data = m.data;
+    ImMat::allocator = (Allocator *)m.allocator;
+
+    return *this;
+}
+
+inline VkMat& VkMat::operator=(const ImMat& m)
+{
+    if (this == &m)
+        return *this;
+
+    //if (m.refcount) IM_XADD(m.refcount, 1);
+
+    release();
+
+    data = (VkBufferMemory *)m.data;
+    refcount = m.refcount;
+    elemsize = m.elemsize;
+    elempack = m.elempack;
+    allocator = (VkAllocator*)m.allocator;
 
     dims = m.dims;
     w = m.w;
