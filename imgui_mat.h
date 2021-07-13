@@ -113,6 +113,7 @@ enum ImDataType {
 enum ImDataDevice {
     IM_DD_CPU = 0,
     IM_DD_VULKAN,
+    IM_DD_VULKAN_IMAGE,
     IM_DD_CUDA,
 };
 
