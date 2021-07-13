@@ -418,6 +418,11 @@ public:
     // 0 = FULL_RANGE
     // 1 = NARROW_RANGE
     ImColorRange color_range;
+
+    // flag
+    // sample rate for audio data
+    // frame interlaced for video data
+    int flag;
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -432,6 +437,7 @@ inline ImMat::ImMat()
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
+    flag = 0;
 }
 
 inline ImMat::ImMat(int _w, size_t _elemsize, Allocator* _allocator)
@@ -480,6 +486,7 @@ inline ImMat::ImMat(const ImMat& m)
     color_format = m.color_format;
     color_space = m.color_space;
     color_range = m.color_range;
+    flag = m.flag;
 }
 
 inline ImMat::ImMat(int _w, void* _data, size_t _elemsize, Allocator* _allocator)
@@ -490,6 +497,7 @@ inline ImMat::ImMat(int _w, void* _data, size_t _elemsize, Allocator* _allocator
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
+    flag = 0;
 }
 
 inline ImMat::ImMat(int _w, int _h, void* _data, size_t _elemsize, Allocator* _allocator)
@@ -500,6 +508,7 @@ inline ImMat::ImMat(int _w, int _h, void* _data, size_t _elemsize, Allocator* _a
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
+    flag = 0;
 }
 
 inline ImMat::ImMat(int _w, int _h, int _c, void* _data, size_t _elemsize, Allocator* _allocator)
@@ -510,6 +519,7 @@ inline ImMat::ImMat(int _w, int _h, int _c, void* _data, size_t _elemsize, Alloc
     color_space = IM_CS_SRGB;
     color_format = c == 1 ? IM_CF_GRAY : c == 3 ? IM_CF_RGB : IM_CF_ARGB;
     color_range = IM_CR_FULL_RANGE;
+    flag = 0;
 }
 
 inline ImMat::ImMat(int _w, void* _data, size_t _elemsize, int _elempack, Allocator* _allocator)
@@ -520,6 +530,7 @@ inline ImMat::ImMat(int _w, void* _data, size_t _elemsize, int _elempack, Alloca
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
+    flag = 0;
 }
 
 inline ImMat::ImMat(int _w, int _h, void* _data, size_t _elemsize, int _elempack, Allocator* _allocator)
@@ -530,6 +541,7 @@ inline ImMat::ImMat(int _w, int _h, void* _data, size_t _elemsize, int _elempack
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
+    flag = 0;
 }
 
 inline ImMat::ImMat(int _w, int _h, int _c, void* _data, size_t _elemsize, int _elempack, Allocator* _allocator)
@@ -540,6 +552,7 @@ inline ImMat::ImMat(int _w, int _h, int _c, void* _data, size_t _elemsize, int _
     color_space = IM_CS_SRGB;
     color_format = c == 1 ? IM_CF_GRAY : c == 3 ? IM_CF_RGB : IM_CF_ARGB;
     color_range = IM_CR_FULL_RANGE;
+    flag = 0;
 }
 
 inline ImMat::~ImMat()
@@ -573,6 +586,7 @@ inline ImMat& ImMat::operator=(const ImMat& m)
     color_space = m.color_space;
     color_format = m.color_format;
     color_range = m.color_range;
+    flag = m.flag;
 
     device = m.device;
     device_number = m.device_number;
@@ -600,6 +614,7 @@ inline void ImMat::create(int _w, size_t _elemsize, Allocator* _allocator)
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
+    flag = 0;
 
     cstep = w;
 
@@ -638,6 +653,7 @@ inline void ImMat::create(int _w, int _h, size_t _elemsize, Allocator* _allocato
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
+    flag = 0;
 
     cstep = (size_t)w * h;
 
@@ -676,6 +692,7 @@ inline void ImMat::create(int _w, int _h, int _c, size_t _elemsize, Allocator* _
     color_space = IM_CS_SRGB;
     color_format = c == 1 ? IM_CF_GRAY : c == 3 ? IM_CF_RGB : IM_CF_ARGB;
     color_range = IM_CR_FULL_RANGE;
+    flag = 0;
 
     cstep = Im_AlignSize((size_t)w * h * elemsize, 16) / elemsize;
 
@@ -714,6 +731,7 @@ inline void ImMat::create(int _w, size_t _elemsize, int _elempack, Allocator* _a
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
+    flag = 0;
 
     cstep = w;
 
@@ -752,6 +770,7 @@ inline void ImMat::create(int _w, int _h, size_t _elemsize, int _elempack, Alloc
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
+    flag = 0;
 
     cstep = (size_t)w * h;
 
@@ -790,6 +809,7 @@ inline void ImMat::create(int _w, int _h, int _c, size_t _elemsize, int _elempac
     color_space = IM_CS_SRGB;
     color_format = c == 1 ? IM_CF_GRAY : c == 3 ? IM_CF_RGB : IM_CF_ARGB;
     color_range = IM_CR_FULL_RANGE;
+    flag = 0;
 
     cstep = Im_AlignSize((size_t)w * h * elemsize, 16) / elemsize;
 
@@ -830,6 +850,8 @@ inline void ImMat::create_type(int _w, ImDataType _t, Allocator* _allocator)
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
+    flag = 0;
+    time_stamp = NAN;
 
     if (total() > 0)
     {
@@ -868,6 +890,8 @@ inline void ImMat::create_type(int _w, int _h, ImDataType _t, Allocator* _alloca
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
+    flag = 0;
+    time_stamp = NAN;
 
     if (total() > 0)
     {
@@ -906,6 +930,8 @@ inline void ImMat::create_type(int _w, int _h, int _c, ImDataType _t, Allocator*
     color_space = IM_CS_SRGB;
     color_format = c == 1 ? IM_CF_GRAY : c == 3 ? IM_CF_RGB : IM_CF_ARGB;
     color_range = IM_CR_FULL_RANGE;
+    flag = 0;
+    time_stamp = NAN;
 
     if (total() > 0)
     {
@@ -945,6 +971,8 @@ inline void ImMat::create_type(int _w, void* _data, ImDataType _t, Allocator* _a
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
+    flag = 0;
+    time_stamp = NAN;
     data = _data;
 }
 
@@ -970,6 +998,8 @@ inline void ImMat::create_type(int _w, int _h, void* _data, ImDataType _t, Alloc
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
+    flag = 0;
+    time_stamp = NAN;
     data = _data;
 }
 
@@ -995,6 +1025,8 @@ inline void ImMat::create_type(int _w, int _h, int _c, void* _data, ImDataType _
     color_space = IM_CS_SRGB;
     color_format = c == 1 ? IM_CF_GRAY : c == 3 ? IM_CF_RGB : IM_CF_ARGB;
     color_range = IM_CR_FULL_RANGE;
+    flag = 0;
+    time_stamp = NAN;
     data = _data;
 }
 
@@ -1011,6 +1043,8 @@ inline void ImMat::create_like(const ImMat& m, Allocator* _allocator)
     color_space = m.color_space;
     color_format = m.color_format;
     color_range = m.color_range;
+    flag = m.flag;
+    time_stamp = m.time_stamp;
 }
 
 inline void ImMat::addref()
@@ -1049,6 +1083,7 @@ inline void ImMat::release()
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
+    flag = 0;
     time_stamp = NAN;
 }
 
@@ -1195,6 +1230,8 @@ inline ImMat ImMat::clone(Allocator* _allocator) const
     m.color_range = color_range;
     m.color_space = color_space;
     m.type = type;
+    m.time_stamp = time_stamp;
+    m.flag = flag;
     return m;
 }
 

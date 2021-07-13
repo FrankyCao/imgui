@@ -19,6 +19,16 @@ v0.9.1 (WIP):
 
     CHANGE: Editor: Make action button internally configurable
 
+    CHANGE: Make Node Editor forward compatible with ImGui 1.80+ (#112)
+        We're keeping backward compatibility with pre 1.8x versions.
+
+    CHANGE: Update internal copy ImGui to 1.84 (WIP) (3512f2c2c283ec86) (#107)
+        Internal copy has two PR's merged:
+            https://github.com/thedmd/imgui/tree/feature/layout      - used in blueprints example only
+            https://github.com/thedmd/imgui/tree/feature/extra-keys  - optional: used by Node Editor if present
+
+    CHANGE: Use github actions instead of Travis and AppVeyor (#113)
+
     NEW: All source components are now versioned
 
     NEW: Make view state independent of window resolution.
@@ -96,6 +106,32 @@ v0.9.1 (WIP):
             int                     ContextMenuButtonIndex; // Mouse button index context menu action will react to (0-left, 1-right, 2-middle)
             int                     EmulateMiddleButton;    // Mouse middle button emulated add By Dicky
 
+    NEW: Flow direction can now be picked per flow (#104)
+        New API:
+            enum class FlowDirection
+            {
+                Forward,
+                Backward
+            };
+
+            void Flow(LinkId linkId, FlowDirection direction = FlowDirection::Forward);
+
+    NEW: Editor can now return number of submitted nodes (#81)
+        New API:
+            int GetNodeCount();                                // Returns number of submitted nodes since Begin() call
+
+    NEW: Editor can now return nodes in order they are drawn (#81)
+        New API:
+            int GetOrderedNodeIds(NodeId* nodes, int size);    // Fills an array with node id's in order they're drawn; up to 'size` elements are set. Returns actual size of filled id's.
+
+    NEW: Editor now allow to set Z position for nodes (#109)
+
+        Nodes with higher Z position are drawn on top of ones with lower.
+
+        New API:
+            void SetNodeZPosition(NodeId nodeId, float z); // Sets node z position, nodes with higher value are drawn over nodes with lower value
+            float GetNodeZPosition(NodeId nodeId); // Returns node z position, defaults is 0.0f
+
     BUGFIX: Avoid crash while destroying editor.
 
     BUGFIX: Save draw list used by editor between Begin() and End()
@@ -128,11 +164,14 @@ v0.9.1 (WIP):
     BUGFIX: Editor: Respect window focus while handling actions (#99)
 
     BUGFIX: Examples: Correct case of `data` directory (#97)
-    
+
     BUGFIX: Canvas: Save/Restore CursorMaxPos only in Begin/End (#101)
-    
+
     BUGFIX: Editor: Don't implicitly capture keyboard (#83)
-    
+
     BUGFIX: Application: Reset key down state after loosing keyboard focus
-    
+
     BUGFIX: Editor: Make off-screen dragging work again
+
+    BUGFIX: ImGui: Disable obsolete functions (#103)
+

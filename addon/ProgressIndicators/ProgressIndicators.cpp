@@ -875,7 +875,7 @@ bool ImGui::SpinScaler(const char* label, ImGuiDataType data_type, void* data_pt
 		style.FramePadding.x = style.FramePadding.y;
 		ImGuiButtonFlags button_flags = ImGuiButtonFlags_Repeat | ImGuiButtonFlags_DontClosePopups;
 		if (flags & ImGuiInputTextFlags_ReadOnly)
-			button_flags |= ImGuiButtonFlags_Disabled;
+			button_flags |= ImGuiItemFlags_Disabled;
 		SameLine(0, style.ItemInnerSpacing.x);
 
         // start diffs

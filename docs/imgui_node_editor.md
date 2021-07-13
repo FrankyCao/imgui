@@ -1,8 +1,6 @@
 # Node Editor in ImGui
 
-[![Appveyor status](https://ci.appveyor.com/api/projects/status/lm0io3m8mv7avacp/branch/master?svg=true)](https://ci.appveyor.com/project/thedmd/imgui-node-editor/branch/master)
-[![Travis status](https://travis-ci.org/thedmd/imgui-node-editor.svg?branch=master)](https://travis-ci.org/thedmd/imgui-node-editor)
-
+[![build](https://github.com/thedmd/imgui-node-editor/actions/workflows/build.yml/badge.svg)](https://github.com/thedmd/imgui-node-editor/actions/workflows/build.yml)
 
 ## About
 
@@ -58,7 +56,7 @@ Please report issues or questions if something isn't clear.
  * https://github.com/thedmd/imgui/tree/feature/layout (used in blueprints sample only)
 
 ### Optional extension you can pull into your local copy of ImGui node editor can take advantage of:
- * https://github.com/thedmd/imgui/tree/feature/draw-list-fringe-scale (for sharp rendering, while zooming)
+ * ~~https://github.com/thedmd/imgui/tree/feature/draw-list-fringe-scale (for sharp rendering, while zooming)~~ It is part of ImGui since 1.80 release
  * https://github.com/thedmd/imgui/tree/feature/extra-keys (for extra shortcuts)
 
 ## Building / Installing
@@ -139,7 +137,7 @@ struct Example:
         ed::End();
         ed::SetCurrentEditor(nullptr);
 
-	    //ImGui::ShowMetricsWindow();
+        //ImGui::ShowMetricsWindow();
     }
 
     ed::EditorContext* m_Context = nullptr;

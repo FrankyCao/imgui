@@ -49,7 +49,7 @@ public:
     // assign from VkMat
     VkMat& operator=(const VkMat& m);
     // assign from ImMat
-    VkMat& operator=(const ImMat& m);
+    void clone_from(const ImMat& mat);
     // allocate vec
     void create(int w, size_t elemsize, VkAllocator* allocator);
     // allocate image
@@ -228,12 +228,15 @@ inline VkMat& VkMat::operator=(const VkMat& m)
     return *this;
 }
 
-inline VkMat& VkMat::operator=(const ImMat& m)
+inline void VkMat::clone_from(const ImMat& m)
 {
     if (this == &m)
-        return *this;
+        return;
 
-    //if (m.refcount) IM_XADD(m.refcount, 1);
+    if (m.device != IM_DD_VULKAN)
+        return;
+
+    if (m.refcount) IM_XADD(m.refcount, 1);
 
     release();
 
@@ -261,8 +264,6 @@ inline VkMat& VkMat::operator=(const ImMat& m)
 
     ImMat::data = m.data;
     ImMat::allocator = (Allocator *)m.allocator;
-
-    return *this;
 }
 
 inline void VkMat::create(int _w, size_t _elemsize, VkAllocator* _allocator)
@@ -291,7 +292,7 @@ inline void VkMat::create(int _w, size_t _elemsize, VkAllocator* _allocator)
     {
         size_t totalsize = Im_AlignSize(total() * elemsize, 4);
 
-        data = allocator->fastMalloc(totalsize);
+        data = (VkBufferMemory *)allocator->fastMalloc(totalsize);
         if (!data)
             return;
 
@@ -329,7 +330,7 @@ inline void VkMat::create(int _w, int _h, size_t _elemsize, VkAllocator* _alloca
     {
         size_t totalsize = Im_AlignSize(total() * elemsize, 4);
 
-        data = allocator->fastMalloc(totalsize);
+        data = (VkBufferMemory *)allocator->fastMalloc(totalsize);
         if (!data)
             return;
 
@@ -367,7 +368,7 @@ inline void VkMat::create(int _w, int _h, int _c, size_t _elemsize, VkAllocator*
     {
         size_t totalsize = Im_AlignSize(total() * elemsize, 4);
 
-        data = allocator->fastMalloc(totalsize);
+        data = (VkBufferMemory *)allocator->fastMalloc(totalsize);
         if (!data)
             return;
 
@@ -405,7 +406,7 @@ inline void VkMat::create(int _w, size_t _elemsize, int _elempack, VkAllocator* 
     {
         size_t totalsize = Im_AlignSize(total() * elemsize, 4);
 
-        data = allocator->fastMalloc(totalsize);
+        data = (VkBufferMemory *)allocator->fastMalloc(totalsize);
         if (!data)
             return;
 
@@ -443,7 +444,7 @@ inline void VkMat::create(int _w, int _h, size_t _elemsize, int _elempack, VkAll
     {
         size_t totalsize = Im_AlignSize(total() * elemsize, 4);
 
-        data = allocator->fastMalloc(totalsize);
+        data = (VkBufferMemory *)allocator->fastMalloc(totalsize);
         if (!data)
             return;
 
@@ -481,7 +482,7 @@ inline void VkMat::create(int _w, int _h, int _c, size_t _elemsize, int _elempac
     {
         size_t totalsize = Im_AlignSize(total() * elemsize, 4);
 
-        data = allocator->fastMalloc(totalsize);
+        data = (VkBufferMemory *)allocator->fastMalloc(totalsize);
         if (!data)
             return;
 
@@ -519,7 +520,7 @@ inline void VkMat::create_type(int _w, ImDataType _t, VkAllocator* _allocator)
     {
         size_t totalsize = Im_AlignSize(total() * elemsize, 4);
 
-        data = allocator->fastMalloc(totalsize);
+        data = (VkBufferMemory *)allocator->fastMalloc(totalsize);
         if (!data)
             return;
 
@@ -557,7 +558,7 @@ inline void VkMat::create_type(int _w, int _h, ImDataType _t, VkAllocator* _allo
     {
         size_t totalsize = Im_AlignSize(total() * elemsize, 4);
 
-        data = allocator->fastMalloc(totalsize);
+        data = (VkBufferMemory *)allocator->fastMalloc(totalsize);
         if (!data)
             return;
 
@@ -595,7 +596,7 @@ inline void VkMat::create_type(int _w, int _h, int _c, ImDataType _t, VkAllocato
     {
         size_t totalsize = Im_AlignSize(total() * elemsize, 4);
 
-        data = allocator->fastMalloc(totalsize);
+        data = (VkBufferMemory *)allocator->fastMalloc(totalsize);
         if (!data)
             return;
 

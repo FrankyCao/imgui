@@ -52,6 +52,15 @@ sfpvec3 yuv_to_rgb(sfpvec3 yuv) \n\
 }\n\
 "
 
+#define SHADER_GRAY2RGB \
+" \n\
+sfpvec3 gray_to_rgb(sfp gray) \n\
+{ \n\
+    sfpvec3 rgb = {gray, gray, gray};\n\
+    return clamp(rgb, sfp(0.f), sfp(1.f)); \n\
+}\n\
+"
+
 #define SHADER_LOAD_SRC_YUV \
 " \n\
 sfpvec3 load_src_yuv(int x, int y, int z) \n\
@@ -75,6 +84,17 @@ sfpvec3 load_src_yuv(int x, int y, int z) \n\
         yuv_in.z = sfp(uint(V_data[v_offset])) / sfp(p.in_scale); \n\
     } \n\
     return yuv_in; \n\
+} \
+"
+
+#define SHADER_LOAD_SRC_GRAY \
+" \n\
+sfp load_src_gray(int x, int y, int z) \n\
+{ \n\
+    sfp gray_in = sfp(0.f); \n\
+    int offset = y * p.w + x; \n\
+    gray_in = sfp(uint(G_data[offset])) / sfp(p.in_scale); \n\
+    return gray_in; \n\
 } \
 "
 
@@ -121,6 +141,18 @@ void main() \n\
 } \
 "
 
+#define SHADER_GRAY2RGB_MAIN \
+" \n\
+void main() \n\
+{ \n\
+    int gx = int(gl_GlobalInvocationID.x); \n\
+    int gy = int(gl_GlobalInvocationID.y); \n\
+    int gz = int(gl_GlobalInvocationID.z); \n\
+    sfpvec3 rgb = gray_to_rgb(load_src_gray(gx, gy, gz)); \n\
+    store_dst_rgb(gx, gy, gz, rgb); \n\
+} \
+"
+
 static const char YUV2RGB8_data[] = 
 SHADER_HEADER
 R"(
@@ -155,4 +187,32 @@ SHADER_YUV2RGB
 SHADER_LOAD_SRC_YUV
 SHADER_STORE_RGB
 SHADER_YUV2RGB_MAIN
+;
+
+static const char GRAY2RGB8_data[] = 
+SHADER_HEADER
+R"(
+layout (binding = 0) readonly buffer G { uint8_t G_data[]; };
+layout (binding = 1) writeonly buffer Out { float Out_data[]; };
+layout (binding = 2) writeonly buffer RGBA { uint8_t RGBA_data[]; };
+)"
+SHADER_PARAM_Y2R
+SHADER_GRAY2RGB
+SHADER_LOAD_SRC_GRAY
+SHADER_STORE_RGB
+SHADER_GRAY2RGB_MAIN
+;
+
+static const char GRAY2RGB16_data[] = 
+SHADER_HEADER
+R"(
+layout (binding = 0) readonly buffer G { uint16_t G_data[]; };
+layout (binding = 1) writeonly buffer Out { float Out_data[]; };
+layout (binding = 2) writeonly buffer RGBA { uint8_t RGBA_data[]; };
+)"
+SHADER_PARAM_Y2R
+SHADER_GRAY2RGB
+SHADER_LOAD_SRC_GRAY
+SHADER_STORE_RGB
+SHADER_GRAY2RGB_MAIN
 ;
