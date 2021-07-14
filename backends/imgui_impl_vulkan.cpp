@@ -1904,6 +1904,7 @@ void ImGui_ImplVulkan_DestroyTexture(ImTextureVk* texture)
             if (textureVK->textureImage) vkDestroyImage(v->Device, textureVK->textureImage, nullptr); 
             if (textureVK->textureImageMemory) vkFreeMemory(v->Device, textureVK->textureImageMemory, nullptr);
             if (textureVK->textureSampler) vkDestroySampler(v->Device, textureVK->textureSampler, nullptr);
+            if (textureVK->textureDescriptor) vkFreeDescriptorSets(v->Device, v->DescriptorPool, 1, &textureVK->textureDescriptor);
         }
         delete textureVK;
         *texture = nullptr;

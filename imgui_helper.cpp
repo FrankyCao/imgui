@@ -106,6 +106,7 @@ struct ImTexture
     ImTextureVk TextureID = nullptr;
     int     Width     = 0;
     int     Height    = 0;
+    double  TimeStamp = NAN;
 };
 #elif IMGUI_RENDERING_DX11
 #include <imgui_impl_dx11.h>
@@ -114,6 +115,7 @@ struct ImTexture
     ID3D11ShaderResourceView * TextureID = nullptr;
     int    Width     = 0;
     int    Height    = 0;
+    double  TimeStamp = NAN;
 };
 #elif IMGUI_RENDERING_DX9
 #include <imgui_impl_dx9.h>
@@ -122,6 +124,7 @@ struct ImTexture
     LPDIRECT3DTEXTURE9 TextureID = nullptr;
     int    Width     = 0;
     int    Height    = 0;
+    double  TimeStamp = NAN;
 };
 #elif IMGUI_OPENGL
 struct ImTexture
@@ -129,6 +132,7 @@ struct ImTexture
     GLuint TextureID = 0;
     int    Width     = 0;
     int    Height    = 0;
+    double  TimeStamp = NAN;
 };
 #else
 struct ImTexture
@@ -136,6 +140,7 @@ struct ImTexture
     int    TextureID = -1;
     int    Width     = 0;
     int    Height    = 0;
+    double  TimeStamp = NAN;
 };
 #endif
 
@@ -403,7 +408,7 @@ void ImGenerateOrUpdateTexture(ImTextureID& imtexid,int width,int height,int cha
 #endif
 }
 
-ImTextureID ImCreateTexture(const void* data, int width, int height)
+ImTextureID ImCreateTexture(const void* data, int width, int height, double time_stamp)
 {
 #if IMGUI_RENDERING_VULKAN
     g_Textures.resize(g_Textures.size() + 1);
@@ -411,6 +416,7 @@ ImTextureID ImCreateTexture(const void* data, int width, int height)
     texture.TextureID = (ImTextureVk)ImGui_ImplVulkan_CreateTexture(data, width, height);
     texture.Width  = width;
     texture.Height = height;
+    texture.TimeStamp = time_stamp;
     return (ImTextureID)texture.TextureID;
 #elif IMGUI_RENDERING_DX11
     ID3D11Device* pd3dDevice = (ID3D11Device*)ImGui_ImplDX11_GetDevice();
@@ -451,6 +457,7 @@ ImTextureID ImCreateTexture(const void* data, int width, int height)
     pTexture->Release();
     texture.Width  = width;
     texture.Height = height;
+    texture.TimeStamp = time_stamp;
     return (ImTextureID)texture.TextureID;
 #elif IMGUI_RENDERING_DX9
     LPDIRECT3DDEVICE9 pd3dDevice = (LPDIRECT3DDEVICE9)ImGui_ImplDX9_GetDevice();
@@ -467,6 +474,9 @@ ImTextureID ImCreateTexture(const void* data, int width, int height)
     for (int y = 0; y < height; y++)
         memcpy((unsigned char*)tex_locked_rect.pBits + tex_locked_rect.Pitch * y, (unsigned char* )data + (width * bytes_per_pixel) * y, (width * bytes_per_pixel));
     texture.TextureID->UnlockRect(0);
+    texture.Width  = width;
+    texture.Height = height;
+    texture.TimeStamp = time_stamp;
     return (ImTextureID)texture.TextureID;
 #elif IMGUI_OPENGL
     g_Textures.resize(g_Textures.size() + 1);
@@ -484,7 +494,7 @@ ImTextureID ImCreateTexture(const void* data, int width, int height)
 
     texture.Width  = width;
     texture.Height = height;
-
+    texture.TimeStamp = time_stamp;
     return reinterpret_cast<ImTextureID>(static_cast<intptr_t>(texture.TextureID));
 #else
     return nullptr;
@@ -492,13 +502,14 @@ ImTextureID ImCreateTexture(const void* data, int width, int height)
 }
 
 #if IMGUI_VULKAN_SHADER
-ImTextureID ImCreateTexture(ImGui::VkImageMat & image)
+ImTextureID ImCreateTexture(ImGui::VkImageMat & image, double time_stamp)
 {
     g_Textures.resize(g_Textures.size() + 1);
     ImTexture& texture = g_Textures.back();
     texture.TextureID = (ImTextureVk)ImVulkanImageToImTexture(image);
     texture.Width  = image.w;
     texture.Height = image.h;
+    texture.TimeStamp = time_stamp;
     return (ImTextureID)texture.TextureID;
 }
 #endif
@@ -569,6 +580,14 @@ int ImGetTextureHeight(ImTextureID texture)
     if (textureIt != g_Textures.end())
         return textureIt->Height;
     return 0;
+}
+
+double ImGetTextureTimeStamp(ImTextureID texture)
+{
+    auto textureIt = ImFindTexture(texture);
+    if (textureIt != g_Textures.end())
+        return textureIt->TimeStamp;
+    return NAN;
 }
 
 ImTextureID ImLoadTexture(const char* path)

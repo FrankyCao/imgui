@@ -15,7 +15,8 @@ static void check_vk_result(VkResult err)
 ImTextureID ImVulkanImageToImTexture(const VkImageMat& image_vk)
 {
     ImTextureVk texture = new ImTextureVK();
-    const VulkanDevice *device = image_vk.allocator->vkdev;
+    VkAllocator* _allocator = (VkAllocator*)image_vk.allocator;
+    const VulkanDevice *device = _allocator->vkdev;
     texture->textureImage = image_vk.image();
     texture->textureView = image_vk.imageview();
     texture->textureSampler = *(device->immutable_texelfetch_sampler());

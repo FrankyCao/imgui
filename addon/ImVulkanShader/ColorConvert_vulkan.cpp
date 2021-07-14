@@ -54,6 +54,7 @@ void ColorConvert_vulkan::YUV2RGBA(const ImMat& im_Y, const ImMat& im_U, const I
     VkMat vk_Y, vk_U, vk_V;
     VkMat vk_RGB;
     im_RGB.create_type(im_Y.w, im_Y.h, 4, IM_DT_INT8);
+    im_RGB.color_format = IM_CF_ABGR;   // for render
     vk_RGB.create_like(im_RGB, opt.blob_vkallocator);
     cmd->record_clone(im_Y, vk_Y, opt);
     cmd->record_clone(im_U, vk_U, opt);
@@ -78,7 +79,7 @@ void ColorConvert_vulkan::YUV2RGBA(const ImMat& im_Y, const ImMat& im_U, const I
     constants[4].i = color_space;
     constants[5].i = color_range;
     constants[6].f = (float)(1 << video_shift);
-    constants[7].i = 1;
+    constants[7].i = im_RGB.color_format;
     if (video_depth > 8)
     {
         cmd->record_pipeline(pipeline_yuv_rgb_16, bindings, constants, vk_RGB);
@@ -97,7 +98,7 @@ void ColorConvert_vulkan::YUV2RGBA(const ImMat& im_Y, const ImMat& im_U, const I
 {
     VkMat matrix_y2r_gpu;
     VkMat vk_Y, vk_U, vk_V;
-    im_RGB.create_type(im_Y.w, im_Y.h, 4, IM_DT_INT8, opt.blob_vkallocator);
+    im_RGB.create_type(im_Y.w, im_Y.h, 4, IM_DT_FLOAT32, opt.blob_vkallocator);
     im_RGB.color_format = IM_CF_ABGR;   // for render
     cmd->record_clone(im_Y, vk_Y, opt);
     cmd->record_clone(im_U, vk_U, opt);
@@ -142,6 +143,7 @@ void ColorConvert_vulkan::YUV2RGBA(const ImMat& im_Y, const ImMat& im_U, const I
     VkMat vk_Y, vk_U, vk_V;
     VkMat vk_RGB;
     vk_RGB.create_type(im_Y.w, im_Y.h, 4, IM_DT_FLOAT32, opt.blob_vkallocator);
+    vk_RGB.color_format = IM_CF_ABGR;   // for render
     cmd->record_clone(im_Y, vk_Y, opt);
     cmd->record_clone(im_U, vk_U, opt);
     if (color_format != IM_CF_NV12)
@@ -165,7 +167,7 @@ void ColorConvert_vulkan::YUV2RGBA(const ImMat& im_Y, const ImMat& im_U, const I
     constants[4].i = color_space;
     constants[5].i = color_range;
     constants[6].f = (float)(1 << video_shift);
-    constants[7].i = 0;
+    constants[7].i = vk_RGB.color_format;
     if (video_depth > 8)
     {
         cmd->record_pipeline(pipeline_yuv_rgb_16, bindings, constants, vk_RGB);
@@ -185,6 +187,7 @@ void ColorConvert_vulkan::GRAY2RGBA(const ImMat& im, ImMat & im_RGB, ImColorForm
     VkMat vk_Data;
     VkMat vk_RGB;
     im_RGB.create_type(im.w, im.h, 4, IM_DT_INT8);
+    im_RGB.color_format = IM_CF_ABGR;   // for render
     vk_RGB.create_like(im_RGB, opt.blob_vkallocator);
     cmd->record_clone(im, vk_Data, opt);
     std::vector<VkMat> bindings(3);
@@ -198,7 +201,7 @@ void ColorConvert_vulkan::GRAY2RGBA(const ImMat& im, ImMat & im_RGB, ImColorForm
     constants[4].i = color_space;
     constants[5].i = color_range;
     constants[6].f = (float)(1 << video_shift);
-    constants[7].i = 1;
+    constants[7].i = im_RGB.color_format;
     if (video_depth > 8)
     {
         cmd->record_pipeline(pipeline_gray_rgb_16, bindings, constants, vk_RGB);
@@ -249,6 +252,7 @@ void ColorConvert_vulkan::GRAY2RGBA(const ImMat& im, VkImageMat & im_RGB, ImColo
     VkMat vk_Data;
     VkMat vk_RGB;
     vk_RGB.create_type(im.w, im.h, 4, IM_DT_FLOAT32, opt.blob_vkallocator);
+    vk_RGB.color_format = IM_CF_ABGR;   // for render
     cmd->record_clone(im, vk_Data, opt);
     std::vector<VkMat> bindings(3);
     bindings[0] = vk_Data;
@@ -261,7 +265,7 @@ void ColorConvert_vulkan::GRAY2RGBA(const ImMat& im, VkImageMat & im_RGB, ImColo
     constants[4].i = color_space;
     constants[5].i = color_range;
     constants[6].f = (float)(1 << video_shift);
-    constants[7].i = 0;
+    constants[7].i = vk_RGB.color_format;
     if (video_depth > 8)
     {
         cmd->record_pipeline(pipeline_gray_rgb_16, bindings, constants, vk_RGB);

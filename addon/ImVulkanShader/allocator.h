@@ -10,56 +10,6 @@
 
 namespace ImGui 
 {
-class PoolAllocatorPrivate;
-class PoolAllocator : public Allocator
-{
-public:
-    PoolAllocator();
-    ~PoolAllocator();
-
-    // ratio range 0 ~ 1
-    // default cr = 0.75
-    void set_size_compare_ratio(float scr);
-
-    // release all budgets immediately
-    void clear();
-
-    virtual void* fastMalloc(size_t size);
-    virtual void fastFree(void* ptr);
-
-private:
-    PoolAllocator(const PoolAllocator&);
-    PoolAllocator& operator=(const PoolAllocator&);
-
-private:
-    PoolAllocatorPrivate* const d;
-};
-
-class UnlockedPoolAllocatorPrivate;
-class UnlockedPoolAllocator : public Allocator
-{
-public:
-    UnlockedPoolAllocator();
-    ~UnlockedPoolAllocator();
-
-    // ratio range 0 ~ 1
-    // default cr = 0.75
-    void set_size_compare_ratio(float scr);
-
-    // release all budgets immediately
-    void clear();
-
-    virtual void* fastMalloc(size_t size);
-    virtual void fastFree(void* ptr);
-
-private:
-    UnlockedPoolAllocator(const UnlockedPoolAllocator&);
-    UnlockedPoolAllocator& operator=(const UnlockedPoolAllocator&);
-
-private:
-    UnlockedPoolAllocatorPrivate* const d;
-};
-
 class VulkanDevice;
 class VkBufferMemory
 {
@@ -112,7 +62,7 @@ public:
     int refcount;
 };
 
-class VkAllocator
+class VkAllocator : public Allocator
 {
 public:
     explicit VkAllocator(const VulkanDevice* _vkdev);
@@ -128,6 +78,38 @@ public:
     virtual VkImageMemory* fastMalloc(int w, int h, int c, size_t elemsize, int elempack) = 0;
     virtual void fastFree(VkImageMemory* ptr) = 0;
     virtual int getDeviceIndex();
+
+    void* fastMalloc(size_t size, ImDataDevice device)
+    {
+        if (device == IM_DD_VULKAN)
+        {
+            VkBufferMemory* ptr = fastMalloc(size);
+            return ptr;
+        }
+        return nullptr;
+    }
+
+    void fastFree(void* ptr, ImDataDevice device)
+    {
+        if (device == IM_DD_VULKAN)
+            fastFree((VkBufferMemory*)ptr);
+        else if (device == IM_DD_VULKAN_IMAGE)
+            fastFree((VkImageMemory*)ptr);
+    }
+
+    int flush(void* ptr, ImDataDevice device)
+    {
+        if (device == IM_DD_VULKAN)
+            return flush((VkBufferMemory*)ptr);
+        return -1;
+    }
+
+    int invalidate(void* ptr, ImDataDevice device)
+    {
+        if (device == IM_DD_VULKAN)
+            return invalidate((VkBufferMemory*)ptr);
+        return -1;
+    }
 
 public:
     const VulkanDevice* vkdev;
@@ -162,6 +144,34 @@ public:
     virtual VkImageMemory* fastMalloc(int w, int h, int c, size_t elemsize, int elempack);
     virtual void fastFree(VkImageMemory* ptr);
 
+    void* fastMalloc(size_t size, ImDataDevice device)
+    {
+        if (device == IM_DD_VULKAN)
+        {
+            VkBufferMemory* ptr = fastMalloc(size);
+            return ptr;
+        }
+        return nullptr;
+    }
+
+    void* fastMalloc(int w, int h, int c, size_t elemsize, int elempack, ImDataDevice device)
+    {
+        if (device == IM_DD_VULKAN_IMAGE)
+        {
+            VkImageMemory* ptr = fastMalloc(w, h, c, elemsize, elempack);
+            return ptr;
+        }
+        return nullptr;
+    }
+
+    void fastFree(void* ptr, ImDataDevice device)
+    {
+        if (device == IM_DD_VULKAN)
+            fastFree((VkBufferMemory*)ptr);
+        else if (device == IM_DD_VULKAN_IMAGE)
+            fastFree((VkImageMemory*)ptr);
+    }
+
 private:
     VkBlobAllocator(const VkBlobAllocator&);
     VkBlobAllocator& operator=(const VkBlobAllocator&);
@@ -186,6 +196,34 @@ public:
     virtual void fastFree(VkBufferMemory* ptr);
     virtual VkImageMemory* fastMalloc(int w, int h, int c, size_t elemsize, int elempack);
     virtual void fastFree(VkImageMemory* ptr);
+
+    void* fastMalloc(size_t size, ImDataDevice device)
+    {
+        if (device == IM_DD_VULKAN)
+        {
+            VkBufferMemory* ptr = fastMalloc(size);
+            return ptr;
+        }
+        return nullptr;
+    }
+
+    void* fastMalloc(int w, int h, int c, size_t elemsize, int elempack, ImDataDevice device)
+    {
+        if (device == IM_DD_VULKAN_IMAGE)
+        {
+            VkImageMemory* ptr = fastMalloc(w, h, c, elemsize, elempack);
+            return ptr;
+        }
+        return nullptr;
+    }
+
+    void fastFree(void* ptr, ImDataDevice device)
+    {
+        if (device == IM_DD_VULKAN)
+            fastFree((VkBufferMemory*)ptr);
+        else if (device == IM_DD_VULKAN_IMAGE)
+            fastFree((VkImageMemory*)ptr);
+    }
 
 private:
     VkWeightAllocator(const VkWeightAllocator&);
@@ -214,6 +252,34 @@ public:
     virtual void fastFree(VkBufferMemory* ptr);
     virtual VkImageMemory* fastMalloc(int w, int h, int c, size_t elemsize, int elempack);
     virtual void fastFree(VkImageMemory* ptr);
+
+    void* fastMalloc(size_t size, ImDataDevice device)
+    {
+        if (device == IM_DD_VULKAN)
+        {
+            VkBufferMemory* ptr = fastMalloc(size);
+            return ptr;
+        }
+        return nullptr;
+    }
+
+    void* fastMalloc(int w, int h, int c, size_t elemsize, int elempack, ImDataDevice device)
+    {
+        if (device == IM_DD_VULKAN_IMAGE)
+        {
+            VkImageMemory* ptr = fastMalloc(w, h, c, elemsize, elempack);
+            return ptr;
+        }
+        return nullptr;
+    }
+
+    void fastFree(void* ptr, ImDataDevice device)
+    {
+        if (device == IM_DD_VULKAN)
+            fastFree((VkBufferMemory*)ptr);
+        else if (device == IM_DD_VULKAN_IMAGE)
+            fastFree((VkImageMemory*)ptr);
+    }
 
 private:
     VkStagingAllocator(const VkStagingAllocator&);

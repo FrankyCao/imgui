@@ -176,9 +176,11 @@ class Allocator
 {
 public:
     virtual ~Allocator() {};
-    virtual void* fastMalloc(size_t size) = 0;
-    virtual void* fastMalloc(int w, int h, int c, size_t elemsize, int elempack) = 0;
-    virtual void fastFree(void* ptr) = 0;
+    virtual void* fastMalloc(size_t size, ImDataDevice device) = 0;
+    virtual void* fastMalloc(int w, int h, int c, size_t elemsize, int elempack, ImDataDevice device) = 0;
+    virtual void fastFree(void* ptr, ImDataDevice device) = 0;
+    virtual int flush(void* ptr, ImDataDevice device) = 0;
+    virtual int invalidate(void* ptr, ImDataDevice device) = 0;
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -247,13 +249,14 @@ public:
     void create_type(int w, int h, int c, void* data, ImDataType t = IM_DT_INT8, Allocator* allocator = 0);
     // allocate like
     void create_like(const ImMat& m, Allocator* allocator = 0);
-
     // set all
     template<typename T> void fill(T v);
     // deep copy
-    ImMat clone(Allocator* allocator = 0) const;
+    ImMat copy(Allocator* allocator = 0) const;
     // deep copy from other buffer, inplace
-    void clone_from(const ImMat& mat, Allocator* allocator = 0);
+    void copy_from(const ImMat& mat, Allocator* allocator = 0);
+    // create mat and add ref for buffer
+    ImMat clone() const;
     // reshape vec
     ImMat reshape(int w, Allocator* allocator = 0) const;
     // reshape image
@@ -624,7 +627,7 @@ inline void ImMat::create(int _w, size_t _elemsize, Allocator* _allocator)
         size_t totalsize = Im_AlignSize(total() * elemsize, 4);
 
         if (allocator)
-            data = allocator->fastMalloc(totalsize + (int)sizeof(*refcount));
+            data = allocator->fastMalloc(totalsize + (int)sizeof(*refcount), device);
         else
             data = Im_FastMalloc(totalsize + (int)sizeof(*refcount));
         if (!data)
@@ -663,7 +666,7 @@ inline void ImMat::create(int _w, int _h, size_t _elemsize, Allocator* _allocato
         size_t totalsize = Im_AlignSize(total() * elemsize, 4);
 
         if (allocator)
-            data = allocator->fastMalloc(totalsize + (int)sizeof(*refcount));
+            data = allocator->fastMalloc(totalsize + (int)sizeof(*refcount), device);
         else
             data = Im_FastMalloc(totalsize + (int)sizeof(*refcount));
         if (!data)
@@ -702,7 +705,7 @@ inline void ImMat::create(int _w, int _h, int _c, size_t _elemsize, Allocator* _
         size_t totalsize = Im_AlignSize(total() * elemsize, 4);
 
         if (allocator)
-            data = allocator->fastMalloc(totalsize + (int)sizeof(*refcount));
+            data = allocator->fastMalloc(totalsize + (int)sizeof(*refcount), device);
         else
             data = Im_FastMalloc(totalsize + (int)sizeof(*refcount));
         if (!data)
@@ -741,7 +744,7 @@ inline void ImMat::create(int _w, size_t _elemsize, int _elempack, Allocator* _a
         size_t totalsize = Im_AlignSize(total() * elemsize, 4);
 
         if (allocator)
-            data = allocator->fastMalloc(totalsize + (int)sizeof(*refcount));
+            data = allocator->fastMalloc(totalsize + (int)sizeof(*refcount), device);
         else
             data = Im_FastMalloc(totalsize + (int)sizeof(*refcount));
         if (!data)
@@ -780,7 +783,7 @@ inline void ImMat::create(int _w, int _h, size_t _elemsize, int _elempack, Alloc
         size_t totalsize = Im_AlignSize(total() * elemsize, 4);
 
         if (allocator)
-            data = allocator->fastMalloc(totalsize + (int)sizeof(*refcount));
+            data = allocator->fastMalloc(totalsize + (int)sizeof(*refcount), device);
         else
             data = Im_FastMalloc(totalsize + (int)sizeof(*refcount));
         if (!data)
@@ -819,7 +822,7 @@ inline void ImMat::create(int _w, int _h, int _c, size_t _elemsize, int _elempac
         size_t totalsize = Im_AlignSize(total() * elemsize, 4);
 
         if (allocator)
-            data = allocator->fastMalloc(totalsize + (int)sizeof(*refcount));
+            data = allocator->fastMalloc(totalsize + (int)sizeof(*refcount), device);
         else
             data = Im_FastMalloc(totalsize + (int)sizeof(*refcount));
         if (!data)
@@ -859,7 +862,7 @@ inline void ImMat::create_type(int _w, ImDataType _t, Allocator* _allocator)
         size_t totalsize = Im_AlignSize(total() * elemsize, 4);
 
         if (allocator)
-            data = allocator->fastMalloc(totalsize + (int)sizeof(*refcount));
+            data = allocator->fastMalloc(totalsize + (int)sizeof(*refcount), device);
         else
             data = Im_FastMalloc(totalsize + (int)sizeof(*refcount));
         if (!data)
@@ -899,7 +902,7 @@ inline void ImMat::create_type(int _w, int _h, ImDataType _t, Allocator* _alloca
         size_t totalsize = Im_AlignSize(total() * elemsize, 4);
 
         if (allocator)
-            data = allocator->fastMalloc(totalsize + (int)sizeof(*refcount));
+            data = allocator->fastMalloc(totalsize + (int)sizeof(*refcount), device);
         else
             data = Im_FastMalloc(totalsize + (int)sizeof(*refcount));
         if (!data)
@@ -939,7 +942,7 @@ inline void ImMat::create_type(int _w, int _h, int _c, ImDataType _t, Allocator*
         size_t totalsize = Im_AlignSize(total() * elemsize, 4);
 
         if (allocator)
-            data = allocator->fastMalloc(totalsize + (int)sizeof(*refcount));
+            data = allocator->fastMalloc(totalsize + (int)sizeof(*refcount), device);
         else
             data = Im_FastMalloc(totalsize + (int)sizeof(*refcount));
         if (!data)
@@ -1010,7 +1013,7 @@ inline void ImMat::create_type(int _w, int _h, int _c, void* _data, ImDataType _
         return;
 
     release();
- 
+
     elemsize = IM_ESIZE(_t);
     elempack = 1;
     allocator = _allocator;
@@ -1057,13 +1060,10 @@ inline void ImMat::release()
 {
     if (refcount && IM_XADD(refcount, -1) == 1)
     {
-        if (device == IM_DD_CPU)
-        {
-            if (allocator && data)
-                allocator->fastFree(data);
-            else if (data)
-                Im_FastFree(data);
-        }
+        if (allocator && data)
+            allocator->fastFree(data, device);
+        else if (data)
+            Im_FastFree(data);
     }
 
     data = 0;
@@ -1210,7 +1210,7 @@ inline void ImMat::fill(T _v)
     }
 }
 
-inline ImMat ImMat::clone(Allocator* _allocator) const
+inline ImMat ImMat::copy(Allocator* _allocator) const
 {
     if (empty())
         return ImMat();
@@ -1236,9 +1236,37 @@ inline ImMat ImMat::clone(Allocator* _allocator) const
     return m;
 }
 
-inline void ImMat::clone_from(const ImMat& mat, Allocator* allocator)
+inline void ImMat::copy_from(const ImMat& mat, Allocator* allocator)
 {
-    *this = mat.clone(allocator);
+    *this = mat.copy(allocator);
+}
+
+inline ImMat ImMat::clone() const
+{
+    if (empty())
+        return ImMat();
+
+    if (refcount) IM_XADD(refcount, 1);
+
+    ImMat m;
+    if (dims == 1)
+        m.create_type(w, data, type, allocator);
+    else if (dims == 2)
+        m.create_type(w, h, data, type, allocator);
+    else if (dims == 3)
+        m.create_type(w, h, c, data, type, allocator);
+
+    m.elemsize = elemsize;
+    m.elempack = elempack;
+    m.color_format = color_format;
+    m.color_range = color_range;
+    m.color_space = color_space;
+    m.type = type;
+    m.time_stamp = time_stamp;
+    m.device = device;
+    m.device_number = device_number;
+    m.flag = flag;
+    return m;
 }
 
 inline ImMat ImMat::reshape(int _w, Allocator* _allocator) const

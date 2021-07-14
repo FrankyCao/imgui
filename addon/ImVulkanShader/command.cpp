@@ -370,7 +370,7 @@ void VkCompute::record_upload(const ImMat& src, VkMat& dst, const Option& opt)
     // memcpy src to device
     VkBufferMemory * _data = (VkBufferMemory *)dst_staging.data;
     memcpy(dst_staging.mapped_ptr(), src_fp16.data, src_fp16.total() * src_fp16.elemsize);
-    dst_staging.allocator->flush(_data);
+    dst_staging.allocator->flush(_data, IM_DD_VULKAN);
 
     // mark device host-write @ null
     _data->access_flags = VK_ACCESS_HOST_WRITE_BIT;
@@ -428,7 +428,7 @@ void VkCompute::record_upload(const ImMat& src, VkImageMat& dst, const Option& o
     // memcpy src to device
     VkBufferMemory * _data = (VkBufferMemory *)dst_staging.data;
     memcpy(dst_staging.mapped_ptr(), src_fp16.data, src_fp16.total() * src_fp16.elemsize);
-    dst_staging.allocator->flush(_data);
+    dst_staging.allocator->flush(_data, IM_DD_VULKAN);
 
     // mark device host-write @ null
     _data->access_flags = VK_ACCESS_HOST_WRITE_BIT;
@@ -813,7 +813,7 @@ void VkCompute::record_image_to_buffer(const VkImageMat& src, VkMat& dst, const 
     {
         VkImageMat src_image;
         Option opt_image = opt;
-        opt_image.blob_vkallocator = src.allocator;
+        opt_image.blob_vkallocator = (VkAllocator*)src.allocator;
         vkdev->convert_packing(src, src_image, dst_elempack, *this, opt_image);
         if (src_image.empty())
             return;
@@ -847,7 +847,7 @@ void VkCompute::record_clone(const ImMat& src, VkMat& dst, const Option& opt)
     // memcpy src to device
     VkBufferMemory * _data = (VkBufferMemory *)dst_staging.data;
     memcpy(dst_staging.mapped_ptr(), src.data, src.total() * src.elemsize);
-    dst_staging.allocator->flush(_data);
+    dst_staging.allocator->flush(_data, IM_DD_VULKAN);
 
     // mark device host-write @ null
     _data->access_flags = VK_ACCESS_HOST_WRITE_BIT;
@@ -879,7 +879,8 @@ void VkCompute::record_clone(const ImMat& src, VkImageMat& dst, const Option& op
 
 void VkCompute::record_clone(const VkMat& src, ImMat& dst, const Option& opt)
 {
-    if (!src.allocator->mappable)
+    VkAllocator * _allocator = (VkAllocator *)src.allocator;
+    if (!_allocator->mappable)
     {
         // device to staging
         VkMat src_staging;
@@ -2025,7 +2026,7 @@ int VkCompute::submit_and_wait()
             const VkMat& src = d->download_post_buffers[r.post_download.download_post_buffer_mat_offset];
             ImMat& dst = d->download_post_mats_fp16[r.post_download.download_post_mat_fp16_offset];
 
-            src.allocator->invalidate((VkBufferMemory* )src.data);
+            src.allocator->invalidate((VkBufferMemory* )src.data, IM_DD_VULKAN);
             memcpy(dst.data, src.mapped_ptr(), dst.total() * dst.elemsize);
             break;
         }
@@ -2625,11 +2626,12 @@ void VkTransfer::record_upload(const ImMat& src, VkMat& dst, const Option& opt, 
     }
 
     VkBufferMemory* _data = (VkBufferMemory*)dst.data;
-    if (dst.allocator->mappable)
+    VkAllocator* _allocator = (VkAllocator*)dst.allocator;
+    if (_allocator->mappable)
     {
         // memcpy src_flattened to device
         memcpy(dst.mapped_ptr(), src_flattened.data, src_flattened.total() * src_flattened.elemsize);
-        dst.allocator->flush(_data);
+        dst.allocator->flush(_data, IM_DD_VULKAN);
 
         // barrier device host-write @ null to shader-read @ compute
         {
@@ -2665,7 +2667,7 @@ void VkTransfer::record_upload(const ImMat& src, VkMat& dst, const Option& opt, 
     
     // memcpy src_flattened to staging
     memcpy(dst_staging.mapped_ptr(), src_flattened.data, src_flattened.total() * src_flattened.elemsize);
-    dst_staging.allocator->flush((VkBufferMemory *)dst_staging.data);
+    dst_staging.allocator->flush((VkBufferMemory *)dst_staging.data, IM_DD_VULKAN);
 
     VkCommandBuffer command_buffer;
     if (vkdev->info.unified_compute_transfer_queue())
@@ -2809,7 +2811,7 @@ void VkTransfer::record_upload(const ImMat& src, VkImageMat& dst, const Option& 
 
     // memcpy src to staging
     memcpy(dst_staging.mapped_ptr(), src.data, src.total() * src.elemsize);
-    dst_staging.allocator->flush((VkBufferMemory *)dst_staging.data);
+    dst_staging.allocator->flush((VkBufferMemory *)dst_staging.data, IM_DD_VULKAN);
 
     VkCommandBuffer command_buffer;
     if (vkdev->info.unified_compute_transfer_queue())

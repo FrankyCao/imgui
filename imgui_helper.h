@@ -19,13 +19,14 @@ IMGUI_API void ShowImGuiInfo();
 // Image load
 IMGUI_API void ImGenerateOrUpdateTexture(ImTextureID& imtexid,int width,int height,int channels,const unsigned char* pixels,bool useMipmapsIfPossible,bool wraps,bool wrapt,bool minFilterNearest = false,bool magFilterNearest=false);
 IMGUI_API inline void ImGenerateOrUpdateTexture(ImTextureID& imtexid,int width,int height,int channels,const unsigned char* pixels) { ImGenerateOrUpdateTexture(imtexid, width, height, channels, pixels,false,false,false,false,false); };
-IMGUI_API ImTextureID ImCreateTexture(const void* data, int width, int height);
+IMGUI_API ImTextureID ImCreateTexture(const void* data, int width, int height, double time_stamp = NAN);
 IMGUI_API ImTextureID ImLoadTexture(const char* path);
 IMGUI_API void ImDestroyTexture(ImTextureID texture);
 IMGUI_API int ImGetTextureWidth(ImTextureID texture);
 IMGUI_API int ImGetTextureHeight(ImTextureID texture);
+IMGUI_API double ImGetTextureTimeStamp(ImTextureID texture);
 #if IMGUI_VULKAN_SHADER
-IMGUI_API ImTextureID ImCreateTexture(ImGui::VkImageMat & image);
+IMGUI_API ImTextureID ImCreateTexture(ImGui::VkImageMat & image, double  time_stamp = NAN);
 #endif
 // Experimental: tested on Ubuntu only. Should work with urls, folders and files.
 IMGUI_API bool OpenWithDefaultApplication(const char* url,bool exploreModeForWindowsOS=false);

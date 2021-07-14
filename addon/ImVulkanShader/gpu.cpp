@@ -1534,7 +1534,6 @@ const GpuInfo& get_gpu_info(int device_index)
 
 class VkDummyAllocator : public VkBlobAllocator
 {
-    void fastFree(void* ptr) {};
 public:
     // NOTE 16k is large enough I think ...
     VkDummyAllocator(const VulkanDevice* _vkdev)
