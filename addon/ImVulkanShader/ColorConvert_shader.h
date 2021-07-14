@@ -129,6 +129,38 @@ void store_dst_rgb(int x, int y, int z, sfpvec3 rgb) \n\
 } \
 "
 
+#define SHADER_STORE_RGB_NV12 \
+" \n\
+void store_dst_rgb_nv12(int x, int y, int z, sfpvec3 rgb) \n\
+{ \n\
+    int planner = x % 2 == 0 ? x / 2 : x / 2 + p.w / 2; \n\
+    if (p.out_format == ABGR) \n\
+    { \n\
+        ivec4 o_offset = (y * p.w + planner) * p.cstep + ivec4(0, 1, 2, 3); \n\
+        RGBA_data[o_offset.r] = uint8_t(clamp(uint(floor(rgb.r * sfp(255.0))), 0, 255)); \n\
+        RGBA_data[o_offset.g] = uint8_t(clamp(uint(floor(rgb.g * sfp(255.0))), 0, 255)); \n\
+        RGBA_data[o_offset.b] = uint8_t(clamp(uint(floor(rgb.b * sfp(255.0))), 0, 255)); \n\
+        RGBA_data[o_offset.a] = uint8_t(255); \n\
+    } \n\
+    else if (p.out_format == ARGB) \n\
+    { \n\
+        ivec4 o_offset = (y * p.w + x) * p.cstep + ivec4(0, 3, 2, 1); \n\
+        RGBA_data[o_offset.r] = uint8_t(clamp(uint(floor(rgb.r * sfp(255.0))), 0, 255)); \n\
+        RGBA_data[o_offset.g] = uint8_t(clamp(uint(floor(rgb.g * sfp(255.0))), 0, 255)); \n\
+        RGBA_data[o_offset.b] = uint8_t(clamp(uint(floor(rgb.b * sfp(255.0))), 0, 255)); \n\
+        RGBA_data[o_offset.a] = uint8_t(255); \n\
+    } \n\
+    else \n\
+    { \n\
+        ivec4 v_offset = (y * p.w + x) + ivec4(0, 1, 2, 3) * (p.w * p.h); \n\
+        buffer_st1(Out_data, v_offset.r, float(clamp(rgb.r, sfp(0.f), sfp(1.f)))); \n\
+        buffer_st1(Out_data, v_offset.g, float(clamp(rgb.g, sfp(0.f), sfp(1.f)))); \n\
+        buffer_st1(Out_data, v_offset.b, float(clamp(rgb.b, sfp(0.f), sfp(1.f)))); \n\
+        buffer_st1(Out_data, v_offset.a, 1.f); \n\
+    } \n\
+} \
+"
+
 #define SHADER_YUV2RGB_MAIN \
 " \n\
 void main() \n\
@@ -149,7 +181,10 @@ void main() \n\
     int gy = int(gl_GlobalInvocationID.y); \n\
     int gz = int(gl_GlobalInvocationID.z); \n\
     sfpvec3 rgb = gray_to_rgb(load_src_gray(gx, gy, gz)); \n\
-    store_dst_rgb(gx, gy, gz, rgb); \n\
+    if (p.in_format == NV12) \n\
+        store_dst_rgb_nv12(gx, gy, gz, rgb); \n\
+    else \n\
+        store_dst_rgb(gx, gy, gz, rgb); \n\
 } \
 "
 
@@ -200,6 +235,7 @@ SHADER_PARAM_Y2R
 SHADER_GRAY2RGB
 SHADER_LOAD_SRC_GRAY
 SHADER_STORE_RGB
+SHADER_STORE_RGB_NV12
 SHADER_GRAY2RGB_MAIN
 ;
 
@@ -214,5 +250,6 @@ SHADER_PARAM_Y2R
 SHADER_GRAY2RGB
 SHADER_LOAD_SRC_GRAY
 SHADER_STORE_RGB
+SHADER_STORE_RGB_NV12
 SHADER_GRAY2RGB_MAIN
 ;
