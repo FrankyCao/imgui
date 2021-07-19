@@ -1057,6 +1057,7 @@ if (IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
         addon/ImVulkanShader/Cast_vulkan.cpp
         addon/ImVulkanShader/Packing_vulkan.cpp
         addon/ImVulkanShader/ColorConvert_vulkan.cpp
+        addon/ImVulkanShader/Resize_vulkan.cpp
         addon/ImVulkanShader/ImVulkanShader.cpp
     )
     set(IMGUI_INCS
@@ -1077,6 +1078,8 @@ if (IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
         addon/ImVulkanShader/Packing_vulkan.h
         addon/ImVulkanShader/ColorConvert_shader.h
         addon/ImVulkanShader/ColorConvert_vulkan.h
+        addon/ImVulkanShader/Resize_shader.h
+        addon/ImVulkanShader/Resize_vulkan.h
         addon/ImVulkanShader/ImVulkanShader.h
     )
     set(IMGUI_INC_DIRS

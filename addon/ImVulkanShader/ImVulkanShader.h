@@ -4,6 +4,7 @@
 #include "pipeline.h"
 #include "command.h"
 #include "ColorConvert_vulkan.h"
+#include "Resize_vulkan.h"
 #include <vulkan/vulkan.h>
 
 namespace ImGui
