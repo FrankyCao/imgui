@@ -649,7 +649,7 @@ void CloseAllPopupMenus()   {
 bool IsItemActiveLastFrame()    {
     ImGuiContext& g = *GImGui;
     if (g.ActiveIdPreviousFrame)
-        return g.ActiveIdPreviousFrame== GImGui->CurrentWindow->DC.LastItemId;
+        return g.ActiveIdPreviousFrame== g.LastItemData.ID;
     return false;
 }
 bool IsItemJustReleased()   {

@@ -926,7 +926,7 @@ bool ImGui::SpinScaler(const char* label, ImGuiDataType data_type, void* data_pt
 			value_changed = DataTypeApplyOpFromText(buf, g.InputTextState.InitialTextA.Data, data_type, data_ptr, format);
 	}
 	if (value_changed)
-		MarkItemEdited(window->DC.LastItemId);
+		MarkItemEdited(g.LastItemData.ID);
 
 	return value_changed;
 }
