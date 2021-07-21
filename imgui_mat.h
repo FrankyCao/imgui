@@ -75,6 +75,7 @@ inline void* Im_FastMalloc(size_t size)
     unsigned char* udata = (unsigned char*)malloc(size + sizeof(void*) + IM_MALLOC_ALIGN);
     if (!udata)
         return 0;
+    memset(udata, 0, size + sizeof(void*) + IM_MALLOC_ALIGN);
     unsigned char** adata = Im_AlignPtr((unsigned char**)udata + 1, IM_MALLOC_ALIGN);
     adata[-1] = udata;
     return adata;
@@ -157,6 +158,7 @@ enum ImInterpolateMode {
 };
 
 #define IM_ESIZE(a)    (a == IM_DT_INT8 ? (size_t)1u : (a == IM_DT_INT16 || a == IM_DT_FLOAT16) ? (size_t)2u : (a == IM_DT_INT32 || a == IM_DT_FLOAT32) ? (size_t)4u : (a == IM_DT_INT64 || a == IM_DT_FLOAT64) ? (size_t)8u : (size_t)0u)
+#define IM_DEPTH(a)    (a == IM_DT_INT8 ? 8 : (a == IM_DT_INT16 || a == IM_DT_FLOAT16) ? 16 : (a == IM_DT_INT32 || a == IM_DT_FLOAT32) ? 32 : (a == IM_DT_INT64 || a == IM_DT_FLOAT64) ? 64 : 0)
 #define IM_ISMONO(a)   (a == IM_CF_GRAY)
 #define IM_ISRGB(a)    (a == IM_CF_BGR || a == IM_CF_RGB || a == IM_CF_ABGR || a == IM_CF_ARGB)
 #define IM_ISYUV(a)    (a == IM_CF_YUV420 || a == IM_CF_YUV422 || a == IM_CF_YUV444 || a == IM_CF_YUVA || a == IM_CF_NV12)
@@ -388,6 +390,10 @@ public:
     // time stamp
     double time_stamp;
 
+    // depth
+    // 8~16 for int 32 for float
+    int depth;
+
     // type
     // 0 = INT8/UINT8
     // 1 = INT16/UINT16
@@ -425,7 +431,7 @@ public:
 
     // flag
     // sample rate for audio data
-    // frame interlaced for video data
+    // frame plane index for video data
     int flag;
 };
 
@@ -442,6 +448,7 @@ inline ImMat::ImMat()
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
     flag = 0;
+    depth = 32;
 }
 
 inline ImMat::ImMat(int _w, size_t _elemsize, Allocator* _allocator)
@@ -491,6 +498,7 @@ inline ImMat::ImMat(const ImMat& m)
     color_space = m.color_space;
     color_range = m.color_range;
     flag = m.flag;
+    depth = m.depth;
 }
 
 inline ImMat::ImMat(int _w, void* _data, size_t _elemsize, Allocator* _allocator)
@@ -502,6 +510,7 @@ inline ImMat::ImMat(int _w, void* _data, size_t _elemsize, Allocator* _allocator
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
     flag = 0;
+    depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 }
 
 inline ImMat::ImMat(int _w, int _h, void* _data, size_t _elemsize, Allocator* _allocator)
@@ -513,6 +522,7 @@ inline ImMat::ImMat(int _w, int _h, void* _data, size_t _elemsize, Allocator* _a
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
     flag = 0;
+    depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 }
 
 inline ImMat::ImMat(int _w, int _h, int _c, void* _data, size_t _elemsize, Allocator* _allocator)
@@ -524,6 +534,7 @@ inline ImMat::ImMat(int _w, int _h, int _c, void* _data, size_t _elemsize, Alloc
     color_format = c == 1 ? IM_CF_GRAY : c == 3 ? IM_CF_RGB : IM_CF_ARGB;
     color_range = IM_CR_FULL_RANGE;
     flag = 0;
+    depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 }
 
 inline ImMat::ImMat(int _w, void* _data, size_t _elemsize, int _elempack, Allocator* _allocator)
@@ -535,6 +546,7 @@ inline ImMat::ImMat(int _w, void* _data, size_t _elemsize, int _elempack, Alloca
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
     flag = 0;
+    depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 }
 
 inline ImMat::ImMat(int _w, int _h, void* _data, size_t _elemsize, int _elempack, Allocator* _allocator)
@@ -546,6 +558,7 @@ inline ImMat::ImMat(int _w, int _h, void* _data, size_t _elemsize, int _elempack
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
     flag = 0;
+    depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 }
 
 inline ImMat::ImMat(int _w, int _h, int _c, void* _data, size_t _elemsize, int _elempack, Allocator* _allocator)
@@ -557,6 +570,7 @@ inline ImMat::ImMat(int _w, int _h, int _c, void* _data, size_t _elemsize, int _
     color_format = c == 1 ? IM_CF_GRAY : c == 3 ? IM_CF_RGB : IM_CF_ARGB;
     color_range = IM_CR_FULL_RANGE;
     flag = 0;
+    depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 }
 
 inline ImMat::~ImMat()
@@ -591,6 +605,7 @@ inline ImMat& ImMat::operator=(const ImMat& m)
     color_format = m.color_format;
     color_range = m.color_range;
     flag = m.flag;
+    depth = m.depth;
 
     device = m.device;
     device_number = m.device_number;
@@ -619,6 +634,7 @@ inline void ImMat::create(int _w, size_t _elemsize, Allocator* _allocator)
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
     flag = 0;
+    depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 
     cstep = w;
 
@@ -658,6 +674,7 @@ inline void ImMat::create(int _w, int _h, size_t _elemsize, Allocator* _allocato
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
     flag = 0;
+    depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 
     cstep = (size_t)w * h;
 
@@ -697,6 +714,7 @@ inline void ImMat::create(int _w, int _h, int _c, size_t _elemsize, Allocator* _
     color_format = c == 1 ? IM_CF_GRAY : c == 3 ? IM_CF_RGB : IM_CF_ARGB;
     color_range = IM_CR_FULL_RANGE;
     flag = 0;
+    depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 
     cstep = Im_AlignSize((size_t)w * h * elemsize, 16) / elemsize;
 
@@ -736,6 +754,7 @@ inline void ImMat::create(int _w, size_t _elemsize, int _elempack, Allocator* _a
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
     flag = 0;
+    depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 
     cstep = w;
 
@@ -775,6 +794,7 @@ inline void ImMat::create(int _w, int _h, size_t _elemsize, int _elempack, Alloc
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
     flag = 0;
+    depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 
     cstep = (size_t)w * h;
 
@@ -814,6 +834,7 @@ inline void ImMat::create(int _w, int _h, int _c, size_t _elemsize, int _elempac
     color_format = c == 1 ? IM_CF_GRAY : c == 3 ? IM_CF_RGB : IM_CF_ARGB;
     color_range = IM_CR_FULL_RANGE;
     flag = 0;
+    depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 
     cstep = Im_AlignSize((size_t)w * h * elemsize, 16) / elemsize;
 
@@ -856,6 +877,7 @@ inline void ImMat::create_type(int _w, ImDataType _t, Allocator* _allocator)
     color_range = IM_CR_FULL_RANGE;
     flag = 0;
     time_stamp = NAN;
+    depth = IM_DEPTH(_t);
 
     if (total() > 0)
     {
@@ -896,6 +918,7 @@ inline void ImMat::create_type(int _w, int _h, ImDataType _t, Allocator* _alloca
     color_range = IM_CR_FULL_RANGE;
     flag = 0;
     time_stamp = NAN;
+    depth = IM_DEPTH(_t);
 
     if (total() > 0)
     {
@@ -936,6 +959,7 @@ inline void ImMat::create_type(int _w, int _h, int _c, ImDataType _t, Allocator*
     color_range = IM_CR_FULL_RANGE;
     flag = 0;
     time_stamp = NAN;
+    depth = IM_DEPTH(_t);
 
     if (total() > 0)
     {
@@ -977,6 +1001,7 @@ inline void ImMat::create_type(int _w, void* _data, ImDataType _t, Allocator* _a
     color_range = IM_CR_FULL_RANGE;
     flag = 0;
     time_stamp = NAN;
+    depth = IM_DEPTH(_t);
     data = _data;
 }
 
@@ -1004,6 +1029,7 @@ inline void ImMat::create_type(int _w, int _h, void* _data, ImDataType _t, Alloc
     color_range = IM_CR_FULL_RANGE;
     flag = 0;
     time_stamp = NAN;
+    depth = IM_DEPTH(_t);
     data = _data;
 }
 
@@ -1031,6 +1057,7 @@ inline void ImMat::create_type(int _w, int _h, int _c, void* _data, ImDataType _
     color_range = IM_CR_FULL_RANGE;
     flag = 0;
     time_stamp = NAN;
+    depth = IM_DEPTH(_t);
     data = _data;
 }
 
@@ -1048,6 +1075,7 @@ inline void ImMat::create_like(const ImMat& m, Allocator* _allocator)
     color_format = m.color_format;
     color_range = m.color_range;
     flag = m.flag;
+    depth = m.depth;
     time_stamp = m.time_stamp;
 }
 
@@ -1085,6 +1113,7 @@ inline void ImMat::release()
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
     flag = 0;
+    depth = 32;
     time_stamp = NAN;
 }
 
@@ -1233,6 +1262,7 @@ inline ImMat ImMat::copy(Allocator* _allocator) const
     m.type = type;
     m.time_stamp = time_stamp;
     m.flag = flag;
+    m.depth = depth;
     return m;
 }
 
@@ -1266,6 +1296,7 @@ inline ImMat ImMat::clone() const
     m.device = device;
     m.device_number = device_number;
     m.flag = flag;
+    m.depth = depth;
     return m;
 }
 

@@ -207,6 +207,7 @@ inline VkMat& VkMat::operator=(const VkMat& m)
     device = m.device;
     device_number = m.device_number;
     time_stamp = m.time_stamp;
+    depth = m.depth;
 
     return *this;
 }
@@ -241,6 +242,7 @@ inline VkMat& VkMat::clone_from(const ImMat& m)
     device = m.device;
     device_number = m.device_number;
     time_stamp = m.time_stamp;
+    depth = m.depth;
 
     return *this;
 }
@@ -264,6 +266,7 @@ inline void VkMat::create(int _w, size_t _elemsize, VkAllocator* _allocator)
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
+    depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 
     cstep = w;
 
@@ -299,6 +302,7 @@ inline void VkMat::create(int _w, int _h, size_t _elemsize, VkAllocator* _alloca
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
+    depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 
     cstep = (size_t)w * h;
 
@@ -334,6 +338,7 @@ inline void VkMat::create(int _w, int _h, int _c, size_t _elemsize, VkAllocator*
     color_space = IM_CS_SRGB;
     color_format = c == 1 ? IM_CF_GRAY : c == 3 ? IM_CF_RGB : IM_CF_ARGB;
     color_range = IM_CR_FULL_RANGE;
+    depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 
     cstep = Im_AlignSize((size_t)w * h * elemsize, 16) / elemsize;
 
@@ -369,6 +374,7 @@ inline void VkMat::create(int _w, size_t _elemsize, int _elempack, VkAllocator* 
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
+    depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 
     cstep = w;
 
@@ -404,6 +410,7 @@ inline void VkMat::create(int _w, int _h, size_t _elemsize, int _elempack, VkAll
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
+    depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 
     cstep = (size_t)w * h;
 
@@ -439,6 +446,7 @@ inline void VkMat::create(int _w, int _h, int _c, size_t _elemsize, int _elempac
     color_space = IM_CS_SRGB;
     color_format = c == 1 ? IM_CF_GRAY : c == 3 ? IM_CF_RGB : IM_CF_ARGB;
     color_range = IM_CR_FULL_RANGE;
+    depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 
     cstep = Im_AlignSize((size_t)w * h * elemsize, 16) / elemsize;
 
@@ -476,6 +484,7 @@ inline void VkMat::create_type(int _w, ImDataType _t, VkAllocator* _allocator)
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
+    depth = IM_DEPTH(_t);
 
     if (total() > 0)
     {
@@ -511,6 +520,7 @@ inline void VkMat::create_type(int _w, int _h, ImDataType _t, VkAllocator* _allo
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
+    depth = IM_DEPTH(_t);
 
     if (total() > 0)
     {
@@ -546,6 +556,7 @@ inline void VkMat::create_type(int _w, int _h, int _c, ImDataType _t, VkAllocato
     color_space = IM_CS_SRGB;
     color_format = c == 1 ? IM_CF_GRAY : c == 3 ? IM_CF_RGB : IM_CF_ARGB;
     color_range = IM_CR_FULL_RANGE;
+    depth = IM_DEPTH(_t);
 
     if (total() > 0)
     {
@@ -574,6 +585,7 @@ inline void VkMat::create_like(const ImMat& m, VkAllocator* _allocator)
     color_format = m.color_format;
     color_range = m.color_range;
     time_stamp = m.time_stamp;
+    depth = m.depth;
     device = IM_DD_VULKAN;
     device_number = _allocator ? _allocator->getDeviceIndex() : 0;
 }
@@ -592,6 +604,7 @@ inline void VkMat::create_like(const VkMat& m, VkAllocator* _allocator)
     color_format = m.color_format;
     color_range = m.color_range;
     time_stamp = m.time_stamp;
+    depth = m.depth;
     device = IM_DD_VULKAN;
     device_number = _allocator ? _allocator->getDeviceIndex() : 0;
 }
