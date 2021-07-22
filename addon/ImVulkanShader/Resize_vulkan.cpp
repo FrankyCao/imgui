@@ -55,7 +55,7 @@ void Resize_vulkan::Resize(const ImMat& src, ImMat& dst, float fx, float fy, ImI
     cmd->record_pipeline(pipe, bindings, constants, dst_buffer);
     cmd->record_clone(dst_buffer, dst, opt);
     cmd->submit_and_wait();
-    cmd->flash();
+    cmd->reset();
 }
 
 // input CPU Buffer and output to RGBA GPU buffer
@@ -65,7 +65,7 @@ void Resize_vulkan::Resize(const ImMat& src, VkMat& dst, float fx, float fy, ImI
     cmd->record_clone(src, vk_src, opt);
     int dst_width = Im_AlignSize((fx == 0.f ? src.w : src.w * fx), 4);
     int dst_height = Im_AlignSize((fx == 0.f ? src.h : fy == 0.f ? src.h * fx : src.h * fy), 4);
-    dst.create_type(dst_width, dst_height, 4, IM_DT_INT32, opt.blob_vkallocator);
+    dst.create_type(dst_width, dst_height, 4, IM_DT_INT8, opt.blob_vkallocator);
     dst.color_format = IM_CF_ABGR;   // for render
     std::vector<VkMat> bindings(2);
     bindings[0] = vk_src;
@@ -80,7 +80,7 @@ void Resize_vulkan::Resize(const ImMat& src, VkMat& dst, float fx, float fy, ImI
     constants[6].i = dst.color_format;
     cmd->record_pipeline(pipe, bindings, constants, dst);
     cmd->submit_and_wait();
-    cmd->flash();
+    cmd->reset();
 }
 
 // input GPU Buffer and output to RGBA GPU buffer
@@ -88,7 +88,7 @@ void Resize_vulkan::Resize(const VkMat& src, VkMat& dst, float fx, float fy, ImI
 {
     int dst_width = Im_AlignSize((fx == 0.f ? src.w : src.w * fx), 4);
     int dst_height = Im_AlignSize((fx == 0.f ? src.h : fy == 0.f ? src.h * fx : src.h * fy), 4);
-    dst.create_type(dst_width, dst_height, 4, IM_DT_INT32, opt.blob_vkallocator);
+    dst.create_type(dst_width, dst_height, 4, IM_DT_INT8, opt.blob_vkallocator);
     dst.color_format = IM_CF_ABGR;   // for render
     std::vector<VkMat> bindings(2);
     bindings[0] = src;
@@ -103,6 +103,6 @@ void Resize_vulkan::Resize(const VkMat& src, VkMat& dst, float fx, float fy, ImI
     constants[6].i = dst.color_format;
     cmd->record_pipeline(pipe, bindings, constants, dst);
     cmd->submit_and_wait();
-    cmd->flash();
+    cmd->reset();
 }
 } //namespace ImGui

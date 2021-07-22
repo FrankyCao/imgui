@@ -1677,11 +1677,11 @@ static void transitionImageLayout(ImGui_ImplVulkan_InitInfo* v, VkCommandPool co
     endSingleTimeCommands(v, commandPool, commandBuffer);
 }
 
-static void copyBufferToImage(ImGui_ImplVulkan_InitInfo* v, VkCommandPool commandPool, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) 
+static void copyBufferToImage(ImGui_ImplVulkan_InitInfo* v, VkCommandPool commandPool, VkBuffer buffer, size_t buffer_offset, VkImage image, uint32_t width, uint32_t height) 
 {
     VkCommandBuffer commandBuffer = beginSingleTimeCommands(v, commandPool);
     VkBufferImageCopy region{};
-    region.bufferOffset = 0;
+    region.bufferOffset = buffer_offset;
     region.bufferRowLength = 0;
     region.bufferImageHeight = 0;
     region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -1746,7 +1746,7 @@ ImTextureID ImGui_ImplVulkan_CreateTexture(const void * pixels, int width, int h
     transitionImageLayout(v, commandPool, texture->textureImage, 
                         VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, 
                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    copyBufferToImage(v, commandPool, stagingBuffer, texture->textureImage, 
+    copyBufferToImage(v, commandPool, stagingBuffer, 0, texture->textureImage, 
                     static_cast<uint32_t>(width), static_cast<uint32_t>(height));
     transitionImageLayout(v, commandPool, texture->textureImage, 
                         VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 
@@ -1759,7 +1759,7 @@ ImTextureID ImGui_ImplVulkan_CreateTexture(const void * pixels, int width, int h
     return (ImTextureID)texture;
 }
 
-ImTextureID ImGui_ImplVulkan_CreateTexture(VkBuffer buffer, int width, int height)
+ImTextureID ImGui_ImplVulkan_CreateTexture(VkBuffer buffer, size_t buffer_offset, int width, int height)
 {
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
     ImGui_ImplVulkan_InitInfo* v = &bd->VulkanInitInfo;
@@ -1792,7 +1792,7 @@ ImTextureID ImGui_ImplVulkan_CreateTexture(VkBuffer buffer, int width, int heigh
     transitionImageLayout(v, commandPool, texture->textureImage, 
                         VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, 
                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    copyBufferToImage(v, commandPool, buffer, texture->textureImage, 
+    copyBufferToImage(v, commandPool, buffer, buffer_offset, texture->textureImage, 
                     static_cast<uint32_t>(width), static_cast<uint32_t>(height));
     transitionImageLayout(v, commandPool, texture->textureImage, 
                         VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 
@@ -1803,7 +1803,7 @@ ImTextureID ImGui_ImplVulkan_CreateTexture(VkBuffer buffer, int width, int heigh
     return (ImTextureID)texture;
 }
 
-void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, VkBuffer stagingBuffer, int width, int height)
+void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, VkBuffer stagingBuffer, size_t buffer_offset, int width, int height)
 {
     ImTextureVk texture = (ImTextureVk)textureid;
     if (!texture)
@@ -1829,7 +1829,7 @@ void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, VkBuffer stagingBuffe
     transitionImageLayout(v, commandPool, texture->textureImage, 
                         VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, 
                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    copyBufferToImage(v, commandPool, stagingBuffer, texture->textureImage, 
+    copyBufferToImage(v, commandPool, stagingBuffer, buffer_offset, texture->textureImage, 
                     static_cast<uint32_t>(width), static_cast<uint32_t>(height));
     transitionImageLayout(v, commandPool, texture->textureImage, 
                         VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 
@@ -1877,7 +1877,7 @@ void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, const void * pixels, 
     transitionImageLayout(v, commandPool, texture->textureImage, 
                         VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, 
                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    copyBufferToImage(v, commandPool, stagingBuffer, texture->textureImage, 
+    copyBufferToImage(v, commandPool, stagingBuffer, 0, texture->textureImage, 
                     static_cast<uint32_t>(width), static_cast<uint32_t>(height));
     transitionImageLayout(v, commandPool, texture->textureImage, 
                         VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 

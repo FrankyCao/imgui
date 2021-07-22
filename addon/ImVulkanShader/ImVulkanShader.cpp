@@ -100,4 +100,32 @@ ImTextureID ImVulkanImageToImTexture(const VkImageMat& image_vk)
     return (ImTextureID)texture;
 }
 
+void ImVulkanVkMatToImMat(const VkMat &src, ImMat &dst)
+{
+    Option opt;
+    const VkAllocator* allocator = (VkAllocator*)src.allocator;
+    const VulkanDevice* vkdev = allocator->vkdev;
+    opt.blob_vkallocator = vkdev->acquire_blob_allocator();
+    opt.staging_vkallocator = vkdev->acquire_staging_allocator();
+    dst.create_like(src);
+    VkCompute cmd(vkdev);
+    cmd.record_download(src, dst, opt);
+    cmd.submit_and_wait();
+    vkdev->reclaim_blob_allocator(opt.blob_vkallocator);
+    vkdev->reclaim_staging_allocator(opt.staging_vkallocator);
 }
+
+void ImVulkanVkMatToVkImageMat(const VkMat &src, VkImageMat &dst)
+{
+    Option opt;
+    const VkAllocator* allocator = (VkAllocator*)src.allocator;
+    const VulkanDevice* vkdev = allocator->vkdev;
+    opt.blob_vkallocator = vkdev->acquire_blob_allocator();
+    opt.staging_vkallocator = vkdev->acquire_staging_allocator();
+    VkCompute cmd(vkdev);
+    cmd.record_upload(src, dst, opt);
+    cmd.submit_and_wait();
+    vkdev->reclaim_blob_allocator(opt.blob_vkallocator);
+    vkdev->reclaim_staging_allocator(opt.staging_vkallocator);
+}
+} // namespace ImGui

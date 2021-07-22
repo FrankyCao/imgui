@@ -90,7 +90,7 @@ void ColorConvert_vulkan::YUV2RGBA(const ImMat& im_Y, const ImMat& im_U, const I
     }
     cmd->record_clone(vk_RGB, im_RGB, opt);
     cmd->submit_and_wait();
-    cmd->flash();
+    cmd->reset();
 }
 
 // input YUV planer from CPU buffer and output to float RGBA GPU buffer
@@ -98,7 +98,7 @@ void ColorConvert_vulkan::YUV2RGBA(const ImMat& im_Y, const ImMat& im_U, const I
 {
     VkMat matrix_y2r_gpu;
     VkMat vk_Y, vk_U, vk_V;
-    im_RGB.create_type(im_Y.w, im_Y.h, 4, IM_DT_INT32, opt.blob_vkallocator);
+    im_RGB.create_type(im_Y.w, im_Y.h, 4, IM_DT_INT8, opt.blob_vkallocator);
     im_RGB.color_format = IM_CF_ABGR;   // for render
     cmd->record_clone(im_Y, vk_Y, opt);
     cmd->record_clone(im_U, vk_U, opt);
@@ -133,7 +133,7 @@ void ColorConvert_vulkan::YUV2RGBA(const ImMat& im_Y, const ImMat& im_U, const I
         cmd->record_pipeline(pipeline_yuv_rgb_8, bindings, constants, im_RGB);
     }
     cmd->submit_and_wait();
-    cmd->flash();
+    cmd->reset();
 }
 
 // input YUV planer from CPU buffer and output to float RGBA GPU Image3D
@@ -142,7 +142,7 @@ void ColorConvert_vulkan::YUV2RGBA(const ImMat& im_Y, const ImMat& im_U, const I
     VkMat matrix_y2r_gpu;
     VkMat vk_Y, vk_U, vk_V;
     VkMat vk_RGB;
-    vk_RGB.create_type(im_Y.w, im_Y.h, 4, IM_DT_INT32, opt.blob_vkallocator);
+    vk_RGB.create_type(im_Y.w, im_Y.h, 4, IM_DT_INT8, opt.blob_vkallocator); // ？
     vk_RGB.color_format = IM_CF_ABGR;   // for render
     cmd->record_clone(im_Y, vk_Y, opt);
     cmd->record_clone(im_U, vk_U, opt);
@@ -212,7 +212,7 @@ void ColorConvert_vulkan::GRAY2RGBA(const ImMat& im, ImMat & im_RGB, ImColorForm
     }
     cmd->record_clone(vk_RGB, im_RGB, opt);
     cmd->submit_and_wait();
-    cmd->flash();
+    cmd->reset();
 }
 
 // input Gray from CPU buffer and output to float RGBA GPU buffer
@@ -243,7 +243,7 @@ void ColorConvert_vulkan::GRAY2RGBA(const ImMat& im, VkMat & im_RGB, ImColorForm
         cmd->record_pipeline(pipeline_gray_rgb_8, bindings, constants, im_RGB);
     }
     cmd->submit_and_wait();
-    cmd->flash();
+    cmd->reset();
 }
 
 // input Gray from CPU buffer and output to float RGBA GPU Image3D
@@ -251,7 +251,7 @@ void ColorConvert_vulkan::GRAY2RGBA(const ImMat& im, VkImageMat & im_RGB, ImColo
 {
     VkMat vk_Data;
     VkMat vk_RGB;
-    vk_RGB.create_type(im.w, im.h, 4, IM_DT_INT32, opt.blob_vkallocator);
+    vk_RGB.create_type(im.w, im.h, 4, IM_DT_INT8, opt.blob_vkallocator); // ？
     vk_RGB.color_format = IM_CF_ABGR;   // for render
     cmd->record_clone(im, vk_Data, opt);
     std::vector<VkMat> bindings(3);
