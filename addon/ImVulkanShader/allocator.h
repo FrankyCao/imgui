@@ -11,7 +11,7 @@
 namespace ImGui 
 {
 class VulkanDevice;
-class VkBufferMemory
+class IMGUI_API VkBufferMemory
 {
 public:
     VkBuffer buffer;

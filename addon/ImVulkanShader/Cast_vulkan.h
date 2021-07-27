@@ -4,7 +4,7 @@
 
 namespace ImGui 
 {
-class Cast_vulkan
+class IMGUI_API Cast_vulkan
 {
 public:
     Cast_vulkan();

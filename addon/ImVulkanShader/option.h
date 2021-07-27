@@ -1,12 +1,15 @@
 #pragma once
 #include "platform.h"
+#ifndef IMGUI_API
+#include <imgui.h>
+#endif
 
 namespace ImGui 
 {
 class VkAllocator;
 class PipelineCache;
 class Allocator;
-class Option
+class IMGUI_API Option
 {
 public:
     // default option

@@ -8,7 +8,7 @@ namespace ImGui
 {
 class Pipeline;
 class VkComputePrivate;
-class VkCompute
+class IMGUI_API VkCompute
 {
 public:
     explicit VkCompute(const VulkanDevice* vkdev);
@@ -79,7 +79,7 @@ private:
 };
 
 class VkTransferPrivate;
-class VkTransfer
+class IMGUI_API VkTransfer
 {
 public:
     explicit VkTransfer(const VulkanDevice* vkdev);

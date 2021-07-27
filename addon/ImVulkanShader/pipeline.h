@@ -9,7 +9,7 @@ namespace ImGui
 class Option;
 class PipelinePrivate;
 class ShaderInfo;
-class Pipeline
+class IMGUI_API Pipeline
 {
 public:
     explicit Pipeline(const VulkanDevice* vkdev);

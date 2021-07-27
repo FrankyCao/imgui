@@ -184,7 +184,7 @@ class VkCompute;
 class Option;
 class PipelineCache;
 class VulkanDevicePrivate;
-class VulkanDevice
+class IMGUI_API VulkanDevice
 {
 public:
     VulkanDevice(int device_index = get_default_gpu_index());
