@@ -16,19 +16,19 @@ ColorConvert_vulkan::ColorConvert_vulkan(int gpu)
     std::vector<vk_specialization_type> specializations(0);
     compile_spirv_module(YUV2RGB8_data, opt, spirv_yuv_rgb_8);
     pipeline_yuv_rgb_8 = new Pipeline(vkdev);
-    pipeline_yuv_rgb_8->set_optimal_local_size_xyz(8, 8, 4);
+    pipeline_yuv_rgb_8->set_optimal_local_size_xyz(8, 8, 1);
     pipeline_yuv_rgb_8->create(spirv_yuv_rgb_8.data(), spirv_yuv_rgb_8.size() * 4, specializations);
     compile_spirv_module(YUV2RGB16_data, opt, spirv_yuv_rgb_16);
     pipeline_yuv_rgb_16 = new Pipeline(vkdev);
-    pipeline_yuv_rgb_16->set_optimal_local_size_xyz(8, 8, 4);
+    pipeline_yuv_rgb_16->set_optimal_local_size_xyz(8, 8, 1);
     pipeline_yuv_rgb_16->create(spirv_yuv_rgb_16.data(), spirv_yuv_rgb_16.size() * 4, specializations);
     compile_spirv_module(GRAY2RGB8_data, opt, spirv_gray_rgb_8);
     pipeline_gray_rgb_8 = new Pipeline(vkdev);
-    pipeline_gray_rgb_8->set_optimal_local_size_xyz(8, 8, 4);
+    pipeline_gray_rgb_8->set_optimal_local_size_xyz(8, 8, 1);
     pipeline_gray_rgb_8->create(spirv_gray_rgb_8.data(), spirv_gray_rgb_8.size() * 4, specializations);
     compile_spirv_module(GRAY2RGB16_data, opt, spirv_gray_rgb_16);
     pipeline_gray_rgb_16 = new Pipeline(vkdev);
-    pipeline_gray_rgb_16->set_optimal_local_size_xyz(8, 8, 4);
+    pipeline_gray_rgb_16->set_optimal_local_size_xyz(8, 8, 1);
     pipeline_gray_rgb_16->create(spirv_gray_rgb_16.data(), spirv_gray_rgb_16.size() * 4, specializations);
     cmd->reset();
 }
