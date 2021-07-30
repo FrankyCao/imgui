@@ -253,6 +253,18 @@ public:
     void create_like(const ImMat& m, Allocator* allocator = 0);
     // set all
     template<typename T> void fill(T v);
+    // scalar add
+    template<typename T> void operator+ (T v);
+    template<typename T> ImMat& operator+= (T v);
+    // scalar sub
+    template<typename T> void operator- (T v);
+    template<typename T> ImMat& operator-= (T v);
+    // scalar mul
+    template<typename T> void operator* (T v);
+    template<typename T> ImMat& operator*= (T v);
+    // scalar div
+    template<typename T> void operator/ (T v);
+    template<typename T> ImMat& operator/= (T v);
     // deep copy
     ImMat copy(Allocator* allocator = 0) const;
     // deep copy from other buffer, inplace
@@ -1237,6 +1249,87 @@ inline void ImMat::fill(T _v)
     {
         ptr[i] = _v;
     }
+}
+
+// scalar add
+template<typename T> 
+inline void ImMat::operator+ (T v)
+{
+    T* ptr = (T*)data;
+    for (int i = 0; i < total(); i++)
+    {
+        ptr[i] += v;
+    }
+}
+template<typename T> 
+inline ImMat& ImMat::operator+=(T v)
+{
+    T* ptr = (T*)data;
+    for (int i = 0; i < total(); i++)
+    {
+        ptr[i] += v;
+    }
+    return *this;
+}
+// scalar sub
+template<typename T> 
+inline void ImMat::operator- (T v)
+{
+    T* ptr = (T*)data;
+    for (int i = 0; i < total(); i++)
+    {
+        ptr[i] -= v;
+    }
+}
+template<typename T> 
+inline ImMat& ImMat::operator-=(T v)
+{
+    T* ptr = (T*)data;
+    for (int i = 0; i < total(); i++)
+    {
+        ptr[i] -= v;
+    }
+    return *this;
+}
+// scalar mul
+template<typename T> 
+inline void ImMat::operator* (T v)
+{
+    T* ptr = (T*)data;
+    for (int i = 0; i < total(); i++)
+    {
+        ptr[i] *= v;
+    }
+}
+template<typename T> 
+inline ImMat& ImMat::operator*=(T v)
+{
+    T* ptr = (T*)data;
+    for (int i = 0; i < total(); i++)
+    {
+        ptr[i] *= v;
+    }
+    return *this;
+}
+// scalar div
+template<typename T> 
+inline void ImMat::operator/ (T v)
+{
+    T* ptr = (T*)data;
+    for (int i = 0; i < total(); i++)
+    {
+        ptr[i] /= v;
+    }
+}
+template<typename T> 
+inline ImMat& ImMat::operator/=(T v)
+{
+    T* ptr = (T*)data;
+    for (int i = 0; i < total(); i++)
+    {
+        ptr[i] /= v;
+    }
+    return *this;
 }
 
 inline ImMat ImMat::copy(Allocator* _allocator) const
