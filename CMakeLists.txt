@@ -1051,13 +1051,10 @@ if (IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
         addon/ImVulkanShader/allocator.cpp
         addon/ImVulkanShader/gpu.cpp
         addon/ImVulkanShader/command.cpp
-        addon/ImVulkanShader/colorspace_table.cpp
         addon/ImVulkanShader/pipeline.cpp
         addon/ImVulkanShader/pipelinecache.cpp
         addon/ImVulkanShader/Cast_vulkan.cpp
         addon/ImVulkanShader/Packing_vulkan.cpp
-        addon/ImVulkanShader/ColorConvert_vulkan.cpp
-        addon/ImVulkanShader/Resize_vulkan.cpp
         addon/ImVulkanShader/ImVulkanShader.cpp
     )
     set(IMGUI_INCS
@@ -1076,15 +1073,25 @@ if (IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
         addon/ImVulkanShader/Cast_vulkan.h
         addon/ImVulkanShader/Packing_shader.h
         addon/ImVulkanShader/Packing_vulkan.h
-        addon/ImVulkanShader/ColorConvert_shader.h
-        addon/ImVulkanShader/ColorConvert_vulkan.h
-        addon/ImVulkanShader/Resize_shader.h
-        addon/ImVulkanShader/Resize_vulkan.h
         addon/ImVulkanShader/ImVulkanShader.h
+    )
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
+        addon/ImVulkanShader/filters/colorspace_table.cpp
+        addon/ImVulkanShader/filters/ColorConvert_vulkan.cpp
+        addon/ImVulkanShader/filters/Resize_vulkan.cpp
+    )
+    set(IMGUI_INCS
+        ${IMGUI_INCS}
+        addon/ImVulkanShader/filters/ColorConvert_shader.h
+        addon/ImVulkanShader/filters/ColorConvert_vulkan.h
+        addon/ImVulkanShader/filters/Resize_shader.h
+        addon/ImVulkanShader/filters/Resize_vulkan.h
     )
     set(IMGUI_INC_DIRS
         ${IMGUI_INC_DIRS}
         ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImVulkanShader
+        ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImVulkanShader/filters
         ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImVulkanShader/glslang
         ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImVulkanShader/glslang/glslang/include
         ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImVulkanShader/glslang/glslang/Public
