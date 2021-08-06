@@ -31,6 +31,22 @@ Resize_vulkan::~Resize_vulkan()
     }
 }
 
+void Resize_vulkan::upload_param(const VkMat& src, VkMat& dst, ImInterpolateMode type) const
+{
+    std::vector<VkMat> bindings(2);
+    bindings[0] = src;
+    bindings[1] = dst;
+    std::vector<vk_constant_type> constants(7);
+    constants[0].i = src.w;
+    constants[1].i = src.h;
+    constants[2].i = src.c;
+    constants[3].i = dst.w;
+    constants[4].i = dst.h;
+    constants[5].i = type;
+    constants[6].i = dst.color_format;
+    cmd->record_pipeline(pipe, bindings, constants, dst);
+}
+
 // input CPU Buffer and output to RGBA8888 CPU buffer
 void Resize_vulkan::Resize(const ImMat& src, ImMat& dst, float fx, float fy, ImInterpolateMode type) const
 {
@@ -41,18 +57,9 @@ void Resize_vulkan::Resize(const ImMat& src, ImMat& dst, float fx, float fy, ImI
     int dst_height = Im_AlignSize((fx == 0.f ? src.h : fy == 0.f ? src.h * fx : src.h * fy), 4);
     dst_buffer.create_type(dst_width, dst_height, 4, IM_DT_INT8, opt.blob_vkallocator);
     dst_buffer.color_format = IM_CF_ABGR;   // for render
-    std::vector<VkMat> bindings(2);
-    bindings[0] = vk_src;
-    bindings[1] = dst_buffer;
-    std::vector<vk_constant_type> constants(7);
-    constants[0].i = src.w;
-    constants[1].i = src.h;
-    constants[2].i = src.c;
-    constants[3].i = dst_width;
-    constants[4].i = dst_height;
-    constants[5].i = type;
-    constants[6].i = dst_buffer.color_format;
-    cmd->record_pipeline(pipe, bindings, constants, dst_buffer);
+
+    upload_param(vk_src, dst_buffer, type);
+
     cmd->record_clone(dst_buffer, dst, opt);
     cmd->submit_and_wait();
     cmd->reset();
@@ -67,18 +74,25 @@ void Resize_vulkan::Resize(const ImMat& src, VkMat& dst, float fx, float fy, ImI
     int dst_height = Im_AlignSize((fx == 0.f ? src.h : fy == 0.f ? src.h * fx : src.h * fy), 4);
     dst.create_type(dst_width, dst_height, 4, IM_DT_INT8, opt.blob_vkallocator);
     dst.color_format = IM_CF_ABGR;   // for render
-    std::vector<VkMat> bindings(2);
-    bindings[0] = vk_src;
-    bindings[1] = dst;
-    std::vector<vk_constant_type> constants(7);
-    constants[0].i = src.w;
-    constants[1].i = src.h;
-    constants[2].i = src.c;
-    constants[3].i = dst_width;
-    constants[4].i = dst_height;
-    constants[5].i = type;
-    constants[6].i = dst.color_format;
-    cmd->record_pipeline(pipe, bindings, constants, dst);
+
+    upload_param(vk_src, dst, type);
+
+    cmd->submit_and_wait();
+    cmd->reset();
+}
+
+// input GPU Buffer and output to RGBA CPU buffer
+void Resize_vulkan::Resize(const VkMat& src, ImMat& dst, float fx, float fy, ImInterpolateMode type) const
+{
+    VkMat dst_buffer;
+    int dst_width = Im_AlignSize((fx == 0.f ? src.w : src.w * fx), 4);
+    int dst_height = Im_AlignSize((fx == 0.f ? src.h : fy == 0.f ? src.h * fx : src.h * fy), 4);
+    dst_buffer.create_type(dst_width, dst_height, 4, IM_DT_INT8, opt.blob_vkallocator);
+    dst_buffer.color_format = IM_CF_ABGR;   // for render
+
+    upload_param(src, dst_buffer, type);
+
+    cmd->record_clone(dst_buffer, dst, opt);
     cmd->submit_and_wait();
     cmd->reset();
 }
@@ -90,18 +104,9 @@ void Resize_vulkan::Resize(const VkMat& src, VkMat& dst, float fx, float fy, ImI
     int dst_height = Im_AlignSize((fx == 0.f ? src.h : fy == 0.f ? src.h * fx : src.h * fy), 4);
     dst.create_type(dst_width, dst_height, 4, IM_DT_INT8, opt.blob_vkallocator);
     dst.color_format = IM_CF_ABGR;   // for render
-    std::vector<VkMat> bindings(2);
-    bindings[0] = src;
-    bindings[1] = dst;
-    std::vector<vk_constant_type> constants(7);
-    constants[0].i = src.w;
-    constants[1].i = src.h;
-    constants[2].i = src.c;
-    constants[3].i = dst_width;
-    constants[4].i = dst_height;
-    constants[5].i = type;
-    constants[6].i = dst.color_format;
-    cmd->record_pipeline(pipe, bindings, constants, dst);
+
+    upload_param(src, dst, type);
+
     cmd->submit_and_wait();
     cmd->reset();
 }

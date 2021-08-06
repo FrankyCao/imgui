@@ -1080,6 +1080,12 @@ if (IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
         addon/ImVulkanShader/filters/colorspace_table.cpp
         addon/ImVulkanShader/filters/ColorConvert_vulkan.cpp
         addon/ImVulkanShader/filters/Resize_vulkan.cpp
+        addon/ImVulkanShader/filters/Filter2D_vulkan.cpp
+        addon/ImVulkanShader/filters/Filter2DS_vulkan.cpp
+        addon/ImVulkanShader/filters/ColorAdjust_vulkan.cpp
+        addon/ImVulkanShader/filters/Flip_vulkan.cpp
+        addon/ImVulkanShader/filters/Crop_vulkan.cpp
+        addon/ImVulkanShader/filters/Transpose_vulkan.cpp
     )
     set(IMGUI_INCS
         ${IMGUI_INCS}
@@ -1087,6 +1093,18 @@ if (IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
         addon/ImVulkanShader/filters/ColorConvert_vulkan.h
         addon/ImVulkanShader/filters/Resize_shader.h
         addon/ImVulkanShader/filters/Resize_vulkan.h
+        addon/ImVulkanShader/filters/Filter2D_shader.h
+        addon/ImVulkanShader/filters/Filter2D_vulkan.h
+        addon/ImVulkanShader/filters/Filter2DS_shader.h
+        addon/ImVulkanShader/filters/Filter2DS_vulkan.h
+        addon/ImVulkanShader/filters/Flip_shader.h
+        addon/ImVulkanShader/filters/Flip_vulkan.h
+        addon/ImVulkanShader/filters/Crop_shader.h
+        addon/ImVulkanShader/filters/Crop_vulkan.h
+        addon/ImVulkanShader/filters/Transpose_shader.h
+        addon/ImVulkanShader/filters/Transpose_vulkan.h
+        addon/ImVulkanShader/filters/ColorAdjust_shader.h
+        addon/ImVulkanShader/filters/ColorAdjust_vulkan.h
     )
     set(IMGUI_INC_DIRS
         ${IMGUI_INC_DIRS}
