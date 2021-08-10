@@ -1,3 +1,4 @@
+#pragma once
 #define SHADER_HEADER \
 "\
 #version 450 \n\
