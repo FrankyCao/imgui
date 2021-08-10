@@ -39,7 +39,7 @@ void Bilateral_vulkan::upload_param(const VkMat& src, VkMat& dst, int ksz, float
     std::vector<VkMat> bindings(2);
     bindings[0] = src;
     bindings[1] = dst;
-    std::vector<vk_constant_type> constants(8);
+    std::vector<vk_constant_type> constants(7);
     constants[0].i = src.w;
     constants[1].i = src.h;
     constants[2].i = src.c;
