@@ -40,7 +40,7 @@ namespace ImSequencer
       ImGuiIO& io = ImGui::GetIO();
       ImRect delRect(pos, ImVec2(pos.x + 16, pos.y + 16));
       bool overDel = delRect.Contains(io.MousePos);
-      int delColor = overDel ? 0xFFAAAAAA : 0x50000000;
+      int delColor = overDel ? 0xFFAAAAAA : 0x77A3B2AA;
       float midy = pos.y + 16 / 2 - 0.5f;
       float midx = pos.x + 16 / 2 - 0.5f;
       draw_list->AddRect(delRect.Min, delRect.Max, delColor, 4);
@@ -357,8 +357,12 @@ namespace ImSequencer
             {
                sequence->DoubleClick(i);
             }
-            ImRect rects[3] = { ImRect(slotP1, ImVec2(slotP1.x + framePixelWidth / 2, slotP2.y))
-                , ImRect(ImVec2(slotP2.x - framePixelWidth / 2, slotP1.y), slotP2)
+            // Ensure grabbable handles
+            const float max_handle_width = slotP2.x - slotP1.x / 3.0f;
+            const float min_handle_width = ImMin(10.0f, max_handle_width);
+            const float handle_width = ImClamp(framePixelWidth / 2.0f, min_handle_width, max_handle_width);
+            ImRect rects[3] = { ImRect(slotP1, ImVec2(slotP1.x + handle_width, slotP2.y))
+                , ImRect(ImVec2(slotP2.x - handle_width, slotP1.y), slotP2)
                 , ImRect(slotP1, slotP2) };
 
             const unsigned int quadColor[] = { 0xFFFFFFFF, 0xFFFFFFFF, slotColor + (selected ? 0 : 0x202020) };
@@ -641,7 +645,7 @@ namespace ImSequencer
          {
 #if 0
             frameOverCursor = *firstFrame + (int)(visibleFrameCount * ((io.MousePos.x - (float)legendWidth - canvas_pos.x) / (canvas_size.x - legendWidth)));
-            //frameOverCursor = ImMax(ImMin(*firstFrame - visibleFrameCount / 2, frameCount - visibleFrameCount), 0); // Add by Dicky, using ImMax
+            //frameOverCursor = max(min(*firstFrame - visibleFrameCount / 2, frameCount - visibleFrameCount), 0);
 
             /**firstFrame -= frameOverCursor;
             *firstFrame *= framePixelWidthTarget / framePixelWidth;

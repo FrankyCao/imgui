@@ -1,0 +1,37 @@
+#include "Laplacian.h"
+#include "ImVulkanShader.h"
+
+Laplacian::Laplacian(int gpu)
+    : ImGui::Filter2D_vulkan(gpu)
+{
+    prepare_kernel();
+}
+
+Laplacian::~Laplacian()
+{
+}
+
+void Laplacian::prepare_kernel()
+{
+    kernel.create(3, 3, size_t(4u), 1);
+    float side_power = (float)Strength / 4.0f;
+    kernel.at<float>(1, 1) = -(float)Strength;
+    kernel.at<float>(0, 1) =
+    kernel.at<float>(1, 0) = 
+    kernel.at<float>(1, 2) = 
+    kernel.at<float>(2, 1) = side_power;
+    ImGui::VkTransfer tran(vkdev);
+    tran.record_upload(kernel, vk_kernel, opt, false);
+    tran.submit_and_wait();
+    xksize = yksize = 3;
+    xanchor = yanchor = 1;
+}
+
+void Laplacian::SetParam(int _Strength)
+{
+    if (Strength != _Strength)
+    {
+        Strength = _Strength;
+        prepare_kernel();
+    }
+}

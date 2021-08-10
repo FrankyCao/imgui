@@ -1082,10 +1082,22 @@ if (IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
         addon/ImVulkanShader/filters/Resize_vulkan.cpp
         addon/ImVulkanShader/filters/Filter2D_vulkan.cpp
         addon/ImVulkanShader/filters/Filter2DS_vulkan.cpp
-        addon/ImVulkanShader/filters/ColorAdjust_vulkan.cpp
         addon/ImVulkanShader/filters/Flip_vulkan.cpp
         addon/ImVulkanShader/filters/Crop_vulkan.cpp
         addon/ImVulkanShader/filters/Transpose_vulkan.cpp
+        addon/ImVulkanShader/filters/Brightness_vulkan.cpp
+        addon/ImVulkanShader/filters/Contrast_vulkan.cpp
+        addon/ImVulkanShader/filters/Exposure_vulkan.cpp
+        addon/ImVulkanShader/filters/Gamma_vulkan.cpp
+        addon/ImVulkanShader/filters/Saturation_vulkan.cpp
+        addon/ImVulkanShader/filters/WhiteBalance_vulkan.cpp
+        addon/ImVulkanShader/filters/Hue_vulkan.cpp
+        addon/ImVulkanShader/filters/Vibrance_vulkan.cpp
+        addon/ImVulkanShader/filters/Bilateral_vulkan.cpp
+        addon/ImVulkanShader/filters/Sobel_vulkan.cpp
+        addon/ImVulkanShader/filters/GaussianBlur.cpp
+        addon/ImVulkanShader/filters/Box.cpp
+        addon/ImVulkanShader/filters/Laplacian.cpp
     )
     set(IMGUI_INCS
         ${IMGUI_INCS}
@@ -1103,8 +1115,29 @@ if (IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
         addon/ImVulkanShader/filters/Crop_vulkan.h
         addon/ImVulkanShader/filters/Transpose_shader.h
         addon/ImVulkanShader/filters/Transpose_vulkan.h
-        addon/ImVulkanShader/filters/ColorAdjust_shader.h
-        addon/ImVulkanShader/filters/ColorAdjust_vulkan.h
+        addon/ImVulkanShader/filters/Brightness_shader.h
+        addon/ImVulkanShader/filters/Brightness_vulkan.h
+        addon/ImVulkanShader/filters/Contrast_shader.h
+        addon/ImVulkanShader/filters/Contrast_vulkan.h
+        addon/ImVulkanShader/filters/Exposure_shader.h
+        addon/ImVulkanShader/filters/Exposure_vulkan.h
+        addon/ImVulkanShader/filters/Gamma_shader.h
+        addon/ImVulkanShader/filters/Gamma_vulkan.h
+        addon/ImVulkanShader/filters/Saturation_shader.h
+        addon/ImVulkanShader/filters/Saturation_vulkan.h
+        addon/ImVulkanShader/filters/WhiteBalance_shader.h
+        addon/ImVulkanShader/filters/WhiteBalance_vulkan.h
+        addon/ImVulkanShader/filters/Hue_shader.h
+        addon/ImVulkanShader/filters/Hue_vulkan.h
+        addon/ImVulkanShader/filters/Vibrance_shader.h
+        addon/ImVulkanShader/filters/Vibrance_vulkan.h
+        addon/ImVulkanShader/filters/Bilateral_shader.h
+        addon/ImVulkanShader/filters/Bilateral_vulkan.h
+        addon/ImVulkanShader/filters/Sobel_shader.h
+        addon/ImVulkanShader/filters/Sobel_vulkan.h
+        addon/ImVulkanShader/filters/GaussianBlur.h
+        addon/ImVulkanShader/filters/Box.h
+        addon/ImVulkanShader/filters/Laplacian.h
     )
     set(IMGUI_INC_DIRS
         ${IMGUI_INC_DIRS}
