@@ -1,22 +1,5 @@
 #pragma once
-#define SHADER_HEADER \
-"\
-#version 450 \n\
-#extension GL_EXT_shader_8bit_storage: require \n\
-#extension GL_EXT_shader_16bit_storage: require \n\
-#extension GL_EXT_shader_explicit_arithmetic_types_float16: require \n\
-#define GRAY    0 \n\
-#define BGR     1 \n\
-#define ABGR    2 \n\
-#define RGB     3 \n\
-#define ARGB    4 \n\
-#define YUV420  5 \n\
-#define YUV422  6 \n\
-#define YUV444  7 \n\
-#define YUVA    8 \n\
-#define NV12    9 \n\
-\
-"
+#include <vk_mat_shader.h>
 
 #define SHADER_PARAM \
 " \n\
@@ -30,31 +13,6 @@ layout (push_constant) uniform parameter \n\
 \n\
     float strength; \n\
 } p; \
-"
-
-#define SHADER_LOAD_SRC_RGB \
-" \n\
-sfpvec3 load_src_rgb(int x, int y, int z) \n\
-{ \n\
-    sfpvec3 rgb_in = {0.f, 0.f, 0.f}; \n\
-    ivec4 i_offset = (y * p.w + x) * p.cstep + (p.format == ABGR ? ivec4(0, 1, 2, 3) : ivec4(0, 3, 2, 1)); \n\
-    rgb_in.r = sfp(uint(src_int8_data[i_offset.r])); \n\
-    rgb_in.g = sfp(uint(src_int8_data[i_offset.g])); \n\
-    rgb_in.b = sfp(uint(src_int8_data[i_offset.b])); \n\
-    return rgb_in; \n\
-} \
-"
-
-#define SHADER_STORE_DST_RGB \
-" \n\
-void store_dst_rgb(int x, int y, int z, sfpvec3 rgb) \n\
-{ \n\
-    ivec4 o_offset = (y * p.w + x) * p.cstep + (p.format == ABGR ? ivec4(0, 1, 2, 3) : ivec4(0, 3, 2, 1)); \n\
-    dst_int8_data[o_offset.r] = uint8_t(clamp(uint(floor(rgb.r)), 0, 255)); \n\
-    dst_int8_data[o_offset.g] = uint8_t(clamp(uint(floor(rgb.g)), 0, 255)); \n\
-    dst_int8_data[o_offset.b] = uint8_t(clamp(uint(floor(rgb.b)), 0, 255)); \n\
-    dst_int8_data[o_offset.a] = uint8_t(255); \n\
-} \
 "
 
 #define SHADER_MAIN \
@@ -101,13 +59,13 @@ void main() \n\
             x = max(0, min(x, p.w - 1)); \n\
             y = max(0, min(y, p.h - 1)); \n\
             int index = j + i * 3; \n\
-            sfpvec3 value = rgb_to_yuv(load_src_rgb(x, y, gz)); \n\
+            sfpvec3 value = rgb_to_yuv(load_src_rgb(x, y, p.w, p.cstep, p.format)); \n\
             vertical += value.x * sfp(verticalKernel[index]); \n\
             horizont += value.x * sfp(horizontKernel[index]); \n\
         } \n\
     } \n\
     sfp mag = length(sfpvec2(horizont, vertical)) * sfp(p.strength); \n\
-    store_dst_rgb(gx, gy, gz, sfpvec3(mag)); \n\
+    store_dst_rgb(sfpvec3(mag), gx, gy, p.w, p.cstep, p.format); \n\
 } \
 "
 

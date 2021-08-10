@@ -1,21 +1,5 @@
 #pragma once
-#define SHADER_HEADER \
-"\
-#version 450 \n\
-#extension GL_EXT_shader_8bit_storage: require \n\
-#extension GL_EXT_shader_16bit_storage: require \n\
-#extension GL_EXT_shader_explicit_arithmetic_types_float16: require \n\
-#define GRAY    0 \n\
-#define BGR     1 \n\
-#define ABGR    2 \n\
-#define RGB     3 \n\
-#define ARGB    4 \n\
-#define YUV420  5 \n\
-#define YUV422  6 \n\
-#define YUV444  7 \n\
-#define YUVA    8 \n\
-#define NV12    9 \
-"
+#include <vk_mat_shader.h>
 
 #define SHADER_MAT_Y2R \
 " \n\
@@ -46,7 +30,7 @@ sfpvec3 yuv_to_rgb(sfpvec3 yuv) \n\
 { \n\
     sfpvec3 rgb;\n\
     sfpvec3 yuv_offset = {sfp(0.f), sfp(0.5f), sfp(0.5f)}; \n\
-    if (p.in_range == 1) \n\
+    if (p.in_range == CR_NARROW_RANGE) \n\
         yuv_offset.x = sfp(16.0f / 255.0f); \n\
     rgb = matrix_mat_y2r * (yuv - yuv_offset); \n\
     return clamp(rgb, sfp(0.f), sfp(1.f)); \n\
@@ -67,14 +51,14 @@ sfpvec3 gray_to_rgb(sfp gray) \n\
 sfpvec3 load_src_yuv(int x, int y, int z) \n\
 { \n\
     sfpvec3 yuv_in = {sfp(0.f), sfp(0.5f), sfp(0.5f)}; \n\
-    int uv_scale_w = p.in_format == YUV420 || p.in_format == YUV422 ? 2 : 1; \n\
-    int uv_scale_h = p.in_format == YUV420 || p.in_format == NV12 ? 2 : 1; \n\
+    int uv_scale_w = p.in_format == CF_YUV420 || p.in_format == CF_YUV422 ? 2 : 1; \n\
+    int uv_scale_h = p.in_format == CF_YUV420 || p.in_format == CF_NV12 ? 2 : 1; \n\
     int y_offset = y * p.w + x; \n\
     int u_offset = (y / uv_scale_h) * p.w / uv_scale_w + x / uv_scale_w; \n\
     int v_offset = (y / uv_scale_h) * p.w / uv_scale_w + x / uv_scale_w; \n\
     ivec2 uv_offset = ((y / 2) * p.w / 2 + x / 2) * 2 + ivec2(0, 1); \n\
     yuv_in.x = sfp(uint(Y_data[y_offset])) / sfp(p.in_scale); \n\
-    if (p.in_format == NV12) \n\
+    if (p.in_format == CF_NV12) \n\
     { \n\
         yuv_in.y = sfp(uint(U_data[uv_offset.x])) / sfp(p.in_scale); \n\
         yuv_in.z = sfp(uint(U_data[uv_offset.y])) / sfp(p.in_scale); \n\
@@ -103,7 +87,7 @@ sfp load_src_gray(int x, int y, int z) \n\
 " \n\
 void store_dst_rgb(int x, int y, int z, sfpvec3 rgb) \n\
 { \n\
-    if (p.out_format == ABGR) \n\
+    if (p.out_format == CF_ABGR) \n\
     { \n\
         ivec4 o_offset = (y * p.w + x) * p.cstep + ivec4(0, 1, 2, 3); \n\
         RGBA_data[o_offset.r] = uint8_t(clamp(uint(floor(rgb.r * sfp(255.0))), 0, 255)); \n\
@@ -111,7 +95,7 @@ void store_dst_rgb(int x, int y, int z, sfpvec3 rgb) \n\
         RGBA_data[o_offset.b] = uint8_t(clamp(uint(floor(rgb.b * sfp(255.0))), 0, 255)); \n\
         RGBA_data[o_offset.a] = uint8_t(255); \n\
     } \n\
-    else if (p.out_format == ARGB) \n\
+    else if (p.out_format == CF_ARGB) \n\
     { \n\
         ivec4 o_offset = (y * p.w + x) * p.cstep + ivec4(0, 3, 2, 1); \n\
         RGBA_data[o_offset.r] = uint8_t(clamp(uint(floor(rgb.r * sfp(255.0))), 0, 255)); \n\
@@ -135,7 +119,7 @@ void store_dst_rgb(int x, int y, int z, sfpvec3 rgb) \n\
 void store_dst_rgb_nv12(int x, int y, int z, sfpvec3 rgb) \n\
 { \n\
     int planner = x % 2 == 0 ? x / 2 : x / 2 + p.w / 2; \n\
-    if (p.out_format == ABGR) \n\
+    if (p.out_format == CF_ABGR) \n\
     { \n\
         ivec4 o_offset = (y * p.w + planner) * p.cstep + ivec4(0, 1, 2, 3); \n\
         RGBA_data[o_offset.r] = uint8_t(clamp(uint(floor(rgb.r * sfp(255.0))), 0, 255)); \n\
@@ -143,7 +127,7 @@ void store_dst_rgb_nv12(int x, int y, int z, sfpvec3 rgb) \n\
         RGBA_data[o_offset.b] = uint8_t(clamp(uint(floor(rgb.b * sfp(255.0))), 0, 255)); \n\
         RGBA_data[o_offset.a] = uint8_t(255); \n\
     } \n\
-    else if (p.out_format == ARGB) \n\
+    else if (p.out_format == CF_ARGB) \n\
     { \n\
         ivec4 o_offset = (y * p.w + x) * p.cstep + ivec4(0, 3, 2, 1); \n\
         RGBA_data[o_offset.r] = uint8_t(clamp(uint(floor(rgb.r * sfp(255.0))), 0, 255)); \n\
@@ -182,7 +166,7 @@ void main() \n\
     int gy = int(gl_GlobalInvocationID.y); \n\
     int gz = int(gl_GlobalInvocationID.z); \n\
     sfpvec3 rgb = gray_to_rgb(load_src_gray(gx, gy, gz)); \n\
-    if (p.in_format == NV12) \n\
+    if (p.in_format == CF_NV12) \n\
         store_dst_rgb_nv12(gx, gy, gz, rgb); \n\
     else \n\
         store_dst_rgb(gx, gy, gz, rgb); \n\

@@ -1,25 +1,5 @@
 #pragma once
-#define SHADER_HEADER \
-"\
-#version 450 \n\
-#extension GL_EXT_shader_8bit_storage: require \n\
-#extension GL_EXT_shader_16bit_storage: require \n\
-#extension GL_EXT_shader_explicit_arithmetic_types_float16: require \n\
-#define INTERPOLATE_NEAREST     0 \n\
-#define INTERPOLATE_BILINEAR    1 \n\
-#define INTERPOLATE_BICUBIC     2 \n\
-#define INTERPOLATE_AREA        3 \n\
-#define GRAY    0 \n\
-#define BGR     1 \n\
-#define ABGR    2 \n\
-#define RGB     3 \n\
-#define ARGB    4 \n\
-#define YUV420  5 \n\
-#define YUV422  6 \n\
-#define YUV444  7 \n\
-#define YUVA    8 \n\
-#define NV12    9 \
-"
+#include <vk_mat_shader.h>
 
 #define SHADER_PARAM \
 " \n\
@@ -40,7 +20,7 @@ layout (push_constant) uniform parameter \n\
 " \n\
 sfpvec4 load_src(int x, int y, int z) \n\
 { \n\
-    ivec4 v_offset = (y * p.w + x) * p.cstep + (p.format == ABGR ? ivec4(0, 1, 2, 3) : ivec4(0, 3, 2, 1)); \n\
+    ivec4 v_offset = (y * p.w + x) * p.cstep + (p.format == CF_ABGR ? ivec4(0, 1, 2, 3) : ivec4(0, 3, 2, 1)); \n\
     sfpvec4 rgb_in = {sfp(0.f), sfp(0.f), sfp(0.f), sfp(1.f)}; \n\
     rgb_in.r = sfp(uint(bottom_blob_int8_data[v_offset.r])) / sfp(255.0f); \n\
     rgb_in.g = sfp(uint(bottom_blob_int8_data[v_offset.g])) / sfp(255.0f); \n\
@@ -54,7 +34,7 @@ sfpvec4 load_src(int x, int y, int z) \n\
 " \n\
 void store_dst_rgb(int x, int y, int z, sfpvec4 rgb) \n\
 { \n\
-    ivec4 o_offset = (y * p.outw + x) * p.cstep + (p.format == ABGR ? ivec4(0, 1, 2, 3) : ivec4(0, 3, 2, 1)); \n\
+    ivec4 o_offset = (y * p.outw + x) * p.cstep + (p.format == CF_ABGR ? ivec4(0, 1, 2, 3) : ivec4(0, 3, 2, 1)); \n\
     top_blob_int8_data[o_offset.r] = uint8_t(clamp(uint(floor(rgb.r * sfp(255.0))), 0, 255)); \n\
     top_blob_int8_data[o_offset.g] = uint8_t(clamp(uint(floor(rgb.g * sfp(255.0))), 0, 255)); \n\
     top_blob_int8_data[o_offset.b] = uint8_t(clamp(uint(floor(rgb.b * sfp(255.0))), 0, 255)); \n\

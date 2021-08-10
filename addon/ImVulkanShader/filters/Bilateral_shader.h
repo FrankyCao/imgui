@@ -1,22 +1,5 @@
 #pragma once
-#define SHADER_HEADER \
-"\
-#version 450 \n\
-#extension GL_EXT_shader_8bit_storage: require \n\
-#extension GL_EXT_shader_16bit_storage: require \n\
-#extension GL_EXT_shader_explicit_arithmetic_types_float16: require \n\
-#define GRAY    0 \n\
-#define BGR     1 \n\
-#define ABGR    2 \n\
-#define RGB     3 \n\
-#define ARGB    4 \n\
-#define YUV420  5 \n\
-#define YUV422  6 \n\
-#define YUV444  7 \n\
-#define YUVA    8 \n\
-#define NV12    9 \n\
-\
-"
+#include <vk_mat_shader.h>
 
 #define SHADER_PARAM \
 " \n\
@@ -34,31 +17,6 @@ layout (push_constant) uniform parameter \n\
 } p; \
 "
 
-#define SHADER_LOAD_SRC_RGB \
-" \n\
-sfpvec3 load_src_rgb(int x, int y) \n\
-{ \n\
-    sfpvec3 rgb_in = {0.f, 0.f, 0.f}; \n\
-    ivec4 i_offset = (y * p.w + x) * p.cstep + (p.format == ABGR ? ivec4(0, 1, 2, 3) : ivec4(0, 3, 2, 1)); \n\
-    rgb_in.r = sfp(uint(src_int8_data[i_offset.r])) / sfp(255.f); \n\
-    rgb_in.g = sfp(uint(src_int8_data[i_offset.g])) / sfp(255.f); \n\
-    rgb_in.b = sfp(uint(src_int8_data[i_offset.b])) / sfp(255.f); \n\
-    return rgb_in; \n\
-} \
-"
-
-#define SHADER_STORE_DST_RGB \
-" \n\
-void store_dst_rgb(int x, int y, sfpvec3 rgb) \n\
-{ \n\
-    ivec4 o_offset = (y * p.w + x) * p.cstep + (p.format == ABGR ? ivec4(0, 1, 2, 3) : ivec4(0, 3, 2, 1)); \n\
-    dst_int8_data[o_offset.r] = uint8_t(clamp(uint(floor(rgb.r * sfp(255.f))), 0, 255)); \n\
-    dst_int8_data[o_offset.g] = uint8_t(clamp(uint(floor(rgb.g * sfp(255.f))), 0, 255)); \n\
-    dst_int8_data[o_offset.b] = uint8_t(clamp(uint(floor(rgb.b * sfp(255.f))), 0, 255)); \n\
-    dst_int8_data[o_offset.a] = uint8_t(255); \n\
-} \
-"
-
 #define SHADER_MAIN \
 " \n\
 void main() \n\
@@ -66,7 +24,7 @@ void main() \n\
     ivec2 uv = ivec2(gl_GlobalInvocationID.xy); \n\
     if (uv.x >= p.w || uv.y >= p.h) \n\
         return; \n\
-    sfpvec3 center = load_src_rgb(uv.x, uv.y); \n\
+    sfpvec3 center = load_src_rgb(uv.x, uv.y, p.w, p.cstep, p.format); \n\
     sfpvec3 sum1 = sfpvec3(0.0f); \n\
     sfp sum2 = sfp(0.0f); \n\
     int r = p.ksz / 2; \n\
@@ -84,7 +42,7 @@ void main() \n\
             { \n\
                 int bx = max(0, min(cx, p.w - 1)); \n\
                 int by = max(0, min(cy, p.h - 1)); \n\
-                sfpvec3 color = load_src_rgb(bx, by); \n\
+                sfpvec3 color = load_src_rgb(bx, by, p.w, p.cstep, p.format); \n\
                 sfp norm = dot(abs(color - center), sfpvec3(1.0f)); \n\
                 sfp weight = exp(space2 * p.sigma_spatial2_inv_half + norm * norm * p.sigma_color2_inv_half); \n\
                 sum1 = sum1 + weight * color; \n\
@@ -92,7 +50,7 @@ void main() \n\
             } \n\
         } \n\
     } \n\
-    store_dst_rgb(uv.x, uv.y, sum1/sum2); \n\
+    store_dst_rgb(sum1/sum2, uv.x, uv.y, p.w, p.cstep, p.format); \n\
 } \
 "
 
