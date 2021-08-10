@@ -2,18 +2,20 @@
 #include "Sobel_shader.h"
 #include "ImVulkanShader.h"
 
+namespace ImGui
+{
 Sobel::Sobel(int gpu)
 {
-    vkdev = ImGui::get_gpu_device(gpu);
+    vkdev = get_gpu_device(gpu);
     opt.blob_vkallocator = vkdev->acquire_blob_allocator();
     opt.staging_vkallocator = vkdev->acquire_staging_allocator();
     opt.use_image_storage = true;
     opt.use_fp16_arithmetic = true;
-    cmd = new ImGui::VkCompute(vkdev);
+    cmd = new VkCompute(vkdev);
 
-    std::vector<ImGui::vk_specialization_type> specializations(0);
-    ImGui::compile_spirv_module(Filter_data, opt, spirv_data);
-    pipe = new ImGui::Pipeline(vkdev);
+    std::vector<vk_specialization_type> specializations(0);
+    compile_spirv_module(Filter_data, opt, spirv_data);
+    pipe = new Pipeline(vkdev);
     pipe->set_optimal_local_size_xyz(8, 8, 1);
     pipe->create(spirv_data.data(), spirv_data.size() * 4, specializations);
     
@@ -31,12 +33,12 @@ Sobel::~Sobel()
     }
 }
 
-void Sobel::upload_param(const ImGui::VkMat& src, ImGui::VkMat& dst, float edgeStrength)
+void Sobel::upload_param(const VkMat& src, VkMat& dst, float edgeStrength)
 {
-    std::vector<ImGui::VkMat> bindings(2);
+    std::vector<VkMat> bindings(2);
     bindings[0] = src;
     bindings[1] = dst;
-    std::vector<ImGui::vk_constant_type> constants(5);
+    std::vector<vk_constant_type> constants(5);
     constants[0].i = src.w;
     constants[1].i = src.h;
     constants[2].i = src.c;
@@ -45,7 +47,7 @@ void Sobel::upload_param(const ImGui::VkMat& src, ImGui::VkMat& dst, float edgeS
     cmd->record_pipeline(pipe, bindings, constants, dst);
 }
 
-void Sobel::filter(const ImGui::ImMat& src, ImGui::ImMat& dst, float edgeStrength)
+void Sobel::filter(const ImMat& src, ImMat& dst, float edgeStrength)
 {
     if (!vkdev || !pipe || !cmd)
     {
@@ -54,9 +56,9 @@ void Sobel::filter(const ImGui::ImMat& src, ImGui::ImMat& dst, float edgeStrengt
     dst.create_type(src.w, src.h, 4, IM_DT_INT8);
     dst.color_format = IM_CF_ABGR;   // for render
 
-    ImGui::VkMat out_gpu;
+    VkMat out_gpu;
     out_gpu.create_like(dst, opt.blob_vkallocator);
-    ImGui::VkMat in_gpu;
+    VkMat in_gpu;
     cmd->record_clone(src, in_gpu, opt);
 
     upload_param(in_gpu, out_gpu, edgeStrength);
@@ -67,7 +69,7 @@ void Sobel::filter(const ImGui::ImMat& src, ImGui::ImMat& dst, float edgeStrengt
     cmd->reset();
 }
 
-void Sobel::filter(const ImGui::ImMat& src, ImGui::VkMat& dst, float edgeStrength)
+void Sobel::filter(const ImMat& src, VkMat& dst, float edgeStrength)
 {
     if (!vkdev || !pipe || !cmd)
     {
@@ -76,7 +78,7 @@ void Sobel::filter(const ImGui::ImMat& src, ImGui::VkMat& dst, float edgeStrengt
     dst.create_type(src.w, src.h, 4, IM_DT_INT8, opt.blob_vkallocator);
     dst.color_format = IM_CF_ABGR;   // for render
 
-    ImGui::VkMat in_gpu;
+    VkMat in_gpu;
     cmd->record_clone(src, in_gpu, opt);
 
     upload_param(in_gpu, dst, edgeStrength);
@@ -85,7 +87,7 @@ void Sobel::filter(const ImGui::ImMat& src, ImGui::VkMat& dst, float edgeStrengt
     cmd->reset();
 }
 
-void Sobel::filter(const ImGui::VkMat& src, ImGui::ImMat& dst, float edgeStrength)
+void Sobel::filter(const VkMat& src, ImMat& dst, float edgeStrength)
 {
     if (!vkdev || !pipe || !cmd)
     {
@@ -94,7 +96,7 @@ void Sobel::filter(const ImGui::VkMat& src, ImGui::ImMat& dst, float edgeStrengt
     dst.create_type(src.w, src.h, 4, IM_DT_INT8);
     dst.color_format = IM_CF_ABGR;   // for render
 
-    ImGui::VkMat out_gpu;
+    VkMat out_gpu;
     out_gpu.create_like(dst, opt.blob_vkallocator);
 
     upload_param(src, out_gpu, edgeStrength);
@@ -105,7 +107,7 @@ void Sobel::filter(const ImGui::VkMat& src, ImGui::ImMat& dst, float edgeStrengt
     cmd->reset();
 }
 
-void Sobel::filter(const ImGui::VkMat& src, ImGui::VkMat& dst, float edgeStrength)
+void Sobel::filter(const VkMat& src, VkMat& dst, float edgeStrength)
 {
     if (!vkdev || !pipe || !cmd)
     {
@@ -120,3 +122,4 @@ void Sobel::filter(const ImGui::VkMat& src, ImGui::VkMat& dst, float edgeStrengt
     cmd->submit_and_wait();
     cmd->reset();
 }
+} // namespace ImGui

@@ -4,7 +4,9 @@
 #include <string>
 #include <Filter2DS_vulkan.h>
 
-class GaussianBlur : public ImGui::Filter2DS_vulkan
+namespace ImGui
+{
+class IMGUI_API GaussianBlur : public Filter2DS_vulkan
 {
 public:
     GaussianBlur(int gpu = 0);
@@ -16,3 +18,5 @@ private:
     float sigma {0.0f};
     void prepare_kernel();
 };
+} // namespace ImGui
+

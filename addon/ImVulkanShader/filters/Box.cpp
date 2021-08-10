@@ -1,8 +1,10 @@
 #include "Box.h"
 #include "ImVulkanShader.h"
 
+namespace ImGui 
+{
 BoxBlur::BoxBlur(int gpu)
-    : ImGui::Filter2DS_vulkan(gpu)
+    : Filter2DS_vulkan(gpu)
 {
     prepare_kernel();
 }
@@ -27,7 +29,7 @@ void BoxBlur::prepare_kernel()
         }
 
     }
-    ImGui::VkTransfer tran(vkdev);
+    VkTransfer tran(vkdev);
     tran.record_upload(kernel, vk_kernel, opt, false);
     tran.submit_and_wait();
 }
@@ -41,3 +43,4 @@ void BoxBlur::SetParam(int _xSize, int _ySize)
         prepare_kernel();
     }
 }
+} // namespace ImGui

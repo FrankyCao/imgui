@@ -4,7 +4,9 @@
 #include <string>
 #include <Filter2D_vulkan.h>
 
-class Laplacian : public ImGui::Filter2D_vulkan
+namespace ImGui
+{
+class IMGUI_API  Laplacian : public Filter2D_vulkan
 {
 public:
     Laplacian(int gpu = 0);
@@ -15,3 +17,4 @@ private:
     int Strength {2};
     void prepare_kernel();
 };
+} // namespace ImGui

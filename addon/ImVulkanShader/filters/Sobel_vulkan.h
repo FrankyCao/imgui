@@ -5,23 +5,26 @@
 #include <imgui_mat.h>
 #include <string>
 
-class Sobel
+namespace ImGui
+{
+class IMGUI_API Sobel
 {
 public:
     Sobel(int gpu = 0);
     ~Sobel();
     void SetParam(float _edgeStrength);
-    void filter(const ImGui::ImMat& src, ImGui::ImMat& dst, float edgeStrength);
-    void filter(const ImGui::ImMat& src, ImGui::VkMat& dst, float edgeStrength);
-    void filter(const ImGui::VkMat& src, ImGui::ImMat& dst, float edgeStrength);
-    void filter(const ImGui::VkMat& src, ImGui::VkMat& dst, float edgeStrength);
+    void filter(const ImMat& src, ImMat& dst, float edgeStrength);
+    void filter(const ImMat& src, VkMat& dst, float edgeStrength);
+    void filter(const VkMat& src, ImMat& dst, float edgeStrength);
+    void filter(const VkMat& src, VkMat& dst, float edgeStrength);
 private:
-    ImGui::VulkanDevice* vkdev  {nullptr};
-    ImGui::Option opt;
-    ImGui::Pipeline* pipe       {nullptr};
-    ImGui::VkCompute * cmd      {nullptr};
+    const VulkanDevice* vkdev   {nullptr};
+    Option opt;
+    Pipeline* pipe              {nullptr};
+    VkCompute * cmd             {nullptr};
 private:
     std::vector<uint32_t> spirv_data;
 private:
-    void upload_param(const ImGui::VkMat& src, ImGui::VkMat& dst, float edgeStrength);
+    void upload_param(const VkMat& src, VkMat& dst, float edgeStrength);
 };
+} // namespace ImGui

@@ -1,8 +1,10 @@
 #include "GaussianBlur.h"
 #include "ImVulkanShader.h"
 
+namespace ImGui
+{
 GaussianBlur::GaussianBlur(int gpu)
-    : ImGui::Filter2DS_vulkan(gpu)
+    : Filter2DS_vulkan(gpu)
 {
     prepare_kernel();
 }
@@ -34,7 +36,7 @@ void GaussianBlur::prepare_kernel()
 
     sum = 1.0 / sum;
     kernel *= (float)(sum);
-    ImGui::VkTransfer tran(vkdev);
+    VkTransfer tran(vkdev);
     tran.record_upload(kernel, vk_kernel, opt, false);
     tran.submit_and_wait();
 
@@ -51,3 +53,5 @@ void GaussianBlur::SetParam(int _blurRadius, float _sigma)
         prepare_kernel();
     }
 }
+} // namespace ImGui
+

@@ -4,7 +4,9 @@
 #include <string>
 #include <Filter2DS_vulkan.h>
 
-class BoxBlur : public ImGui::Filter2DS_vulkan
+namespace ImGui
+{
+class IMGUI_API BoxBlur : public Filter2DS_vulkan
 {
 public:
     BoxBlur(int gpu = 0);
@@ -16,3 +18,4 @@ private:
     int ySize {3};
     void prepare_kernel();
 };
+} // namespace ImGui
