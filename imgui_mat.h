@@ -9,6 +9,11 @@
 #define IM_MALLOC_ALIGN 16
 #endif
 
+// we have some optimized kernels that may overread buffer a bit in loop
+// it is common to interleave next-loop data load with arithmetic instructions
+// allocating more bytes keeps us safe from SEGV_ACCERR failure
+#define IM_MALLOC_OVERREAD 64
+
 // exchange-add operation for atomic operations on reference counters
 #if defined __riscv && !defined __riscv_atomic
 // riscv target without A extension
@@ -66,13 +71,13 @@ inline void* Im_FastMalloc(size_t size)
     return _aligned_malloc(size, IM_MALLOC_ALIGN);
 #elif (defined(__unix__) || defined(__APPLE__)) && _POSIX_C_SOURCE >= 200112L || (__ANDROID__ && __ANDROID_API__ >= 17)
     void* ptr = 0;
-    if (posix_memalign(&ptr, IM_MALLOC_ALIGN, size))
+    if (posix_memalign(&ptr, IM_MALLOC_ALIGN, size + IM_MALLOC_OVERREAD))
         ptr = 0;
     return ptr;
 #elif __ANDROID__ && __ANDROID_API__ < 17
-    return memalign(IM_MALLOC_ALIGN, size);
+    return memalign(IM_MALLOC_ALIGN, size + IM_MALLOC_OVERREAD);
 #else
-    unsigned char* udata = (unsigned char*)malloc(size + sizeof(void*) + IM_MALLOC_ALIGN);
+    unsigned char* udata = (unsigned char*)malloc(size + sizeof(void*) + IM_MALLOC_ALIGN + IM_MALLOC_OVERREAD);
     if (!udata)
         return 0;
     memset(udata, 0, size + sizeof(void*) + IM_MALLOC_ALIGN);
