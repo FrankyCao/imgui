@@ -1,4 +1,4 @@
-﻿#include <dear_widgets.h>
+#include <dear_widgets.h>
 
 //#include <clipper.hpp>
 
@@ -3089,7 +3089,7 @@ namespace ImWidgets {
 				lastConvex = false;
 				jumped = true;
 			}
-		} while (!jumped || nextIdx != (foundIdx + 1)%float2_count && boundIdx != 0);
+		} while (!jumped || (nextIdx != (foundIdx + 1)%float2_count && boundIdx != 0));
 
 		if (lastConvex)
 		{

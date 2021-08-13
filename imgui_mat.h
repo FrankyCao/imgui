@@ -143,8 +143,10 @@ enum ImColorFormat {
     IM_CF_GRAY = 0,
     IM_CF_BGR,
     IM_CF_ABGR,
+    IM_CF_BGRA,
     IM_CF_RGB,
     IM_CF_ARGB,
+    IM_CF_RGBA,
     IM_CF_YUV420,
     IM_CF_YUV422,
     IM_CF_YUV444,
@@ -429,16 +431,18 @@ public:
     ImColorSpace color_space;
 
     // format
-    // 0 = GRAY
-    // 1 = BGR
-    // 2 = ABGR
-    // 3 = RGB
-    // 4 = ARGB
-    // 5 = YUV420
-    // 6 = YUV422
-    // 7 = YUV444
-    // 8 = YUVA
-    // 9 = NV12
+    //  0 = GRAY
+    //  1 = BGR
+    //  2 = ABGR
+    //  3 = BGRA
+    //  4 = RGB
+    //  5 = ARGB
+    //  6 = RGBA
+    //  7 = YUV420
+    //  8 = YUV422
+    //  9 = YUV444
+    // 10 = YUVA
+    // 11 = NV12
     ImColorFormat color_format;
 
     // range
