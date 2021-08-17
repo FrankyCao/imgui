@@ -1098,6 +1098,7 @@ if (IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
         addon/ImVulkanShader/filters/Bilateral_vulkan.cpp
         addon/ImVulkanShader/filters/Sobel_vulkan.cpp
         addon/ImVulkanShader/filters/Canny_vulkan.cpp
+        addon/ImVulkanShader/filters/Harris_vulkan.cpp
         addon/ImVulkanShader/filters/USM_vulkan.cpp
         addon/ImVulkanShader/filters/GaussianBlur.cpp
         addon/ImVulkanShader/filters/Box.cpp
@@ -1143,6 +1144,8 @@ if (IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
         addon/ImVulkanShader/filters/Sobel_vulkan.h
         addon/ImVulkanShader/filters/Canny_shader.h
         addon/ImVulkanShader/filters/Canny_vulkan.h
+        addon/ImVulkanShader/filters/Harris_vulkan.h
+        addon/ImVulkanShader/filters/Harris_shader.h
         addon/ImVulkanShader/filters/USM_shader.h
         addon/ImVulkanShader/filters/USM_vulkan.h
         addon/ImVulkanShader/filters/GaussianBlur.h

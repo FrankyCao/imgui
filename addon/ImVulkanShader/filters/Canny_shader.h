@@ -1,48 +1,6 @@
 #pragma once
 #include <vk_mat_shader.h>
 
-#define SHADER_LOAD_FLOAT \
-" \n\
-sfp load_float(int x, int y, int w) \n\
-{ \n\
-    int i_offset = y * w + x; \n\
-    return sfp(src_float_data[i_offset]); \n\
-} \
-"
-
-#define SHADER_LOAD_FLOAT_RGB \
-" \n\
-sfpvec3 load_float_rgb(int x, int y, int w) \n\
-{ \n\
-    sfpvec3 rgb_in = {0.f, 0.f, 0.f}; \n\
-    ivec3 i_offset = (y * w + x) * 3 + ivec3(0, 1, 2); \n\
-    rgb_in.r = sfp(src_float_data[i_offset.r]); \n\
-    rgb_in.g = sfp(src_float_data[i_offset.g]); \n\
-    rgb_in.b = sfp(src_float_data[i_offset.b]); \n\
-    return rgb_in; \n\
-} \
-"
-
-#define SHADER_STORE_FLOAT \
-" \n\
-void store_float(sfp val, int x, int y, int w) \n\
-{ \n\
-    int o_offset = y * w + x; \n\
-    dst_float_data[o_offset] = float(val); \n\
-} \
-"
-
-#define SHADER_STORE_FLOAT_RGB \
-" \n\
-void store_float_rgb(sfpvec3 val, int x, int y, int w) \n\
-{ \n\
-    ivec3 o_offset = (y * w + x) * 3 + ivec3(0, 1, 2); \n\
-    dst_float_data[o_offset.r] = float(val.r); \n\
-    dst_float_data[o_offset.g] = float(val.g); \n\
-    dst_float_data[o_offset.b] = float(val.b); \n\
-} \
-"
-
 #define DSOBEL_PARAM \
 " \n\
 layout (push_constant) uniform parameter \n\
@@ -95,7 +53,7 @@ void main() \n\
     sum.y = vertical; \n\
     // dy \n\
     sum.z = horizont; \n\
-    store_float_rgb(sum, gx, gy, p.w); \n\
+    store_float_rgb(sum, gx, gy, p.w, 3, p.format); \n\
 } \
 "
 
@@ -145,10 +103,10 @@ void main() \n\
     if (gx >= p.w || gy >= p.h || gz >= 3) \n\
         return; \n\
     sfpvec2 suv = sfpvec2(gx, gy) + sfpvec2(0.5f); \n\
-    sfpvec3 gradinetAndDirection = load_float_rgb(int(suv.x), int(suv.y), p.w); \n\
+    sfpvec3 gradinetAndDirection = load_float_rgb(int(suv.x), int(suv.y), p.w, 3, p.format); \n\
     sfpvec2 direction = normDirection(gradinetAndDirection.gb); \n\
-    sfp firstGradientMagnitude = load_float_rgb(int(suv.x + direction.x), int(suv.y + direction.y), p.w).r; \n\
-    sfp secondGradientMagnitude = load_float_rgb(int(suv.x - direction.x), int(suv.y - direction.y), p.w).r; \n\
+    sfp firstGradientMagnitude = load_float_rgb(int(suv.x + direction.x), int(suv.y + direction.y), p.w, 3, p.format).r; \n\
+    sfp secondGradientMagnitude = load_float_rgb(int(suv.x - direction.x), int(suv.y - direction.y), p.w, 3, p.format).r; \n\
     sfp multiplier = step(firstGradientMagnitude, gradinetAndDirection.r); \n\
     multiplier = multiplier * step(secondGradientMagnitude, gradinetAndDirection.r); \n\
     sfp thresholdCompliance = smoothstep(p.minThreshold, p.maxThreshold, gradinetAndDirection.r); \n\

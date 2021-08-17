@@ -18,6 +18,20 @@ layout (push_constant) uniform parameter \n\
 } p; \
 "
 
+#define SHADER_LOAD_STORE_INT8 \
+" \n\
+#define load load_src_rgba \n\
+#define store store_dst_rgba \n\
+"
+
+#define SHADER_LOAD_STORE_FLOAT \
+" \n\
+#define load load_float_rgba \n\
+#define store store_float_rgba \n\
+"
+
+
+
 #define SHADER_FILTER_COLUMN_MAIN \
 " \n\
 const int PATCH_PER_BLOCK = 4;\n\
@@ -41,7 +55,7 @@ void main() \n\
         // 填充非第一列的上边 \n\
         for (int j = 0; j < HALO_SIZE; ++j) \n\
         { \n\
-            sfpvec4 rgba = load_src_rgba(x, yStart - (HALO_SIZE - j) * wsy, p.w, p.cstep, p.format); \n\
+            sfpvec4 rgba = load(x, yStart - (HALO_SIZE - j) * wsy, p.w, p.cstep, p.format); \n\
             column_shared[ly + j * wsy][lx] = rgba; \n\
         } \n\
     } \n\
@@ -51,7 +65,7 @@ void main() \n\
         for (int j = 0; j < HALO_SIZE; ++j) \n\
         { \n\
             int maxIdy = max(0, yStart - (HALO_SIZE - j) * wsy); \n\
-            sfpvec4 rgba = load_src_rgba(x, maxIdy, p.w, p.cstep, p.format); \n\
+            sfpvec4 rgba = load(x, maxIdy, p.w, p.cstep, p.format); \n\
             column_shared[ly + j * wsy][lx] = rgba; \n\
         } \n\
     } \n\
@@ -61,14 +75,14 @@ void main() \n\
         // 主要导入的数据,一个线程取行上四个位置数据 \n\
         for (int j = 0; j < PATCH_PER_BLOCK; ++j) \n\
         { \n\
-            sfpvec4 rgba = load_src_rgba(x, yStart + j * wsy, p.w, p.cstep, p.format); \n\
+            sfpvec4 rgba = load(x, yStart + j * wsy, p.w, p.cstep, p.format); \n\
             int y = ly + (HALO_SIZE + j) * wsy; \n\
             column_shared[y][lx] = rgba; \n\
         } \n\
         // 下边的扩展中,还在纹理中 \n\
         for (int j = 0; j < HALO_SIZE; ++j) \n\
         { \n\
-            sfpvec4 rgba = load_src_rgba(x, yStart + (PATCH_PER_BLOCK + j) * wsy, p.w, p.cstep, p.format); \n\
+            sfpvec4 rgba = load(x, yStart + (PATCH_PER_BLOCK + j) * wsy, p.w, p.cstep, p.format); \n\
             int y = ly + (PATCH_PER_BLOCK + HALO_SIZE + j) * wsy; \n\
             column_shared[y][lx] = rgba; \n\
         } \n\
@@ -80,14 +94,14 @@ void main() \n\
         { \n\
             int minIdy = min(size.y - 1, yStart + j * wsy); \n\
             int y = ly + (HALO_SIZE + j) * wsy; \n\
-            sfpvec4 rgba = load_src_rgba(x, minIdy, p.w, p.cstep, p.format); \n\
+            sfpvec4 rgba = load(x, minIdy, p.w, p.cstep, p.format); \n\
             column_shared[y][lx] = rgba; \n\
         } \n\
         for (int j = 0; j < HALO_SIZE; ++j) \n\
         { \n\
             int minIdy = min(size.y - 1, yStart + (PATCH_PER_BLOCK + j) * wsy); \n\
             int y = ly + (PATCH_PER_BLOCK+HALO_SIZE + j) * wsy; \n\
-            sfpvec4 rgba = load_src_rgba(x, minIdy, p.w, p.cstep, p.format); \n\
+            sfpvec4 rgba = load(x, minIdy, p.w, p.cstep, p.format); \n\
             column_shared[y][lx] = rgba; \n\
         } \n\
     } \n\
@@ -104,7 +118,7 @@ void main() \n\
                 int yy = ly + (HALO_SIZE + j) * wsy - p.yanchor + k; \n\
                 sum = sum + column_shared[yy][lx] * sfp(kernel_data[k]); \n\
             } \n\
-            store_dst_rgba(sum, x, y, p.w, p.cstep, p.format); \n\
+            store(sum, x, y, p.w, p.cstep, p.format); \n\
         } \n\
     } \n\
 } \
@@ -132,7 +146,7 @@ void main() \n\
         //填充非最左边块的左边 \n\
         for (int j = 0; j < HALO_SIZE; ++j) \n\
         { \n\
-            sfpvec4 rgba = load_src_rgba(xStart - (HALO_SIZE - j) * wsx, y, p.w, p.cstep, p.format); \n\
+            sfpvec4 rgba = load(xStart - (HALO_SIZE - j) * wsx, y, p.w, p.cstep, p.format); \n\
             row_shared[ly][lx + j * wsx] = rgba; \n\
         } \n\
     } \n\
@@ -142,7 +156,7 @@ void main() \n\
         for (int j = 0; j < HALO_SIZE; ++j) \n\
         { \n\
             int maxIdx = max(0, xStart - (HALO_SIZE - j) * wsx); \n\
-            sfpvec4 rgba = load_src_rgba(maxIdx, y, p.w, p.cstep, p.format); \n\
+            sfpvec4 rgba = load(maxIdx, y, p.w, p.cstep, p.format); \n\
             row_shared[ly][lx + j * wsx] = rgba; \n\
         } \n\
     } \n\
@@ -152,14 +166,14 @@ void main() \n\
         // 填充中间块 \n\
         for (int j = 0; j < PATCH_PER_BLOCK; ++j) \n\
         { \n\
-            sfpvec4 rgba = load_src_rgba(xStart + j * wsx, y, p.w, p.cstep, p.format); \n\
+            sfpvec4 rgba = load(xStart + j * wsx, y, p.w, p.cstep, p.format); \n\
             int x = lx + (HALO_SIZE + j) * wsx; \n\
             row_shared[ly][x] = rgba; \n\
         } \n\
         // 右边的扩展中,还在纹理中 \n\
         for (int j = 0; j < HALO_SIZE; ++j) \n\
         { \n\
-            sfpvec4 rgba = load_src_rgba(xStart + (PATCH_PER_BLOCK + j) * wsx, y, p.w, p.cstep, p.format); \n\
+            sfpvec4 rgba = load(xStart + (PATCH_PER_BLOCK + j) * wsx, y, p.w, p.cstep, p.format); \n\
             int x = lx + (PATCH_PER_BLOCK+HALO_SIZE + j) * wsx; \n\
             row_shared[ly][x] = rgba; \n\
         } \n\
@@ -171,14 +185,14 @@ void main() \n\
         { \n\
             int minIdx = min(size.x - 1, xStart + j * wsx); \n\
             int x = lx + (HALO_SIZE + j) * wsx; \n\
-            sfpvec4 rgba = load_src_rgba(minIdx, y, p.w, p.cstep, p.format); \n\
+            sfpvec4 rgba = load(minIdx, y, p.w, p.cstep, p.format); \n\
             row_shared[ly][x] = rgba; \n\
         } \n\
         for (int j = 0; j < HALO_SIZE; ++j) \n\
         { \n\
             int minIdx = min(size.x - 1, xStart + (PATCH_PER_BLOCK + j) * wsx); \n\
             int x = lx + (PATCH_PER_BLOCK + HALO_SIZE + j) * wsx; \n\
-            sfpvec4 rgba = load_src_rgba(minIdx, y, p.w, p.cstep, p.format); \n\
+            sfpvec4 rgba = load(minIdx, y, p.w, p.cstep, p.format); \n\
             row_shared[ly][x] = rgba; \n\
         } \n\
     } \n\
@@ -195,7 +209,7 @@ void main() \n\
                 int xx = lx + (HALO_SIZE + j) * wsx - p.xanchor + k; \n\
                 sum = sum + row_shared[ly][xx] * sfp(kernel_data[k]); \n\
             } \n\
-            store_dst_rgba(sum, x, y, p.w, p.cstep, p.format); \n\
+            store(sum, x, y, p.w, p.cstep, p.format); \n\
         } \n\
     } \n\
 } \
@@ -212,6 +226,7 @@ layout (binding = 2) readonly buffer kernel_float { float kernel_data[]; };
 SHADER_PARAM
 SHADER_LOAD_SRC_RGBA
 SHADER_STORE_DST_RGBA
+SHADER_LOAD_STORE_INT8
 SHADER_FILTER_COLUMN_MAIN
 ;
 
@@ -226,5 +241,36 @@ layout (binding = 2) readonly buffer kernel_float { float kernel_data[]; };
 SHADER_PARAM
 SHADER_LOAD_SRC_RGBA
 SHADER_STORE_DST_RGBA
+SHADER_LOAD_STORE_INT8
+SHADER_FILTER_ROW_MAIN
+;
+
+static const char FilterColumnF32_data[] = 
+SHADER_HEADER
+R"(
+layout (local_size_x = 16, local_size_y = 16) in;
+layout (binding = 0) readonly buffer src_float { float src_float_data[]; };
+layout (binding = 1) writeonly buffer dst_float { float dst_float_data[]; };
+layout (binding = 2) readonly buffer kernel_float { float kernel_data[]; };
+)"
+SHADER_PARAM
+SHADER_LOAD_FLOAT_RGBA
+SHADER_STORE_FLOAT_RGBA
+SHADER_LOAD_STORE_FLOAT
+SHADER_FILTER_COLUMN_MAIN
+;
+
+static const char FilterRowF32_data[] = 
+SHADER_HEADER
+R"(
+layout (local_size_x = 16, local_size_y = 16) in;
+layout (binding = 0) readonly buffer src_float { float src_float_data[]; };
+layout (binding = 1) writeonly buffer dst_float { float dst_float_data[]; };
+layout (binding = 2) readonly buffer kernel_float { float kernel_data[]; };
+)"
+SHADER_PARAM
+SHADER_LOAD_FLOAT_RGBA
+SHADER_STORE_FLOAT_RGBA
+SHADER_LOAD_STORE_FLOAT
 SHADER_FILTER_ROW_MAIN
 ;

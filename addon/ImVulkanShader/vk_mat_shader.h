@@ -44,13 +44,13 @@
 #define DT_FLOAT32      5 \n\
 #define DT_FLOAT64      6 \n\
 \
-"
+" // line 42
 
 #define SHADER_LOAD_SRC_RGB \
 " \n\
 sfpvec3 load_src_rgb(int x, int y, int w, int cstep, int format) \n\
 { \n\
-    sfpvec3 rgb_in = {0.f, 0.f, 0.f}; \n\
+    sfpvec3 rgb_in = sfpvec3(0.f); \n\
     ivec4 i_offset = (y * w + x) * cstep + (format == CF_ABGR ? ivec4(0, 1, 2, 3) : ivec4(0, 3, 2, 1)); \n\
     rgb_in.r = sfp(uint(src_int8_data[i_offset.r])) / sfp(255.f); \n\
     rgb_in.g = sfp(uint(src_int8_data[i_offset.g])) / sfp(255.f); \n\
@@ -145,5 +145,73 @@ void store_dst_rgba(sfpvec4 rgb, int x, int y, int w, int cstep, int format) \n\
     dst_int8_data[o_offset.g] = uint8_t(clamp(uint(floor(rgb.g * sfp(255.f))), 0, 255)); \n\
     dst_int8_data[o_offset.b] = uint8_t(clamp(uint(floor(rgb.b * sfp(255.f))), 0, 255)); \n\
     dst_int8_data[o_offset.a] = uint8_t(clamp(uint(floor(rgb.a * sfp(255.f))), 0, 255)); \n\
+} \
+"
+
+#define SHADER_LOAD_FLOAT \
+" \n\
+sfp load_float(int x, int y, int w) \n\
+{ \n\
+    int i_offset = y * w + x; \n\
+    return sfp(src_float_data[i_offset]); \n\
+} \
+"
+
+#define SHADER_LOAD_FLOAT_RGB \
+" \n\
+sfpvec3 load_float_rgb(int x, int y, int w, int cstep, int format) \n\
+{ \n\
+    sfpvec3 rgb_in = sfpvec3(0.f); \n\
+    ivec3 i_offset = (y * w + x) * cstep + ivec3(0, 1, 2); \n\
+    rgb_in.r = sfp(src_float_data[i_offset.r]); \n\
+    rgb_in.g = sfp(src_float_data[i_offset.g]); \n\
+    rgb_in.b = sfp(src_float_data[i_offset.b]); \n\
+    return rgb_in; \n\
+} \
+"
+
+#define SHADER_LOAD_FLOAT_RGBA \
+" \n\
+sfpvec4 load_float_rgba(int x, int y, int w, int cstep, int format) \n\
+{ \n\
+    sfpvec4 rgb_in = sfpvec4(0.f); \n\
+    ivec4 i_offset = (y * w + x) * cstep + ivec4(0, 1, 2, 3); \n\
+    rgb_in.r = sfp(src_float_data[i_offset.r]); \n\
+    rgb_in.g = sfp(src_float_data[i_offset.g]); \n\
+    rgb_in.b = sfp(src_float_data[i_offset.b]); \n\
+    rgb_in.a = sfp(src_float_data[i_offset.a]); \n\
+    return rgb_in; \n\
+} \
+"
+
+#define SHADER_STORE_FLOAT \
+" \n\
+void store_float(sfp val, int x, int y, int w) \n\
+{ \n\
+    int o_offset = y * w + x; \n\
+    dst_float_data[o_offset] = float(val); \n\
+} \
+"
+
+#define SHADER_STORE_FLOAT_RGB \
+" \n\
+void store_float_rgb(sfpvec3 val, int x, int y, int w, int cstep, int format) \n\
+{ \n\
+    ivec3 o_offset = (y * w + x) * cstep + ivec3(0, 1, 2); \n\
+    dst_float_data[o_offset.r] = float(val.r); \n\
+    dst_float_data[o_offset.g] = float(val.g); \n\
+    dst_float_data[o_offset.b] = float(val.b); \n\
+} \
+"
+
+#define SHADER_STORE_FLOAT_RGBA \
+" \n\
+void store_float_rgba(sfpvec4 val, int x, int y, int w, int cstep, int format) \n\
+{ \n\
+    ivec4 o_offset = (y * w + x) * cstep + ivec4(0, 1, 2, 3); \n\
+    dst_float_data[o_offset.r] = float(val.r); \n\
+    dst_float_data[o_offset.g] = float(val.g); \n\
+    dst_float_data[o_offset.b] = float(val.b); \n\
+    dst_float_data[o_offset.a] = float(val.a); \n\
 } \
 "
