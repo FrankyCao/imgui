@@ -7,11 +7,11 @@
 
 namespace ImGui
 {
-class IMGUI_API Sobel
+class IMGUI_API Sobel_vulkan
 {
 public:
-    Sobel(int gpu = 0);
-    ~Sobel();
+    Sobel_vulkan(int gpu = 0);
+    ~Sobel_vulkan();
     void SetParam(float _edgeStrength);
     void filter(const ImMat& src, ImMat& dst, float edgeStrength);
     void filter(const ImMat& src, VkMat& dst, float edgeStrength);

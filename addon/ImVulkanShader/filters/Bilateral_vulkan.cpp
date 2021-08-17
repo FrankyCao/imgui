@@ -34,7 +34,7 @@ Bilateral_vulkan::~Bilateral_vulkan()
     }
 }
 
-void Bilateral_vulkan::upload_param(const VkMat& src, VkMat& dst, int ksz, float sigma_spatial, float sigma_color) const
+void Bilateral_vulkan::upload_param(const VkMat& src, VkMat& dst, int ksz, float sigma_spatial, float sigma_color)
 {
     std::vector<VkMat> bindings(2);
     bindings[0] = src;
@@ -50,7 +50,7 @@ void Bilateral_vulkan::upload_param(const VkMat& src, VkMat& dst, int ksz, float
     cmd->record_pipeline(pipe, bindings, constants, dst);
 }
 
-void Bilateral_vulkan::filter(const ImMat& src, ImMat& dst, int ksz, float sigma_spatial, float sigma_color) const
+void Bilateral_vulkan::filter(const ImMat& src, ImMat& dst, int ksz, float sigma_spatial, float sigma_color)
 {
     if (!vkdev || !pipe || !cmd)
     {
@@ -72,7 +72,7 @@ void Bilateral_vulkan::filter(const ImMat& src, ImMat& dst, int ksz, float sigma
     cmd->reset();
 }
 
-void Bilateral_vulkan::filter(const ImMat& src, VkMat& dst, int ksz, float sigma_spatial, float sigma_color) const
+void Bilateral_vulkan::filter(const ImMat& src, VkMat& dst, int ksz, float sigma_spatial, float sigma_color)
 {
     if (!vkdev || !pipe || !cmd)
     {
@@ -90,7 +90,7 @@ void Bilateral_vulkan::filter(const ImMat& src, VkMat& dst, int ksz, float sigma
     cmd->reset();
 }
 
-void Bilateral_vulkan::filter(const VkMat& src, ImMat& dst, int ksz, float sigma_spatial, float sigma_color) const
+void Bilateral_vulkan::filter(const VkMat& src, ImMat& dst, int ksz, float sigma_spatial, float sigma_color)
 {
     if (!vkdev || !pipe || !cmd)
     {
@@ -110,7 +110,7 @@ void Bilateral_vulkan::filter(const VkMat& src, ImMat& dst, int ksz, float sigma
     cmd->reset();
 }
 
-void Bilateral_vulkan::filter(const VkMat& src, VkMat& dst, int ksz, float sigma_spatial, float sigma_color) const
+void Bilateral_vulkan::filter(const VkMat& src, VkMat& dst, int ksz, float sigma_spatial, float sigma_color)
 {
     if (!vkdev || !pipe || !cmd)
     {

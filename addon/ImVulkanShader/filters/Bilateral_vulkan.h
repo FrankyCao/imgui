@@ -13,13 +13,13 @@ public:
     ~Bilateral_vulkan();
 
     // input CPU Buffer and output to RGBA CPU buffer
-    virtual void filter(const ImMat& src, ImMat& dst, int ksz, float sigma_spatial, float sigma_color) const;
+    void filter(const ImMat& src, ImMat& dst, int ksz, float sigma_spatial, float sigma_color);
     // input CPU Buffer and output to RGBA GPU buffer
-    virtual void filter(const ImMat& src, VkMat& dst, int ksz, float sigma_spatial, float sigma_color) const;
+    void filter(const ImMat& src, VkMat& dst, int ksz, float sigma_spatial, float sigma_color);
     // input GPU Buffer and output to RGBA CPU buffer
-    virtual void filter(const VkMat& src, ImMat& dst, int ksz, float sigma_spatial, float sigma_color) const;
+    void filter(const VkMat& src, ImMat& dst, int ksz, float sigma_spatial, float sigma_color);
     // input GPU Buffer and output to RGBA GPU buffer
-    virtual void filter(const VkMat& src, VkMat& dst, int ksz, float sigma_spatial, float sigma_color) const;
+    void filter(const VkMat& src, VkMat& dst, int ksz, float sigma_spatial, float sigma_color);
 
 public:
     const VulkanDevice* vkdev {nullptr};
@@ -29,6 +29,6 @@ public:
 
 private:
     std::vector<uint32_t> spirv_data;
-    void upload_param(const VkMat& src, VkMat& dst, int ksz, float sigma_spatial, float sigma_color) const;
+    void upload_param(const VkMat& src, VkMat& dst, int ksz, float sigma_spatial, float sigma_color);
 };
 } // namespace ImGui 

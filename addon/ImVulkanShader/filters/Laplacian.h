@@ -6,11 +6,11 @@
 
 namespace ImGui
 {
-class IMGUI_API  Laplacian : public Filter2D_vulkan
+class IMGUI_API  Laplacian_vulkan : public Filter2D_vulkan
 {
 public:
-    Laplacian(int gpu = 0);
-    ~Laplacian();
+    Laplacian_vulkan(int gpu = 0);
+    ~Laplacian_vulkan();
     void SetParam(int _Strength);
 
 private:

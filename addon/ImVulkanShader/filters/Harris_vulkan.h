@@ -5,11 +5,11 @@
 
 namespace ImGui
 {
-class IMGUI_API Harris 
+class IMGUI_API Harris_vulkan
 {
 public:
-    Harris(int gpu = 0);
-    ~Harris();
+    Harris_vulkan(int gpu = 0);
+    ~Harris_vulkan();
     void filter(const ImMat& src, ImMat& dst, int _blurRadius, float edgeStrength, float threshold, float harris, float sensitivity);
     void filter(const ImMat& src, VkMat& dst, int _blurRadius, float edgeStrength, float threshold, float harris, float sensitivity);
     void filter(const VkMat& src, ImMat& dst, int _blurRadius, float edgeStrength, float threshold, float harris, float sensitivity);

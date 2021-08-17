@@ -5,7 +5,7 @@
 
 namespace ImGui
 {
-USM::USM(int gpu)
+USM_vulkan::USM_vulkan(int gpu)
 {
     vkdev = get_gpu_device(gpu);
     opt.blob_vkallocator = vkdev->acquire_blob_allocator();
@@ -35,7 +35,7 @@ USM::USM(int gpu)
     prepare_kernel();
 }
 
-USM::~USM()
+USM_vulkan::~USM_vulkan()
 {
     if (vkdev)
     {
@@ -48,7 +48,7 @@ USM::~USM()
     }
 }
 
-void USM::prepare_kernel()
+void USM_vulkan::prepare_kernel()
 {
     int ksize = blurRadius * 2 + 1;
     if (sigma <= 0.0f) 
@@ -79,7 +79,7 @@ void USM::prepare_kernel()
     xanchor = yanchor = blurRadius;
 }
 
-void USM::upload_param(const VkMat& src, VkMat& dst, float _sigma, float amount, float threshold)
+void USM_vulkan::upload_param(const VkMat& src, VkMat& dst, float _sigma, float amount, float threshold)
 {
     if (sigma != _sigma)
     {
@@ -129,7 +129,7 @@ void USM::upload_param(const VkMat& src, VkMat& dst, float _sigma, float amount,
 
 }
 
-void USM::filter(const ImMat& src, ImMat& dst, float sigma, float amount, float threshold)
+void USM_vulkan::filter(const ImMat& src, ImMat& dst, float sigma, float amount, float threshold)
 {
     if (!vkdev || !pipe || !cmd)
     {
@@ -151,7 +151,7 @@ void USM::filter(const ImMat& src, ImMat& dst, float sigma, float amount, float 
     cmd->reset();
 }
 
-void USM::filter(const ImMat& src, VkMat& dst, float sigma, float amount, float threshold)
+void USM_vulkan::filter(const ImMat& src, VkMat& dst, float sigma, float amount, float threshold)
 {
     if (!vkdev || !pipe  || !cmd)
     {
@@ -170,7 +170,7 @@ void USM::filter(const ImMat& src, VkMat& dst, float sigma, float amount, float 
     cmd->reset();
 }
 
-void USM::filter(const VkMat& src, ImMat& dst, float sigma, float amount, float threshold)
+void USM_vulkan::filter(const VkMat& src, ImMat& dst, float sigma, float amount, float threshold)
 {
     if (!vkdev || !pipe || !cmd)
     {
@@ -190,7 +190,7 @@ void USM::filter(const VkMat& src, ImMat& dst, float sigma, float amount, float 
     cmd->reset();
 }
 
-void USM::filter(const VkMat& src, VkMat& dst, float sigma, float amount, float threshold)
+void USM_vulkan::filter(const VkMat& src, VkMat& dst, float sigma, float amount, float threshold)
 {
     if (!vkdev || !pipe || !cmd)
     {

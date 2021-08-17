@@ -6,11 +6,11 @@
 
 namespace ImGui
 {
-class IMGUI_API BoxBlur : public Filter2DS_vulkan
+class IMGUI_API BoxBlur_vulkan : public Filter2DS_vulkan
 {
 public:
-    BoxBlur(int gpu = 0);
-    ~BoxBlur();
+    BoxBlur_vulkan(int gpu = 0);
+    ~BoxBlur_vulkan();
     void SetParam(int _xSize, int _ySize);
 
 private:

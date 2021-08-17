@@ -6,11 +6,11 @@
 
 namespace ImGui
 {
-class IMGUI_API GaussianBlur : public Filter2DS_vulkan
+class IMGUI_API GaussianBlur_vulkan : public Filter2DS_vulkan
 {
 public:
-    GaussianBlur(int gpu = 0);
-    ~GaussianBlur();
+    GaussianBlur_vulkan(int gpu = 0);
+    ~GaussianBlur_vulkan();
     void SetParam(int _blurRadius, float _sigma);
 
 private:

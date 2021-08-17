@@ -5,11 +5,11 @@
 
 namespace ImGui
 {
-class IMGUI_API Canny 
+class IMGUI_API Canny_vulkan
 {
 public:
-    Canny(int gpu = 0);
-    ~Canny();
+    Canny_vulkan(int gpu = 0);
+    ~Canny_vulkan();
     void filter(const ImMat& src, ImMat& dst, int _blurRadius, float minThreshold, float maxThreshold);
     void filter(const ImMat& src, VkMat& dst, int _blurRadius, float minThreshold, float maxThreshold);
     void filter(const VkMat& src, ImMat& dst, int _blurRadius, float minThreshold, float maxThreshold);

@@ -3,17 +3,17 @@
 
 namespace ImGui
 {
-GaussianBlur::GaussianBlur(int gpu)
+GaussianBlur_vulkan::GaussianBlur_vulkan(int gpu)
     : Filter2DS_vulkan(gpu)
 {
     prepare_kernel();
 }
 
-GaussianBlur::~GaussianBlur()
+GaussianBlur_vulkan::~GaussianBlur_vulkan()
 {
 }
 
-void GaussianBlur::prepare_kernel()
+void GaussianBlur_vulkan::prepare_kernel()
 {
     int ksize = blurRadius * 2 + 1;
     if (sigma <= 0.0f) 
@@ -44,7 +44,7 @@ void GaussianBlur::prepare_kernel()
     xanchor = yanchor = blurRadius;
 }
 
-void GaussianBlur::SetParam(int _blurRadius, float _sigma)
+void GaussianBlur_vulkan::SetParam(int _blurRadius, float _sigma)
 {
     if (blurRadius != _blurRadius || sigma != _sigma)
     {

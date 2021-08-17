@@ -3,17 +3,17 @@
 
 namespace ImGui 
 {
-BoxBlur::BoxBlur(int gpu)
+BoxBlur_vulkan::BoxBlur_vulkan(int gpu)
     : Filter2DS_vulkan(gpu)
 {
     prepare_kernel();
 }
 
-BoxBlur::~BoxBlur()
+BoxBlur_vulkan::~BoxBlur_vulkan()
 {
 }
 
-void BoxBlur::prepare_kernel()
+void BoxBlur_vulkan::prepare_kernel()
 {
     xksize = xSize;
     yksize = ySize;
@@ -34,7 +34,7 @@ void BoxBlur::prepare_kernel()
     tran.submit_and_wait();
 }
 
-void BoxBlur::SetParam(int _xSize, int _ySize)
+void BoxBlur_vulkan::SetParam(int _xSize, int _ySize)
 {
     if (xSize != _xSize || ySize != _ySize)
     {

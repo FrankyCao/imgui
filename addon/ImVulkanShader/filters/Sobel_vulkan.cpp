@@ -4,7 +4,7 @@
 
 namespace ImGui
 {
-Sobel::Sobel(int gpu)
+Sobel_vulkan::Sobel_vulkan(int gpu)
 {
     vkdev = get_gpu_device(gpu);
     opt.blob_vkallocator = vkdev->acquire_blob_allocator();
@@ -22,7 +22,7 @@ Sobel::Sobel(int gpu)
     cmd->reset();
 }
 
-Sobel::~Sobel()
+Sobel_vulkan::~Sobel_vulkan()
 {
     if (vkdev)
     {
@@ -33,7 +33,7 @@ Sobel::~Sobel()
     }
 }
 
-void Sobel::upload_param(const VkMat& src, VkMat& dst, float edgeStrength)
+void Sobel_vulkan::upload_param(const VkMat& src, VkMat& dst, float edgeStrength)
 {
     std::vector<VkMat> bindings(2);
     bindings[0] = src;
@@ -47,7 +47,7 @@ void Sobel::upload_param(const VkMat& src, VkMat& dst, float edgeStrength)
     cmd->record_pipeline(pipe, bindings, constants, dst);
 }
 
-void Sobel::filter(const ImMat& src, ImMat& dst, float edgeStrength)
+void Sobel_vulkan::filter(const ImMat& src, ImMat& dst, float edgeStrength)
 {
     if (!vkdev || !pipe || !cmd)
     {
@@ -69,7 +69,7 @@ void Sobel::filter(const ImMat& src, ImMat& dst, float edgeStrength)
     cmd->reset();
 }
 
-void Sobel::filter(const ImMat& src, VkMat& dst, float edgeStrength)
+void Sobel_vulkan::filter(const ImMat& src, VkMat& dst, float edgeStrength)
 {
     if (!vkdev || !pipe || !cmd)
     {
@@ -87,7 +87,7 @@ void Sobel::filter(const ImMat& src, VkMat& dst, float edgeStrength)
     cmd->reset();
 }
 
-void Sobel::filter(const VkMat& src, ImMat& dst, float edgeStrength)
+void Sobel_vulkan::filter(const VkMat& src, ImMat& dst, float edgeStrength)
 {
     if (!vkdev || !pipe || !cmd)
     {
@@ -107,7 +107,7 @@ void Sobel::filter(const VkMat& src, ImMat& dst, float edgeStrength)
     cmd->reset();
 }
 
-void Sobel::filter(const VkMat& src, VkMat& dst, float edgeStrength)
+void Sobel_vulkan::filter(const VkMat& src, VkMat& dst, float edgeStrength)
 {
     if (!vkdev || !pipe || !cmd)
     {

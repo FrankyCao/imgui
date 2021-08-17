@@ -5,7 +5,7 @@
 
 namespace ImGui
 {
-Harris::Harris(int gpu)
+Harris_vulkan::Harris_vulkan(int gpu)
 {
     vkdev = get_gpu_device(gpu);
     opt.blob_vkallocator = vkdev->acquire_blob_allocator();
@@ -45,7 +45,7 @@ Harris::Harris(int gpu)
     prepare_kernel();
 }
 
-Harris::~Harris()
+Harris_vulkan::~Harris_vulkan()
 {
     if (vkdev)
     {
@@ -60,7 +60,7 @@ Harris::~Harris()
     }
 }
 
-void Harris::prepare_kernel()
+void Harris_vulkan::prepare_kernel()
 {
     int ksize = blurRadius * 2 + 1;
     if (sigma <= 0.0f) 
@@ -88,7 +88,7 @@ void Harris::prepare_kernel()
     xanchor = yanchor = blurRadius;
 }
 
-void Harris::upload_param(const VkMat& src, VkMat& dst, int _blurRadius, float edgeStrength, float threshold, float harris, float sensitivity)
+void Harris_vulkan::upload_param(const VkMat& src, VkMat& dst, int _blurRadius, float edgeStrength, float threshold, float harris, float sensitivity)
 {
     if (blurRadius != _blurRadius)
     {
@@ -163,7 +163,7 @@ void Harris::upload_param(const VkMat& src, VkMat& dst, int _blurRadius, float e
     cmd->record_pipeline(pipe_nms, nms_bindings, nms_constants, dst);
 }
 
-void Harris::filter(const ImMat& src, ImMat& dst, int _blurRadius, float edgeStrength, float threshold, float harris, float sensitivity)
+void Harris_vulkan::filter(const ImMat& src, ImMat& dst, int _blurRadius, float edgeStrength, float threshold, float harris, float sensitivity)
 {
     if (!vkdev || !pipe_harris || !cmd)
     {
@@ -185,7 +185,7 @@ void Harris::filter(const ImMat& src, ImMat& dst, int _blurRadius, float edgeStr
     cmd->reset();
 }
 
-void Harris::filter(const ImMat& src, VkMat& dst, int _blurRadius, float edgeStrength, float threshold, float harris, float sensitivity)
+void Harris_vulkan::filter(const ImMat& src, VkMat& dst, int _blurRadius, float edgeStrength, float threshold, float harris, float sensitivity)
 {
     if (!vkdev || !pipe_harris  || !cmd)
     {
@@ -204,7 +204,7 @@ void Harris::filter(const ImMat& src, VkMat& dst, int _blurRadius, float edgeStr
     cmd->reset();
 }
 
-void Harris::filter(const VkMat& src, ImMat& dst, int _blurRadius, float edgeStrength, float threshold, float harris, float sensitivity)
+void Harris_vulkan::filter(const VkMat& src, ImMat& dst, int _blurRadius, float edgeStrength, float threshold, float harris, float sensitivity)
 {
     if (!vkdev || !pipe_harris || !cmd)
     {
@@ -224,7 +224,7 @@ void Harris::filter(const VkMat& src, ImMat& dst, int _blurRadius, float edgeStr
     cmd->reset();
 }
 
-void Harris::filter(const VkMat& src, VkMat& dst, int _blurRadius, float edgeStrength, float threshold, float harris, float sensitivity)
+void Harris_vulkan::filter(const VkMat& src, VkMat& dst, int _blurRadius, float edgeStrength, float threshold, float harris, float sensitivity)
 {
     if (!vkdev || !pipe_harris || !cmd)
     {

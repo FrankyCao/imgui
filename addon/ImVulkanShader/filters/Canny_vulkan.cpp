@@ -5,7 +5,7 @@
 
 namespace ImGui
 {
-Canny::Canny(int gpu)
+Canny_vulkan::Canny_vulkan(int gpu)
 {
     vkdev = get_gpu_device(gpu);
     opt.blob_vkallocator = vkdev->acquire_blob_allocator();
@@ -45,7 +45,7 @@ Canny::Canny(int gpu)
     prepare_kernel();
 }
 
-Canny::~Canny()
+Canny_vulkan::~Canny_vulkan()
 {
     if (vkdev)
     {
@@ -60,7 +60,7 @@ Canny::~Canny()
     }
 }
 
-void Canny::prepare_kernel()
+void Canny_vulkan::prepare_kernel()
 {
     int ksize = blurRadius * 2 + 1;
     if (sigma <= 0.0f) 
@@ -88,7 +88,7 @@ void Canny::prepare_kernel()
     xanchor = yanchor = blurRadius;
 }
 
-void Canny::upload_param(const VkMat& src, VkMat& dst, int _blurRadius, float minThreshold, float maxThreshold)
+void Canny_vulkan::upload_param(const VkMat& src, VkMat& dst, int _blurRadius, float minThreshold, float maxThreshold)
 {
     if (blurRadius != _blurRadius)
     {
@@ -161,7 +161,7 @@ void Canny::upload_param(const VkMat& src, VkMat& dst, int _blurRadius, float mi
     cmd->record_pipeline(pipe, canny_bindings, canny_constants, dst);
 }
 
-void Canny::filter(const ImMat& src, ImMat& dst, int _blurRadius, float minThreshold, float maxThreshold)
+void Canny_vulkan::filter(const ImMat& src, ImMat& dst, int _blurRadius, float minThreshold, float maxThreshold)
 {
     if (!vkdev || !pipe || !cmd)
     {
@@ -183,7 +183,7 @@ void Canny::filter(const ImMat& src, ImMat& dst, int _blurRadius, float minThres
     cmd->reset();
 }
 
-void Canny::filter(const ImMat& src, VkMat& dst, int _blurRadius, float minThreshold, float maxThreshold)
+void Canny_vulkan::filter(const ImMat& src, VkMat& dst, int _blurRadius, float minThreshold, float maxThreshold)
 {
     if (!vkdev || !pipe  || !cmd)
     {
@@ -202,7 +202,7 @@ void Canny::filter(const ImMat& src, VkMat& dst, int _blurRadius, float minThres
     cmd->reset();
 }
 
-void Canny::filter(const VkMat& src, ImMat& dst, int _blurRadius, float minThreshold, float maxThreshold)
+void Canny_vulkan::filter(const VkMat& src, ImMat& dst, int _blurRadius, float minThreshold, float maxThreshold)
 {
     if (!vkdev || !pipe || !cmd)
     {
@@ -222,7 +222,7 @@ void Canny::filter(const VkMat& src, ImMat& dst, int _blurRadius, float minThres
     cmd->reset();
 }
 
-void Canny::filter(const VkMat& src, VkMat& dst, int _blurRadius, float minThreshold, float maxThreshold)
+void Canny_vulkan::filter(const VkMat& src, VkMat& dst, int _blurRadius, float minThreshold, float maxThreshold)
 {
     if (!vkdev || !pipe || !cmd)
     {

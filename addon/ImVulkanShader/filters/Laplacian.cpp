@@ -3,17 +3,17 @@
 
 namespace ImGui
 {
-Laplacian::Laplacian(int gpu)
+Laplacian_vulkan::Laplacian_vulkan(int gpu)
     : Filter2D_vulkan(gpu)
 {
     prepare_kernel();
 }
 
-Laplacian::~Laplacian()
+Laplacian_vulkan::~Laplacian_vulkan()
 {
 }
 
-void Laplacian::prepare_kernel()
+void Laplacian_vulkan::prepare_kernel()
 {
     kernel.create(3, 3, size_t(4u), 1);
     float side_power = (float)Strength / 4.0f;
@@ -29,7 +29,7 @@ void Laplacian::prepare_kernel()
     xanchor = yanchor = 1;
 }
 
-void Laplacian::SetParam(int _Strength)
+void Laplacian_vulkan::SetParam(int _Strength)
 {
     if (Strength != _Strength)
     {
