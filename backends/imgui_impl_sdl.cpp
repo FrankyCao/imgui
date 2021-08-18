@@ -18,6 +18,7 @@
 
 // CHANGELOG
 // (minor and older changes stripped away, please see git history for details)
+//  2021-08-17: Calling io.AddFocusEvent() on SDL_WINDOWEVENT_FOCUS_GAINED/SDL_WINDOWEVENT_FOCUS_LOST.
 //  2021-07-29: Inputs: MousePos is correctly reported when the host platform window is hovered but not focused (using SDL_GetMouseFocus() + SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, requires SDL 2.0.5+)
 //  2021-06-29: *BREAKING CHANGE* Removed 'SDL_Window* window' parameter to ImGui_ImplSDL2_NewFrame() which was unnecessary.
 //  2021-06-29: Reorganized backend to pull data from a single structure to facilitate usage with multiple-contexts (all g_XXXX access changed to bd->XXXX).
@@ -67,6 +68,7 @@
 #else
 #define SDL_HAS_CAPTURE_AND_GLOBAL_MOUSE    0
 #endif
+// modify by Dicky end
 #define SDL_HAS_MOUSE_FOCUS_CLICKTHROUGH    SDL_VERSION_ATLEAST(2,0,5)
 #define SDL_HAS_VULKAN                      SDL_VERSION_ATLEAST(2,0,6)
 
@@ -154,6 +156,14 @@ bool ImGui_ImplSDL2_ProcessEvent(const SDL_Event* event)
 #else
             io.KeySuper = ((SDL_GetModState() & KMOD_GUI) != 0);
 #endif
+            return true;
+        }
+    case SDL_WINDOWEVENT:
+        {
+            if (event->window.event == SDL_WINDOWEVENT_FOCUS_GAINED)
+                io.AddFocusEvent(true);
+            else if (event->window.event == SDL_WINDOWEVENT_FOCUS_LOST)
+                io.AddFocusEvent(false);
             return true;
         }
     }
@@ -322,7 +332,7 @@ static void ImGui_ImplSDL2_UpdateMousePosAndButtons()
 #endif
 
     if (mouse_window == NULL)
-        return;
+       return;
 
     // Set OS mouse position from Dear ImGui if requested (rarely used, only when ImGuiConfigFlags_NavEnableSetMousePos is enabled by user)
     if (io.WantSetMousePos)
