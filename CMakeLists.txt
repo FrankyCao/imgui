@@ -1096,6 +1096,7 @@ if (IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
         addon/ImVulkanShader/filters/WhiteBalance_vulkan.cpp
         addon/ImVulkanShader/filters/Hue_vulkan.cpp
         addon/ImVulkanShader/filters/Vibrance_vulkan.cpp
+        addon/ImVulkanShader/filters/ColorInvert_vulkan.cpp
         addon/ImVulkanShader/filters/Bilateral_vulkan.cpp
         addon/ImVulkanShader/filters/Sobel_vulkan.cpp
         addon/ImVulkanShader/filters/Canny_vulkan.cpp
@@ -1140,6 +1141,8 @@ if (IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
         addon/ImVulkanShader/filters/Hue_vulkan.h
         addon/ImVulkanShader/filters/Vibrance_shader.h
         addon/ImVulkanShader/filters/Vibrance_vulkan.h
+        addon/ImVulkanShader/filters/ColorInvert_shader.h
+        addon/ImVulkanShader/filters/ColorInvert_vulkan.h
         addon/ImVulkanShader/filters/Bilateral_shader.h
         addon/ImVulkanShader/filters/Bilateral_vulkan.h
         addon/ImVulkanShader/filters/Sobel_shader.h

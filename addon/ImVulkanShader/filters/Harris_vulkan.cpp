@@ -154,7 +154,7 @@ void Harris_vulkan::upload_param(const VkMat& src, VkMat& dst, int _blurRadius, 
     nms_bindings[0] = vk_harris;
     nms_bindings[1] = src;
     nms_bindings[2] = dst;//vk_nms;
-    std::vector<vk_constant_type> nms_constants(6);
+    std::vector<vk_constant_type> nms_constants(5);
     nms_constants[0].i = dst.w;
     nms_constants[1].i = dst.h;
     nms_constants[2].i = dst.c;
