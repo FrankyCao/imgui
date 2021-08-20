@@ -371,6 +371,7 @@ if(OPENGL_FOUND AND BACKEND_RENDERING MATCHES NONE)
         set(IMGUI_INCS
             ${IMGUI_INCS}
             backends/imgui_impl_opengl3.h
+            backends/imgui_impl_opengl3_loader.h
         )
     elseif(IMGUI_GL2)
         message(STATUS "    [ImGui backend rendering with OpenGL2]")
