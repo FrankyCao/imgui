@@ -372,16 +372,25 @@ static void FramePresent(ImGui_ImplVulkanH_Window* wd)
 
 static void FrameRendering(ImGui_ImplVulkanH_Window* wd)
 {
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
     ImVec4 clear_color = ImVec4(0.f, 0.f, 0.f, 1.f);
-    ImDrawData* draw_data = ImGui::GetDrawData();
-    const bool is_minimized = (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f);
-    if (!is_minimized)
+    ImDrawData* main_draw_data = ImGui::GetDrawData();
+    const bool main_is_minimized = (main_draw_data->DisplaySize.x <= 0.0f || main_draw_data->DisplaySize.y <= 0.0f);
+    wd->ClearValue.color.float32[0] = clear_color.x * clear_color.w;
+    wd->ClearValue.color.float32[1] = clear_color.y * clear_color.w;
+    wd->ClearValue.color.float32[2] = clear_color.z * clear_color.w;
+    wd->ClearValue.color.float32[3] = clear_color.w;
+    if (!main_is_minimized)
+        FrameRender(wd, main_draw_data);
+
+    // Update and Render additional Platform Windows
+    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
     {
-        wd->ClearValue.color.float32[0] = clear_color.x * clear_color.w;
-        wd->ClearValue.color.float32[1] = clear_color.y * clear_color.w;
-        wd->ClearValue.color.float32[2] = clear_color.z * clear_color.w;
-        wd->ClearValue.color.float32[3] = clear_color.w;
-        FrameRender(wd, draw_data);
-        FramePresent(wd);
+        ImGui::UpdatePlatformWindows();
+        ImGui::RenderPlatformWindowsDefault();
     }
+
+    // Present Main Platform Window
+    if (!main_is_minimized)
+        FramePresent(wd);
 }

@@ -38,7 +38,6 @@
 #cmakedefine01 IMGUI_FONT_YUAN
 #cmakedefine01 IMGUI_FONT_SARASA
 #cmakedefine01 IMGUI_ICONS
-#cmakedefine01 IMGUI_HAS_VIEWPORT
 #cmakedefine01 IMGUI_ADDON_DEAR_WIDGETS
 #cmakedefine01 IMGUI_ADDON_KNOB
 #cmakedefine01 IMGUI_ADDON_DATE_CHOOSER

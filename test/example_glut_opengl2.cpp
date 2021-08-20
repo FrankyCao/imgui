@@ -116,6 +116,7 @@ int main(int argc, char** argv)
     std::string ini_file = std::string(DEFAULT_CONFIG_PATH) + "glut_opengl2.ini";
     io.IniFilename = ini_file.c_str();
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();

@@ -99,7 +99,6 @@ _OPTION(IMGUI_FONT_YUAN             "Internal Mono Yuan Fonts build in library" 
 _OPTION(IMGUI_ICONS                 "Internal Icons build in library" ON)
 _OPTION(IMGUI_APPS                  "build apps base on imgui" ON)
 _OPTION(IMGUI_APPLE_APP             "build apple app base on imgui(Apple only)" OFF IF APPLE)
-_OPTION(IMGUI_HAS_VIEWPORT          "build ImGui with viewport support" OFF)
 
 _OPTION(IMGUI_ADDON_DEAR_WIDGETS    "build Dear Widgets addon" OFF)
 _OPTION(IMGUI_ADDON_KNOB            "build ImGui Knob addon" OFF)
