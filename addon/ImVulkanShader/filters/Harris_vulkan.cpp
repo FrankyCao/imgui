@@ -30,12 +30,12 @@ Harris_vulkan::Harris_vulkan(int gpu)
     pipe_harris->set_optimal_local_size_xyz(16, 16, 1);
     pipe_harris->create(spirv_harris_data.data(), spirv_harris_data.size() * 4, specializations);
 
-    compile_spirv_module(FilterColumnF32_data, opt, spirv_column_data);
+    compile_spirv_module(FilterColumn_data, opt, spirv_column_data);
     pipe_column = new Pipeline(vkdev);
     pipe_column->set_optimal_local_size_xyz(16, 16, 1);
     pipe_column->create(spirv_column_data.data(), spirv_column_data.size() * 4, specializations);
 
-    compile_spirv_module(FilterRowF32_data, opt, spirv_row_data);
+    compile_spirv_module(FilterRow_data, opt, spirv_row_data);
     pipe_row = new Pipeline(vkdev);
     pipe_row->set_optimal_local_size_xyz(16, 16, 1);
     pipe_row->create(spirv_row_data.data(), spirv_row_data.size() * 4, specializations);
@@ -169,7 +169,7 @@ void Harris_vulkan::filter(const ImMat& src, ImMat& dst, int _blurRadius, float 
     {
         return;
     }
-    dst.create_type(src.w, src.h, 4, IM_DT_INT8);
+    dst.create_type(src.w, src.h, 4, IM_DT_FLOAT32);
     dst.color_format = IM_CF_ABGR;   // for render
 
     VkMat out_gpu;
@@ -192,7 +192,7 @@ void Harris_vulkan::filter(const ImMat& src, VkMat& dst, int _blurRadius, float 
         return;
     }
 
-    dst.create_type(src.w, src.h, 4, IM_DT_INT8, opt.blob_vkallocator);
+    dst.create_type(src.w, src.h, 4, IM_DT_FLOAT32, opt.blob_vkallocator);
     dst.color_format = IM_CF_ABGR;   // for render
 
     VkMat in_gpu;
@@ -210,7 +210,7 @@ void Harris_vulkan::filter(const VkMat& src, ImMat& dst, int _blurRadius, float 
     {
         return;
     }
-    dst.create_type(src.w, src.h, 4, IM_DT_INT8);
+    dst.create_type(src.w, src.h, 4, IM_DT_FLOAT32);
     dst.color_format = IM_CF_ABGR;   // for render
 
     VkMat out_gpu;
@@ -230,7 +230,7 @@ void Harris_vulkan::filter(const VkMat& src, VkMat& dst, int _blurRadius, float 
     {
         return;
     }
-    dst.create_type(src.w, src.h, 4, IM_DT_INT8, opt.blob_vkallocator);
+    dst.create_type(src.w, src.h, 4, IM_DT_FLOAT32, opt.blob_vkallocator);
     dst.color_format = IM_CF_ABGR;   // for render
 
     upload_param(src, dst, _blurRadius, edgeStrength, threshold, harris, sensitivity);

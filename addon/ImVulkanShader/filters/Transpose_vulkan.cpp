@@ -55,7 +55,7 @@ void Transpose_vulkan::transpose(const ImMat& src, ImMat& dst, bool bFlipX, bool
     {
         return;
     }
-    dst.create_type(src.h, src.w, 4, IM_DT_INT8);
+    dst.create_type(src.h, src.w, 4, IM_DT_FLOAT32);
     dst.color_format = IM_CF_ABGR;
 
     VkMat out_gpu;
@@ -77,7 +77,7 @@ void Transpose_vulkan::transpose(const ImMat& src, VkMat& dst, bool bFlipX, bool
     {
         return;
     }
-    dst.create_type(src.h, src.w, 4, IM_DT_INT8, opt.blob_vkallocator);
+    dst.create_type(src.h, src.w, 4, IM_DT_FLOAT32, opt.blob_vkallocator);
     dst.color_format = IM_CF_ABGR;
 
     VkMat in_gpu;
@@ -95,7 +95,7 @@ void Transpose_vulkan::transpose(const VkMat& src, ImMat& dst, bool bFlipX, bool
     {
         return;
     }
-    dst.create_type(src.h, src.w, 4, IM_DT_INT8);
+    dst.create_type(src.h, src.w, 4, IM_DT_FLOAT32);
     dst.color_format = IM_CF_ABGR;
 
     VkMat out_gpu;
@@ -116,7 +116,7 @@ void Transpose_vulkan::transpose(const VkMat& src, VkMat& dst, bool bFlipX, bool
         return;
     }
 
-    dst.create_type(src.h, src.w, 4, IM_DT_INT8, opt.blob_vkallocator);
+    dst.create_type(src.h, src.w, 4, IM_DT_FLOAT32, opt.blob_vkallocator);
     dst.color_format = IM_CF_ABGR;
     
     upload_param(src, dst, bFlipX, bFlipY);

@@ -56,7 +56,7 @@ void Bilateral_vulkan::filter(const ImMat& src, ImMat& dst, int ksz, float sigma
     {
         return;
     }
-    dst.create_type(src.w, src.h, 4, IM_DT_INT8);
+    dst.create_type(src.w, src.h, 4, IM_DT_FLOAT32);
     dst.color_format = IM_CF_ABGR;
 
     VkMat out_gpu;
@@ -78,7 +78,7 @@ void Bilateral_vulkan::filter(const ImMat& src, VkMat& dst, int ksz, float sigma
     {
         return;
     }
-    dst.create_type(src.w, src.h, 4, IM_DT_INT8, opt.blob_vkallocator);
+    dst.create_type(src.w, src.h, 4, IM_DT_FLOAT32, opt.blob_vkallocator);
     dst.color_format = IM_CF_ABGR;
 
     VkMat in_gpu;
@@ -96,7 +96,7 @@ void Bilateral_vulkan::filter(const VkMat& src, ImMat& dst, int ksz, float sigma
     {
         return;
     }
-    dst.create_type(src.w, src.h, 4, IM_DT_INT8);
+    dst.create_type(src.w, src.h, 4, IM_DT_FLOAT32);
     dst.color_format = IM_CF_ABGR;
 
     VkMat out_gpu;
@@ -117,7 +117,7 @@ void Bilateral_vulkan::filter(const VkMat& src, VkMat& dst, int ksz, float sigma
         return;
     }
 
-    dst.create_type(src.w, src.h, 4, IM_DT_INT8, opt.blob_vkallocator);
+    dst.create_type(src.w, src.h, 4, IM_DT_FLOAT32, opt.blob_vkallocator);
     dst.color_format = IM_CF_ABGR;
     
     upload_param(src, dst, ksz, sigma_spatial, sigma_color);

@@ -47,7 +47,7 @@ void main() \n\
     ivec2 uv = ivec2(gl_GlobalInvocationID.xy); \n\
     if (uv.x >= p.w || uv.y >= p.h) \n\
         return; \n\
-    sfpvec3 inputColor = load_src_rgb(uv.x, uv.y, p.w, p.cstep, p.format); \n\
+    sfpvec3 inputColor = load_float_rgba(uv.x, uv.y, p.w, p.cstep, p.format).rgb; \n\
     sfpvec3 chromaColor = sfpvec3(p.chromaColorX, p.chromaColorY, p.chromaColorZ); \n\
     sfpvec3 ambientColor = sfpvec3(p.ambientColorX, p.ambientColorY, p.ambientColorZ); \n\
     sfpvec3 color1 = extractColor(chromaColor, sfp(p.lumaMask)); \n\
@@ -66,7 +66,7 @@ void main() \n\
     dcolor -= inputColor * chromaColor * despillAlpha * sfp(p.despillScale); \n\
     // 添加环境光收益 \n\
     dcolor += inputColor * lumaFactor*ambientColor * sfp(p.ambientScale) * despillAlpha; \n\
-    store_dst_rgba(sfpvec4(dcolor,alpha), uv.x, uv.y, p.w, p.cstep, p.format); \n\
+    store_float_rgba(sfpvec4(dcolor, alpha), uv.x, uv.y, p.w, p.cstep, p.format); \n\
 } \
 "
 
@@ -74,11 +74,11 @@ void main() \n\
 static const char Filter_data[] = 
 SHADER_HEADER
 R"(
-layout (binding = 0) readonly buffer src_int8 { uint8_t src_int8_data[]; };
-layout (binding = 1) writeonly buffer dst_int8 { uint8_t dst_int8_data[]; };
+layout (binding = 0) readonly buffer src_float { float src_float_data[]; };
+layout (binding = 1) writeonly buffer dst_float { float dst_float_data[]; };
 )"
 SHADER_PARAM
-SHADER_LOAD_SRC_RGB
-SHADER_STORE_DST_RGBA
+SHADER_LOAD_FLOAT_RGBA
+SHADER_STORE_FLOAT_RGBA
 SHADER_MAIN
 ;

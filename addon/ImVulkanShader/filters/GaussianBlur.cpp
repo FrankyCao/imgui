@@ -21,15 +21,12 @@ void GaussianBlur_vulkan::prepare_kernel()
         sigma = ((ksize - 1) * 0.5 - 1) * 0.3 + 0.8;
     }
     double scale = 1.0f / (sigma * sigma * 2.0);
-    //double cons = scale / M_PI;
     double sum = 0.0;
 
-    //kernel.create(ksize, ksize, size_t(4u), 1);
     kernel.create(ksize, size_t(4u), 1);
     for (int i = 0; i < ksize; i++) 
     {
         int x = i - (ksize - 1) / 2;
-        //kernel.at<float>(i, j) = cons * exp(-scale * (x * x + y * y));
         kernel.at<float>(i) = exp(-scale * (x * x));
         sum += kernel.at<float>(i);
     }

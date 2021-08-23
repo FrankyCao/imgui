@@ -175,11 +175,25 @@ sfpvec3 load_float_rgb(int x, int y, int w, int cstep, int format) \n\
 sfpvec4 load_float_rgba(int x, int y, int w, int cstep, int format) \n\
 { \n\
     sfpvec4 rgb_in = sfpvec4(0.f); \n\
-    ivec4 i_offset = (y * w + x) * cstep + ivec4(0, 1, 2, 3); \n\
+    ivec4 i_offset = (y * w + x) * cstep + (format == CF_ABGR ? ivec4(0, 1, 2, 3) : ivec4(0, 3, 2, 1)); \n\
     rgb_in.r = sfp(src_float_data[i_offset.r]); \n\
     rgb_in.g = sfp(src_float_data[i_offset.g]); \n\
     rgb_in.b = sfp(src_float_data[i_offset.b]); \n\
     rgb_in.a = sfp(src_float_data[i_offset.a]); \n\
+    return rgb_in; \n\
+} \
+"
+
+#define SHADER_LOAD_FLOAT_DST_RGBA \
+" \n\
+sfpvec4 load_float_dst_rgba(int x, int y, int w, int cstep, int format) \n\
+{ \n\
+    sfpvec4 rgb_in = sfpvec4(0.f); \n\
+    ivec4 i_offset = (y * w + x) * cstep + (format == CF_ABGR ? ivec4(0, 1, 2, 3) : ivec4(0, 3, 2, 1)); \n\
+    rgb_in.r = sfp(dst_float_data[i_offset.r]); \n\
+    rgb_in.g = sfp(dst_float_data[i_offset.g]); \n\
+    rgb_in.b = sfp(dst_float_data[i_offset.b]); \n\
+    rgb_in.a = sfp(dst_float_data[i_offset.a]); \n\
     return rgb_in; \n\
 } \
 "

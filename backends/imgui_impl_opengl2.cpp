@@ -346,6 +346,14 @@ static void ImGui_ImplOpenGL2_ShutdownPlatformInterface()
     ImGui::DestroyPlatformWindows();
 }
 
+// Add By Dicky
+void ImGui_ImplOpenGL2_ClearScreen(ImVec2 pos, ImVec2 size, ImVec4 color)
+{
+    glViewport((int)pos.x, (int)pos.y, (int)size.x, (int)size.y);
+    glClearColor(color.x * color.w, color.y * color.w, color.z * color.w, color.w);
+    glClear(GL_COLOR_BUFFER_BIT);
+}
+
 std::string ImGui_ImplOpenGL2_GetVerion()
 {
     ImGui_ImplOpenGL2_Data* bd = ImGui_ImplOpenGL2_GetBackendData();
@@ -376,4 +384,4 @@ std::string ImGui_ImplOpenGL2_GLLoaderName()
     gl_loader = "none";
 #endif
     return std::string(gl_loader);
-}
+}// Add By Dicky end

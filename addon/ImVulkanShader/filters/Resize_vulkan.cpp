@@ -55,7 +55,7 @@ void Resize_vulkan::Resize(const ImMat& src, ImMat& dst, float fx, float fy, ImI
     cmd->record_clone(src, vk_src, opt);
     int dst_width = Im_AlignSize((fx == 0.f ? src.w : src.w * fx), 4);
     int dst_height = Im_AlignSize((fx == 0.f ? src.h : fy == 0.f ? src.h * fx : src.h * fy), 4);
-    dst_buffer.create_type(dst_width, dst_height, 4, IM_DT_INT8, opt.blob_vkallocator);
+    dst_buffer.create_type(dst_width, dst_height, 4, IM_DT_FLOAT32, opt.blob_vkallocator);
     dst_buffer.color_format = IM_CF_ABGR;   // for render
 
     upload_param(vk_src, dst_buffer, type);
@@ -72,7 +72,7 @@ void Resize_vulkan::Resize(const ImMat& src, VkMat& dst, float fx, float fy, ImI
     cmd->record_clone(src, vk_src, opt);
     int dst_width = Im_AlignSize((fx == 0.f ? src.w : src.w * fx), 4);
     int dst_height = Im_AlignSize((fx == 0.f ? src.h : fy == 0.f ? src.h * fx : src.h * fy), 4);
-    dst.create_type(dst_width, dst_height, 4, IM_DT_INT8, opt.blob_vkallocator);
+    dst.create_type(dst_width, dst_height, 4, IM_DT_FLOAT32, opt.blob_vkallocator);
     dst.color_format = IM_CF_ABGR;   // for render
 
     upload_param(vk_src, dst, type);
@@ -87,7 +87,7 @@ void Resize_vulkan::Resize(const VkMat& src, ImMat& dst, float fx, float fy, ImI
     VkMat dst_buffer;
     int dst_width = Im_AlignSize((fx == 0.f ? src.w : src.w * fx), 4);
     int dst_height = Im_AlignSize((fx == 0.f ? src.h : fy == 0.f ? src.h * fx : src.h * fy), 4);
-    dst_buffer.create_type(dst_width, dst_height, 4, IM_DT_INT8, opt.blob_vkallocator);
+    dst_buffer.create_type(dst_width, dst_height, 4, IM_DT_FLOAT32, opt.blob_vkallocator);
     dst_buffer.color_format = IM_CF_ABGR;   // for render
 
     upload_param(src, dst_buffer, type);
@@ -102,7 +102,7 @@ void Resize_vulkan::Resize(const VkMat& src, VkMat& dst, float fx, float fy, ImI
 {
     int dst_width = Im_AlignSize((fx == 0.f ? src.w : src.w * fx), 4);
     int dst_height = Im_AlignSize((fx == 0.f ? src.h : fy == 0.f ? src.h * fx : src.h * fy), 4);
-    dst.create_type(dst_width, dst_height, 4, IM_DT_INT8, opt.blob_vkallocator);
+    dst.create_type(dst_width, dst_height, 4, IM_DT_FLOAT32, opt.blob_vkallocator);
     dst.color_format = IM_CF_ABGR;   // for render
 
     upload_param(src, dst, type);

@@ -42,7 +42,7 @@ void main() \n\
             x = max(0, min(x, p.w - 1)); \n\
             y = max(0, min(y, p.h - 1)); \n\
             int index = j + i * 3; \n\
-            sfp value = load_src_rgb(x, y, p.w, p.cstep, p.format).r; \n\
+            sfp value = load_float_rgba(x, y, p.w, p.cstep, p.format).r; \n\
             vertical += value * verticalKernel[index]; \n\
             horizont += value * horizontKernel[index]; \n\
         } \n\
@@ -60,11 +60,11 @@ void main() \n\
 static const char DSobelFilter_data[] = 
 SHADER_HEADER
 R"(
-layout (binding = 0) readonly buffer src_int8 { uint8_t src_int8_data[]; };
+layout (binding = 0) readonly buffer src_float { float src_float_data[]; };
 layout (binding = 1) writeonly buffer dst_float { float dst_float_data[]; };
 )"
 DSOBEL_PARAM
-SHADER_LOAD_SRC_RGB
+SHADER_LOAD_FLOAT_RGBA
 SHADER_STORE_FLOAT_RGB
 SHADER_DSOBEL_MAIN
 ;
@@ -165,7 +165,7 @@ void main() \n\
     } \n\
     sfp sumTest = step(sfp(1.5f), sum); \n\
     sfp pixelTest = step(sfp(0.01f), current); \n\
-    store_dst_rgb(sfpvec3(sumTest * pixelTest), gx, gy, p.w, p.cstep, p.format); \n\
+    store_float_rgba(sfpvec4(sfpvec3(sumTest * pixelTest), 1.0f), gx, gy, p.w, p.cstep, p.format); \n\
 } \
 "
 
@@ -173,10 +173,10 @@ static const char CannyFilter_data[] =
 SHADER_HEADER
 R"(
 layout (binding = 0) readonly buffer src_float { float src_float_data[]; };
-layout (binding = 1) writeonly buffer dst_int8 { uint8_t dst_int8_data[]; };
+layout (binding = 1) writeonly buffer dst_float { float dst_float_data[]; };
 )"
 CANNY_SHADER_PARAM
 SHADER_LOAD_FLOAT
-SHADER_STORE_DST_RGB
+SHADER_STORE_FLOAT_RGBA
 SHADER_CANNY_MAIN
 ;

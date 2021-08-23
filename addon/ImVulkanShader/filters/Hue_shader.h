@@ -53,21 +53,22 @@ void main() \n\
     int gy = int(gl_GlobalInvocationID.y); \n\
     if (gx >= p.w || gy >= p.h) \n\
         return; \n\
-    sfpvec3 color = load_src_rgb(gx, gy, p.w, p.cstep, p.format); \n\
+    sfpvec3 color = load_float_rgba(gx, gy, p.w, p.cstep, p.format).rgb; \n\
     sfpvec3 result = hue(color); \n\
-    store_dst_rgb(result, gx, gy, p.w, p.cstep, p.format); \n\
+    result = clamp(result, sfpvec3(0.f), sfpvec3(1.0f)); \n\
+    store_float_rgba(sfpvec4(result, 1.0f), gx, gy, p.w, p.cstep, p.format); \n\
 } \
 "
 
 static const char Filter_data[] = 
 SHADER_HEADER
 R"(
-layout (binding = 0) readonly buffer src_int8 { uint8_t src_int8_data[]; };
-layout (binding = 1) writeonly buffer dst_int8 { uint8_t dst_int8_data[]; };
+layout (binding = 0) readonly buffer src_float { float src_float_data[]; };
+layout (binding = 1) writeonly buffer dst_float { float dst_float_data[]; };
 )"
 SHADER_PARAM
-SHADER_LOAD_SRC_RGB
-SHADER_STORE_DST_RGB
+SHADER_LOAD_FLOAT_RGBA
+SHADER_STORE_FLOAT_RGBA
 SHADER_HUE
 SHADER_MAIN
 ;

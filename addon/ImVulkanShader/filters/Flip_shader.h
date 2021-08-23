@@ -29,19 +29,19 @@ void main() \n\
         ix = p.w - 1 - ix; \n\
     if (p.bFlipY != 0) \n\
         iy = p.h - 1 - iy; \n\
-    sfpvec3 result = load_src_rgb(ix,iy, p.w, p.cstep, p.format); \n\
-    store_dst_rgb(result, uv.x, uv.y, p.w, p.cstep, p.format); \n\
+    sfpvec4 result = load_float_rgba(ix,iy, p.w, p.cstep, p.format); \n\
+    store_float_rgba(result, uv.x, uv.y, p.w, p.cstep, p.format); \n\
 } \
 "
 
 static const char Shader_data[] = 
 SHADER_HEADER
 R"(
-layout (binding = 0) readonly buffer src_int8 { uint8_t src_int8_data[]; };
-layout (binding = 1) writeonly buffer dst_int8 { uint8_t dst_int8_data[]; };
+layout (binding = 0) readonly buffer src_float { float src_float_data[]; };
+layout (binding = 1) writeonly buffer dst_float { float dst_float_data[]; };
 )"
 SHADER_PARAM
-SHADER_LOAD_SRC_RGB
-SHADER_STORE_DST_RGB
+SHADER_LOAD_FLOAT_RGBA
+SHADER_STORE_FLOAT_RGBA
 SHADER_MAIN
 ;

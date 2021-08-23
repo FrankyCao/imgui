@@ -16,35 +16,9 @@ layout (push_constant) uniform parameter \n\
 } p; \
 "
 
-#define SHADER_LOAD_SRC \
-" \n\
-sfpvec4 load_src(int x, int y, int z) \n\
-{ \n\
-    ivec4 v_offset = (y * p.w + x) * p.cstep + (p.format == CF_ABGR ? ivec4(0, 1, 2, 3) : ivec4(0, 3, 2, 1)); \n\
-    sfpvec4 rgb_in = {sfp(0.f), sfp(0.f), sfp(0.f), sfp(1.f)}; \n\
-    rgb_in.r = sfp(uint(bottom_blob_int8_data[v_offset.r])) / sfp(255.0f); \n\
-    rgb_in.g = sfp(uint(bottom_blob_int8_data[v_offset.g])) / sfp(255.0f); \n\
-    rgb_in.b = sfp(uint(bottom_blob_int8_data[v_offset.b])) / sfp(255.0f); \n\
-    rgb_in.a = sfp(uint(bottom_blob_int8_data[v_offset.a])) / sfp(255.0f); \n\
-    return rgb_in;  \n\
-} \
-"
-
-#define SHADER_STORE_RGB \
-" \n\
-void store_dst_rgb(int x, int y, int z, sfpvec4 rgb) \n\
-{ \n\
-    ivec4 o_offset = (y * p.outw + x) * p.cstep + (p.format == CF_ABGR ? ivec4(0, 1, 2, 3) : ivec4(0, 3, 2, 1)); \n\
-    top_blob_int8_data[o_offset.r] = uint8_t(clamp(uint(floor(rgb.r * sfp(255.0))), 0, 255)); \n\
-    top_blob_int8_data[o_offset.g] = uint8_t(clamp(uint(floor(rgb.g * sfp(255.0))), 0, 255)); \n\
-    top_blob_int8_data[o_offset.b] = uint8_t(clamp(uint(floor(rgb.b * sfp(255.0))), 0, 255)); \n\
-    top_blob_int8_data[o_offset.a] = uint8_t(255); \n\
-} \
-"
-
 #define INTERPLATE_NEAREST \
 " \n\
-sfpvec4 interplate_nearest(int x, int y, int z) \n\
+sfpvec4 interplate_nearest(int x, int y) \n\
 { \n\
     float fx = float(p.outw) / float(p.w); \n\
     float fy = float(p.outh) / float(p.h); \n\
@@ -52,13 +26,13 @@ sfpvec4 interplate_nearest(int x, int y, int z) \n\
     int srcy = int(floor(y / fy)); \n\
     srcx = min(srcx, p.w - 1); \n\
     srcy = min(srcy, p.h - 1); \n\
-    return load_src(srcx, srcy, z); \n\
+    return load_float_rgba(srcx, srcy, p.w, p.cstep, p.format); \n\
 } \
 "
 
 #define INTERPLATE_BILINEAR \
 " \n\
-sfpvec4 interplate_bilinear(int x, int y, int z) \n\
+sfpvec4 interplate_bilinear(int x, int y) \n\
 { \n\
     float fx = float(p.outw) / float(p.w); \n\
     float fy = float(p.outh) / float(p.h); \n\
@@ -89,10 +63,10 @@ sfpvec4 interplate_bilinear(int x, int y, int z) \n\
         v = sfp(1.f); \n\
     } \n\
     sfpvec4 _v = {sfp(0.f), sfp(0.f), sfp(0.f), sfp(0.f)}; \n\
-    sfpvec4 _x_y   = load_src(_x,     _y,      z); \n\
-    sfpvec4 _x1_y  = load_src(_x + 1, _y,      z); \n\
-    sfpvec4 _x_y1  = load_src(_x,     _y + 1,  z); \n\
-    sfpvec4 _x1_y1 = load_src(_x + 1, _y + 1,  z); \n\
+    sfpvec4 _x_y   = load_float_rgba(_x,     _y,      p.w, p.cstep, p.format); \n\
+    sfpvec4 _x1_y  = load_float_rgba(_x + 1, _y,      p.w, p.cstep, p.format); \n\
+    sfpvec4 _x_y1  = load_float_rgba(_x,     _y + 1,  p.w, p.cstep, p.format); \n\
+    sfpvec4 _x1_y1 = load_float_rgba(_x + 1, _y + 1,  p.w, p.cstep, p.format); \n\
     _v = (sfp(1.f) - u) * (sfp(1.f) - v) * _x_y +  \n\
         (sfp(1.f) - u) * v * _x_y1 + \n\
         u * (sfp(1.f) - v) * _x1_y + \n\
@@ -103,7 +77,7 @@ sfpvec4 interplate_bilinear(int x, int y, int z) \n\
 
 #define INTERPLATE_BICUBIC \
 " \n\
-sfpvec4 interplate_bicubic(int x, int y, int z) \n\
+sfpvec4 interplate_bicubic(int x, int y) \n\
 { \n\
     const sfp A = sfp(-0.75f); \n\
     sfp scale_x = sfp(p.w) / sfp(p.outw); \n\
@@ -136,22 +110,22 @@ sfpvec4 interplate_bicubic(int x, int y, int z) \n\
 	cbufY[3] = sfp(1.f) - cbufY[0] - cbufY[1] - cbufY[2]; \n\
     \n\
     sfpvec4 _v = {sfp(0.f), sfp(0.f), sfp(0.f), sfp(0.f)}; \n\
-    sfpvec4 _x_1_y_1 = load_src(sx-1, sy-1,z); \n\
-    sfpvec4 _x_1_y   = load_src(sx-1, sy,  z); \n\
-    sfpvec4 _x_1_y1  = load_src(sx-1, sy+1,z); \n\
-    sfpvec4 _x_1_y2  = load_src(sx-1, sy+2,z); \n\
-    sfpvec4 _x_y_1   = load_src(sx,   sy-1,z); \n\
-    sfpvec4 _x_y     = load_src(sx,   sy,  z); \n\
-    sfpvec4 _x_y1    = load_src(sx,   sy+1,z); \n\
-    sfpvec4 _x_y2    = load_src(sx,   sy+2,z); \n\
-    sfpvec4 _x1_y_1  = load_src(sx+1, sy-1,z); \n\
-    sfpvec4 _x1_y    = load_src(sx+1, sy,  z); \n\
-    sfpvec4 _x1_y1   = load_src(sx+1, sy+1,z); \n\
-    sfpvec4 _x1_y2   = load_src(sx+1, sy+2,z); \n\
-    sfpvec4 _x2_y_1  = load_src(sx+2, sy-1,z); \n\
-    sfpvec4 _x2_y    = load_src(sx+2, sy,  z); \n\
-    sfpvec4 _x2_y1   = load_src(sx+2, sy+1,z); \n\
-    sfpvec4 _x2_y2   = load_src(sx+2, sy+2,z); \n\
+    sfpvec4 _x_1_y_1 = load_float_rgba(sx-1, sy-1, p.w, p.cstep, p.format); \n\
+    sfpvec4 _x_1_y   = load_float_rgba(sx-1, sy,   p.w, p.cstep, p.format); \n\
+    sfpvec4 _x_1_y1  = load_float_rgba(sx-1, sy+1, p.w, p.cstep, p.format); \n\
+    sfpvec4 _x_1_y2  = load_float_rgba(sx-1, sy+2, p.w, p.cstep, p.format); \n\
+    sfpvec4 _x_y_1   = load_float_rgba(sx,   sy-1, p.w, p.cstep, p.format); \n\
+    sfpvec4 _x_y     = load_float_rgba(sx,   sy,   p.w, p.cstep, p.format); \n\
+    sfpvec4 _x_y1    = load_float_rgba(sx,   sy+1, p.w, p.cstep, p.format); \n\
+    sfpvec4 _x_y2    = load_float_rgba(sx,   sy+2, p.w, p.cstep, p.format); \n\
+    sfpvec4 _x1_y_1  = load_float_rgba(sx+1, sy-1, p.w, p.cstep, p.format); \n\
+    sfpvec4 _x1_y    = load_float_rgba(sx+1, sy,   p.w, p.cstep, p.format); \n\
+    sfpvec4 _x1_y1   = load_float_rgba(sx+1, sy+1, p.w, p.cstep, p.format); \n\
+    sfpvec4 _x1_y2   = load_float_rgba(sx+1, sy+2, p.w, p.cstep, p.format); \n\
+    sfpvec4 _x2_y_1  = load_float_rgba(sx+2, sy-1, p.w, p.cstep, p.format); \n\
+    sfpvec4 _x2_y    = load_float_rgba(sx+2, sy,   p.w, p.cstep, p.format); \n\
+    sfpvec4 _x2_y1   = load_float_rgba(sx+2, sy+1, p.w, p.cstep, p.format); \n\
+    sfpvec4 _x2_y2   = load_float_rgba(sx+2, sy+2, p.w, p.cstep, p.format); \n\
     \n\
     _v = \n\
         _x_1_y_1 * cbufX[0] * cbufY[0] + _x_1_y  * cbufX[0] * cbufY[1] + \n\
@@ -168,7 +142,7 @@ sfpvec4 interplate_bicubic(int x, int y, int z) \n\
 
 #define INTERPLATE_AREA \
 " \n\
-sfpvec4 interplate_area(int x, int y, int z) \n\
+sfpvec4 interplate_area(int x, int y) \n\
 { \n\
     sfpvec4 _v = {sfp(0.f), sfp(0.f), sfp(0.f), sfp(0.f)}; \n\
     sfp scale_x = sfp(p.w) / sfp(p.outw); \n\
@@ -194,7 +168,7 @@ sfpvec4 interplate_area(int x, int y, int z) \n\
         { \n\
             for (int i = 0; i < i_cellWidth; i++) \n\
             { \n\
-                _v += load_src(sx1 + i, sy1 + j, z);// * dx * dy; \n\
+                _v += load_float_rgba(sx1 + i, sy1 + j, p.w, p.cstep, p.format);// * dx * dy; \n\
             } \n\
         } \n\
         _v /= sfp(i_cellWidth * i_cellHeight); \n\
@@ -223,10 +197,10 @@ sfpvec4 interplate_area(int x, int y, int z) \n\
 		sfp cbufy[2]; \n\
 		cbufy[0] = sfp(1.f) - fy; \n\
 		cbufy[1] = sfp(1.f) - cbufy[0]; \n\
-        _v = load_src(sx,     sy,    z) * cbufx[0] * cbufy[0] + \n\
-             load_src(sx,     sy + 1,z) * cbufx[0] * cbufy[1] + \n\
-             load_src(sx + 1, sy,    z) * cbufx[1] * cbufy[0] + \n\
-             load_src(sx + 1, sy + 1,z) * cbufx[1] * cbufy[1]; \n\
+        _v = load_float_rgba(sx,     sy,     p.w, p.cstep, p.format) * cbufx[0] * cbufy[0] + \n\
+             load_float_rgba(sx,     sy + 1, p.w, p.cstep, p.format) * cbufx[0] * cbufy[1] + \n\
+             load_float_rgba(sx + 1, sy,     p.w, p.cstep, p.format) * cbufx[1] * cbufy[0] + \n\
+             load_float_rgba(sx + 1, sy + 1, p.w, p.cstep, p.format) * cbufx[1] * cbufy[1]; \n\
     } \n\
     return _v; \n\
 } \
@@ -234,18 +208,18 @@ sfpvec4 interplate_area(int x, int y, int z) \n\
 
 #define INTERPLATE \
 " \n\
-sfpvec4 interplate(int x, int y, int z) \n\
+sfpvec4 interplate(int x, int y) \n\
 { \n\
     if (p.interp_type == INTERPOLATE_NEAREST) \n\
-        return interplate_nearest(x, y, z); \n\
+        return interplate_nearest(x, y); \n\
     else if (p.interp_type == INTERPOLATE_BILINEAR) \n\
-        return interplate_bilinear(x, y, z); \n\
+        return interplate_bilinear(x, y); \n\
     else if (p.interp_type == INTERPOLATE_BICUBIC) \n\
-        return interplate_bicubic(x, y, z); \n\
+        return interplate_bicubic(x, y); \n\
     else if (p.interp_type == INTERPOLATE_AREA) \n\
-        return interplate_area(x, y, z); \n\
+        return interplate_area(x, y); \n\
     else \n\
-        return interplate_nearest(x, y, z); \n\
+        return interplate_nearest(x, y); \n\
 } \
 "
 
@@ -259,20 +233,20 @@ void main() \n\
     \n\
     if (gx >= p.outw || gy >= p.outh || gz >= 3) \n\
         return; \n\
-    sfpvec4 v = interplate(gx, gy, gz); \n\
-    store_dst_rgb(gx, gy, gz, v); \n\
+    sfpvec4 v = interplate(gx, gy); \n\
+    store_float_rgba(v, gx, gy, p.outw, p.cstep, p.format); \n\
 } \
 "
 
 static const char Resize_data[] = 
 SHADER_HEADER
 R"(
-layout (binding = 0) readonly buffer bottom_blob_int8 { uint8_t bottom_blob_int8_data[]; };
-layout (binding = 1) writeonly buffer top_blob_int8 { uint8_t top_blob_int8_data[]; };
+layout (binding = 0) readonly buffer src_float { float src_float_data[]; };
+layout (binding = 1) writeonly buffer dst_float { float dst_float_data[]; };
 )"
 SHADER_PARAM
-SHADER_LOAD_SRC
-SHADER_STORE_RGB
+SHADER_LOAD_FLOAT_RGBA
+SHADER_STORE_FLOAT_RGBA
 INTERPLATE_NEAREST
 INTERPLATE_BILINEAR
 INTERPLATE_BICUBIC

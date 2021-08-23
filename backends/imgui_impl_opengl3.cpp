@@ -195,7 +195,7 @@ bool    ImGui_ImplOpenGL3_Init(const char* glsl_version)
     IM_ASSERT(io.BackendRendererUserData == NULL && "Already initialized a renderer backend!");
 
     // Initialize our loader
-#if !defined(IMGUI_IMPL_OPENGL_ES2) && !defined(IMGUI_IMPL_OPENGL_ES3)
+#if !defined(IMGUI_IMPL_OPENGL_ES2) && !defined(IMGUI_IMPL_OPENGL_ES3) && !defined(IMGUI_IMPL_OPENGL_LOADER_CUSTOM)
     if (imgl3wInit() != 0)
     {
         fprintf(stderr, "Failed to initialize OpenGL loader!\n");
@@ -204,7 +204,7 @@ bool    ImGui_ImplOpenGL3_Init(const char* glsl_version)
 #endif
 
     // Setup backend capabilities flags
-    ImGui_ImplOpenGL3_Data* bd = IM_NEW(ImGui_ImplOpenGL3_Data)();;
+    ImGui_ImplOpenGL3_Data* bd = IM_NEW(ImGui_ImplOpenGL3_Data)();
     io.BackendRendererUserData = (void*)bd;
     io.BackendRendererName = "imgui_impl_opengl3";
 
@@ -815,6 +815,14 @@ static void ImGui_ImplOpenGL3_ShutdownPlatformInterface()
     ImGui::DestroyPlatformWindows();
 }
 
+// Add By Dicky
+void ImGui_ImplOpenGL3_ClearScreen(ImVec2 pos, ImVec2 size, ImVec4 color)
+{
+    glViewport((int)pos.x, (int)pos.y, (int)size.x, (int)size.y);
+    glClearColor(color.x * color.w, color.y * color.w, color.z * color.w, color.w);
+    glClear(GL_COLOR_BUFFER_BIT);
+}
+
 std::string ImGui_ImplOpenGL3_GetVerion()
 {
     ImGui_ImplOpenGL3_Data* bd = ImGui_ImplOpenGL3_GetBackendData();
@@ -844,3 +852,4 @@ std::string ImGui_ImplOpenGL3_GLLoaderName()
 #endif
     return std::string(gl_loader);
 }
+// Add By Dicky end

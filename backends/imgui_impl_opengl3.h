@@ -34,8 +34,11 @@ IMGUI_IMPL_API void     ImGui_ImplOpenGL3_DestroyFontsTexture();
 IMGUI_IMPL_API bool     ImGui_ImplOpenGL3_CreateDeviceObjects();
 IMGUI_IMPL_API void     ImGui_ImplOpenGL3_DestroyDeviceObjects();
 
-IMGUI_IMPL_API std::string ImGui_ImplOpenGL3_GetVerion();    // add by Dicky 
-IMGUI_IMPL_API std::string ImGui_ImplOpenGL3_GLLoaderName(); // add by Dicky
+// add by Dicky 
+IMGUI_IMPL_API void         ImGui_ImplOpenGL3_ClearScreen(ImVec2 pos, ImVec2 size, ImVec4 color);
+IMGUI_IMPL_API std::string  ImGui_ImplOpenGL3_GetVerion();
+IMGUI_IMPL_API std::string  ImGui_ImplOpenGL3_GLLoaderName();
+// add by Dicky end
 // Specific OpenGL ES versions
 //#define IMGUI_IMPL_OPENGL_ES2     // Auto-detected on Emscripten
 //#define IMGUI_IMPL_OPENGL_ES3     // Auto-detected on iOS/Android

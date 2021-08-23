@@ -59,24 +59,24 @@ void main() \n\
             x = max(0, min(x, p.w - 1)); \n\
             y = max(0, min(y, p.h - 1)); \n\
             int index = j + i * 3; \n\
-            sfpvec3 value = rgb_to_yuv(load_src_rgb(x, y, p.w, p.cstep, p.format)); \n\
+            sfpvec3 value = rgb_to_yuv(load_float_rgba(x, y, p.w, p.cstep, p.format).rgb); \n\
             vertical += value.x * sfp(verticalKernel[index]); \n\
             horizont += value.x * sfp(horizontKernel[index]); \n\
         } \n\
     } \n\
     sfp mag = length(sfpvec2(horizont, vertical)) * sfp(p.strength); \n\
-    store_dst_rgb(sfpvec3(mag), gx, gy, p.w, p.cstep, p.format); \n\
+    store_float_rgba(sfpvec4(mag, mag, mag, 1.0f), gx, gy, p.w, p.cstep, p.format); \n\
 } \
 "
 
 static const char Filter_data[] = 
 SHADER_HEADER
 R"(
-layout (binding = 0) readonly buffer src_int8 { uint8_t src_int8_data[]; };
-layout (binding = 1) writeonly buffer dst_int8 { uint8_t dst_int8_data[]; };
+layout (binding = 0) readonly buffer src_float { float src_float_data[]; };
+layout (binding = 1) writeonly buffer dst_float { float dst_float_data[]; };
 )"
 SHADER_PARAM
-SHADER_LOAD_SRC_RGB
-SHADER_STORE_DST_RGB
+SHADER_LOAD_FLOAT_RGBA
+SHADER_STORE_FLOAT_RGBA
 SHADER_MAIN
 ;

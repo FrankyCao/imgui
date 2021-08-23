@@ -34,7 +34,7 @@ Index of this file:
 #endif
 
 #include "imgui_internal.h"
-#if IMGUI_ENABLE_FREETYPE
+#if IMGUI_ENABLE_FREETYPE    // modify by Dicky 
 #include "misc/freetype/imgui_freetype.h"
 #endif
 
@@ -2381,7 +2381,7 @@ bool    ImFontAtlas::Build()
     const ImFontBuilderIO* builder_io = FontBuilderIO;
     if (builder_io == NULL)
     {
-#if IMGUI_ENABLE_FREETYPE
+#if IMGUI_ENABLE_FREETYPE  // modify by Dicky
         builder_io = ImGuiFreeType::GetBuilderForFreeType();
 #elif defined(IMGUI_ENABLE_STB_TRUETYPE)
         builder_io = ImFontAtlasGetBuilderForStbTruetype();

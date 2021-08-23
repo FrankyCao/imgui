@@ -36,23 +36,23 @@ void main() \n\
             // REPLICATE border \n\
             x = max(0, min(x, p.w - 1)); \n\
             y = max(0, min(y, p.h - 1)); \n\
-            sfpvec3 rgb = load_src_rgb(x, y, p.w, p.cstep, p.format) * sfp(kernel_data[kInd++]); \n\
+            sfpvec3 rgb = load_float_rgba(x, y, p.w, p.cstep, p.format).rgb * sfp(kernel_data[kInd++]); \n\
             sum = sum + rgb; \n\
         } \n\
     } \n\
-    store_dst_rgb(sum, uv.x, uv.y, p.w, p.cstep, p.format); \n\
+    store_float_rgba(sfpvec4(sum, sfp(1.0f)), uv.x, uv.y, p.w, p.cstep, p.format); \n\
 } \
 "
 
 static const char Filter_data[] = 
 SHADER_HEADER
 R"(
-layout (binding = 0) readonly buffer src_int8 { uint8_t src_int8_data[]; };
-layout (binding = 1) writeonly buffer dst_int8 { uint8_t dst_int8_data[]; };
+layout (binding = 0) readonly buffer src_float { float src_float_data[]; };
+layout (binding = 1) writeonly buffer dst_float { float dst_float_data[]; };
 layout (binding = 2) readonly buffer kernel_float { float kernel_data[]; };
 )"
 SHADER_PARAM
-SHADER_LOAD_SRC_RGB
-SHADER_STORE_DST_RGB
+SHADER_LOAD_FLOAT_RGBA
+SHADER_STORE_FLOAT_RGBA
 SHADER_FILTER_MAIN
 ;

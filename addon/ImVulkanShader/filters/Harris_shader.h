@@ -43,7 +43,7 @@ void main() \n\
             x = max(0, min(x, p.w - 1)); \n\
             y = max(0, min(y, p.h - 1)); \n\
             int index = j + i * 3; \n\
-            sfp value = load_src_rgb(x, y, p.w, p.cstep, p.format).r; \n\
+            sfp value = load_float_rgba(x, y, p.w, p.cstep, p.format).r; \n\
             vertical += value * verticalKernel[index]; \n\
             horizont += value * horizontKernel[index]; \n\
         } \n\
@@ -62,11 +62,11 @@ void main() \n\
 static const char PrewittFilter_data[] = 
 SHADER_HEADER
 R"(
-layout (binding = 0) readonly buffer src_int8 { uint8_t src_int8_data[]; };
+layout (binding = 0) readonly buffer src_float { float src_float_data[]; };
 layout (binding = 1) writeonly buffer dst_float { float dst_float_data[]; };
 )"
 PREWITT_PARAM
-SHADER_LOAD_SRC_RGB
+SHADER_LOAD_FLOAT_RGBA
 SHADER_STORE_FLOAT_RGBA
 SHADER_PREWITT_MAIN
 ;
@@ -131,6 +131,15 @@ layout (push_constant) uniform parameter \n\
 } p; \
 "
 
+#define SHADER_LOAD_FLOAT_GRAY \
+" \n\
+sfp load_float(int x, int y, int w) \n\
+{ \n\
+    int i_offset = y * w + x; \n\
+    return sfp(src_float_gray_data[i_offset]); \n\
+} \
+"
+
 #define SHADER_NMS_MAIN \
 " \n\
 void main() \n\
@@ -171,7 +180,7 @@ void main() \n\
     // step(maxValue, values[4])需要当前值最大才为1 \n\
     sfp result = values[4]* step(maxValue, values[4]) * multiplier; \n\
     result = step(sfp(p.threshold), result); \n\
-    sfpvec3 rgb_in = load_src_rgb(gx, gy, p.w, p.cstep, p.format); \n\
+    sfpvec3 rgb_in = load_float_rgba(gx, gy, p.w, p.cstep, p.format).rgb; \n\
     if (result > 0) \n\
     { \n\
         rgb_in = sfpvec3(1.0, 0.0, 0.0); \n\
@@ -184,26 +193,26 @@ void main() \n\
                 // REPLICATE border \n\
                 x = max(0, min(x, p.w - 1)); \n\
                 y = max(0, min(y, p.h - 1)); \n\
-                store_dst_rgb(rgb_in, x, y, p.w, p.cstep, p.format); \n\
+                store_float_rgba(sfpvec4(rgb_in, 1.0f), x, y, p.w, p.cstep, p.format); \n\
             } \n\
         } \n\
     } \n\
     else \n\
-        store_dst_rgb(rgb_in, gx, gy, p.w, p.cstep, p.format); \n\
+        store_float_rgba(sfpvec4(rgb_in, 1.0f), gx, gy, p.w, p.cstep, p.format); \n\
 } \
 "
 
 static const char NMSFilter_data[] = 
 SHADER_HEADER
 R"(
-layout (binding = 0) readonly buffer src_float { float src_float_data[]; };
-layout (binding = 1) readonly buffer src_int8 { uint8_t src_int8_data[]; };
-layout (binding = 2) writeonly buffer dst_float { uint8_t dst_int8_data[]; };
+layout (binding = 0) readonly buffer src_gray_float { float src_float_gray_data[]; };
+layout (binding = 1) readonly buffer src_float { float src_float_data[]; };
+layout (binding = 2) writeonly buffer dst_float { float dst_float_data[]; };
 )"
 NMS_SHADER_PARAM
-SHADER_LOAD_FLOAT
-SHADER_LOAD_SRC_RGB
-SHADER_STORE_DST_RGB
+SHADER_LOAD_FLOAT_GRAY
+SHADER_LOAD_FLOAT_RGBA
+SHADER_STORE_FLOAT_RGBA
 SHADER_NMS_MAIN
 ;
 

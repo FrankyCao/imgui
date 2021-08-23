@@ -87,62 +87,24 @@ sfp load_src_gray(int x, int y, int z) \n\
 " \n\
 void store_dst_rgb(int x, int y, int z, sfpvec3 rgb) \n\
 { \n\
-    if (p.out_format == CF_ABGR) \n\
-    { \n\
-        ivec4 o_offset = (y * p.w + x) * p.cstep + ivec4(0, 1, 2, 3); \n\
-        RGBA_data[o_offset.r] = uint8_t(clamp(uint(floor(rgb.r * sfp(255.0))), 0, 255)); \n\
-        RGBA_data[o_offset.g] = uint8_t(clamp(uint(floor(rgb.g * sfp(255.0))), 0, 255)); \n\
-        RGBA_data[o_offset.b] = uint8_t(clamp(uint(floor(rgb.b * sfp(255.0))), 0, 255)); \n\
-        RGBA_data[o_offset.a] = uint8_t(255); \n\
-    } \n\
-    else if (p.out_format == CF_ARGB) \n\
-    { \n\
-        ivec4 o_offset = (y * p.w + x) * p.cstep + ivec4(0, 3, 2, 1); \n\
-        RGBA_data[o_offset.r] = uint8_t(clamp(uint(floor(rgb.r * sfp(255.0))), 0, 255)); \n\
-        RGBA_data[o_offset.g] = uint8_t(clamp(uint(floor(rgb.g * sfp(255.0))), 0, 255)); \n\
-        RGBA_data[o_offset.b] = uint8_t(clamp(uint(floor(rgb.b * sfp(255.0))), 0, 255)); \n\
-        RGBA_data[o_offset.a] = uint8_t(255); \n\
-    } \n\
-    else \n\
-    { \n\
-        ivec4 v_offset = (y * p.w + x) + ivec4(0, 1, 2, 3) * (p.w * p.h); \n\
-        buffer_st1(Out_data, v_offset.r, float(clamp(rgb.r, sfp(0.f), sfp(1.f)))); \n\
-        buffer_st1(Out_data, v_offset.g, float(clamp(rgb.g, sfp(0.f), sfp(1.f)))); \n\
-        buffer_st1(Out_data, v_offset.b, float(clamp(rgb.b, sfp(0.f), sfp(1.f)))); \n\
-        buffer_st1(Out_data, v_offset.a, 1.f); \n\
-    } \n\
+    ivec4 o_offset = (y * p.w + x) * p.cstep + (p.out_format == CF_ABGR ? ivec4(0, 1, 2, 3) : ivec4(0, 3, 2, 1)); \n\
+    RGBA_data[o_offset.r] = float(rgb.r); \n\
+    RGBA_data[o_offset.g] = float(rgb.g); \n\
+    RGBA_data[o_offset.b] = float(rgb.b); \n\
+    RGBA_data[o_offset.a] = 1.0f; \n\
 } \
 "
 
-#define SHADER_STORE_RGB_NV12 \
+#define SHADER_STORE_RGB_SIDE_BY_SIDE \
 " \n\
-void store_dst_rgb_nv12(int x, int y, int z, sfpvec3 rgb) \n\
+void store_dst_rgb_side_by_side(int x, int y, int z, sfpvec3 rgb) \n\
 { \n\
     int planner = x % 2 == 0 ? x / 2 : x / 2 + p.w / 2; \n\
-    if (p.out_format == CF_ABGR) \n\
-    { \n\
-        ivec4 o_offset = (y * p.w + planner) * p.cstep + ivec4(0, 1, 2, 3); \n\
-        RGBA_data[o_offset.r] = uint8_t(clamp(uint(floor(rgb.r * sfp(255.0))), 0, 255)); \n\
-        RGBA_data[o_offset.g] = uint8_t(clamp(uint(floor(rgb.g * sfp(255.0))), 0, 255)); \n\
-        RGBA_data[o_offset.b] = uint8_t(clamp(uint(floor(rgb.b * sfp(255.0))), 0, 255)); \n\
-        RGBA_data[o_offset.a] = uint8_t(255); \n\
-    } \n\
-    else if (p.out_format == CF_ARGB) \n\
-    { \n\
-        ivec4 o_offset = (y * p.w + x) * p.cstep + ivec4(0, 3, 2, 1); \n\
-        RGBA_data[o_offset.r] = uint8_t(clamp(uint(floor(rgb.r * sfp(255.0))), 0, 255)); \n\
-        RGBA_data[o_offset.g] = uint8_t(clamp(uint(floor(rgb.g * sfp(255.0))), 0, 255)); \n\
-        RGBA_data[o_offset.b] = uint8_t(clamp(uint(floor(rgb.b * sfp(255.0))), 0, 255)); \n\
-        RGBA_data[o_offset.a] = uint8_t(255); \n\
-    } \n\
-    else \n\
-    { \n\
-        ivec4 v_offset = (y * p.w + x) + ivec4(0, 1, 2, 3) * (p.w * p.h); \n\
-        buffer_st1(Out_data, v_offset.r, float(clamp(rgb.r, sfp(0.f), sfp(1.f)))); \n\
-        buffer_st1(Out_data, v_offset.g, float(clamp(rgb.g, sfp(0.f), sfp(1.f)))); \n\
-        buffer_st1(Out_data, v_offset.b, float(clamp(rgb.b, sfp(0.f), sfp(1.f)))); \n\
-        buffer_st1(Out_data, v_offset.a, 1.f); \n\
-    } \n\
+    ivec4 o_offset = (y * p.w + planner) * p.cstep + (p.out_format == CF_ABGR ? ivec4(0, 1, 2, 3) : ivec4(0, 3, 2, 1)); \n\
+    RGBA_data[o_offset.r] = float(rgb.r); \n\
+    RGBA_data[o_offset.g] = float(rgb.g); \n\
+    RGBA_data[o_offset.b] = float(rgb.b); \n\
+    RGBA_data[o_offset.a] = 1.0f; \n\
 } \
 "
 
@@ -167,7 +129,7 @@ void main() \n\
     int gz = int(gl_GlobalInvocationID.z); \n\
     sfpvec3 rgb = gray_to_rgb(load_src_gray(gx, gy, gz)); \n\
     if (p.in_format == CF_NV12) \n\
-        store_dst_rgb_nv12(gx, gy, gz, rgb); \n\
+        store_dst_rgb_side_by_side(gx, gy, gz, rgb); \n\
     else \n\
         store_dst_rgb(gx, gy, gz, rgb); \n\
 } \
@@ -179,9 +141,8 @@ R"(
 layout (binding = 0) readonly buffer Y { uint8_t Y_data[]; };
 layout (binding = 1) readonly buffer U { uint8_t U_data[]; };
 layout (binding = 2) readonly buffer V { uint8_t V_data[]; };
-layout (binding = 3) writeonly buffer Out { float Out_data[]; };
-layout (binding = 4) writeonly buffer RGBA { uint8_t RGBA_data[]; };
-layout (binding = 5) readonly buffer matrix_y2r { float convert_matrix_y2r[]; };
+layout (binding = 3) writeonly buffer RGBA { float RGBA_data[]; };
+layout (binding = 4) readonly buffer matrix_y2r { float convert_matrix_y2r[]; };
 )"
 SHADER_MAT_Y2R
 SHADER_PARAM_Y2R
@@ -197,9 +158,8 @@ R"(
 layout (binding = 0) readonly buffer Y { uint16_t Y_data[]; };
 layout (binding = 1) readonly buffer U { uint16_t U_data[]; };
 layout (binding = 2) readonly buffer V { uint16_t V_data[]; };
-layout (binding = 3) writeonly buffer Out { float Out_data[]; };
-layout (binding = 4) writeonly buffer RGBA { uint8_t RGBA_data[]; };
-layout (binding = 5) readonly buffer matrix_y2r { float convert_matrix_y2r[]; };
+layout (binding = 3) writeonly buffer RGBA { float RGBA_data[]; };
+layout (binding = 4) readonly buffer matrix_y2r { float convert_matrix_y2r[]; };
 )"
 SHADER_MAT_Y2R
 SHADER_PARAM_Y2R
@@ -213,14 +173,13 @@ static const char GRAY2RGB8_data[] =
 SHADER_HEADER
 R"(
 layout (binding = 0) readonly buffer G { uint8_t G_data[]; };
-layout (binding = 1) writeonly buffer Out { float Out_data[]; };
-layout (binding = 2) writeonly buffer RGBA { uint8_t RGBA_data[]; };
+layout (binding = 1) writeonly buffer RGBA { float RGBA_data[]; };
 )"
 SHADER_PARAM_Y2R
 SHADER_GRAY2RGB
 SHADER_LOAD_SRC_GRAY
 SHADER_STORE_RGB
-SHADER_STORE_RGB_NV12
+SHADER_STORE_RGB_SIDE_BY_SIDE
 SHADER_GRAY2RGB_MAIN
 ;
 
@@ -228,13 +187,83 @@ static const char GRAY2RGB16_data[] =
 SHADER_HEADER
 R"(
 layout (binding = 0) readonly buffer G { uint16_t G_data[]; };
-layout (binding = 1) writeonly buffer Out { float Out_data[]; };
-layout (binding = 2) writeonly buffer RGBA { uint8_t RGBA_data[]; };
+layout (binding = 1) writeonly buffer RGBA { float RGBA_data[]; };
 )"
 SHADER_PARAM_Y2R
 SHADER_GRAY2RGB
 SHADER_LOAD_SRC_GRAY
 SHADER_STORE_RGB
-SHADER_STORE_RGB_NV12
+SHADER_STORE_RGB_SIDE_BY_SIDE
 SHADER_GRAY2RGB_MAIN
+;
+
+#define SHADER_PARAM_FLOAT \
+" \n\
+layout (push_constant) uniform parameter \n\
+{ \n\
+    int w; \n\
+    int h; \n\
+    int cstep; \n\
+    int format; \n\
+} p;\
+"
+
+#define SHADER_FLOAT_TO_INT8_MAIN \
+" \n\
+void main() \n\
+{ \n\
+    int gx = int(gl_GlobalInvocationID.x); \n\
+    int gy = int(gl_GlobalInvocationID.y); \n\
+    int gz = int(gl_GlobalInvocationID.z); \n\
+    if (gx >= p.w || gy >= p.h || gz >= 3) \n\
+        return; \n\
+    sfpvec4 rgb; \n\
+    if (p.cstep == 1) \n\
+    { \n\
+        sfp val = load_float(gx, gy, p.w); \n\
+        rgb = sfpvec4(val, val, val, sfp(1.0f)); \n\
+    } \n\
+    else \n\
+        rgb = load_float_rgba(gx, gy, p.w, p.cstep, p.format); \n\
+    store_dst_rgba(rgb, gx, gy, p.w, p.cstep, p.format); \n\
+} \
+"
+
+#define SHADER_FLOAT_TO_INT16_MAIN \
+" \n\
+void main() \n\
+{ \n\
+    int gx = int(gl_GlobalInvocationID.x); \n\
+    int gy = int(gl_GlobalInvocationID.y); \n\
+    int gz = int(gl_GlobalInvocationID.z); \n\
+    if (gx >= p.w || gy >= p.h || gz >= 3) \n\
+        return; \n\
+    //sfpvec4 rgb = load_float_rgba(gx, gy, p.w, p.cstep, p.format); \n\
+    // TODO::Dicky \n\
+} \
+"
+
+static const char FloatInt8_data[] = 
+SHADER_HEADER
+R"(
+layout (binding = 0) readonly buffer Float_In { float src_float_data[]; };
+layout (binding = 1) writeonly buffer Int8_Out { uint8_t dst_int8_data[]; };
+)"
+SHADER_PARAM_FLOAT
+SHADER_LOAD_FLOAT
+SHADER_LOAD_FLOAT_RGBA
+SHADER_STORE_DST_RGBA
+SHADER_FLOAT_TO_INT8_MAIN
+;
+
+static const char FloatInt16_data[] = 
+SHADER_HEADER
+R"(
+layout (binding = 0) readonly buffer Float_In { float src_float_data[]; };
+layout (binding = 1) writeonly buffer Int16_Out { uint16_t dst_int16_data[]; };
+)"
+SHADER_PARAM_FLOAT
+SHADER_LOAD_FLOAT_RGBA
+//SHADER_STORE_DST_RGBA
+SHADER_FLOAT_TO_INT16_MAIN
 ;

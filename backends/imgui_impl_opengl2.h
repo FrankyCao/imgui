@@ -33,6 +33,7 @@ IMGUI_IMPL_API void     ImGui_ImplOpenGL2_DestroyFontsTexture();
 IMGUI_IMPL_API bool     ImGui_ImplOpenGL2_CreateDeviceObjects();
 IMGUI_IMPL_API void     ImGui_ImplOpenGL2_DestroyDeviceObjects();
 // add by Dicky
-IMGUI_IMPL_API std::string ImGui_ImplOpenGL2_GetVerion();
-IMGUI_IMPL_API std::string ImGui_ImplOpenGL2_GLLoaderName();
+IMGUI_IMPL_API void         ImGui_ImplOpenGL2_ClearScreen(ImVec2 pos, ImVec2 size, ImVec4 color);
+IMGUI_IMPL_API std::string  ImGui_ImplOpenGL2_GetVerion();
+IMGUI_IMPL_API std::string  ImGui_ImplOpenGL2_GLLoaderName();
 // add by Dicky end

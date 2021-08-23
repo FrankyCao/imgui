@@ -56,15 +56,12 @@ void USM_vulkan::prepare_kernel()
         sigma = ((ksize - 1) * 0.5 - 1) * 0.3 + 0.8;
     }
     double scale = 1.0f / (sigma * sigma * 2.0);
-    //double cons = scale / M_PI;
     double sum = 0.0;
 
-    //kernel.create(ksize, ksize, size_t(4u), 1);
     kernel.create(ksize, size_t(4u), 1);
     for (int i = 0; i < ksize; i++) 
     {
         int x = i - (ksize - 1) / 2;
-        //kernel.at<float>(i, j) = cons * exp(-scale * (x * x + y * y));
         kernel.at<float>(i) = exp(-scale * (x * x));
         sum += kernel.at<float>(i);
     }
@@ -135,7 +132,7 @@ void USM_vulkan::filter(const ImMat& src, ImMat& dst, float sigma, float amount,
     {
         return;
     }
-    dst.create_type(src.w, src.h, 4, IM_DT_INT8);
+    dst.create_type(src.w, src.h, 4, IM_DT_FLOAT32);
     dst.color_format = IM_CF_ABGR;   // for render
 
     VkMat out_gpu;
@@ -158,7 +155,7 @@ void USM_vulkan::filter(const ImMat& src, VkMat& dst, float sigma, float amount,
         return;
     }
 
-    dst.create_type(src.w, src.h, 4, IM_DT_INT8, opt.blob_vkallocator);
+    dst.create_type(src.w, src.h, 4, IM_DT_FLOAT32, opt.blob_vkallocator);
     dst.color_format = IM_CF_ABGR;   // for render
 
     VkMat in_gpu;
@@ -176,7 +173,7 @@ void USM_vulkan::filter(const VkMat& src, ImMat& dst, float sigma, float amount,
     {
         return;
     }
-    dst.create_type(src.w, src.h, 4, IM_DT_INT8);
+    dst.create_type(src.w, src.h, 4, IM_DT_FLOAT32);
     dst.color_format = IM_CF_ABGR;   // for render
 
     VkMat out_gpu;
@@ -196,7 +193,7 @@ void USM_vulkan::filter(const VkMat& src, VkMat& dst, float sigma, float amount,
     {
         return;
     }
-    dst.create_type(src.w, src.h, 4, IM_DT_INT8, opt.blob_vkallocator);
+    dst.create_type(src.w, src.h, 4, IM_DT_FLOAT32, opt.blob_vkallocator);
     dst.color_format = IM_CF_ABGR;   // for render
 
     upload_param(src, dst, sigma, amount, threshold);

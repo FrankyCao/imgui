@@ -57,7 +57,7 @@ void Crop_vulkan::crop(const ImMat& src, ImMat& dst, int _x, int _y, int _w, int
     {
         return;
     }
-    dst.create_type(_w, _h, 4, IM_DT_INT8);
+    dst.create_type(_w, _h, 4, IM_DT_FLOAT32);
     dst.color_format = IM_CF_ABGR;
 
     VkMat out_gpu;
@@ -79,7 +79,7 @@ void Crop_vulkan::crop(const ImMat& src, VkMat& dst, int _x, int _y, int _w, int
     {
         return;
     }
-    dst.create_type(_w, _h, 4, IM_DT_INT8, opt.blob_vkallocator);
+    dst.create_type(_w, _h, 4, IM_DT_FLOAT32, opt.blob_vkallocator);
     dst.color_format = IM_CF_ABGR;
 
     VkMat in_gpu;
@@ -97,7 +97,7 @@ void Crop_vulkan::crop(const VkMat& src, ImMat& dst, int _x, int _y, int _w, int
     {
         return;
     }
-    dst.create_type(_w, _h, 4, IM_DT_INT8);
+    dst.create_type(_w, _h, 4, IM_DT_FLOAT32);
     dst.color_format = IM_CF_ABGR;
 
     VkMat out_gpu;
@@ -118,7 +118,7 @@ void Crop_vulkan::crop(const VkMat& src, VkMat& dst, int _x, int _y, int _w, int
         return;
     }
 
-    dst.create_type(_w, _h, 4, IM_DT_INT8, opt.blob_vkallocator);
+    dst.create_type(_w, _h, 4, IM_DT_FLOAT32, opt.blob_vkallocator);
     dst.color_format = IM_CF_ABGR;
     
     upload_param(src, dst, _x, _y, _w, _h);

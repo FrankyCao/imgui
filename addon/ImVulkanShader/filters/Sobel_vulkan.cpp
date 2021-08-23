@@ -53,7 +53,7 @@ void Sobel_vulkan::filter(const ImMat& src, ImMat& dst, float edgeStrength)
     {
         return;
     }
-    dst.create_type(src.w, src.h, 4, IM_DT_INT8);
+    dst.create_type(src.w, src.h, 4, IM_DT_FLOAT32);
     dst.color_format = IM_CF_ABGR;   // for render
 
     VkMat out_gpu;
@@ -75,7 +75,7 @@ void Sobel_vulkan::filter(const ImMat& src, VkMat& dst, float edgeStrength)
     {
         return;
     }
-    dst.create_type(src.w, src.h, 4, IM_DT_INT8, opt.blob_vkallocator);
+    dst.create_type(src.w, src.h, 4, IM_DT_FLOAT32, opt.blob_vkallocator);
     dst.color_format = IM_CF_ABGR;   // for render
 
     VkMat in_gpu;
@@ -93,7 +93,7 @@ void Sobel_vulkan::filter(const VkMat& src, ImMat& dst, float edgeStrength)
     {
         return;
     }
-    dst.create_type(src.w, src.h, 4, IM_DT_INT8);
+    dst.create_type(src.w, src.h, 4, IM_DT_FLOAT32);
     dst.color_format = IM_CF_ABGR;   // for render
 
     VkMat out_gpu;
@@ -114,7 +114,7 @@ void Sobel_vulkan::filter(const VkMat& src, VkMat& dst, float edgeStrength)
         return;
     }
 
-    dst.create_type(src.w, src.h, 4, IM_DT_INT8, opt.blob_vkallocator);
+    dst.create_type(src.w, src.h, 4, IM_DT_FLOAT32, opt.blob_vkallocator);
     dst.color_format = IM_CF_ABGR;   // for render
     
     upload_param(src, dst, edgeStrength);
