@@ -24,12 +24,6 @@ private:
     Pipeline * pipe_column   {nullptr};
     Pipeline * pipe_row      {nullptr};
     VkCompute * cmd          {nullptr};
-private:
-    std::vector<uint32_t> spirv_data;
-    std::vector<uint32_t> spirv_dsobel_data;
-    std::vector<uint32_t> spirv_nms_data;
-    std::vector<uint32_t> spirv_column_data;
-    std::vector<uint32_t> spirv_row_data;
 
 private:
     ImMat kernel;

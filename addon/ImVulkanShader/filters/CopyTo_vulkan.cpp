@@ -14,10 +14,11 @@ CopyTo_vulkan::CopyTo_vulkan(int gpu)
     cmd = new VkCompute(vkdev);
 
     std::vector<vk_specialization_type> specializations(0);
+    std::vector<uint32_t> spirv_data;
 
     compile_spirv_module(CopyTo_data, opt, spirv_data);
     pipe = new Pipeline(vkdev);
-    pipe->set_optimal_local_size_xyz(8, 8, 1);
+    pipe->set_optimal_local_size_xyz(16, 16, 1);
     pipe->create(spirv_data.data(), spirv_data.size() * 4, specializations);
     
     cmd->reset();
@@ -36,21 +37,31 @@ CopyTo_vulkan::~CopyTo_vulkan()
 
 void CopyTo_vulkan::upload_param(const VkMat& src, VkMat& dst, int x, int y, float alpha) const
 {
-    std::vector<VkMat> bindings(2);
-    bindings[0] = src;
-    bindings[1] = dst;
-    std::vector<vk_constant_type> constants(11);
+    std::vector<VkMat> bindings(8);
+    if      (dst.type == IM_DT_INT8)     bindings[0] = dst;
+    else if (dst.type == IM_DT_INT16)    bindings[1] = dst;
+    else if (dst.type == IM_DT_FLOAT16)  bindings[2] = dst;
+    else if (dst.type == IM_DT_FLOAT32)  bindings[3] = dst;
+
+    if      (src.type == IM_DT_INT8)      bindings[4] = src;
+    else if (src.type == IM_DT_INT16)     bindings[5] = src;
+    else if (src.type == IM_DT_FLOAT16)   bindings[6] = src;
+    else if (src.type == IM_DT_FLOAT32)   bindings[7] = src;
+
+    std::vector<vk_constant_type> constants(13);
     constants[0].i = src.w;
     constants[1].i = src.h;
     constants[2].i = src.c;
     constants[3].i = src.color_format;
-    constants[4].i = dst.w;
-    constants[5].i = dst.h;
-    constants[6].i = dst.c;
-    constants[7].i = dst.color_format;
-    constants[8].i = x;
-    constants[9].i = y;
-    constants[10].f = alpha;
+    constants[4].i = src.type;
+    constants[5].i = dst.w;
+    constants[6].i = dst.h;
+    constants[7].i = dst.c;
+    constants[8].i = dst.color_format;
+    constants[9].i = dst.type;
+    constants[10].i = x;
+    constants[11].i = y;
+    constants[12].f = alpha;
     cmd->record_pipeline(pipe, bindings, constants, dst);
 }
 
@@ -61,9 +72,8 @@ void CopyTo_vulkan::copyTo(const ImMat& src, ImMat& dst, int x, int y, float alp
         return;
     }
 
-    if (src.dims != dst.dims || src.elemsize != dst.elemsize || src.elempack != dst.elempack ||
-        src.c != dst.c || src.depth != dst.depth || dst.device != IM_DD_VULKAN ||
-        src.type != dst.type || src.color_space != dst.color_space || src.color_format != dst.color_format || src.color_range != dst.color_range)
+    if (src.dims != dst.dims || src.c != dst.c || dst.device != IM_DD_VULKAN ||
+        src.color_space != dst.color_space || src.color_range != dst.color_range)
         return;
     
     if (x >= dst.w || y >= dst.h)
@@ -89,9 +99,8 @@ void CopyTo_vulkan::copyTo(const ImMat& src, VkMat& dst, int x, int y, float alp
         return;
     }
 
-    if (src.dims != dst.dims || src.elemsize != dst.elemsize || src.elempack != dst.elempack ||
-        src.c != dst.c || src.depth != dst.depth || dst.device != IM_DD_VULKAN ||
-        src.type != dst.type || src.color_space != dst.color_space || src.color_format != dst.color_format || src.color_range != dst.color_range)
+    if (src.dims != dst.dims || src.c != dst.c || dst.device != IM_DD_VULKAN ||
+        src.color_space != dst.color_space || src.color_range != dst.color_range)
         return;
     
     if (x >= dst.w || y >= dst.h)
@@ -113,9 +122,8 @@ void CopyTo_vulkan::copyTo(const VkMat& src, ImMat& dst, int x, int y, float alp
         return;
     }
 
-    if (src.dims != dst.dims || src.elemsize != dst.elemsize || src.elempack != dst.elempack ||
-        src.c != dst.c || src.depth != dst.depth || src.device != IM_DD_VULKAN ||
-        src.type != dst.type || src.color_space != dst.color_space || src.color_format != dst.color_format || src.color_range != dst.color_range)
+    if (src.dims != dst.dims || src.c != dst.c || src.device != IM_DD_VULKAN ||
+        src.color_space != dst.color_space || src.color_range != dst.color_range)
         return;
     
     if (x >= dst.w || y >= dst.h)
@@ -139,9 +147,8 @@ void CopyTo_vulkan::copyTo(const VkMat& src, VkMat& dst, int x, int y, float alp
         return;
     }
 
-    if (src.dims != dst.dims || src.elemsize != dst.elemsize || src.elempack != dst.elempack ||
-        src.c != dst.c || src.device != dst.device || src.device_number != dst.device_number || src.depth != dst.depth || 
-        src.type != dst.type || src.color_space != dst.color_space || src.color_format != dst.color_format || src.color_range != dst.color_range)
+    if (src.dims != dst.dims || src.c != dst.c || src.device != dst.device || src.device_number != dst.device_number || 
+        src.color_space != dst.color_space || src.color_range != dst.color_range)
         return;
     
     if (x >= dst.w || y >= dst.h)

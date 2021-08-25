@@ -8,9 +8,15 @@ layout (push_constant) uniform parameter \n\
     int w; \n\
     int h; \n\
     int cstep; \n\
-\n\
-    int format; \n\
-\n\
+    int in_format; \n\
+    int in_type; \n\
+    \n\
+    int out_w; \n\
+    int out_h; \n\
+    int out_cstep; \n\
+    int out_format; \n\
+    int out_type; \n\
+    \n\
     float edgeStrength; \n\
 } p; \
 "
@@ -27,8 +33,7 @@ void main() \n\
 { \n\
     int gx = int(gl_GlobalInvocationID.x); \n\
     int gy = int(gl_GlobalInvocationID.y); \n\
-    int gz = int(gl_GlobalInvocationID.z); \n\
-    if (gx >= p.w || gy >= p.h || gz >= 3) \n\
+    if (gx >= p.out_w || gy >= p.out_h) \n\
         return; \n\
     sfp vertical = sfp(0.0f); \n\
     sfp horizont = sfp(0.0f); \n\
@@ -39,10 +44,10 @@ void main() \n\
             int x = gx - 1 + j; \n\
             int y = gy - 1 + i; \n\
             // REPLICATE border \n\
-            x = max(0, min(x, p.w - 1)); \n\
-            y = max(0, min(y, p.h - 1)); \n\
+            x = max(0, min(x, p.out_w - 1)); \n\
+            y = max(0, min(y, p.out_h - 1)); \n\
             int index = j + i * 3; \n\
-            sfp value = load_float_rgba(x, y, p.w, p.cstep, p.format).r; \n\
+            sfp value = load_rgba(x, y, p.w, p.cstep, p.in_format, p.in_type).r; \n\
             vertical += value * verticalKernel[index]; \n\
             horizont += value * horizontKernel[index]; \n\
         } \n\
@@ -53,19 +58,16 @@ void main() \n\
     sum.y = vertical; \n\
     // dy \n\
     sum.z = horizont; \n\
-    store_float_rgb(sum, gx, gy, p.w, 3, p.format); \n\
+    store_rgb_float_no_clamp(sum, gx, gy, p.out_w, p.out_cstep, p.out_format, p.out_type); \n\
 } \
 "
 
 static const char DSobelFilter_data[] = 
 SHADER_HEADER
-R"(
-layout (binding = 0) readonly buffer src_float { float src_float_data[]; };
-layout (binding = 1) writeonly buffer dst_float { float dst_float_data[]; };
-)"
 DSOBEL_PARAM
-SHADER_LOAD_FLOAT_RGBA
-SHADER_STORE_FLOAT_RGB
+SHADER_INPUT_OUTPUT_DATA
+SHADER_LOAD_RGBA
+SHADER_STORE_RGB_FLOAT_NO_CLAMP // 保存的数值包括矢量, 不可做clamp
 SHADER_DSOBEL_MAIN
 ;
 
@@ -76,9 +78,15 @@ layout (push_constant) uniform parameter \n\
     int w; \n\
     int h; \n\
     int cstep; \n\
-\n\
-    int format; \n\
-\n\
+    int in_format; \n\
+    int in_type; \n\
+    \n\
+    int out_w; \n\
+    int out_h; \n\
+    int out_cstep; \n\
+    int out_format; \n\
+    int out_type; \n\
+    \n\
     float minThreshold; \n\
     float maxThreshold; \n\
 } p; \
@@ -92,38 +100,34 @@ sfpvec2 normDirection(sfpvec2 dxy) \n\
     // Offset by 1-sin(pi/8) to set to 0 if near axis, 1 if away \n\
     normalizedDirection = sign(normalizedDirection) * floor(abs(normalizedDirection) + sfp(0.617316f)); \n\
     // Place -1.0 - 1.0 within 0 - 1.0 \n\
-    // normalizedDirection = (normalizedDirection + 1.0) * 0.5; \n\
+    //normalizedDirection = (normalizedDirection + 1.0) * 0.5; \n\
     return normalizedDirection; \n\
 } \n\
 void main() \n\
 { \n\
     int gx = int(gl_GlobalInvocationID.x); \n\
     int gy = int(gl_GlobalInvocationID.y); \n\
-    int gz = int(gl_GlobalInvocationID.z); \n\
-    if (gx >= p.w || gy >= p.h || gz >= 3) \n\
+    if (gx >= p.out_w || gy >= p.out_h) \n\
         return; \n\
-    sfpvec2 suv = sfpvec2(gx, gy) + sfpvec2(0.5f); \n\
-    sfpvec3 gradinetAndDirection = load_float_rgb(int(suv.x), int(suv.y), p.w, 3, p.format); \n\
-    sfpvec2 direction = normDirection(gradinetAndDirection.gb); \n\
-    sfp firstGradientMagnitude = load_float_rgb(int(suv.x + direction.x), int(suv.y + direction.y), p.w, 3, p.format).r; \n\
-    sfp secondGradientMagnitude = load_float_rgb(int(suv.x - direction.x), int(suv.y - direction.y), p.w, 3, p.format).r; \n\
-    sfp multiplier = step(firstGradientMagnitude, gradinetAndDirection.r); \n\
-    multiplier = multiplier * step(secondGradientMagnitude, gradinetAndDirection.r); \n\
-    sfp thresholdCompliance = smoothstep(p.minThreshold, p.maxThreshold, gradinetAndDirection.r); \n\
+    //sfpvec2 suv = sfpvec2(gx, gy) + sfpvec2(0.5f); \n\
+    sfpvec3 gradinetAndDirection = load_rgb(gx, gy, p.w, p.cstep, p.in_format, p.in_type); \n\
+    sfpvec2 direction = normDirection(gradinetAndDirection.yz); \n\
+    sfp firstGradientMagnitude = load_rgb(gx + int(direction.x), gy + int(direction.y), p.w, p.cstep, p.in_format, p.in_type).x; \n\
+    sfp secondGradientMagnitude = load_rgb(gx - int(direction.x), gy - int(direction.y), p.w, p.cstep, p.in_format, p.in_type).x; \n\
+    sfp multiplier = step(firstGradientMagnitude, gradinetAndDirection.x); \n\
+    multiplier = multiplier * step(secondGradientMagnitude, gradinetAndDirection.x); \n\
+    sfp thresholdCompliance = smoothstep(p.minThreshold, p.maxThreshold, gradinetAndDirection.x); \n\
     multiplier = multiplier * thresholdCompliance; \n\
-    store_float(multiplier, gx, gy, p.w); \n\
+    store_gray(multiplier, gx, gy, p.out_w, p.out_cstep, p.out_format, p.out_type); \n\
 } \
 "
 
 static const char NMSFilter_data[] = 
 SHADER_HEADER
-R"(
-layout (binding = 0) readonly buffer src_float { float src_float_data[]; };
-layout (binding = 1) writeonly buffer dst_float { float dst_float_data[]; };
-)"
 NMS_SHADER_PARAM
-SHADER_LOAD_FLOAT_RGB
-SHADER_STORE_FLOAT
+SHADER_INPUT_OUTPUT_DATA
+SHADER_LOAD_RGB
+SHADER_STORE_GRAY
 SHADER_NMS_MAIN
 ;
 
@@ -134,8 +138,14 @@ layout (push_constant) uniform parameter \n\
     int w; \n\
     int h; \n\
     int cstep; \n\
-\n\
-    int format; \n\
+    int in_format; \n\
+    int in_type; \n\
+    \n\
+    int out_w; \n\
+    int out_h; \n\
+    int out_cstep; \n\
+    int out_format; \n\
+    int out_type; \n\
 } p; \
 "
 
@@ -145,11 +155,10 @@ void main() \n\
 { \n\
     int gx = int(gl_GlobalInvocationID.x); \n\
     int gy = int(gl_GlobalInvocationID.y); \n\
-    int gz = int(gl_GlobalInvocationID.z); \n\
-    if (gx >= p.w || gy >= p.h || gz >= 3) \n\
+    if (gx >= p.out_w || gy >= p.out_h) \n\
         return; \n\
     sfp sum = sfp(0.0f); \n\
-    sfp current = load_float(gx, gy, p.w); \n\
+    sfp current = load_gray(gx, gy, p.w, p.cstep, p.in_format, p.in_type, 1.f); \n\
     for (int i = 0; i < 3; ++i) \n\
     { \n\
         for (int j = 0; j < 3; ++j) \n\
@@ -157,26 +166,23 @@ void main() \n\
             int x = gx - 1 + j; \n\
             int y = gy - 1 + i; \n\
             // REPLICATE border \n\
-            x = max(0, min(x, p.w - 1)); \n\
-            y = max(0, min(y, p.h - 1)); \n\
-            sfp value = load_float(x, y, p.w); \n\
+            x = max(0, min(x, p.out_w - 1)); \n\
+            y = max(0, min(y, p.out_h - 1)); \n\
+            sfp value = load_gray(x, y, p.w, p.cstep, p.in_format, p.in_type, 1.f); \n\
             sum += value; \n\
         } \n\
     } \n\
     sfp sumTest = step(sfp(1.5f), sum); \n\
     sfp pixelTest = step(sfp(0.01f), current); \n\
-    store_float_rgba(sfpvec4(sfpvec3(sumTest * pixelTest), 1.0f), gx, gy, p.w, p.cstep, p.format); \n\
+    store_rgba(sfpvec4(sfpvec3(sumTest * pixelTest), 1.0f), gx, gy, p.out_w, p.out_cstep, p.out_format, p.out_type); \n\
 } \
 "
 
 static const char CannyFilter_data[] = 
 SHADER_HEADER
-R"(
-layout (binding = 0) readonly buffer src_float { float src_float_data[]; };
-layout (binding = 1) writeonly buffer dst_float { float dst_float_data[]; };
-)"
 CANNY_SHADER_PARAM
-SHADER_LOAD_FLOAT
-SHADER_STORE_FLOAT_RGBA
+SHADER_INPUT_OUTPUT_DATA
+SHADER_LOAD_GRAY
+SHADER_STORE_RGBA
 SHADER_CANNY_MAIN
 ;

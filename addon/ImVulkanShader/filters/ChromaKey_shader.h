@@ -8,9 +8,15 @@ layout (push_constant) uniform parameter \n\
     int w; \n\
     int h; \n\
     int cstep; \n\
-\n\
-    int format; \n\
-\n\
+    int in_format; \n\
+    int in_type; \n\
+    \n\
+    int out_w; \n\
+    int out_h; \n\
+    int out_cstep; \n\
+    int out_format; \n\
+    int out_type; \n\
+    \n\
     // 1 控制亮度的强度系数 \n\
     float lumaMask; \n\
     float chromaColorX; \n\
@@ -45,9 +51,9 @@ sfpvec3 extractColor(sfpvec3 color, sfp lumaMask) \n\
 void main() \n\
 { \n\
     ivec2 uv = ivec2(gl_GlobalInvocationID.xy); \n\
-    if (uv.x >= p.w || uv.y >= p.h) \n\
+    if (uv.x >= p.out_w || uv.y >= p.out_h) \n\
         return; \n\
-    sfpvec3 inputColor = load_float_rgba(uv.x, uv.y, p.w, p.cstep, p.format).rgb; \n\
+    sfpvec3 inputColor = load_rgba(uv.x, uv.y, p.w, p.cstep, p.in_format, p.in_type).rgb; \n\
     sfpvec3 chromaColor = sfpvec3(p.chromaColorX, p.chromaColorY, p.chromaColorZ); \n\
     sfpvec3 ambientColor = sfpvec3(p.ambientColorX, p.ambientColorY, p.ambientColorZ); \n\
     sfpvec3 color1 = extractColor(chromaColor, sfp(p.lumaMask)); \n\
@@ -66,19 +72,15 @@ void main() \n\
     dcolor -= inputColor * chromaColor * despillAlpha * sfp(p.despillScale); \n\
     // 添加环境光收益 \n\
     dcolor += inputColor * lumaFactor*ambientColor * sfp(p.ambientScale) * despillAlpha; \n\
-    store_float_rgba(sfpvec4(dcolor, alpha), uv.x, uv.y, p.w, p.cstep, p.format); \n\
+    store_rgba(sfpvec4(dcolor, alpha), uv.x, uv.y, p.out_w, p.out_cstep, p.out_format, p.out_type); \n\
 } \
 "
 
-
 static const char Filter_data[] = 
 SHADER_HEADER
-R"(
-layout (binding = 0) readonly buffer src_float { float src_float_data[]; };
-layout (binding = 1) writeonly buffer dst_float { float dst_float_data[]; };
-)"
 SHADER_PARAM
-SHADER_LOAD_FLOAT_RGBA
-SHADER_STORE_FLOAT_RGBA
+SHADER_INPUT_OUTPUT_DATA
+SHADER_LOAD_RGBA
+SHADER_STORE_RGBA
 SHADER_MAIN
 ;

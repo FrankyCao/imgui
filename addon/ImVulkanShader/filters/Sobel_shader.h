@@ -8,9 +8,15 @@ layout (push_constant) uniform parameter \n\
     int w; \n\
     int h; \n\
     int cstep; \n\
-\n\
-    int format; \n\
-\n\
+    int in_format; \n\
+    int in_type; \n\
+    \n\
+    int out_w; \n\
+    int out_h; \n\
+    int out_cstep; \n\
+    int out_format; \n\
+    int out_type; \n\
+    \n\
     float strength; \n\
 } p; \
 "
@@ -44,8 +50,7 @@ void main() \n\
 { \n\
     int gx = int(gl_GlobalInvocationID.x); \n\
     int gy = int(gl_GlobalInvocationID.y); \n\
-    int gz = int(gl_GlobalInvocationID.z); \n\
-    if (gx >= p.w || gy >= p.h || gz >= 3) \n\
+    if (gx >= p.out_w || gy >= p.out_h) \n\
         return; \n\
     sfp vertical = 0.0f; \n\
     sfp horizont = 0.0f; \n\
@@ -56,27 +61,24 @@ void main() \n\
             int x = gx - 1 + j; \n\
             int y = gy - 1 + i; \n\
             // REPLICATE border \n\
-            x = max(0, min(x, p.w - 1)); \n\
-            y = max(0, min(y, p.h - 1)); \n\
+            x = max(0, min(x, p.out_w - 1)); \n\
+            y = max(0, min(y, p.out_h - 1)); \n\
             int index = j + i * 3; \n\
-            sfpvec3 value = rgb_to_yuv(load_float_rgba(x, y, p.w, p.cstep, p.format).rgb); \n\
+            sfpvec3 value = rgb_to_yuv(load_rgba(x, y, p.w, p.cstep, p.in_format, p.in_type).rgb); \n\
             vertical += value.x * sfp(verticalKernel[index]); \n\
             horizont += value.x * sfp(horizontKernel[index]); \n\
         } \n\
     } \n\
     sfp mag = length(sfpvec2(horizont, vertical)) * sfp(p.strength); \n\
-    store_float_rgba(sfpvec4(mag, mag, mag, 1.0f), gx, gy, p.w, p.cstep, p.format); \n\
+    store_rgba(sfpvec4(mag, mag, mag, 1.0f), gx, gy, p.out_w, p.out_cstep, p.out_format, p.out_type); \n\
 } \
 "
 
 static const char Filter_data[] = 
 SHADER_HEADER
-R"(
-layout (binding = 0) readonly buffer src_float { float src_float_data[]; };
-layout (binding = 1) writeonly buffer dst_float { float dst_float_data[]; };
-)"
 SHADER_PARAM
-SHADER_LOAD_FLOAT_RGBA
-SHADER_STORE_FLOAT_RGBA
+SHADER_INPUT_OUTPUT_DATA
+SHADER_LOAD_RGBA
+SHADER_STORE_RGBA
 SHADER_MAIN
 ;

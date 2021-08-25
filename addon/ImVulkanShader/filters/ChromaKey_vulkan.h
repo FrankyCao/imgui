@@ -40,7 +40,6 @@ public:
     Option opt;
 
 private:
-    std::vector<uint32_t> spirv_data;
     void upload_param(const VkMat& src, VkMat& dst,
                         float lumaMask, ImVec4 chromaColor, ImVec4 ambientColor,
                         float alphaCutoffMin, float alphaScale, float alphaExponent,

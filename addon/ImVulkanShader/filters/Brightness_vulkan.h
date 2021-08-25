@@ -28,7 +28,6 @@ public:
     Option opt;
 
 private:
-    std::vector<uint32_t> spirv_data;
     void upload_param(const VkMat& src, VkMat& dst, float brightness) const;
 };
 } // namespace ImGui 

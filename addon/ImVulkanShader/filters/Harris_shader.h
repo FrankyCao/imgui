@@ -8,9 +8,15 @@ layout (push_constant) uniform parameter \n\
     int w; \n\
     int h; \n\
     int cstep; \n\
-\n\
-    int format; \n\
-\n\
+    int in_format; \n\
+    int in_type; \n\
+    \n\
+    int out_w; \n\
+    int out_h; \n\
+    int out_cstep; \n\
+    int out_format; \n\
+    int out_type; \n\
+    \n\
     float edgeStrength; \n\
 } p; \
 "
@@ -28,8 +34,7 @@ void main() \n\
 { \n\
     int gx = int(gl_GlobalInvocationID.x); \n\
     int gy = int(gl_GlobalInvocationID.y); \n\
-    int gz = int(gl_GlobalInvocationID.z); \n\
-    if (gx >= p.w || gy >= p.h || gz >= 3) \n\
+    if (gx >= p.out_w || gy >= p.out_h) \n\
         return; \n\
     sfp vertical = sfp(0.0f); \n\
     sfp horizont = sfp(0.0f); \n\
@@ -40,10 +45,10 @@ void main() \n\
             int x = gx - 1 + j; \n\
             int y = gy - 1 + i; \n\
             // REPLICATE border \n\
-            x = max(0, min(x, p.w - 1)); \n\
-            y = max(0, min(y, p.h - 1)); \n\
+            x = max(0, min(x, p.out_w - 1)); \n\
+            y = max(0, min(y, p.out_h - 1)); \n\
             int index = j + i * 3; \n\
-            sfp value = load_float_rgba(x, y, p.w, p.cstep, p.format).r; \n\
+            sfp value = load_rgba(x, y, p.w, p.cstep, p.in_format, p.in_type).r; \n\
             vertical += value * verticalKernel[index]; \n\
             horizont += value * horizontKernel[index]; \n\
         } \n\
@@ -55,19 +60,16 @@ void main() \n\
     sum.y = vertical* vertical; \n\
     sum.z = ((horizont * vertical) + sfp(1.0f)) / sfp(2.0f); \n\
     sum.w = sfp(1.0f); \n\
-    store_float_rgba(sum, gx, gy, p.w, 4, p.format); \n\
+    store_rgba(sum, gx, gy, p.out_w, p.out_cstep, p.out_format, p.out_type); \n\
 } \
 "
 
 static const char PrewittFilter_data[] = 
 SHADER_HEADER
-R"(
-layout (binding = 0) readonly buffer src_float { float src_float_data[]; };
-layout (binding = 1) writeonly buffer dst_float { float dst_float_data[]; };
-)"
 PREWITT_PARAM
-SHADER_LOAD_FLOAT_RGBA
-SHADER_STORE_FLOAT_RGBA
+SHADER_INPUT_OUTPUT_DATA
+SHADER_LOAD_RGBA
+SHADER_STORE_RGBA
 SHADER_PREWITT_MAIN
 ;
 
@@ -78,9 +80,15 @@ layout (push_constant) uniform parameter \n\
     int w; \n\
     int h; \n\
     int cstep; \n\
-\n\
-    int format; \n\
-\n\
+    int in_format; \n\
+    int in_type; \n\
+    \n\
+    int out_w; \n\
+    int out_h; \n\
+    int out_cstep; \n\
+    int out_format; \n\
+    int out_type; \n\
+    \n\
     float harris; \n\
     float sensitivity; \n\
 } p; \
@@ -92,28 +100,24 @@ void main() \n\
 { \n\
     int gx = int(gl_GlobalInvocationID.x); \n\
     int gy = int(gl_GlobalInvocationID.y); \n\
-    int gz = int(gl_GlobalInvocationID.z); \n\
-    if (gx >= p.w || gy >= p.h || gz >= 3) \n\
+    if (gx >= p.out_w || gy >= p.out_h) \n\
         return; \n\
-    sfpvec4 derivativeElements = load_float_rgba(gx, gy, p.w, 4, p.format); \n\
+    sfpvec4 derivativeElements = load_rgba(gx, gy, p.w, p.cstep, p.in_format, p.in_type); \n\
     sfp derivativeSum = derivativeElements.x + derivativeElements.y; \n\
     sfp zElement = (derivativeElements.z * sfp(2.0f)) - sfp(1.0f); \n\
     // R = Ix^2 * Iy^2 - Ixy * Ixy - k * (Ix^2 + Iy^2)^2 \n\
     sfp cornerness = derivativeElements.x * derivativeElements.y - (zElement * zElement) - p.harris * derivativeSum * derivativeSum; \n\
     cornerness = cornerness * p.sensitivity; \n\
-    store_float(cornerness, gx, gy, p.w); \n\
+    store_gray(cornerness, gx, gy, p.out_w, p.out_cstep, p.out_format, p.out_type); \n\
 } \
 "
 
 static const char HarrisFilter_data[] = 
 SHADER_HEADER
-R"(
-layout (binding = 0) readonly buffer src_float { float src_float_data[]; };
-layout (binding = 1) writeonly buffer dst_float { float dst_float_data[]; };
-)"
 HARRIS_SHADER_PARAM
-SHADER_LOAD_FLOAT_RGBA
-SHADER_STORE_FLOAT
+SHADER_INPUT_OUTPUT_DATA
+SHADER_LOAD_RGBA
+SHADER_STORE_GRAY
 SHADER_HARRIS_MAIN
 ;
 
@@ -124,21 +128,91 @@ layout (push_constant) uniform parameter \n\
     int w; \n\
     int h; \n\
     int cstep; \n\
-\n\
-    int format; \n\
-\n\
+    int in_format; \n\
+    int in_type; \n\
+    \n\
+    int mono_w; \n\
+    int mono_h; \n\
+    int mono_cstep; \n\
+    int mono_format; \n\
+    int mono_type; \n\
+    \n\
+    int out_w; \n\
+    int out_h; \n\
+    int out_cstep; \n\
+    int out_format; \n\
+    int out_type; \n\
+    \n\
     float threshold; \n\
 } p; \
 "
 
-#define SHADER_LOAD_FLOAT_GRAY \
+// Load data as gray
+#define SHADER_LOAD_MONO_INT8 \
 " \n\
-sfp load_float(int x, int y, int w) \n\
+sfp load_mono_int8(int x, int y, int w, int cstep, int format) \n\
 { \n\
-    int i_offset = y * w + x; \n\
-    return sfp(src_float_gray_data[i_offset]); \n\
+    sfp rgb_in = sfp(0.f); \n\
+    ivec3 i_offset = (y * w + x) * cstep + ivec3(0, 0, 0); \n\
+    rgb_in = sfp(uint(gray_int8_data[i_offset.x])) / sfp(255.f); \n\
+    return rgb_in; \n\
 } \
 "
+
+#define SHADER_LOAD_MONO_INT16 \
+" \n\
+sfp load_mono_int16(int x, int y, int w, int cstep, int format) \n\
+{ \n\
+    sfp rgb_in = sfp(0.f); \n\
+    ivec3 i_offset = (y * w + x) * cstep + ivec3(0, 0, 0); \n\
+    rgb_in = sfp(uint(gray_int16_data[i_offset.x])) / sfp(65535.f); \n\
+    return rgb_in; \n\
+} \
+"
+
+#define SHADER_LOAD_MONO_FLOAT16 \
+" \n\
+sfp load_mono_float16(int x, int y, int w, int cstep, int format) \n\
+{ \n\
+    sfp rgb_in = sfp(0.f); \n\
+    ivec3 i_offset = (y * w + x) * cstep + ivec3(0, 0, 0); \n\
+    rgb_in = sfp(gray_float16_data[i_offset.x]); \n\
+    return rgb_in; \n\
+} \
+"
+
+#define SHADER_LOAD_MONO_FLOAT32 \
+" \n\
+sfp load_mono_float32(int x, int y, int w, int cstep, int format) \n\
+{ \n\
+    sfp rgb_in = sfp(0.f); \n\
+    ivec3 i_offset = (y * w + x) * cstep + ivec3(0, 0, 0); \n\
+    rgb_in = sfp(gray_float32_data[i_offset.x]); \n\
+    return rgb_in; \n\
+} \
+"
+
+#define SHADER_LOAD_MONO \
+SHADER_LOAD_MONO_INT8 \
+SHADER_LOAD_MONO_INT16 \
+SHADER_LOAD_MONO_FLOAT16 \
+SHADER_LOAD_MONO_FLOAT32 \
+" \n\
+sfp load_mono(int x, int y, int w, int cstep, int format, int type) \n\
+{ \n\
+    if (type == DT_INT8) \n\
+        return load_mono_int8(x, y, w, cstep, format); \n\
+    else if (type == DT_INT16) \n\
+        return load_mono_int16(x, y, w, cstep, format); \n\
+    else if (type == DT_FLOAT16) \n\
+        return load_mono_float16(x, y, w, cstep, format); \n\
+    else if (type == DT_FLOAT32) \n\
+        return load_mono_float32(x, y, w, cstep, format); \n\
+    else \n\
+        return sfp(0.f); \n\
+} \
+" // 46 lines
+
 
 #define SHADER_NMS_MAIN \
 " \n\
@@ -146,8 +220,7 @@ void main() \n\
 { \n\
     int gx = int(gl_GlobalInvocationID.x); \n\
     int gy = int(gl_GlobalInvocationID.y); \n\
-    int gz = int(gl_GlobalInvocationID.z); \n\
-    if (gx >= p.w || gy >= p.h || gz >= 3) \n\
+    if (gx >= p.out_w || gy >= p.out_h) \n\
         return; \n\
     sfp values[9]; \n\
     for (int i = 0; i < 3; ++i) \n\
@@ -157,9 +230,9 @@ void main() \n\
             int x = gx - 1 + j; \n\
             int y = gy - 1 + i; \n\
             // REPLICATE border \n\
-            x = max(0, min(x, p.w - 1)); \n\
-            y = max(0, min(y, p.h - 1)); \n\
-            sfp value = load_float(x, y, p.w); \n\
+            x = max(0, min(x, p.out_w - 1)); \n\
+            y = max(0, min(y, p.out_h - 1)); \n\
+            sfp value = load_mono(x, y, p.mono_w, p.mono_cstep, p.mono_format, p.mono_type); \n\
             values[j + i * 3] = value; \n\
         } \n\
     } \n\
@@ -180,7 +253,7 @@ void main() \n\
     // step(maxValue, values[4])需要当前值最大才为1 \n\
     sfp result = values[4]* step(maxValue, values[4]) * multiplier; \n\
     result = step(sfp(p.threshold), result); \n\
-    sfpvec3 rgb_in = load_float_rgba(gx, gy, p.w, p.cstep, p.format).rgb; \n\
+    sfpvec3 rgb_in = load_rgba(gx, gy, p.w, p.cstep, p.in_format, p.in_type).rgb; \n\
     if (result > 0) \n\
     { \n\
         rgb_in = sfpvec3(1.0, 0.0, 0.0); \n\
@@ -191,28 +264,30 @@ void main() \n\
                 int x = gx - 1 + j; \n\
                 int y = gy - 1 + i; \n\
                 // REPLICATE border \n\
-                x = max(0, min(x, p.w - 1)); \n\
-                y = max(0, min(y, p.h - 1)); \n\
-                store_float_rgba(sfpvec4(rgb_in, 1.0f), x, y, p.w, p.cstep, p.format); \n\
+                x = max(0, min(x, p.out_w - 1)); \n\
+                y = max(0, min(y, p.out_h - 1)); \n\
+                store_rgba(sfpvec4(rgb_in, 1.0f), x, y, p.out_w, p.out_cstep, p.out_format, p.out_type); \n\
             } \n\
         } \n\
     } \n\
     else \n\
-        store_float_rgba(sfpvec4(rgb_in, 1.0f), gx, gy, p.w, p.cstep, p.format); \n\
+        store_rgba(sfpvec4(rgb_in, 1.0f), gx, gy, p.out_w, p.out_cstep, p.out_format, p.out_type); \n\
 } \
 "
 
 static const char NMSFilter_data[] = 
 SHADER_HEADER
-R"(
-layout (binding = 0) readonly buffer src_gray_float { float src_float_gray_data[]; };
-layout (binding = 1) readonly buffer src_float { float src_float_data[]; };
-layout (binding = 2) writeonly buffer dst_float { float dst_float_data[]; };
-)"
 NMS_SHADER_PARAM
-SHADER_LOAD_FLOAT_GRAY
-SHADER_LOAD_FLOAT_RGBA
-SHADER_STORE_FLOAT_RGBA
+SHADER_INPUT_OUTPUT_DATA
+R"(
+layout (binding =  8) readonly buffer gray_int8     { uint8_t   gray_int8_data[]; };
+layout (binding =  9) readonly buffer gray_int16    { uint16_t  gray_int16_data[]; };
+layout (binding = 10) readonly buffer gray_float16  { float16_t gray_float16_data[]; };
+layout (binding = 11) readonly buffer gray_float32  { float     gray_float32_data[]; };
+)"
+SHADER_LOAD_MONO
+SHADER_LOAD_RGBA
+SHADER_STORE_RGBA
 SHADER_NMS_MAIN
 ;
 

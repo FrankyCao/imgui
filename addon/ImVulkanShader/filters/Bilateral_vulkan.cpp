@@ -14,10 +14,11 @@ Bilateral_vulkan::Bilateral_vulkan(int gpu)
     cmd = new VkCompute(vkdev);
 
     std::vector<vk_specialization_type> specializations(0);
+    std::vector<uint32_t> spirv_data;
 
     compile_spirv_module(Filter_data, opt, spirv_data);
     pipe = new Pipeline(vkdev);
-    pipe->set_optimal_local_size_xyz(8, 8, 1);
+    pipe->set_optimal_local_size_xyz(16, 16, 1);
     pipe->create(spirv_data.data(), spirv_data.size() * 4, specializations);
     
     cmd->reset();
@@ -36,17 +37,31 @@ Bilateral_vulkan::~Bilateral_vulkan()
 
 void Bilateral_vulkan::upload_param(const VkMat& src, VkMat& dst, int ksz, float sigma_spatial, float sigma_color)
 {
-    std::vector<VkMat> bindings(2);
-    bindings[0] = src;
-    bindings[1] = dst;
-    std::vector<vk_constant_type> constants(7);
+    std::vector<VkMat> bindings(8);
+    if      (dst.type == IM_DT_INT8)     bindings[0] = dst;
+    else if (dst.type == IM_DT_INT16)    bindings[1] = dst;
+    else if (dst.type == IM_DT_FLOAT16)  bindings[2] = dst;
+    else if (dst.type == IM_DT_FLOAT32)  bindings[3] = dst;
+
+    if      (src.type == IM_DT_INT8)     bindings[4] = src;
+    else if (src.type == IM_DT_INT16)    bindings[5] = src;
+    else if (src.type == IM_DT_FLOAT16)  bindings[6] = src;
+    else if (src.type == IM_DT_FLOAT32)  bindings[7] = src;
+
+    std::vector<vk_constant_type> constants(13);
     constants[0].i = src.w;
     constants[1].i = src.h;
     constants[2].i = src.c;
     constants[3].i = src.color_format;
-    constants[4].i = ksz;
-    constants[5].f = -0.5f / (sigma_spatial * sigma_spatial);
-    constants[6].f = -0.5f / (sigma_color * sigma_color);
+    constants[4].i = src.type;
+    constants[5].i = dst.w;
+    constants[6].i = dst.h;
+    constants[7].i = dst.c;
+    constants[8].i = dst.color_format;
+    constants[9].i = dst.type;
+    constants[10].i = ksz;
+    constants[11].f = -0.5f / (sigma_spatial * sigma_spatial);
+    constants[12].f = -0.5f / (sigma_color * sigma_color);
     cmd->record_pipeline(pipe, bindings, constants, dst);
 }
 
@@ -56,8 +71,7 @@ void Bilateral_vulkan::filter(const ImMat& src, ImMat& dst, int ksz, float sigma
     {
         return;
     }
-    dst.create_type(src.w, src.h, 4, IM_DT_FLOAT32);
-    dst.color_format = IM_CF_ABGR;
+    dst.create_type(src.w, src.h, 4, dst.type);
 
     VkMat out_gpu;
     out_gpu.create_like(dst, opt.blob_vkallocator);
@@ -78,8 +92,7 @@ void Bilateral_vulkan::filter(const ImMat& src, VkMat& dst, int ksz, float sigma
     {
         return;
     }
-    dst.create_type(src.w, src.h, 4, IM_DT_FLOAT32, opt.blob_vkallocator);
-    dst.color_format = IM_CF_ABGR;
+    dst.create_type(src.w, src.h, 4, dst.type, opt.blob_vkallocator);
 
     VkMat in_gpu;
     cmd->record_clone(src, in_gpu, opt);
@@ -96,8 +109,7 @@ void Bilateral_vulkan::filter(const VkMat& src, ImMat& dst, int ksz, float sigma
     {
         return;
     }
-    dst.create_type(src.w, src.h, 4, IM_DT_FLOAT32);
-    dst.color_format = IM_CF_ABGR;
+    dst.create_type(src.w, src.h, 4, dst.type);
 
     VkMat out_gpu;
     out_gpu.create_like(dst, opt.blob_vkallocator);
@@ -117,8 +129,7 @@ void Bilateral_vulkan::filter(const VkMat& src, VkMat& dst, int ksz, float sigma
         return;
     }
 
-    dst.create_type(src.w, src.h, 4, IM_DT_FLOAT32, opt.blob_vkallocator);
-    dst.color_format = IM_CF_ABGR;
+    dst.create_type(src.w, src.h, 4, dst.type, opt.blob_vkallocator);
     
     upload_param(src, dst, ksz, sigma_spatial, sigma_color);
 

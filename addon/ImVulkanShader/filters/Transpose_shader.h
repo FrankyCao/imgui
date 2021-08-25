@@ -8,9 +8,15 @@ layout (push_constant) uniform parameter \n\
     int w; \n\
     int h; \n\
     int cstep; \n\
-\n\
-    int format; \n\
-\n\
+    int in_format; \n\
+    int in_type; \n\
+    \n\
+    int out_w; \n\
+    int out_h; \n\
+    int out_cstep; \n\
+    int out_format; \n\
+    int out_type; \n\
+    \n\
 	int bFlipX;	\n\
     int bFlipY;	\n\
 } p; \
@@ -21,27 +27,24 @@ layout (push_constant) uniform parameter \n\
 void main() \n\
 { \n\
     ivec2 uv = ivec2(gl_GlobalInvocationID.xy); \n\
-    if (uv.x >= p.h || uv.y >= p.w) \n\
+    if (uv.x >= p.out_w || uv.y >= p.out_h) \n\
         return; \n\
     int ix = uv.y; \n\
     int iy = uv.x; \n\
     if (p.bFlipX != 0) \n\
-        ix = p.w - 1 - ix; \n\
+        ix = p.out_h - 1 - ix; \n\
     if (p.bFlipY != 0) \n\
-        iy = p.h - 1 - iy; \n\
-    sfpvec4 result = load_float_rgba(ix, iy, p.w, p.cstep, p.format); \n\
-    store_float_rgba(result, uv.x, uv.y, p.h, p.cstep, p.format); \n\
+        iy = p.out_w - 1 - iy; \n\
+    sfpvec4 result = load_rgba(ix, iy, p.w, p.cstep, p.in_format, p.in_type); \n\
+    store_rgba(result, uv.x, uv.y, p.out_w, p.out_cstep, p.out_format, p.out_type); \n\
 } \
 "
 
 static const char Filter_data[] = 
 SHADER_HEADER
-R"(
-layout (binding = 0) readonly buffer src_float { float src_float_data[]; };
-layout (binding = 1) writeonly buffer dst_float { float dst_float_data[]; };
-)"
 SHADER_PARAM
-SHADER_LOAD_FLOAT_RGBA
-SHADER_STORE_FLOAT_RGBA
+SHADER_INPUT_OUTPUT_DATA
+SHADER_LOAD_RGBA
+SHADER_STORE_RGBA
 SHADER_FILTER_MAIN
 ;

@@ -336,7 +336,7 @@ inline void VkMat::create(int _w, int _h, int _c, size_t _elemsize, VkAllocator*
     c = _c;
     type = _elemsize == 1 ? IM_DT_INT8 : _elemsize == 2 ? IM_DT_INT16 : IM_DT_FLOAT32;
     color_space = IM_CS_SRGB;
-    color_format = c == 1 ? IM_CF_GRAY : c == 3 ? IM_CF_RGB : IM_CF_ARGB;
+    color_format = c == 1 ? IM_CF_GRAY : c == 3 ? IM_CF_BGR : IM_CF_ABGR;
     color_range = IM_CR_FULL_RANGE;
     depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 
@@ -444,7 +444,7 @@ inline void VkMat::create(int _w, int _h, int _c, size_t _elemsize, int _elempac
     c = _c;
     type = _elemsize == 1 ? IM_DT_INT8 : _elemsize == 2 ? IM_DT_INT16 : IM_DT_FLOAT32;
     color_space = IM_CS_SRGB;
-    color_format = c == 1 ? IM_CF_GRAY : c == 3 ? IM_CF_RGB : IM_CF_ARGB;
+    color_format = c == 1 ? IM_CF_GRAY : c == 3 ? IM_CF_BGR : IM_CF_ABGR;
     color_range = IM_CR_FULL_RANGE;
     depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 
@@ -554,7 +554,7 @@ inline void VkMat::create_type(int _w, int _h, int _c, ImDataType _t, VkAllocato
     cstep = Im_AlignSize((size_t)w * h * elemsize, 16) / elemsize;
     type = _t;
     color_space = IM_CS_SRGB;
-    color_format = c == 1 ? IM_CF_GRAY : c == 3 ? IM_CF_RGB : IM_CF_ARGB;
+    color_format = c == 1 ? IM_CF_GRAY : c == 3 ? IM_CF_BGR : IM_CF_ABGR;
     color_range = IM_CR_FULL_RANGE;
     depth = IM_DEPTH(_t);
 

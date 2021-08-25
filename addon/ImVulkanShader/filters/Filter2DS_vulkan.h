@@ -37,8 +37,6 @@ public:
     Option opt;
 
 private:
-    std::vector<uint32_t> spirv_column_data;
-    std::vector<uint32_t> spirv_row_data;
     void upload_param(const VkMat& src, VkMat& dst) const;
 };
 } // namespace ImGui 

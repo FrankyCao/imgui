@@ -24,9 +24,6 @@ public:
     VkCompute * cmd = nullptr;
     Option opt;
 
-public:
-    std::vector<uint32_t> spirv_data;
-
 private:
     void upload_param(const VkMat& src, VkMat& dst, ImInterpolateMode type) const;
 };

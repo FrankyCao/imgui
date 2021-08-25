@@ -22,8 +22,7 @@ private:
     Option opt;
     Pipeline* pipe              {nullptr};
     VkCompute * cmd             {nullptr};
-private:
-    std::vector<uint32_t> spirv_data;
+
 private:
     void upload_param(const VkMat& src, VkMat& dst, float edgeStrength);
 };

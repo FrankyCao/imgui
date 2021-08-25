@@ -13,9 +13,10 @@ Resize_vulkan::Resize_vulkan(int gpu)
     opt.use_fp16_arithmetic = true;
     cmd = new VkCompute(vkdev);
     std::vector<vk_specialization_type> specializations(0);
+    std::vector<uint32_t> spirv_data;
     compile_spirv_module(Resize_data, opt, spirv_data);
     pipe = new Pipeline(vkdev);
-    pipe->set_optimal_local_size_xyz(8, 8, 1);
+    pipe->set_optimal_local_size_xyz(16, 16, 1);
     pipe->create(spirv_data.data(), spirv_data.size() * 4, specializations);
     cmd->reset();
 }
@@ -33,17 +34,29 @@ Resize_vulkan::~Resize_vulkan()
 
 void Resize_vulkan::upload_param(const VkMat& src, VkMat& dst, ImInterpolateMode type) const
 {
-    std::vector<VkMat> bindings(2);
-    bindings[0] = src;
-    bindings[1] = dst;
-    std::vector<vk_constant_type> constants(7);
+    std::vector<VkMat> bindings(8);
+    if      (dst.type == IM_DT_INT8)     bindings[0] = dst;
+    else if (dst.type == IM_DT_INT16)    bindings[1] = dst;
+    else if (dst.type == IM_DT_FLOAT16)  bindings[2] = dst;
+    else if (dst.type == IM_DT_FLOAT32)  bindings[3] = dst;
+
+    if      (src.type == IM_DT_INT8)      bindings[4] = src;
+    else if (src.type == IM_DT_INT16)     bindings[5] = src;
+    else if (src.type == IM_DT_FLOAT16)   bindings[6] = src;
+    else if (src.type == IM_DT_FLOAT32)   bindings[7] = src;
+
+    std::vector<vk_constant_type> constants(11);
     constants[0].i = src.w;
     constants[1].i = src.h;
     constants[2].i = src.c;
-    constants[3].i = dst.w;
-    constants[4].i = dst.h;
-    constants[5].i = type;
-    constants[6].i = dst.color_format;
+    constants[3].i = src.color_format;
+    constants[4].i = src.type;
+    constants[5].i = dst.w;
+    constants[6].i = dst.h;
+    constants[7].i = dst.c;
+    constants[8].i = dst.color_format;
+    constants[9].i = dst.type;
+    constants[10].i = type;
     cmd->record_pipeline(pipe, bindings, constants, dst);
 }
 
@@ -55,8 +68,7 @@ void Resize_vulkan::Resize(const ImMat& src, ImMat& dst, float fx, float fy, ImI
     cmd->record_clone(src, vk_src, opt);
     int dst_width = Im_AlignSize((fx == 0.f ? src.w : src.w * fx), 4);
     int dst_height = Im_AlignSize((fx == 0.f ? src.h : fy == 0.f ? src.h * fx : src.h * fy), 4);
-    dst_buffer.create_type(dst_width, dst_height, 4, IM_DT_FLOAT32, opt.blob_vkallocator);
-    dst_buffer.color_format = IM_CF_ABGR;   // for render
+    dst_buffer.create_type(dst_width, dst_height, 4, dst.type, opt.blob_vkallocator);
 
     upload_param(vk_src, dst_buffer, type);
 
@@ -72,8 +84,7 @@ void Resize_vulkan::Resize(const ImMat& src, VkMat& dst, float fx, float fy, ImI
     cmd->record_clone(src, vk_src, opt);
     int dst_width = Im_AlignSize((fx == 0.f ? src.w : src.w * fx), 4);
     int dst_height = Im_AlignSize((fx == 0.f ? src.h : fy == 0.f ? src.h * fx : src.h * fy), 4);
-    dst.create_type(dst_width, dst_height, 4, IM_DT_FLOAT32, opt.blob_vkallocator);
-    dst.color_format = IM_CF_ABGR;   // for render
+    dst.create_type(dst_width, dst_height, 4, dst.type, opt.blob_vkallocator);
 
     upload_param(vk_src, dst, type);
 
@@ -87,8 +98,7 @@ void Resize_vulkan::Resize(const VkMat& src, ImMat& dst, float fx, float fy, ImI
     VkMat dst_buffer;
     int dst_width = Im_AlignSize((fx == 0.f ? src.w : src.w * fx), 4);
     int dst_height = Im_AlignSize((fx == 0.f ? src.h : fy == 0.f ? src.h * fx : src.h * fy), 4);
-    dst_buffer.create_type(dst_width, dst_height, 4, IM_DT_FLOAT32, opt.blob_vkallocator);
-    dst_buffer.color_format = IM_CF_ABGR;   // for render
+    dst_buffer.create_type(dst_width, dst_height, 4, dst.type, opt.blob_vkallocator);
 
     upload_param(src, dst_buffer, type);
 
@@ -102,8 +112,7 @@ void Resize_vulkan::Resize(const VkMat& src, VkMat& dst, float fx, float fy, ImI
 {
     int dst_width = Im_AlignSize((fx == 0.f ? src.w : src.w * fx), 4);
     int dst_height = Im_AlignSize((fx == 0.f ? src.h : fy == 0.f ? src.h * fx : src.h * fy), 4);
-    dst.create_type(dst_width, dst_height, 4, IM_DT_FLOAT32, opt.blob_vkallocator);
-    dst.color_format = IM_CF_ABGR;   // for render
+    dst.create_type(dst_width, dst_height, 4, dst.type, opt.blob_vkallocator);
 
     upload_param(src, dst, type);
 
