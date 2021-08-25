@@ -2752,7 +2752,7 @@ namespace ImGui
     //  (New) IMGUI_VERSION_NUM >= 18209: using 'ItemAdd(..., ImGuiItemAddFlags_Focusable)'  and 'bool focused = (GetItemStatusFlags() & ImGuiItemStatusFlags_Focused) != 0'
     // Widget code are simplified as there's no need to call FocusableItemUnregister() while managing the transition from regular widget to TempInputText()
     inline bool FocusableItemRegister(ImGuiWindow* window, ImGuiID id)   { IM_ASSERT(0); IM_UNUSED(window); IM_UNUSED(id); return false; } // -> pass ImGuiItemAddFlags_Focusable flag to ItemAdd()
-    inline IM_NORETURN void FocusableItemUnregister(ImGuiWindow* window) { IM_ASSERT(0); IM_UNUSED(window); }                              // -> unnecessary: TempInputText() uses ImGuiInputTextFlags_MergedItem
+    //inline IM_NORETURN void FocusableItemUnregister(ImGuiWindow* window) { IM_ASSERT(0); IM_UNUSED(window); } // disabled by Dicky                             // -> unnecessary: TempInputText() uses ImGuiInputTextFlags_MergedItem
 #endif
 
     // Logging/Capture
