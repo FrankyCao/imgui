@@ -106,6 +106,7 @@ inline void Im_FastFree(void* ptr)
 ////////////////////////////////////////////////////////////////////
 // Type define
 enum ImDataType {
+    IM_DT_UNDEFINED = -1,
     IM_DT_INT8 = 0,
     IM_DT_INT16,
     IM_DT_INT32,
