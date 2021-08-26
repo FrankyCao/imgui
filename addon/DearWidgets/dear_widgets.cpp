@@ -1079,7 +1079,7 @@ namespace ImWidgets {
 		const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
 
 		ImGui::ItemSize(total_bb, style.FramePadding.y);
-		if (!ImGui::ItemAdd(total_bb, id, &frame_bb))
+		if (!ImGui::ItemAdd(total_bb, id, &frame_bb, ImGuiItemAddFlags_Focusable))
 			return false;
 
 		//// Default format string when passing NULL
@@ -1106,7 +1106,7 @@ namespace ImWidgets {
 				if (temp_input_allowed && (focus_requested || (clicked && g.IO.KeyCtrl) || double_clicked || g.NavInputId == id))
 				{
 					temp_input_is_active = true;
-					ImGui::FocusableItemUnregister(window);
+					//ImGui::FocusableItemUnregister(window);
 				}
 			}
 			// Experimental: simple click (without moving) turns Drag into an InputText
@@ -1116,7 +1116,7 @@ namespace ImWidgets {
 				{
 					g.NavInputId = id;
 					temp_input_is_active = true;
-					ImGui::FocusableItemUnregister(window);
+					//ImGui::FocusableItemUnregister(window);
 				}
 		}
 
