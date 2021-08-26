@@ -154,9 +154,13 @@ layout (push_constant) uniform parameter \n\
     int cstep; \n\
     int in_format; \n\
     int in_type; \n\
-    float in_scale; \n\
+    \n\
+    int out_w; \n\
+    int out_h; \n\
+    int out_cstep; \n\
     int out_format; \n\
     int out_type; \n\
+    float in_scale; \n\
 } p;\
 "
 
@@ -166,13 +170,13 @@ void main() \n\
 { \n\
     int gx = int(gl_GlobalInvocationID.x); \n\
     int gy = int(gl_GlobalInvocationID.y); \n\
-    if (gx >= p.w || gy >= p.h) \n\
+    if (gx >= p.out_w || gy >= p.out_h) \n\
         return; \n\
     sfp gray = load_gray(gx, gy, p.w, 1, p.in_format, p.in_type, p.in_scale); \n\
     if (p.in_format == CF_NV12) \n\
-        store_rgba_side_by_side(sfpvec4(sfpvec3(gray), 1.0f), gx, gy, p.w, p.cstep, p.out_format, p.out_type); \n\
+        store_rgba_side_by_side(sfpvec4(sfpvec3(gray), 1.0f), gx, gy, p.out_w, p.out_cstep, p.out_format, p.out_type); \n\
     else \n\
-        store_rgba(sfpvec4(sfpvec3(gray), 1.0f), gx, gy, p.w, p.cstep, p.out_format, p.out_type); \n\
+        store_rgba(sfpvec4(sfpvec3(gray), 1.0f), gx, gy, p.out_w, p.out_cstep, p.out_format, p.out_type); \n\
 } \
 "
 
@@ -195,6 +199,10 @@ layout (push_constant) uniform parameter \n\
     int cstep; \n\
     int in_format; \n\
     int in_type; \n\
+    \n\
+    int out_w; \n\
+    int out_h; \n\
+    int out_cstep; \n\
     int out_format; \n\
     int out_type; \n\
 } p;\
@@ -206,10 +214,10 @@ void main() \n\
 { \n\
     int gx = int(gl_GlobalInvocationID.x); \n\
     int gy = int(gl_GlobalInvocationID.y); \n\
-    if (gx >= p.w || gy >= p.h) \n\
+    if (gx >= p.out_w || gy >= p.out_h) \n\
         return; \n\
     sfpvec4 rgba = load_rgba(gx, gy, p.w, p.cstep, p.in_format, p.in_type); \n\
-    store_rgba(rgba, gx, gy, p.w, p.cstep, p.out_format, p.out_type); \n\
+    store_rgba(rgba, gx, gy, p.out_w, p.out_cstep, p.out_format, p.out_type); \n\
 } \
 "
 

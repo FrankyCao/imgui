@@ -183,15 +183,18 @@ void ColorConvert_vulkan::upload_param(const VkMat& Im, VkMat& dst, ImColorForma
     else if (Im.type == IM_DT_FLOAT16)   bindings[6] = Im;
     else if (Im.type == IM_DT_FLOAT32)   bindings[7] = Im;
 
-    std::vector<vk_constant_type> constants(8);
-    constants[0].i = dst.w;
-    constants[1].i = dst.h;
-    constants[2].i = dst.c;
+    std::vector<vk_constant_type> constants(11);
+    constants[0].i = Im.w;
+    constants[1].i = Im.h;
+    constants[2].i = Im.c;
     constants[3].i = color_format;
     constants[4].i = Im.type;
-    constants[5].f = (float)(1 << video_shift);
-    constants[6].i = dst.color_format;
-    constants[7].i = dst.type;
+    constants[5].i = dst.w;
+    constants[6].i = dst.h;
+    constants[7].i = dst.c;
+    constants[8].i = dst.color_format;
+    constants[9].i = dst.type;
+    constants[10].f = (float)(1 << video_shift);
     cmd->record_pipeline(pipeline_gray_rgb, bindings, constants, dst);
 }
 // input Gray from CPU buffer and output to RGBA8888 CPU buffer
@@ -263,14 +266,17 @@ void ColorConvert_vulkan::upload_param(const VkMat& Im, VkMat& dst) const
     else if (Im.type == IM_DT_FLOAT16)   bindings[6] = Im;
     else if (Im.type == IM_DT_FLOAT32)   bindings[7] = Im;
 
-    std::vector<vk_constant_type> constants(7);
-    constants[0].i = dst.w;
-    constants[1].i = dst.h;
-    constants[2].i = dst.c;
+    std::vector<vk_constant_type> constants(10);
+    constants[0].i = Im.w;
+    constants[1].i = Im.h;
+    constants[2].i = Im.c;
     constants[3].i = Im.color_format;
     constants[4].i = Im.type;
-    constants[5].i = dst.color_format;
-    constants[6].i = dst.type;
+    constants[5].i = dst.w;
+    constants[6].i = dst.h;
+    constants[7].i = dst.c;
+    constants[8].i = dst.color_format;
+    constants[9].i = dst.type;
     cmd->record_pipeline(pipeline_conv, bindings, constants, dst);
 }
 
