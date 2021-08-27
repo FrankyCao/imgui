@@ -72,7 +72,10 @@ void main() \n\
     dcolor -= inputColor * chromaColor * despillAlpha * sfp(p.despillScale); \n\
     // 添加环境光收益 \n\
     dcolor += inputColor * lumaFactor*ambientColor * sfp(p.ambientScale) * despillAlpha; \n\
-    store_rgba(sfpvec4(dcolor, alpha), uv.x, uv.y, p.out_w, p.out_cstep, p.out_format, p.out_type); \n\
+    if (p.out_format == CF_GRAY) \n\
+        store_gray(alpha, uv.x, uv.y, p.out_w, p.out_cstep, p.out_format, p.out_type); \n\
+    else \n\
+        store_rgba(sfpvec4(dcolor, alpha), uv.x, uv.y, p.out_w, p.out_cstep, p.out_format, p.out_type); \n\
 } \
 "
 
@@ -82,5 +85,6 @@ SHADER_PARAM
 SHADER_INPUT_OUTPUT_DATA
 SHADER_LOAD_RGBA
 SHADER_STORE_RGBA
+SHADER_STORE_GRAY
 SHADER_MAIN
 ;

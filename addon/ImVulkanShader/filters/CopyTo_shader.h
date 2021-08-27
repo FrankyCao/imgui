@@ -34,7 +34,7 @@ void main() \n\
         return; \n\
     sfpvec4 rgba = load_rgba(uv.x, uv.y, p.w, p.cstep, p.in_format, p.in_type); \n\
     sfpvec4 rgba_dst = load_dst_rgba(uv.x + p.x_offset, uv.y + p.y_offset, p.out_w, p.out_cstep, p.out_format, p.out_type); \n\
-    sfpvec4 result = sfpvec4(mix(rgba_dst.rgb, rgba.rgb, rgba.a * sfp(p.alpha)), rgba_dst.a); \n\
+    sfpvec4 result = sfpvec4(mix(rgba_dst.rgb, rgba.rgb, rgba.a * sfp(p.alpha)), sfp(1.0f)); \n\
     store_rgba(result, uv.x + p.x_offset, uv.y + p.y_offset, p.out_w, p.out_cstep, p.out_format, p.out_type); \n\
 } \
 "

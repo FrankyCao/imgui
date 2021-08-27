@@ -13,22 +13,22 @@ public:
     ~ChromaKey_vulkan();
 
     // input CPU Buffer and output to RGBA CPU buffer
-    void filter(const ImMat& src, ImMat& dst, 
+    void filter(const ImMat& src, ImMat& dst, bool alpha_only,
                 float lumaMask, ImVec4 chromaColor, ImVec4 ambientColor,
                 float alphaCutoffMin, float alphaScale, float alphaExponent,
                 float ambientScale, float despillScale, float despillExponent);
     // input CPU Buffer and output to RGBA GPU buffer
-    void filter(const ImMat& src, VkMat& dst,
+    void filter(const ImMat& src, VkMat& dst, bool alpha_only,
                 float lumaMask, ImVec4 chromaColor, ImVec4 ambientColor,
                 float alphaCutoffMin, float alphaScale, float alphaExponent,
                 float ambientScale, float despillScale, float despillExponent);
     // input GPU Buffer and output to RGBA CPU buffer
-    void filter(const VkMat& src, ImMat& dst,
+    void filter(const VkMat& src, ImMat& dst, bool alpha_only,
                 float lumaMask, ImVec4 chromaColor, ImVec4 ambientColor,
                 float alphaCutoffMin, float alphaScale, float alphaExponent,
                 float ambientScale, float despillScale, float despillExponent);
     // input GPU Buffer and output to RGBA GPU buffer
-    void filter(const VkMat& src, VkMat& dst,
+    void filter(const VkMat& src, VkMat& dst, bool alpha_only,
                 float lumaMask, ImVec4 chromaColor, ImVec4 ambientColor,
                 float alphaCutoffMin, float alphaScale, float alphaExponent,
                 float ambientScale, float despillScale, float despillExponent);

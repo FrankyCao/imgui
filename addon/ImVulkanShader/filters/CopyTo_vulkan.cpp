@@ -72,6 +72,11 @@ void CopyTo_vulkan::copyTo(const ImMat& src, ImMat& dst, int x, int y, float alp
         return;
     }
 
+    if (dst.empty())
+    {
+        dst.create_type(src.w, src.h, 4, dst.type);
+    }
+
     if (src.dims != dst.dims || src.c != dst.c || dst.device != IM_DD_VULKAN ||
         src.color_space != dst.color_space || src.color_range != dst.color_range)
         return;
@@ -99,6 +104,10 @@ void CopyTo_vulkan::copyTo(const ImMat& src, VkMat& dst, int x, int y, float alp
         return;
     }
 
+    if (dst.empty())
+    {
+        dst.create_type(src.w, src.h, 4, dst.type, opt.blob_vkallocator);
+    }
     if (src.dims != dst.dims || src.c != dst.c || dst.device != IM_DD_VULKAN ||
         src.color_space != dst.color_space || src.color_range != dst.color_range)
         return;
@@ -120,6 +129,11 @@ void CopyTo_vulkan::copyTo(const VkMat& src, ImMat& dst, int x, int y, float alp
     if (!vkdev || !pipe || !cmd)
     {
         return;
+    }
+
+    if (dst.empty())
+    {
+        dst.create_type(src.w, src.h, 4, dst.type);
     }
 
     if (src.dims != dst.dims || src.c != dst.c || src.device != IM_DD_VULKAN ||
@@ -147,6 +161,10 @@ void CopyTo_vulkan::copyTo(const VkMat& src, VkMat& dst, int x, int y, float alp
         return;
     }
 
+    if (dst.empty())
+    {
+        dst.create_type(src.w, src.h, 4, dst.type, opt.blob_vkallocator);
+    }
     if (src.dims != dst.dims || src.c != dst.c || src.device != dst.device || src.device_number != dst.device_number || 
         src.color_space != dst.color_space || src.color_range != dst.color_range)
         return;

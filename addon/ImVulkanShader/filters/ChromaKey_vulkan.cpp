@@ -77,7 +77,7 @@ void ChromaKey_vulkan::upload_param(const VkMat& src, VkMat& dst,
     cmd->record_pipeline(pipe, bindings, constants, dst);
 }
 
-void ChromaKey_vulkan::filter(const ImMat& src, ImMat& dst,
+void ChromaKey_vulkan::filter(const ImMat& src, ImMat& dst, bool alpha_only,
                             float lumaMask, ImVec4 chromaColor, ImVec4 ambientColor,
                             float alphaCutoffMin, float alphaScale, float alphaExponent,
                             float ambientScale, float despillScale, float despillExponent)
@@ -86,7 +86,7 @@ void ChromaKey_vulkan::filter(const ImMat& src, ImMat& dst,
     {
         return;
     }
-    dst.create_type(src.w, src.h, 4, dst.type);
+    dst.create_type(src.w, src.h, alpha_only ? 1 : 4, dst.type);
 
     VkMat out_gpu;
     out_gpu.create_like(dst, opt.blob_vkallocator);
@@ -101,7 +101,7 @@ void ChromaKey_vulkan::filter(const ImMat& src, ImMat& dst,
     cmd->reset();
 }
 
-void ChromaKey_vulkan::filter(const ImMat& src, VkMat& dst,
+void ChromaKey_vulkan::filter(const ImMat& src, VkMat& dst, bool alpha_only,
                             float lumaMask, ImVec4 chromaColor, ImVec4 ambientColor,
                             float alphaCutoffMin, float alphaScale, float alphaExponent,
                             float ambientScale, float despillScale, float despillExponent)
@@ -110,7 +110,7 @@ void ChromaKey_vulkan::filter(const ImMat& src, VkMat& dst,
     {
         return;
     }
-    dst.create_type(src.w, src.h, 4, dst.type, opt.blob_vkallocator);
+    dst.create_type(src.w, src.h, alpha_only ? 1 : 4, dst.type, opt.blob_vkallocator);
 
     VkMat in_gpu;
     cmd->record_clone(src, in_gpu, opt);
@@ -121,7 +121,7 @@ void ChromaKey_vulkan::filter(const ImMat& src, VkMat& dst,
     cmd->reset();
 }
 
-void ChromaKey_vulkan::filter(const VkMat& src, ImMat& dst,
+void ChromaKey_vulkan::filter(const VkMat& src, ImMat& dst, bool alpha_only,
                             float lumaMask, ImVec4 chromaColor, ImVec4 ambientColor,
                             float alphaCutoffMin, float alphaScale, float alphaExponent,
                             float ambientScale, float despillScale, float despillExponent)
@@ -130,7 +130,7 @@ void ChromaKey_vulkan::filter(const VkMat& src, ImMat& dst,
     {
         return;
     }
-    dst.create_type(src.w, src.h, 4, dst.type);
+    dst.create_type(src.w, src.h, alpha_only ? 1 : 4, dst.type);
 
     VkMat out_gpu;
     out_gpu.create_like(dst, opt.blob_vkallocator);
@@ -143,7 +143,7 @@ void ChromaKey_vulkan::filter(const VkMat& src, ImMat& dst,
     cmd->reset();
 }
 
-void ChromaKey_vulkan::filter(const VkMat& src, VkMat& dst,
+void ChromaKey_vulkan::filter(const VkMat& src, VkMat& dst, bool alpha_only,
                             float lumaMask, ImVec4 chromaColor, ImVec4 ambientColor,
                             float alphaCutoffMin, float alphaScale, float alphaExponent,
                             float ambientScale, float despillScale, float despillExponent)
@@ -153,7 +153,7 @@ void ChromaKey_vulkan::filter(const VkMat& src, VkMat& dst,
         return;
     }
 
-    dst.create_type(src.w, src.h, 4, dst.type, opt.blob_vkallocator);
+    dst.create_type(src.w, src.h, alpha_only ? 1 : 4, dst.type, opt.blob_vkallocator);
     
     upload_param(src, dst, lumaMask, chromaColor, ambientColor, alphaCutoffMin, alphaScale, alphaExponent, ambientScale, despillScale, despillExponent);
 
