@@ -249,7 +249,7 @@ struct AnimatedImage {
     // TODO: load still images as fallback and load gifs from memory
     public:
     typedef void (*FreeTextureDelegate)(ImTextureID texid);
-    typedef void (*GenerateOrUpdateTextureDelegate)(ImTextureID& imtexid,int width,int height,int channels,const unsigned char* pixels,bool useMipmapsIfPossible,bool wraps,bool wrapt,bool,bool);
+    typedef void (*GenerateOrUpdateTextureDelegate)(ImTextureID& imtexid,int width,int height,int channels,size_t offset,const unsigned char* pixels,bool useMipmapsIfPossible,bool wraps,bool wrapt,bool,bool,bool);
     void SetFreeTextureCallback(FreeTextureDelegate freeTextureCb) {FreeTextureCb=freeTextureCb;}
     void SetGenerateOrUpdateTextureCallback(GenerateOrUpdateTextureDelegate generateOrUpdateTextureCb) {GenerateOrUpdateTextureCb=generateOrUpdateTextureCb;}
 

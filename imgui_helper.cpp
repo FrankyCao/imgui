@@ -259,7 +259,7 @@ void ShowImGuiInfo()
 // Image Load
 static std::vector<ImTexture> g_Textures;
 
-void ImGenerateOrUpdateTexture(ImTextureID& imtexid,int width,int height,int channels,const unsigned char* pixels,bool useMipmapsIfPossible,bool wraps,bool wrapt,bool minFilterNearest,bool magFilterNearest)
+void ImGenerateOrUpdateTexture(ImTextureID& imtexid,int width,int height,int channels,size_t offset,const unsigned char* pixels,bool useMipmapsIfPossible,bool wraps,bool wrapt,bool minFilterNearest,bool magFilterNearest,bool is_vulkan)
 {
     IM_ASSERT(pixels);
     IM_ASSERT(channels>0 && channels<=4);
@@ -268,13 +268,19 @@ void ImGenerateOrUpdateTexture(ImTextureID& imtexid,int width,int height,int cha
     {
         g_Textures.resize(g_Textures.size() + 1);
         ImTexture& texture = g_Textures.back();
-        texture.TextureID = (ImTextureVk)ImGui_ImplVulkan_CreateTexture(pixels, width, height);
+        if (is_vulkan)
+            texture.TextureID = (ImTextureVk)ImGui_ImplVulkan_CreateTexture((VkBuffer)pixels, offset, width, height);
+        else
+            texture.TextureID = (ImTextureVk)ImGui_ImplVulkan_CreateTexture(pixels, width, height);
         texture.Width  = width;
         texture.Height = height;
         imtexid = texture.TextureID;
         return;
     }
-    ImGui_ImplVulkan_UpdateTexture(imtexid, pixels, width, height);
+    if (is_vulkan)
+        ImGui_ImplVulkan_UpdateTexture(imtexid, (VkBuffer)pixels, offset, width, height);
+    else
+        ImGui_ImplVulkan_UpdateTexture(imtexid, pixels, width, height);
 #elif IMGUI_RENDERING_DX11
     auto textureID = (ID3D11ShaderResourceView *)imtexid;
     if (textureID)
@@ -601,6 +607,23 @@ ImTextureID ImLoadTexture(const char* path)
     }
     else
         return nullptr;
+}
+
+bool ImTextureToFile(ImTextureID texture, std::string path)
+{
+    auto textureIt = ImFindTexture(texture);
+    if (textureIt == g_Textures.end())
+        return false;
+    int width = textureIt->Width;
+    int height = textureIt->Height;
+#if IMGUI_RENDERING_VULKAN
+    if (textureIt->TextureID)
+    {
+        ImGui_ImplVulkan_SaveTexture(textureIt->TextureID, width, height, path);
+        return true;
+    }
+#endif
+    return false;
 }
 
 bool OpenWithDefaultApplication(const char* url,bool exploreModeForWindowsOS)	

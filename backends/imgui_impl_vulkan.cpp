@@ -761,7 +761,7 @@ static void ImGui_ImplVulkan_CreateShaderModules(VkDevice device, const VkAlloca
 {
     // Create the shader modules
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
-    if (bd->ShaderModuleVert == NULL)
+    if (bd->ShaderModuleVert == VK_NULL_HANDLE)
     {
         VkShaderModuleCreateInfo vert_info = {};
         vert_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -770,7 +770,7 @@ static void ImGui_ImplVulkan_CreateShaderModules(VkDevice device, const VkAlloca
         VkResult err = vkCreateShaderModule(device, &vert_info, allocator, &bd->ShaderModuleVert);
         check_vk_result(err);
     }
-    if (bd->ShaderModuleFrag == NULL)
+    if (bd->ShaderModuleFrag == VK_NULL_HANDLE)
     {
         VkShaderModuleCreateInfo frag_info = {};
         frag_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -1315,7 +1315,7 @@ void ImGui_ImplVulkanH_CreateWindowSwapChain(VkPhysicalDevice physical_device, V
 {
     VkResult err;
     VkSwapchainKHR old_swapchain = wd->Swapchain;
-    wd->Swapchain = NULL;
+    wd->Swapchain = VK_NULL_HANDLE;
     err = vkDeviceWaitIdle(device);
     check_vk_result(err);
 
@@ -1950,6 +1950,27 @@ static void copyBufferToImage(ImGui_ImplVulkan_InitInfo* v, VkCommandPool comman
     endSingleTimeCommands(v, commandPool, commandBuffer);
 }
 
+static void copyImageToBuffer(ImGui_ImplVulkan_InitInfo* v, VkCommandPool commandPool, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) 
+{
+    VkCommandBuffer commandBuffer = beginSingleTimeCommands(v, commandPool);
+    VkBufferImageCopy region{};
+    region.bufferOffset = 0;
+    region.bufferRowLength = 0;
+    region.bufferImageHeight = 0;
+    region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    region.imageSubresource.mipLevel = 0;
+    region.imageSubresource.baseArrayLayer = 0;
+    region.imageSubresource.layerCount = 1;
+    region.imageOffset = {0, 0, 0};
+    region.imageExtent = {
+        width,
+        height,
+        1
+    };
+    vkCmdCopyImageToBuffer(commandBuffer, image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, buffer, 1, &region);
+    endSingleTimeCommands(v, commandPool, commandBuffer);
+}
+
 ImTextureID ImGui_ImplVulkan_CreateTexture(const void * pixels, int width, int height)
 {
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
@@ -2140,6 +2161,73 @@ void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, const void * pixels, 
     vkDestroyCommandPool(v->Device, commandPool, nullptr);
 }
 
+// Add By Dicky
+void ImGui_ImplVulkan_SaveTexture(ImTextureVk texture, int width, int height, std::string path)
+{
+    if (!texture)
+        return;
+    ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
+    ImGui_ImplVulkan_InitInfo* v = &bd->VulkanInitInfo;
+    if (!v || !v->PhysicalDevice)
+        return;
+
+    VkDeviceSize imageSize = width * height * 4;
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    VkCommandPool commandPool = VK_NULL_HANDLE;
+    createBuffer(v, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                stagingBuffer, stagingBufferMemory);
+    
+    VkCommandPoolCreateInfo poolInfo{};
+    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    poolInfo.queueFamilyIndex = v->QueueFamily;
+
+    if (vkCreateCommandPool(v->Device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create graphics command pool!");
+    }
+
+    transitionImageLayout(v, commandPool, texture->textureImage, 
+                        VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, 
+                        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    copyImageToBuffer(v, commandPool, stagingBuffer, texture->textureImage, 
+                    static_cast<uint32_t>(width), static_cast<uint32_t>(height));
+    void* data;
+    vkMapMemory(v->Device, stagingBufferMemory, 0, imageSize, 0, &data);
+    if (!data)
+    {
+        throw std::runtime_error("failed to map image memory!");
+    }
+    // TODO::Dicky Save data to file
+    {
+        std::string file_surfix;
+        auto separator = path.find_last_of('.');
+        if (separator != std::string::npos)
+            file_surfix = path.substr(separator + 1);
+        if (!file_surfix.empty())
+        {
+            if (file_surfix.compare("png") == 0 || file_surfix.compare("PNG") == 0)
+                stbi_write_png(path.c_str(), width, height, 4, data, width * 4);
+            else if (file_surfix.compare("jpg") == 0 || file_surfix.compare("JPG") == 0 ||
+                    file_surfix.compare("jpeg") == 0 || file_surfix.compare("JPEG") == 0)
+                stbi_write_jpg(path.c_str(), width, height, 4, data, width * 4);
+            else if (file_surfix.compare("bmp") == 0 || file_surfix.compare("BMP") == 0)
+                stbi_write_bmp(path.c_str(), width, height, 4, data);
+            else if (file_surfix.compare("tga") == 0 || file_surfix.compare("TGA") == 0)
+                stbi_write_tga(path.c_str(), width, height, 4, data);
+            //else if (file_surfix.compare("hdr") == 0 || file_surfix.compare("HDR") == 0)
+            //    stbi_write_hdr(path.c_str(), width, height, 4, data); // HDR only support float
+        }
+    }
+
+    vkUnmapMemory(v->Device, stagingBufferMemory);
+    
+    vkDestroyBuffer(v->Device, stagingBuffer, nullptr);
+    vkFreeMemory(v->Device, stagingBufferMemory, nullptr);
+    vkDestroyCommandPool(v->Device, commandPool, nullptr);
+}
+// Add By Dicky end
+
 void ImGui_ImplVulkan_DestroyTexture(ImTextureVk* texture)
 {
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
@@ -2152,13 +2240,13 @@ void ImGui_ImplVulkan_DestroyTexture(ImTextureVk* texture)
         ImTextureVk textureVK = *texture;
         if (!textureVK->extra_image)
         {
-            if (textureVK->textureView) vkDestroyImageView(v->Device, textureVK->textureView, nullptr);
-            if (textureVK->textureImage) vkDestroyImage(v->Device, textureVK->textureImage, nullptr); 
-            if (textureVK->textureImageMemory) vkFreeMemory(v->Device, textureVK->textureImageMemory, nullptr);
-            if (textureVK->textureSampler) vkDestroySampler(v->Device, textureVK->textureSampler, nullptr);
-            if (textureVK->textureDescriptor) vkFreeDescriptorSets(v->Device, v->DescriptorPool, 1, &textureVK->textureDescriptor);
+            if (textureVK->textureView) { vkDestroyImageView(v->Device, textureVK->textureView, v->Allocator); textureVK->textureView = VK_NULL_HANDLE; }
+            //if (textureVK->textureImage) vkDestroyImage(v->Device, textureVK->textureImage, v->Allocator); 
+            if (textureVK->textureImageMemory) { vkFreeMemory(v->Device, textureVK->textureImageMemory, v->Allocator); textureVK->textureImageMemory = VK_NULL_HANDLE; }
+            if (textureVK->textureSampler) { vkDestroySampler(v->Device, textureVK->textureSampler, v->Allocator); textureVK->textureSampler = VK_NULL_HANDLE; }
+            //if (textureVK->textureDescriptor) vkFreeDescriptorSets(v->Device, v->DescriptorPool, 1, &textureVK->textureDescriptor);
         }
-        delete textureVK;
+        //delete textureVK;
         *texture = nullptr;
     }
 }

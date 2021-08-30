@@ -801,7 +801,7 @@ struct AnimatedImageInternal {
         IM_ASSERT(AnimatedImage::GenerateOrUpdateTextureCb!=NULL);	// Please use ImGui::AnimatedImage::SetGenerateOrUpdateTextureCallback(...) before calling this method
         if (frames<=0) return;
         else if (frames==1) {
-            if (!texId) AnimatedImage::GenerateOrUpdateTextureCb(texId,w,h,4,buffer,false,false,false,false,false);
+            if (!texId) AnimatedImage::GenerateOrUpdateTextureCb(texId,w,h,4,0,buffer,false,false,false,false,false,false);
             return;
         }
 
@@ -835,7 +835,7 @@ struct AnimatedImageInternal {
                 changed = (i!=lastFrameNum || !texId);
                 lastFrameNum = i;
                 if (changed || forceUpdate)    {
-                    if (!persistentTexId) AnimatedImage::GenerateOrUpdateTextureCb(texId,w,h,4,&buffer[imageSz*i],false,false,false,false,false);
+                    if (!persistentTexId) AnimatedImage::GenerateOrUpdateTextureCb(texId,w,h,4,0,&buffer[imageSz*i],false,false,false,false,false,false);
                     else {
                         texId = persistentTexId;
                         // calculate uvFrame0 and uvFrame1 here based on 'i' and numFramesPerRowInPersistentTexture,numFramesPerColInPersistentTexture
@@ -956,7 +956,7 @@ struct AnimatedImageInternal {
 
                 // generate persistentTexture,delete buffer
                 IM_ASSERT(AnimatedImage::GenerateOrUpdateTextureCb!=NULL);	// Please use ImGui::AnimatedImage::SetGenerateOrUpdateTextureCallback(...) before calling this method
-                AnimatedImage::GenerateOrUpdateTextureCb(persistentTexId,w*maxNumFramesPerRow,h*maxNumFramesPerCol,4,buffer,false,false,false,false,false);
+                AnimatedImage::GenerateOrUpdateTextureCb(persistentTexId,w*maxNumFramesPerRow,h*maxNumFramesPerCol,4,0,buffer,false,false,false,false,false,false);
                 STBI_FREE(buffer);buffer=NULL;
 
                 hoverModeIfSupported = useHoverModeIfSupported;

@@ -63,19 +63,21 @@ void main() \n\
     sfp minClamp = max((diffSize - sfp(p.alphaCutoffMin)) * sfp(p.alphaScale), sfp(0.0f)); \n\
     // 扣像alpha \n\
     sfp alpha= clamp(pow(minClamp, sfp(p.alphaExponent)), sfp(0.0f), sfp(1.0f)); \n\
-    // 受扣像背景影响的颜色alpha \n\
-    sfp despillAlpha = sfp(1.0f) - clamp(pow(minClamp, sfp(p.despillExponent)), sfp(0.0f), sfp(1.0f)); \n\
-    // 亮度系数 \n\
-    sfpvec3 lumaFactor = sfpvec3(0.3f,0.59f,0.11f); \n\
-    sfpvec3 dcolor = inputColor; \n\
-    // 去除扣像背景影响的颜色 \n\
-    dcolor -= inputColor * chromaColor * despillAlpha * sfp(p.despillScale); \n\
-    // 添加环境光收益 \n\
-    dcolor += inputColor * lumaFactor*ambientColor * sfp(p.ambientScale) * despillAlpha; \n\
     if (p.out_format == CF_GRAY) \n\
         store_gray(alpha, uv.x, uv.y, p.out_w, p.out_cstep, p.out_format, p.out_type); \n\
     else \n\
+    { \n\
+        // 受扣像背景影响的颜色alpha \n\
+        sfp despillAlpha = sfp(1.0f) - clamp(pow(minClamp, sfp(p.despillExponent)), sfp(0.0f), sfp(1.0f)); \n\
+        // 亮度系数 \n\
+        sfpvec3 lumaFactor = sfpvec3(0.3f,0.59f,0.11f); \n\
+        sfpvec3 dcolor = inputColor; \n\
+        // 去除扣像背景影响的颜色 \n\
+        dcolor -= inputColor * chromaColor * despillAlpha * sfp(p.despillScale); \n\
+        // 添加环境光收益 \n\
+        dcolor += inputColor * lumaFactor*ambientColor * sfp(p.ambientScale) * despillAlpha; \n\
         store_rgba(sfpvec4(dcolor, alpha), uv.x, uv.y, p.out_w, p.out_cstep, p.out_format, p.out_type); \n\
+    } \n\
 } \
 "
 

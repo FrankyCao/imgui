@@ -14,7 +14,7 @@
 #include <vector>
 #include <algorithm>
 
-namespace ImGuizmo
+namespace IMGUIZMO_NAMESPACE
 {
 static int gizmoCount = 1;
 static float camDistance = 8.f;
