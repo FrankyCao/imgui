@@ -548,40 +548,36 @@ void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer comm
             else
             {
                 // Project scissor/clipping rectangles into framebuffer space
-                ImVec4 clip_rect;
-                clip_rect.x = (pcmd->ClipRect.x - clip_off.x) * clip_scale.x;
-                clip_rect.y = (pcmd->ClipRect.y - clip_off.y) * clip_scale.y;
-                clip_rect.z = (pcmd->ClipRect.z - clip_off.x) * clip_scale.x;
-                clip_rect.w = (pcmd->ClipRect.w - clip_off.y) * clip_scale.y;
+                ImVec2 clip_min((pcmd->ClipRect.x - clip_off.x) * clip_scale.x, (pcmd->ClipRect.y - clip_off.y) * clip_scale.y);
+                ImVec2 clip_max((pcmd->ClipRect.z - clip_off.x) * clip_scale.x, (pcmd->ClipRect.w - clip_off.y) * clip_scale.y);
 
-                if (clip_rect.x < fb_width && clip_rect.y < fb_height && clip_rect.z >= 0.0f && clip_rect.w >= 0.0f)
+                // Clamp to viewport as vkCmdSetScissor() won't accept values that are off bounds
+                if (clip_min.x < 0.0f) { clip_min.x = 0.0f; }
+                if (clip_min.y < 0.0f) { clip_min.y = 0.0f; }
+                if (clip_max.x > fb_width) { clip_max.x = (float)fb_width; }
+                if (clip_max.y > fb_height) { clip_max.y = (float)fb_height; }
+                if (clip_max.x < clip_min.x || clip_max.y < clip_min.y)
+                    continue;
+
+                // Apply scissor/clipping rectangle
+                VkRect2D scissor;
+                scissor.offset.x = (int32_t)(clip_min.x);
+                scissor.offset.y = (int32_t)(clip_min.y);
+                scissor.extent.width = (uint32_t)(clip_max.x - clip_min.x);
+                scissor.extent.height = (uint32_t)(clip_max.y - clip_min.y);
+                vkCmdSetScissor(command_buffer, 0, 1, &scissor);
+                // modify By Dicky
+                // Bind descriptorset with font or user texture
+                ImTextureVk texture = (ImTextureVk)(pcmd->TextureId);
+                if (texture)
                 {
-                    // Negative offsets are illegal for vkCmdSetScissor
-                    if (clip_rect.x < 0.0f)
-                        clip_rect.x = 0.0f;
-                    if (clip_rect.y < 0.0f)
-                        clip_rect.y = 0.0f;
+                    VkDescriptorSet desc_set[1] = { texture->textureDescriptor };
+                    vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, bd->PipelineLayout, 0, 1, desc_set, 0, NULL);
 
-                    // Apply scissor/clipping rectangle
-                    VkRect2D scissor;
-                    scissor.offset.x = (int32_t)(clip_rect.x);
-                    scissor.offset.y = (int32_t)(clip_rect.y);
-                    scissor.extent.width = (uint32_t)(clip_rect.z - clip_rect.x);
-                    scissor.extent.height = (uint32_t)(clip_rect.w - clip_rect.y);
-                    vkCmdSetScissor(command_buffer, 0, 1, &scissor);
-                    // modify By Dicky
-                    // Bind descriptorset with font or user texture
-                    ImTextureVk texture = (ImTextureVk)(pcmd->TextureId);
-                    if (texture)
-                    {
-                        VkDescriptorSet desc_set[1] = { texture->textureDescriptor };
-                        vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, bd->PipelineLayout, 0, 1, desc_set, 0, NULL);
-
-                        // Draw
-                        vkCmdDrawIndexed(command_buffer, pcmd->ElemCount, 1, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset, 0);
-                    }
-                    // modify By Dicky
+                    // Draw
+                    vkCmdDrawIndexed(command_buffer, pcmd->ElemCount, 1, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset, 0);
                 }
+                // modify By Dicky
             }
         }
         global_idx_offset += cmd_list->IdxBuffer.Size;
@@ -1748,6 +1744,7 @@ void ImGui_ImplVulkan_ShutdownPlatformInterface()
     ImGui::DestroyPlatformWindows();
 }
 
+// Add By Dicky
 // Texture founction
 uint32_t findMemoryType(ImGui_ImplVulkan_InitInfo* v, uint32_t typeFilter, VkMemoryPropertyFlags properties) 
 {
@@ -2161,7 +2158,6 @@ void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, const void * pixels, 
     vkDestroyCommandPool(v->Device, commandPool, nullptr);
 }
 
-// Add By Dicky
 void ImGui_ImplVulkan_SaveTexture(ImTextureVk texture, int width, int height, std::string path)
 {
     if (!texture)
@@ -2226,7 +2222,6 @@ void ImGui_ImplVulkan_SaveTexture(ImTextureVk texture, int width, int height, st
     vkFreeMemory(v->Device, stagingBufferMemory, nullptr);
     vkDestroyCommandPool(v->Device, commandPool, nullptr);
 }
-// Add By Dicky end
 
 void ImGui_ImplVulkan_DestroyTexture(ImTextureVk* texture)
 {
@@ -2332,3 +2327,4 @@ ImGui_ImplVulkan_InitInfo* ImGui_ImplVulkan_GetInitInfo()
     ImGui_ImplVulkan_InitInfo* v = &bd->VulkanInitInfo;
     return v;
 }
+// Add By Dicky end

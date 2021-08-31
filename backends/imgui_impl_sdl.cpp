@@ -61,7 +61,7 @@
 #include <SDL.h>
 #include <SDL_syswm.h>
 #if defined(__APPLE__)
-#include "TargetConditionals.h"
+#include <TargetConditionals.h>
 #endif
 #include <math.h> // isinf needed By Dicky
 #include <thread> // sleep_for By Dicky

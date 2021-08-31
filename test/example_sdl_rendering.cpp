@@ -22,9 +22,10 @@
 #ifdef __APPLE__
 #define GL_SILENCE_DEPRECATION
 #endif
-#include <SDL_opengl.h>
 #if defined(IMGUI_IMPL_OPENGL_ES2)
 #include <SDL_opengles2.h>
+#else
+#include <SDL_opengl.h>
 #endif
 
 #define GL_LOAD_FORMAT_RGB GL_RGB
