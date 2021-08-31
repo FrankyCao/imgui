@@ -1039,7 +1039,9 @@ void PrepareVulkanDemo()
     g_cmd = new ImGui::VkCompute(g_vkdev);
     g_cmd->record_upload(test_image, test_vkimage, g_opt);
     g_cmd->submit_and_wait();
+#if IMGUI_RENDERING_VULKAN
     g_texture = ImGui::ImCreateTexture(test_vkimage);
+#endif
 
     static std::vector<uint32_t> spirv;
     ImGui::compile_spirv_module(inverse_data, g_opt, spirv);

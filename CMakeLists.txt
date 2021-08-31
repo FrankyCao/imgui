@@ -126,9 +126,9 @@ _OPTION(IMGUI_VULKAN_BENCHMARK      "Build ImGui With Vulkan Shader Benchmark" O
 if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
 find_package(OpenGL)
 
-if (IMGUI_VULKAN)
+if (IMGUI_VULKAN OR IMGUI_VULKAN_SHADER)
     find_package(Vulkan)
-endif(IMGUI_VULKAN)
+endif(IMGUI_VULKAN OR IMGUI_VULKAN_SHADER)
 
 if (IMGUI_FREETYPE)
     find_package(Freetype)
@@ -155,13 +155,13 @@ if(PKG_CONFIG_FOUND)
             message("glut found")
         endif (GLUT_FOUND)
     endif(IMGUI_GLUT AND NOT GLUT_FOUND)
-    if(IMGUI_VULKAN AND NOT VULKAN_FOUND)
+    if((IMGUI_VULKAN OR IMGUI_VULKAN_SHADER) AND NOT VULKAN_FOUND)
         pkg_search_module(VULKAN REQUIRED vulkan)
         if (VULKAN_FOUND)
             message("vulkan found")
             set (Vulkan_LIBRARY vulkan)
         endif(VULKAN_FOUND)
-    endif(IMGUI_VULKAN AND NOT VULKAN_FOUND)
+    endif((IMGUI_VULKAN OR IMGUI_VULKAN_SHADER) AND NOT VULKAN_FOUND)
     if(NOT OPENGL_FOUND)
         pkg_search_module(OPENGL REQUIRED gl)
         if (OPENGL_FOUND)
@@ -334,10 +334,7 @@ endif(SDL2_FOUND)
 set(BACKEND_RENDERING NONE)
 
 # Vulkan support
-if (IMGUI_VULKAN AND VULKAN_FOUND)
-    message(STATUS "    [ImGui backend rendering with Vulkan]")
-    set(IMGUI_RENDERING_VULKAN ON)
-    set(BACKEND_RENDERING VULKAN)
+if (VULKAN_FOUND)
     set(IMGUI_INC_DIRS
         ${IMGUI_INC_DIRS}
         ${Vulkan_INCLUDE_DIR}
@@ -346,6 +343,10 @@ if (IMGUI_VULKAN AND VULKAN_FOUND)
         ${LINK_LIBS}
         ${Vulkan_LIBRARY}
     )
+if (IMGUI_VULKAN)
+    message(STATUS "    [ImGui backend rendering with Vulkan]")
+    set(IMGUI_RENDERING_VULKAN ON)
+    set(BACKEND_RENDERING VULKAN)
     set(IMGUI_SRC
         ${IMGUI_SRC}
         backends/imgui_impl_vulkan.cpp
@@ -354,7 +355,8 @@ if (IMGUI_VULKAN AND VULKAN_FOUND)
         ${IMGUI_INCS}
         backends/imgui_impl_vulkan.h
     )
-endif(IMGUI_VULKAN AND VULKAN_FOUND)
+endif(IMGUI_VULKAN)
+endif(VULKAN_FOUND)
 
 # OpenGL
 if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
@@ -1024,7 +1026,8 @@ if (IMGUI_ADDON_DEAR_WIDGETS)
     endif(IMGUI_BUILD_EXAMPLE)
 endif(IMGUI_ADDON_DEAR_WIDGETS)
 
-if (IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
+if (VULKAN_FOUND AND (IMGUI_VULKAN OR IMGUI_VULKAN_SHADER))
+    message(STATUS "    [ImGui Build Vulkan Shader]")
     # Vulkan Shader/Glslang
     option(BUILD_EXTERNAL "" OFF)
     option(ENABLE_SPVREMAPPER "" OFF)
@@ -1178,7 +1181,7 @@ if (IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
         ${LINK_LIBS}
         ${GLSLANG_LIBRARY}
     )
-endif(IMGUI_VULKAN AND VULKAN_FOUND AND IMGUI_VULKAN_SHADER)
+endif(VULKAN_FOUND AND (IMGUI_VULKAN OR IMGUI_VULKAN_SHADER))
 
 # Addon Demo
 if (IMGUI_BUILD_EXAMPLE)

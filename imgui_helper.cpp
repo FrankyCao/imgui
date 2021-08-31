@@ -507,7 +507,7 @@ ImTextureID ImCreateTexture(const void* data, int width, int height, double time
 #endif
 }
 
-#if IMGUI_VULKAN_SHADER
+#if IMGUI_RENDERING_VULKAN
 ImTextureID ImCreateTexture(ImGui::VkImageMat & image, double time_stamp)
 {
     g_Textures.resize(g_Textures.size() + 1);
