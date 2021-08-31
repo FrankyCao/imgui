@@ -2232,6 +2232,8 @@ void ImGui_ImplVulkan_DestroyTexture(ImTextureVk* texture)
 
     if (texture && *texture)            
     {
+        /*
+        // TODO::Dicky DestoryTexture on Vulkan will crush, why?
         ImTextureVk textureVK = *texture;
         if (!textureVK->extra_image)
         {
@@ -2243,6 +2245,7 @@ void ImGui_ImplVulkan_DestroyTexture(ImTextureVk* texture)
         }
         //delete textureVK;
         *texture = nullptr;
+        */
     }
 }
 
