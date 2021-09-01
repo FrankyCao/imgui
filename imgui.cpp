@@ -1142,6 +1142,8 @@ ImGuiIO::ImGuiIO()
     FontDefault = NULL;
     FontAllowUserScaling = false;
     DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
+    TexGlyphShadowOffset = ImVec2(0.0f, 0.0f);          // add by dicky for text shadow
+    TexGlyphShadowColor = IM_COL32(128, 128, 128, 255); // add by dicky for text shadow
 
     // Docking options (when ImGuiConfigFlags_DockingEnable is set)
     ConfigDockingNoSplit = false;

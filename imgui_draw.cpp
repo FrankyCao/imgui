@@ -3646,7 +3646,8 @@ void ImFont::RenderChar(ImDrawList* draw_list, float size, ImVec2 pos, ImU32 col
 }
 
 // Note: as with every ImDrawList drawing function, this expects that the font atlas texture is bound.
-void ImFont::RenderText(ImDrawList* draw_list, float size, ImVec2 pos, ImU32 col, const ImVec4& clip_rect, const char* text_begin, const char* text_end, float wrap_width, bool cpu_fine_clip) const
+// Modify By Dicky
+void ImFont::RenderTextEx(ImDrawList* draw_list, float size, ImVec2 pos, ImU32 col, const ImVec4& clip_rect, const char* text_begin, const char* text_end, float wrap_width, bool cpu_fine_clip) const
 {
     if (!text_end)
         text_end = text_begin + strlen(text_begin); // ImGui:: functions generally already provides a valid text_end, so this is merely to handle direct calls.
@@ -3836,6 +3837,16 @@ void ImFont::RenderText(ImDrawList* draw_list, float size, ImVec2 pos, ImU32 col
     draw_list->_IdxWritePtr = idx_write;
     draw_list->_VtxCurrentIdx = vtx_current_idx;
 }
+
+void ImFont::RenderText(ImDrawList* draw_list, float size, ImVec2 pos, ImU32 col, const ImVec4& clip_rect, const char* text_begin, const char* text_end, float wrap_width, bool cpu_fine_clip) const
+{
+    ImVec2 offset = ImGui::GetIO().TexGlyphShadowOffset;
+    ImU32 color = ImGui::GetIO().TexGlyphShadowColor;
+    if (offset.x != 0 || offset.y != 0)
+        RenderTextEx(draw_list, size, pos + offset, color, clip_rect, text_begin, text_end, wrap_width, cpu_fine_clip);
+    RenderTextEx(draw_list, size, pos, col, clip_rect, text_begin, text_end, wrap_width, cpu_fine_clip);
+}
+// Modify By Dicky end
 
 //-----------------------------------------------------------------------------
 // [SECTION] ImGui Internal Render Helpers
