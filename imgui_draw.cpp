@@ -275,6 +275,8 @@ void ImGui::StyleColorsDark(ImGuiStyle* dst)
     colors[ImGuiCol_NavWindowingHighlight]  = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
     colors[ImGuiCol_NavWindowingDimBg]      = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
     colors[ImGuiCol_ModalWindowDimBg]       = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
+    colors[ImGuiCol_TexGlyphShadow]         = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);  // add by Dicky
+    colors[ImGuiCol_TexGlyphOutline]        = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);  // add by Dicky
 }
 
 void ImGui::StyleColorsClassic(ImGuiStyle* dst)
@@ -3840,10 +3842,23 @@ void ImFont::RenderTextEx(ImDrawList* draw_list, float size, ImVec2 pos, ImU32 c
 
 void ImFont::RenderText(ImDrawList* draw_list, float size, ImVec2 pos, ImU32 col, const ImVec4& clip_rect, const char* text_begin, const char* text_end, float wrap_width, bool cpu_fine_clip) const
 {
-    ImVec2 offset = ImGui::GetIO().TexGlyphShadowOffset;
-    ImU32 color = ImGui::GetIO().TexGlyphShadowColor;
+    ImGuiContext& g = *GImGui;
+    ImVec2 offset = g.Style.TexGlyphShadowOffset;
+    float outline_scale = g.Style.TexGlyphOutlineWidth;
     if (offset.x != 0 || offset.y != 0)
-        RenderTextEx(draw_list, size, pos + offset, color, clip_rect, text_begin, text_end, wrap_width, cpu_fine_clip);
+    {
+        ImU32 shadow_color = ImGui::GetColorU32(ImGuiCol_TexGlyphShadow);
+        RenderTextEx(draw_list, size, pos + offset, shadow_color, clip_rect, text_begin, text_end, wrap_width, cpu_fine_clip);
+    }
+
+    if (outline_scale != 0)
+    {
+        ImU32 outline_color = ImGui::GetColorU32(ImGuiCol_TexGlyphOutline);
+        RenderTextEx(draw_list, size, ImVec2(pos.x - outline_scale, pos.y), outline_color, clip_rect, text_begin, text_end, wrap_width, cpu_fine_clip);
+        RenderTextEx(draw_list, size, ImVec2(pos.x, pos.y - outline_scale), outline_color, clip_rect, text_begin, text_end, wrap_width, cpu_fine_clip);
+        RenderTextEx(draw_list, size, ImVec2(pos.x + outline_scale, pos.y), outline_color, clip_rect, text_begin, text_end, wrap_width, cpu_fine_clip);
+        RenderTextEx(draw_list, size, ImVec2(pos.x, pos.y + outline_scale), outline_color, clip_rect, text_begin, text_end, wrap_width, cpu_fine_clip);
+    }
     RenderTextEx(draw_list, size, pos, col, clip_rect, text_begin, text_end, wrap_width, cpu_fine_clip);
 }
 // Modify By Dicky end

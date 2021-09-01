@@ -2253,6 +2253,8 @@ void ThemeGenerator(const char* name, bool* p_open, ImGuiWindowFlags flags)
     //style.Colors[ImGuiCol_NavWindowingHighlight] =
     //style.Colors[ImGuiCol_NavWindowingDimBg]     = 
     //style.Colors[ImGuiCol_ModalWindowDimBg]      = 
+    //style.Colors[ImGuiCol_TexGlyphShadow]        = 
+    //style.Colors[ImGuiCol_TexGlyphOutline]       = 
 
     if (ImGui::Button("Export")) 
     {

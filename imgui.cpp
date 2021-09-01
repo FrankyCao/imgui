@@ -1142,8 +1142,6 @@ ImGuiIO::ImGuiIO()
     FontDefault = NULL;
     FontAllowUserScaling = false;
     DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
-    TexGlyphShadowOffset = ImVec2(0.0f, 0.0f);          // add by dicky for text shadow
-    TexGlyphShadowColor = IM_COL32(128, 128, 128, 255); // add by dicky for text shadow
 
     // Docking options (when ImGuiConfigFlags_DockingEnable is set)
     ConfigDockingNoSplit = false;
@@ -2631,6 +2629,9 @@ static const ImGuiStyleVarInfo GStyleVarInfo[] =
     { ImGuiDataType_Float, 2, (ImU32)IM_OFFSETOF(ImGuiStyle, SelectableTextAlign) }, // ImGuiStyleVar_SelectableTextAlign
     // add by Dicky
     { ImGuiDataType_Float, 1, (ImU32)IM_OFFSETOF(ImGuiStyle, LayoutAlign) },         // ImGuiStyleVar_LayoutAlign
+    { ImGuiDataType_Float, 2, (ImU32)IM_OFFSETOF(ImGuiStyle, TexGlyphShadowOffset) },// ImGuiStyleVar_TexGlyphShadowOffset
+    { ImGuiDataType_Float, 1, (ImU32)IM_OFFSETOF(ImGuiStyle, TexGlyphOutlineWidth) },// ImGuiStyleVar_TexGlyphOutlineWidth
+    // add by Dicky end
 };
 
 static const ImGuiStyleVarInfo* GetStyleVarInfo(ImGuiStyleVar idx)
@@ -2744,6 +2745,8 @@ const char* ImGui::GetStyleColorName(ImGuiCol idx)
     case ImGuiCol_NavWindowingHighlight: return "NavWindowingHighlight";
     case ImGuiCol_NavWindowingDimBg: return "NavWindowingDimBg";
     case ImGuiCol_ModalWindowDimBg: return "ModalWindowDimBg";
+    case ImGuiCol_TexGlyphShadow: return "TexGlyphShadow";
+    case ImGuiCol_TexGlyphOutline: return "TexGlyphOutline";
     }
     IM_ASSERT(0);
     return "Unknown";

@@ -1615,6 +1615,8 @@ enum ImGuiCol_
     ImGuiCol_NavWindowingHighlight, // Highlight window when using CTRL+TAB
     ImGuiCol_NavWindowingDimBg,     // Darken/colorize entire screen behind the CTRL+TAB window list, when active
     ImGuiCol_ModalWindowDimBg,      // Darken/colorize entire screen behind a modal window, when one is active
+    ImGuiCol_TexGlyphShadow,        // Shadow Color for font texture add by Dicky
+    ImGuiCol_TexGlyphOutline,       // Outline Color for font texture add by Dicky
     ImGuiCol_COUNT
 };
 
@@ -1654,6 +1656,8 @@ enum ImGuiStyleVar_
     ImGuiStyleVar_ButtonTextAlign,     // ImVec2    ButtonTextAlign
     ImGuiStyleVar_SelectableTextAlign, // ImVec2    SelectableTextAlign
     ImGuiStyleVar_LayoutAlign,         // float     LayoutAlign add By Dicky
+    ImGuiStyleVar_TexGlyphShadowOffset,// ImVec2    TexGlyphShadowOffset add By Dicky
+    ImGuiStyleVar_TexGlyphOutlineWidth,// float     TexGlyphOutlineWidth add By Dicky 
     ImGuiStyleVar_COUNT
 };
 
@@ -1919,8 +1923,11 @@ struct ImGuiStyle
     float       CurveTessellationTol;       // Tessellation tolerance when using PathBezierCurveTo() without a specific number of segments. Decrease for highly tessellated curves (higher quality, more polygons), increase to reduce quality.
     float       CircleTessellationMaxError; // Maximum error (in pixels) allowed when using AddCircle()/AddCircleFilled() or drawing rounded corner rectangles with no explicit segment count specified. Decrease for higher quality but more geometry.
     ImVec4      Colors[ImGuiCol_COUNT];
-    // Add by Dicky for stack layout
+    // Add by Dicky for stack layout and text render
     float       LayoutAlign;                // Element alignment inside horizontal and vertical layouts (0.0f - left/top, 1.0f - right/bottom, 0.5f - center).
+    ImVec2      TexGlyphShadowOffset;       // If you would like to use shadows with your text use this. Defaults to (0, 0). Defines horizontal and vertical shadows. Can only be positive at the moment.
+    float       TexGlyphOutlineWidth;       // If you would like to use outline with your text use this.
+    // Add by Dicky end
 
     IMGUI_API ImGuiStyle();
     IMGUI_API void ScaleAllSizes(float scale_factor);
@@ -1959,10 +1966,6 @@ struct ImGuiIO
     bool        FontAllowUserScaling;           // = false          // Allow user scaling text of individual window with CTRL+Wheel.
     ImFont*     FontDefault;                    // = NULL           // Font to use on NewFrame(). Use NULL to uses Fonts->Fonts[0].
     ImVec2      DisplayFramebufferScale;        // = (1, 1)         // For retina display or other situations where window coordinates are different from framebuffer coordinates. This generally ends up in ImDrawData::FramebufferScale.
-    // Add By Dicky for text shadows
-    ImVec2      TexGlyphShadowOffset;           // = (0, 0)         // If you would like to use shadows with your text use this. Defaults to (0, 0). Defines horizontal and vertical shadows. Can only be positive at the moment.
-    ImU32       TexGlyphShadowColor;            // = gray           // Shadow Color if we set shadow offset
-    // Add By Dicky end
 
     // Docking options (when ImGuiConfigFlags_DockingEnable is set)
     bool        ConfigDockingNoSplit;           // = false          // Simplified docking mode: disable window splitting, so docking is limited to merging multiple windows together into tab-bars.
