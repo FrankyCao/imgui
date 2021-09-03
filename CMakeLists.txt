@@ -1382,6 +1382,7 @@ if (IMGUI_BUILD_EXAMPLE AND SDL2_FOUND AND IMGUI_SDL2)
             imgui
             ${LINK_LIBS}
         )
+        if (IMGUI_ADDON_FILE_DIALOG)
         add_executable(
             example_sdl_rendering
             test/example_sdl_rendering.cpp
@@ -1391,6 +1392,7 @@ if (IMGUI_BUILD_EXAMPLE AND SDL2_FOUND AND IMGUI_SDL2)
             imgui
             ${LINK_LIBS}
         )
+        endif(IMGUI_ADDON_FILE_DIALOG)
     elseif(BACKEND_RENDERING MATCHES OPENGL2)
         add_executable(
             example_sdl_opengl2
