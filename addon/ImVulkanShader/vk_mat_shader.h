@@ -677,3 +677,107 @@ void store_rgb_float_no_clamp(sfpvec3 val, int x, int y, int w, int cstep, int f
         store_rgb_float32_no_clamp(val, x, y, w, cstep, format); \n\
 } \
 " // 44 lines
+
+// Store data as float rgba without clamp
+#define SHADER_STORE_RGBA_FLOAT16_NO_CLAMP(dst) \
+" \n\
+void store_rgba_float16_no_clamp_"#dst"(sfpvec4 val, int x, int y, int w, int cstep, int format) \n\
+{ \n\
+    ivec4 o_offset = (y * w + x) * cstep + (format == CF_ABGR ? ivec4(0, 1, 2, 3) : ivec4(2, 1, 0, 3)); \n\
+    "#dst"_data[o_offset.r] = float16_t(val.r); \n\
+    "#dst"_data[o_offset.g] = float16_t(val.g); \n\
+    "#dst"_data[o_offset.b] = float16_t(val.b); \n\
+    "#dst"_data[o_offset.a] = float16_t(val.a); \n\
+} \
+"
+
+#define SHADER_STORE_RGBA_FLOAT32_NO_CLAMP(dst) \
+" \n\
+void store_rgba_float32_no_clamp_"#dst"(sfpvec4 val, int x, int y, int w, int cstep, int format) \n\
+{ \n\
+    ivec4 o_offset = (y * w + x) * cstep + (format == CF_ABGR ? ivec4(0, 1, 2, 3) : ivec4(2, 1, 0, 3)); \n\
+    "#dst"_data[o_offset.r] = float(val.r); \n\
+    "#dst"_data[o_offset.g] = float(val.g); \n\
+    "#dst"_data[o_offset.b] = float(val.b); \n\
+    "#dst"_data[o_offset.a] = float(val.a); \n\
+} \
+"
+
+#define SHADER_STORE_RGBA_FLOAT_NO_CLAMP(dst) \
+SHADER_STORE_RGBA_FLOAT16_NO_CLAMP(dst) \
+SHADER_STORE_RGBA_FLOAT32_NO_CLAMP(dst) \
+" \n\
+void store_rgba_float_no_clamp_"#dst"(sfpvec4 val, int x, int y, int w, int cstep, int format, int type) \n\
+{ \n\
+    if (type == DT_FLOAT16) \n\
+        store_rgba_float16_no_clamp_"#dst"(val, x, y, w, cstep, format); \n\
+    else if (type == DT_FLOAT32) \n\
+        store_rgba_float32_no_clamp_"#dst"(val, x, y, w, cstep, format); \n\
+} \
+" // 46 lines
+
+
+#define SHADER_LOAD_FLOAT16_RGBA(src) \
+" \n\
+sfpvec4 load_float16_rgba_"#src"(int x, int y, int w, int cstep, int format) \n\
+{ \n\
+    sfpvec4 rgb_in = sfpvec4(0.f); \n\
+    ivec4 i_offset = (y * w + x) * cstep + (format == CF_ABGR ? ivec4(0, 1, 2, 3) : ivec4(2, 1, 0, 3)); \n\
+    rgb_in.r = sfp("#src"_data[i_offset.r]); \n\
+    rgb_in.g = sfp("#src"_data[i_offset.g]); \n\
+    rgb_in.b = sfp("#src"_data[i_offset.b]); \n\
+    rgb_in.a = sfp("#src"_data[i_offset.a]); \n\
+    return rgb_in; \n\
+} \
+"
+
+#define SHADER_LOAD_FLOAT32_RGBA(src) \
+" \n\
+sfpvec4 load_float32_rgba_"#src"(int x, int y, int w, int cstep, int format) \n\
+{ \n\
+    sfpvec4 rgb_in = sfpvec4(0.f); \n\
+    ivec4 i_offset = (y * w + x) * cstep + (format == CF_ABGR ? ivec4(0, 1, 2, 3) : ivec4(2, 1, 0, 3)); \n\
+    rgb_in.r = sfp("#src"_data[i_offset.r]); \n\
+    rgb_in.g = sfp("#src"_data[i_offset.g]); \n\
+    rgb_in.b = sfp("#src"_data[i_offset.b]); \n\
+    rgb_in.a = sfp("#src"_data[i_offset.a]); \n\
+    return rgb_in; \n\
+} \
+"
+
+#define SHADER_LOAD_FLOAT_RGBA(src) \
+SHADER_LOAD_FLOAT16_RGBA(src) \
+SHADER_LOAD_FLOAT32_RGBA(src) \
+" \n\
+sfpvec4 load_float_rgba_"#src"(int x, int y, int w, int cstep, int format, int type) \n\
+{ \n\
+    if (type == DT_FLOAT16) \n\
+        return load_float16_rgba_"#src"(x, y, w, cstep, format); \n\
+    else if (type == DT_FLOAT32) \n\
+        return load_float32_rgba_"#src"(x, y, w, cstep, format); \n\
+    else \n\
+        return sfpvec4(0.f); \n\
+} \
+" // 46 lines
+
+#define SHADER_LOAD_FLOAT16_GRAY(src) \
+" \n\
+sfp load_float16_gray_"#src"(int x, int y, int w, int cstep, int format) \n\
+{ \n\
+    sfp rgb_in = sfp(0.f); \n\
+    ivec3 i_offset = (y * w + x) * cstep + ivec3(0, 0, 0); \n\
+    rgb_in = sfp("#src"_data_float16[i_offset.x]); \n\
+    return rgb_in; \n\
+} \
+"
+
+#define SHADER_LOAD_FLOAT32_GRAY(src) \
+" \n\
+sfp load_float32_gray_"#src"(int x, int y, int w, int cstep, int format) \n\
+{ \n\
+    sfp rgb_in = sfp(0.f); \n\
+    ivec3 i_offset = (y * w + x) * cstep + ivec3(0, 0, 0); \n\
+    rgb_in = sfp("#src"_data_float32[i_offset.x]); \n\
+    return rgb_in; \n\
+} \
+"
