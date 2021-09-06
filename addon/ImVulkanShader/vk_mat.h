@@ -139,42 +139,42 @@ inline VkMat::VkMat(int _w, VkBufferMemory* _data, size_t _elemsize, VkAllocator
     : ImMat(_w, _data, _elemsize, (Allocator *)_allocator)
 {
     device = IM_DD_VULKAN;
-    device_number = _allocator ? _allocator->getDeviceIndex() : 0;
+    device_number = _allocator ? _allocator->getDeviceIndex() : -1;
 }
 
 inline VkMat::VkMat(int _w, int _h, VkBufferMemory* _data, size_t _elemsize, VkAllocator* _allocator)
     : ImMat(_w, _h, _data, _elemsize, (Allocator *)_allocator)
 {
     device = IM_DD_VULKAN;
-    device_number = _allocator ? _allocator->getDeviceIndex() : 0;
+    device_number = _allocator ? _allocator->getDeviceIndex() : -1;
 }
 
 inline VkMat::VkMat(int _w, int _h, int _c, VkBufferMemory* _data, size_t _elemsize, VkAllocator* _allocator)
     : ImMat(_w, _h, _c, _data, _elemsize, (Allocator *)_allocator)
 {
     device = IM_DD_VULKAN;
-    device_number = _allocator ? _allocator->getDeviceIndex() : 0;
+    device_number = _allocator ? _allocator->getDeviceIndex() : -1;
 }
 
 inline VkMat::VkMat(int _w, VkBufferMemory* _data, size_t _elemsize, int _elempack, VkAllocator* _allocator)
     : ImMat(_w, _data, _elemsize, _elempack, (Allocator *)_allocator)
 {
     device = IM_DD_VULKAN;
-    device_number = _allocator ? _allocator->getDeviceIndex() : 0;
+    device_number = _allocator ? _allocator->getDeviceIndex() : -1;
 }
 
 inline VkMat::VkMat(int _w, int _h, VkBufferMemory* _data, size_t _elemsize, int _elempack, VkAllocator* _allocator)
     : ImMat(_w, _h, _data, _elemsize, _elempack, (Allocator *)_allocator)
 {
     device = IM_DD_VULKAN;
-    device_number = _allocator ? _allocator->getDeviceIndex() : 0;
+    device_number = _allocator ? _allocator->getDeviceIndex() : -1;
 }
 
 inline VkMat::VkMat(int _w, int _h, int _c, VkBufferMemory* _data, size_t _elemsize, int _elempack, VkAllocator* _allocator)
     : ImMat(_w, _h, _c, _data, _elemsize, _elempack, (Allocator *)_allocator)
 {
     device = IM_DD_VULKAN;
-    device_number = _allocator ? _allocator->getDeviceIndex() : 0;
+    device_number = _allocator ? _allocator->getDeviceIndex() : -1;
 }
 
 inline VkMat& VkMat::operator=(const VkMat& m)
@@ -281,6 +281,8 @@ inline void VkMat::create(int _w, size_t _elemsize, VkAllocator* _allocator)
         refcount = (int*)((unsigned char*)data + offsetof(VkBufferMemory, refcount));
         *refcount = 1;
     }
+    device = IM_DD_VULKAN;
+    device_number = _allocator ? _allocator->getDeviceIndex() : -1;
 }
 
 inline void VkMat::create(int _w, int _h, size_t _elemsize, VkAllocator* _allocator)
@@ -317,6 +319,8 @@ inline void VkMat::create(int _w, int _h, size_t _elemsize, VkAllocator* _alloca
         refcount = (int*)((unsigned char*)data + offsetof(VkBufferMemory, refcount));
         *refcount = 1;
     }
+    device = IM_DD_VULKAN;
+    device_number = _allocator ? _allocator->getDeviceIndex() : -1;
 }
 
 inline void VkMat::create(int _w, int _h, int _c, size_t _elemsize, VkAllocator* _allocator)
@@ -353,6 +357,8 @@ inline void VkMat::create(int _w, int _h, int _c, size_t _elemsize, VkAllocator*
         refcount = (int*)((unsigned char*)data + offsetof(VkBufferMemory, refcount));
         *refcount = 1;
     }
+    device = IM_DD_VULKAN;
+    device_number = _allocator ? _allocator->getDeviceIndex() : -1;
 }
 
 inline void VkMat::create(int _w, size_t _elemsize, int _elempack, VkAllocator* _allocator)
@@ -389,6 +395,8 @@ inline void VkMat::create(int _w, size_t _elemsize, int _elempack, VkAllocator* 
         refcount = (int*)((unsigned char*)data + offsetof(VkBufferMemory, refcount));
         *refcount = 1;
     }
+    device = IM_DD_VULKAN;
+    device_number = _allocator ? _allocator->getDeviceIndex() : -1;
 }
 
 inline void VkMat::create(int _w, int _h, size_t _elemsize, int _elempack, VkAllocator* _allocator)
@@ -425,6 +433,8 @@ inline void VkMat::create(int _w, int _h, size_t _elemsize, int _elempack, VkAll
         refcount = (int*)((unsigned char*)data + offsetof(VkBufferMemory, refcount));
         *refcount = 1;
     }
+    device = IM_DD_VULKAN;
+    device_number = _allocator ? _allocator->getDeviceIndex() : -1;
 }
 
 inline void VkMat::create(int _w, int _h, int _c, size_t _elemsize, int _elempack, VkAllocator* _allocator)
@@ -461,6 +471,8 @@ inline void VkMat::create(int _w, int _h, int _c, size_t _elemsize, int _elempac
         refcount = (int*)((unsigned char*)data + offsetof(VkBufferMemory, refcount));
         *refcount = 1;
     }
+    device = IM_DD_VULKAN;
+    device_number = _allocator ? _allocator->getDeviceIndex() : -1;
 }
 
 inline void VkMat::create_type(int _w, ImDataType _t, VkAllocator* _allocator)
@@ -497,6 +509,8 @@ inline void VkMat::create_type(int _w, ImDataType _t, VkAllocator* _allocator)
         refcount = (int*)((unsigned char*)data + offsetof(VkBufferMemory, refcount));
         *refcount = 1;
     }
+    device = IM_DD_VULKAN;
+    device_number = _allocator ? _allocator->getDeviceIndex() : -1;
 }
 
 inline void VkMat::create_type(int _w, int _h, ImDataType _t, VkAllocator* _allocator)
@@ -533,6 +547,8 @@ inline void VkMat::create_type(int _w, int _h, ImDataType _t, VkAllocator* _allo
         refcount = (int*)((unsigned char*)data + offsetof(VkBufferMemory, refcount));
         *refcount = 1;
     }
+    device = IM_DD_VULKAN;
+    device_number = _allocator ? _allocator->getDeviceIndex() : -1;
 }
 
 inline void VkMat::create_type(int _w, int _h, int _c, ImDataType _t, VkAllocator* _allocator)
@@ -569,6 +585,8 @@ inline void VkMat::create_type(int _w, int _h, int _c, ImDataType _t, VkAllocato
         refcount = (int*)((unsigned char*)data + offsetof(VkBufferMemory, refcount));
         *refcount = 1;
     }
+    device = IM_DD_VULKAN;
+    device_number = _allocator ? _allocator->getDeviceIndex() : -1;
 }
 
 inline void VkMat::create_like(const ImMat& m, VkAllocator* _allocator)
@@ -587,7 +605,7 @@ inline void VkMat::create_like(const ImMat& m, VkAllocator* _allocator)
     time_stamp = m.time_stamp;
     depth = m.depth;
     device = IM_DD_VULKAN;
-    device_number = _allocator ? _allocator->getDeviceIndex() : 0;
+    device_number = _allocator ? _allocator->getDeviceIndex() : -1;
 }
 
 inline void VkMat::create_like(const VkMat& m, VkAllocator* _allocator)
@@ -605,8 +623,9 @@ inline void VkMat::create_like(const VkMat& m, VkAllocator* _allocator)
     color_range = m.color_range;
     time_stamp = m.time_stamp;
     depth = m.depth;
+    allocator = _allocator;
     device = IM_DD_VULKAN;
-    device_number = _allocator ? _allocator->getDeviceIndex() : 0;
+    device_number = _allocator ? _allocator->getDeviceIndex() : -1;
 }
 
 inline ImMat VkMat::mapped() const

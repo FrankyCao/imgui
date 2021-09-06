@@ -463,7 +463,7 @@ public:
 //////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////
 inline ImMat::ImMat()
-    : data(0), device(IM_DD_CPU), device_number(0), refcount(0), elemsize(0), elempack(0), allocator(0), dims(0), w(0), h(0), c(0), cstep(0), time_stamp(NAN)
+    : data(0), device(IM_DD_CPU), device_number(-1), refcount(0), elemsize(0), elempack(0), allocator(0), dims(0), w(0), h(0), c(0), cstep(0), time_stamp(NAN)
 {
     type = IM_DT_FLOAT32;
     color_space = IM_CS_SRGB;
@@ -474,37 +474,37 @@ inline ImMat::ImMat()
 }
 
 inline ImMat::ImMat(int _w, size_t _elemsize, Allocator* _allocator)
-    : data(0), device(IM_DD_CPU), device_number(0), refcount(0), elemsize(0), elempack(0), allocator(0), dims(0), w(0), h(0), c(0), cstep(0), time_stamp(NAN)
+    : data(0), device(IM_DD_CPU), device_number(-1), refcount(0), elemsize(0), elempack(0), allocator(0), dims(0), w(0), h(0), c(0), cstep(0), time_stamp(NAN)
 {
     create(_w, _elemsize, _allocator);
 }
 
 inline ImMat::ImMat(int _w, int _h, size_t _elemsize, Allocator* _allocator)
-    : data(0), device(IM_DD_CPU), device_number(0), refcount(0), elemsize(0), elempack(0), allocator(0), dims(0), w(0), h(0), c(0), cstep(0), time_stamp(NAN)
+    : data(0), device(IM_DD_CPU), device_number(-1), refcount(0), elemsize(0), elempack(0), allocator(0), dims(0), w(0), h(0), c(0), cstep(0), time_stamp(NAN)
 {
     create(_w, _h, _elemsize, _allocator);
 }
 
 inline ImMat::ImMat(int _w, int _h, int _c, size_t _elemsize, Allocator* _allocator)
-    : data(0), device(IM_DD_CPU), device_number(0), refcount(0), elemsize(0), elempack(0), allocator(0), dims(0), w(0), h(0), c(0), cstep(0), time_stamp(NAN)
+    : data(0), device(IM_DD_CPU), device_number(-1), refcount(0), elemsize(0), elempack(0), allocator(0), dims(0), w(0), h(0), c(0), cstep(0), time_stamp(NAN)
 {
     create(_w, _h, _c, _elemsize, _allocator);
 }
 
 inline ImMat::ImMat(int _w, size_t _elemsize, int _elempack, Allocator* _allocator)
-    : data(0), device(IM_DD_CPU), device_number(0), refcount(0), elemsize(0), elempack(0), allocator(0), dims(0), w(0), h(0), c(0), cstep(0), time_stamp(NAN)
+    : data(0), device(IM_DD_CPU), device_number(-1), refcount(0), elemsize(0), elempack(0), allocator(0), dims(0), w(0), h(0), c(0), cstep(0), time_stamp(NAN)
 {
     create(_w, _elemsize, _elempack, _allocator);
 }
 
 inline ImMat::ImMat(int _w, int _h, size_t _elemsize, int _elempack, Allocator* _allocator)
-    : data(0), device(IM_DD_CPU), device_number(0), refcount(0), elemsize(0), elempack(0), allocator(0), dims(0), w(0), h(0), c(0), cstep(0), time_stamp(NAN)
+    : data(0), device(IM_DD_CPU), device_number(-1), refcount(0), elemsize(0), elempack(0), allocator(0), dims(0), w(0), h(0), c(0), cstep(0), time_stamp(NAN)
 {
     create(_w, _h, _elemsize, _elempack, _allocator);
 }
 
 inline ImMat::ImMat(int _w, int _h, int _c, size_t _elemsize, int _elempack, Allocator* _allocator)
-    : data(0), device(IM_DD_CPU), device_number(0), refcount(0), elemsize(0), elempack(0), allocator(0), dims(0), w(0), h(0), c(0), cstep(0), time_stamp(NAN)
+    : data(0), device(IM_DD_CPU), device_number(-1), refcount(0), elemsize(0), elempack(0), allocator(0), dims(0), w(0), h(0), c(0), cstep(0), time_stamp(NAN)
 {
     create(_w, _h, _c, _elemsize, _elempack, _allocator);
 }
@@ -524,7 +524,7 @@ inline ImMat::ImMat(const ImMat& m)
 }
 
 inline ImMat::ImMat(int _w, void* _data, size_t _elemsize, Allocator* _allocator)
-    : data(_data), device(IM_DD_CPU), device_number(0), refcount(0), elemsize(_elemsize), elempack(1), allocator(_allocator), dims(1), w(_w), h(1), c(1), time_stamp(NAN)
+    : data(_data), device(IM_DD_CPU), device_number(-1), refcount(0), elemsize(_elemsize), elempack(1), allocator(_allocator), dims(1), w(_w), h(1), c(1), time_stamp(NAN)
 {
     cstep = w;
     type = _elemsize == 1 ? IM_DT_INT8 : _elemsize == 2 ? IM_DT_INT16 : IM_DT_FLOAT32;
@@ -536,7 +536,7 @@ inline ImMat::ImMat(int _w, void* _data, size_t _elemsize, Allocator* _allocator
 }
 
 inline ImMat::ImMat(int _w, int _h, void* _data, size_t _elemsize, Allocator* _allocator)
-    : data(_data), device(IM_DD_CPU), device_number(0), refcount(0), elemsize(_elemsize), elempack(1), allocator(_allocator), dims(2), w(_w), h(_h), c(1), time_stamp(NAN)
+    : data(_data), device(IM_DD_CPU), device_number(-1), refcount(0), elemsize(_elemsize), elempack(1), allocator(_allocator), dims(2), w(_w), h(_h), c(1), time_stamp(NAN)
 {
     cstep = (size_t)w * h;
     type = _elemsize == 1 ? IM_DT_INT8 : _elemsize == 2 ? IM_DT_INT16 : IM_DT_FLOAT32;
@@ -548,7 +548,7 @@ inline ImMat::ImMat(int _w, int _h, void* _data, size_t _elemsize, Allocator* _a
 }
 
 inline ImMat::ImMat(int _w, int _h, int _c, void* _data, size_t _elemsize, Allocator* _allocator)
-    : data(_data), device(IM_DD_CPU), device_number(0), refcount(0), elemsize(_elemsize), elempack(1), allocator(_allocator), dims(3), w(_w), h(_h), c(_c), time_stamp(NAN)
+    : data(_data), device(IM_DD_CPU), device_number(-1), refcount(0), elemsize(_elemsize), elempack(1), allocator(_allocator), dims(3), w(_w), h(_h), c(_c), time_stamp(NAN)
 {
     cstep = Im_AlignSize((size_t)w * h * elemsize, 16) / elemsize;
     type = _elemsize == 1 ? IM_DT_INT8 : _elemsize == 2 ? IM_DT_INT16 : IM_DT_FLOAT32;
@@ -560,7 +560,7 @@ inline ImMat::ImMat(int _w, int _h, int _c, void* _data, size_t _elemsize, Alloc
 }
 
 inline ImMat::ImMat(int _w, void* _data, size_t _elemsize, int _elempack, Allocator* _allocator)
-    : data(_data), device(IM_DD_CPU), device_number(0), refcount(0), elemsize(_elemsize), elempack(_elempack), allocator(_allocator), dims(1), w(_w), h(1), c(1), time_stamp(NAN)
+    : data(_data), device(IM_DD_CPU), device_number(-1), refcount(0), elemsize(_elemsize), elempack(_elempack), allocator(_allocator), dims(1), w(_w), h(1), c(1), time_stamp(NAN)
 {
     cstep = w;
     type = _elemsize == 1 ? IM_DT_INT8 : _elemsize == 2 ? IM_DT_INT16 : IM_DT_FLOAT32;
@@ -572,7 +572,7 @@ inline ImMat::ImMat(int _w, void* _data, size_t _elemsize, int _elempack, Alloca
 }
 
 inline ImMat::ImMat(int _w, int _h, void* _data, size_t _elemsize, int _elempack, Allocator* _allocator)
-    : data(_data), device(IM_DD_CPU), device_number(0), refcount(0), elemsize(_elemsize), elempack(_elempack), allocator(_allocator), dims(2), w(_w), h(_h), c(1), time_stamp(NAN)
+    : data(_data), device(IM_DD_CPU), device_number(-1), refcount(0), elemsize(_elemsize), elempack(_elempack), allocator(_allocator), dims(2), w(_w), h(_h), c(1), time_stamp(NAN)
 {
     cstep = (size_t)w * h;
     type = _elemsize == 1 ? IM_DT_INT8 : _elemsize == 2 ? IM_DT_INT16 : IM_DT_FLOAT32;
@@ -584,7 +584,7 @@ inline ImMat::ImMat(int _w, int _h, void* _data, size_t _elemsize, int _elempack
 }
 
 inline ImMat::ImMat(int _w, int _h, int _c, void* _data, size_t _elemsize, int _elempack, Allocator* _allocator)
-    : data(_data), device(IM_DD_CPU), device_number(0), refcount(0), elemsize(_elemsize), elempack(_elempack), allocator(_allocator), dims(3), w(_w), h(_h), c(_c), time_stamp(NAN)
+    : data(_data), device(IM_DD_CPU), device_number(-1), refcount(0), elemsize(_elemsize), elempack(_elempack), allocator(_allocator), dims(3), w(_w), h(_h), c(_c), time_stamp(NAN)
 {
     cstep = Im_AlignSize((size_t)w * h * elemsize, 16) / elemsize;
     type = _elemsize == 1 ? IM_DT_INT8 : _elemsize == 2 ? IM_DT_INT16 : IM_DT_FLOAT32;
@@ -1137,6 +1137,8 @@ inline void ImMat::release()
     flag = 0;
     depth = 32;
     time_stamp = NAN;
+    device = IM_DD_CPU;
+    device_number = -1;
 }
 
 inline bool ImMat::empty() const
