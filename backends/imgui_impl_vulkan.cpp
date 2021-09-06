@@ -96,7 +96,7 @@ struct ImGui_ImplVulkan_ViewportData
 // Vulkan data
 struct ImGui_ImplVulkan_Data
 {
-    ImGui_ImplVulkan_InitInfo   VulkanInitInfo;
+    ImGui_ImplVulkan_InitInfo   *VulkanInitInfo;
     VkRenderPass                RenderPass;
     VkDeviceSize                BufferMemoryAlignment;
     VkPipelineCreateFlags       PipelineCreateFlags;
@@ -356,7 +356,7 @@ static ImGui_ImplVulkan_Data* ImGui_ImplVulkan_GetBackendData()
 static uint32_t ImGui_ImplVulkan_MemoryType(VkMemoryPropertyFlags properties, uint32_t type_bits)
 {
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
-    ImGui_ImplVulkan_InitInfo* v = &bd->VulkanInitInfo;
+    ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
     VkPhysicalDeviceMemoryProperties prop;
     vkGetPhysicalDeviceMemoryProperties(v->PhysicalDevice, &prop);
     for (uint32_t i = 0; i < prop.memoryTypeCount; i++)
@@ -370,7 +370,7 @@ static void check_vk_result(VkResult err)
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
     if (!bd)
         return;
-    ImGui_ImplVulkan_InitInfo* v = &bd->VulkanInitInfo;
+    ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
     if (v->CheckVkResultFn)
         v->CheckVkResultFn(err);
 }
@@ -378,7 +378,7 @@ static void check_vk_result(VkResult err)
 static void CreateOrResizeBuffer(VkBuffer& buffer, VkDeviceMemory& buffer_memory, VkDeviceSize& p_buffer_size, size_t new_size, VkBufferUsageFlagBits usage)
 {
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
-    ImGui_ImplVulkan_InitInfo* v = &bd->VulkanInitInfo;
+    ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
     VkResult err;
     if (buffer != VK_NULL_HANDLE)
         vkDestroyBuffer(v->Device, buffer, v->Allocator);
@@ -467,7 +467,7 @@ void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer comm
         return;
 
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
-    ImGui_ImplVulkan_InitInfo* v = &bd->VulkanInitInfo;
+    ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
     if (pipeline == VK_NULL_HANDLE)
         pipeline = bd->Pipeline;
 
@@ -604,7 +604,7 @@ bool ImGui_ImplVulkan_CreateFontsTexture(VkCommandBuffer command_buffer)
 {
     ImGuiIO& io = ImGui::GetIO();
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
-    ImGui_ImplVulkan_InitInfo* v = &bd->VulkanInitInfo;
+    ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
 
     unsigned char* pixels;
     int width, height;
@@ -966,7 +966,7 @@ static void ImGui_ImplVulkan_CreatePipeline(VkDevice device, const VkAllocationC
 bool ImGui_ImplVulkan_CreateDeviceObjects()
 {
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
-    ImGui_ImplVulkan_InitInfo* v = &bd->VulkanInitInfo;
+    ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
     VkResult err;
 
     if (!bd->FontSampler)
@@ -1041,7 +1041,7 @@ bool ImGui_ImplVulkan_CreateDeviceObjects()
 void    ImGui_ImplVulkan_DestroyFontUploadObjects()
 {
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
-    ImGui_ImplVulkan_InitInfo* v = &bd->VulkanInitInfo;
+    ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
     if (bd->UploadBuffer)
     {
         vkDestroyBuffer(v->Device, bd->UploadBuffer, v->Allocator);
@@ -1057,7 +1057,7 @@ void    ImGui_ImplVulkan_DestroyFontUploadObjects()
 void    ImGui_ImplVulkan_DestroyDeviceObjects()
 {
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
-    ImGui_ImplVulkan_InitInfo* v = &bd->VulkanInitInfo;
+    ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
     ImGui_ImplVulkanH_DestroyAllViewportsRenderBuffers(v->Device, v->Allocator);
     ImGui_ImplVulkan_DestroyFontUploadObjects();
 
@@ -1116,7 +1116,7 @@ bool    ImGui_ImplVulkan_Init(ImGui_ImplVulkan_InitInfo* info, VkRenderPass rend
     IM_ASSERT(info->ImageCount >= info->MinImageCount);
     IM_ASSERT(render_pass != VK_NULL_HANDLE);
 
-    bd->VulkanInitInfo = *info;
+    bd->VulkanInitInfo = info;
     bd->RenderPass = render_pass;
     bd->Subpass = info->Subpass;
 
@@ -1165,16 +1165,16 @@ void ImGui_ImplVulkan_SetMinImageCount(uint32_t min_image_count)
 {
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
     IM_ASSERT(min_image_count >= 2);
-    if (bd->VulkanInitInfo.MinImageCount == min_image_count)
+    if (bd->VulkanInitInfo->MinImageCount == min_image_count)
         return;
 
     IM_ASSERT(0); // FIXME-VIEWPORT: Unsupported. Need to recreate all swap chains!
-    ImGui_ImplVulkan_InitInfo* v = &bd->VulkanInitInfo;
+    ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
     VkResult err = vkDeviceWaitIdle(v->Device);
     check_vk_result(err);
     ImGui_ImplVulkanH_DestroyAllViewportsRenderBuffers(v->Device, v->Allocator);
 
-    bd->VulkanInitInfo.MinImageCount = min_image_count;
+    bd->VulkanInitInfo->MinImageCount = min_image_count;
 }
 
 
@@ -1581,7 +1581,7 @@ static void ImGui_ImplVulkan_CreateWindow(ImGuiViewport* viewport)
     ImGui_ImplVulkan_ViewportData* vd = IM_NEW(ImGui_ImplVulkan_ViewportData)();
     viewport->RendererUserData = vd;
     ImGui_ImplVulkanH_Window* wd = &vd->Window;
-    ImGui_ImplVulkan_InitInfo* v = &bd->VulkanInitInfo;
+    ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
 
     // Create surface
     ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
@@ -1620,7 +1620,7 @@ static void ImGui_ImplVulkan_DestroyWindow(ImGuiViewport* viewport)
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
     if (ImGui_ImplVulkan_ViewportData* vd = (ImGui_ImplVulkan_ViewportData*)viewport->RendererUserData)
     {
-        ImGui_ImplVulkan_InitInfo* v = &bd->VulkanInitInfo;
+        ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
         if (vd->WindowOwned)
             ImGui_ImplVulkanH_DestroyWindow(v->Instance, v->Device, &vd->Window, v->Allocator);
         ImGui_ImplVulkanH_DestroyWindowRenderBuffers(v->Device, &vd->RenderBuffers, v->Allocator);
@@ -1635,7 +1635,7 @@ static void ImGui_ImplVulkan_SetWindowSize(ImGuiViewport* viewport, ImVec2 size)
     ImGui_ImplVulkan_ViewportData* vd = (ImGui_ImplVulkan_ViewportData*)viewport->RendererUserData;
     if (vd == NULL) // This is NULL for the main viewport (which is left to the user/app to handle)
         return;
-    ImGui_ImplVulkan_InitInfo* v = &bd->VulkanInitInfo;
+    ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
     vd->Window.ClearEnable = (viewport->Flags & ImGuiViewportFlags_NoRendererClear) ? false : true;
     ImGui_ImplVulkanH_CreateOrResizeWindow(v->Instance, v->PhysicalDevice, v->Device, &vd->Window, v->QueueFamily, v->Allocator, (int)size.x, (int)size.y, v->MinImageCount);
 }
@@ -1645,7 +1645,7 @@ static void ImGui_ImplVulkan_RenderWindow(ImGuiViewport* viewport, void*)
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
     ImGui_ImplVulkan_ViewportData* vd = (ImGui_ImplVulkan_ViewportData*)viewport->RendererUserData;
     ImGui_ImplVulkanH_Window* wd = &vd->Window;
-    ImGui_ImplVulkan_InitInfo* v = &bd->VulkanInitInfo;
+    ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
     VkResult err;
 
     ImGui_ImplVulkanH_Frame* fd = &wd->Frames[wd->FrameIndex];
@@ -1719,7 +1719,7 @@ static void ImGui_ImplVulkan_SwapBuffers(ImGuiViewport* viewport, void*)
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
     ImGui_ImplVulkan_ViewportData* vd = (ImGui_ImplVulkan_ViewportData*)viewport->RendererUserData;
     ImGui_ImplVulkanH_Window* wd = &vd->Window;
-    ImGui_ImplVulkan_InitInfo* v = &bd->VulkanInitInfo;
+    ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
 
     VkResult err;
     uint32_t present_index = wd->FrameIndex;
@@ -1986,7 +1986,7 @@ static void copyImageToBuffer(ImGui_ImplVulkan_InitInfo* v, VkCommandPool comman
 ImTextureID ImGui_ImplVulkan_CreateTexture(const void * pixels, int width, int height)
 {
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
-    ImGui_ImplVulkan_InitInfo* v = &bd->VulkanInitInfo;
+    ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
     VkCommandPool commandPool = VK_NULL_HANDLE;
     VkDeviceSize imageSize = width * height * 4;
     if (!v || !v->PhysicalDevice)
@@ -2051,13 +2051,14 @@ ImTextureID ImGui_ImplVulkan_CreateTexture(const void * pixels, int width, int h
 ImTextureID ImGui_ImplVulkan_CreateTexture(VkBuffer buffer, size_t buffer_offset, int width, int height)
 {
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
-    ImGui_ImplVulkan_InitInfo* v = &bd->VulkanInitInfo;
+    ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
     VkCommandPool commandPool = VK_NULL_HANDLE;
     if (!v || !v->PhysicalDevice)
     {
         return (ImTextureID)0;
     }
 
+    v->Vkmutex.lock();
     // create texture
     ImTextureVk texture = new ImTextureVK("Texture From GPU");
     texture->renderMutex.lock();
@@ -2076,6 +2077,7 @@ ImTextureID ImGui_ImplVulkan_CreateTexture(VkBuffer buffer, size_t buffer_offset
     poolInfo.queueFamilyIndex = v->QueueFamily;
 
     if (vkCreateCommandPool(v->Device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
+        v->Vkmutex.unlock();
         throw std::runtime_error("failed to create graphics command pool!");
     }
 
@@ -2091,6 +2093,7 @@ ImTextureID ImGui_ImplVulkan_CreateTexture(VkBuffer buffer, size_t buffer_offset
     vkDestroyCommandPool(v->Device, commandPool, nullptr);
     texture->textureDescriptor = (VkDescriptorSet)ImGui_ImplVulkan_AddTexture(texture->textureSampler, texture->textureView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     texture->renderMutex.unlock();
+    v->Vkmutex.unlock();
     return (ImTextureID)texture;
 }
 
@@ -2101,13 +2104,13 @@ void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, VkBuffer stagingBuffe
         return;
     texture->renderMutex.lock();
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
-    ImGui_ImplVulkan_InitInfo* v = &bd->VulkanInitInfo;
+    ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
     if (!v || !v->PhysicalDevice)
     {
         texture->renderMutex.unlock();
         return;
     }
-
+    v->Vkmutex.lock();
     VkDeviceSize imageSize = width * height * 4;
     
     // create staging buffer
@@ -2118,6 +2121,7 @@ void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, VkBuffer stagingBuffe
     poolInfo.queueFamilyIndex = v->QueueFamily;
 
     if (vkCreateCommandPool(v->Device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
+        v->Vkmutex.unlock();
         texture->renderMutex.unlock();
         throw std::runtime_error("failed to create graphics command pool!");
     }
@@ -2132,6 +2136,7 @@ void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, VkBuffer stagingBuffe
     //                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
     vkDestroyCommandPool(v->Device, commandPool, nullptr);
+    v->Vkmutex.unlock();
     texture->renderMutex.unlock();
 }
 
@@ -2142,7 +2147,7 @@ void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, const void * pixels, 
         return;
     texture->renderMutex.lock();
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
-    ImGui_ImplVulkan_InitInfo* v = &bd->VulkanInitInfo;
+    ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
     if (!v || !v->PhysicalDevice)
     {
         texture->renderMutex.unlock();
@@ -2198,7 +2203,7 @@ void ImGui_ImplVulkan_SaveTexture(ImTextureVk texture, int width, int height, st
         return;
     texture->renderMutex.lock();
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
-    ImGui_ImplVulkan_InitInfo* v = &bd->VulkanInitInfo;
+    ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
     if (!v || !v->PhysicalDevice)
     {
         texture->renderMutex.unlock();
@@ -2266,7 +2271,7 @@ void ImGui_ImplVulkan_SaveTexture(ImTextureVk texture, int width, int height, st
 void ImGui_ImplVulkan_DestroyTexture(ImTextureVk* texture)
 {
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
-    ImGui_ImplVulkan_InitInfo* v = &bd->VulkanInitInfo;
+    ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
     if (!v || !v->PhysicalDevice)
         return;
 
@@ -2293,7 +2298,7 @@ VkDescriptorSet ImGui_ImplVulkan_AddTexture(VkSampler sampler, VkImageView image
 {
     VkResult err;
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
-    ImGui_ImplVulkan_InitInfo* v = &bd->VulkanInitInfo;
+    ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
     if (!v || !v->PhysicalDevice)
         return {};
 
@@ -2330,7 +2335,7 @@ VkDescriptorSet ImGui_ImplVulkan_AddTexture(VkSampler sampler, VkImageView image
 std::string ImGui_ImplVulkan_GetDeviceName()
 {
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
-    ImGui_ImplVulkan_InitInfo* v = &bd->VulkanInitInfo;
+    ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
     if (!v || !v->PhysicalDevice)
         return "Unknown";
     VkPhysicalDeviceProperties physicalDeviceProperties;
@@ -2341,7 +2346,7 @@ std::string ImGui_ImplVulkan_GetDeviceName()
 std::string ImGui_ImplVulkan_GetApiVersion()
 {
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
-    ImGui_ImplVulkan_InitInfo* v = &bd->VulkanInitInfo;
+    ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
     if (!v || !v->PhysicalDevice)
         return "Unknown";
     VkPhysicalDeviceProperties physicalDeviceProperties;
@@ -2354,7 +2359,7 @@ std::string ImGui_ImplVulkan_GetApiVersion()
 std::string ImGui_ImplVulkan_GetDrvVersion()
 {
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
-    ImGui_ImplVulkan_InitInfo* v = &bd->VulkanInitInfo;
+    ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
     if (!v || !v->PhysicalDevice)
         return "Unknown";
     VkPhysicalDeviceProperties physicalDeviceProperties;
@@ -2367,7 +2372,7 @@ std::string ImGui_ImplVulkan_GetDrvVersion()
 ImGui_ImplVulkan_InitInfo* ImGui_ImplVulkan_GetInitInfo()
 {
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
-    ImGui_ImplVulkan_InitInfo* v = &bd->VulkanInitInfo;
+    ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
     return v;
 }
 // Add By Dicky end

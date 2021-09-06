@@ -47,6 +47,7 @@
 #endif
 #include <vulkan/vulkan.h>
 #include <memory>        // add by Dicky
+#include <mutex>        // add by Dicky
 // Initialization data, for ImGui_ImplVulkan_Init()
 // [Please zero-clear before use!]
 struct ImGui_ImplVulkan_InitInfo
@@ -64,6 +65,7 @@ struct ImGui_ImplVulkan_InitInfo
     VkSampleCountFlagBits           MSAASamples;            // >= VK_SAMPLE_COUNT_1_BIT
     const VkAllocationCallbacks*    Allocator;
     void                            (*CheckVkResultFn)(VkResult err);
+    std::mutex                      Vkmutex;
 };
 
 // Called by user code
