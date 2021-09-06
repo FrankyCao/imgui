@@ -56,8 +56,22 @@ static void SetupVulkan(const char** extensions, uint32_t extensions_count, int 
 
     // Create Vulkan Instance
     {
+        uint32_t instance_api_version = VK_MAKE_VERSION(1, 0, 0);
+        err = vkEnumerateInstanceVersion(&instance_api_version);
+        check_vk_result(err);
+
+        VkApplicationInfo applicationInfo;
+        applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+        applicationInfo.pNext = 0;
+        applicationInfo.pApplicationName = "imgui application";
+        applicationInfo.applicationVersion = 0;
+        applicationInfo.pEngineName = "imgui application";
+        applicationInfo.engineVersion = 20201010;
+        applicationInfo.apiVersion = instance_api_version;
+
         VkInstanceCreateInfo create_info = {};
         create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+        create_info.pApplicationInfo = &applicationInfo;
         create_info.enabledExtensionCount = extensions_count;
         create_info.ppEnabledExtensionNames = extensions;
 #ifdef IMGUI_VULKAN_DEBUG_REPORT
@@ -99,7 +113,7 @@ static void SetupVulkan(const char** extensions, uint32_t extensions_count, int 
     }
 
     // Select GPU
-    {
+    {        
         uint32_t gpu_count;
         err = vkEnumeratePhysicalDevices(g_Instance, &gpu_count, NULL);
         check_vk_result(err);
