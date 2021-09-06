@@ -15,7 +15,7 @@ static void check_vk_result(VkResult err)
 #if IMGUI_RENDERING_VULKAN
 ImTextureID ImVulkanImageToImTexture(const VkImageMat& image_vk)
 {
-    ImTextureVk texture = new ImTextureVK();
+    ImTextureVk texture = new ImTextureVK("Texture From VkImage");
     VkAllocator* _allocator = (VkAllocator*)image_vk.allocator;
     const VulkanDevice *device = _allocator->vkdev;
     texture->textureImage = image_vk.image();

@@ -25,6 +25,7 @@
 #pragma once
 #include "imgui.h"      // IMGUI_IMPL_API
 #include <string>       // add by Dicky
+#include <mutex>        // add by Dicky
 // [Configuration] in order to use a custom Vulkan function loader:
 // (1) You'll need to disable default Vulkan function prototypes.
 //     We provide a '#define IMGUI_IMPL_VULKAN_NO_PROTOTYPES' convenience configuration flag.
@@ -158,12 +159,21 @@ typedef struct ImTextureVK
     VkDeviceMemory textureImageMemory = VK_NULL_HANDLE;
     VkImageView textureView = VK_NULL_HANDLE;
     VkSampler textureSampler = VK_NULL_HANDLE;
+    std::mutex renderMutex;
     bool extra_image = false;
-    ImTextureVK()
+    bool mark_to_release = false;
+    std::string name;
+    ImTextureVK(std::string _name)
     {
-        memset(this, 0, sizeof(*this));
+        textureDescriptor = VK_NULL_HANDLE;
+        textureImage = VK_NULL_HANDLE;
+        textureImageMemory = VK_NULL_HANDLE;
+        textureView = VK_NULL_HANDLE;
+        textureSampler = VK_NULL_HANDLE;
+        extra_image = false;
+        mark_to_release = false;
+        name = _name;
     }
-
 } *ImTextureVk;
 
 IMGUI_IMPL_API std::string  ImGui_ImplVulkan_GetDeviceName();

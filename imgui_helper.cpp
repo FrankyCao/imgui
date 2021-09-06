@@ -258,6 +258,7 @@ void ShowImGuiInfo()
 }
 // Image Load
 static std::vector<ImTexture> g_Textures;
+std::mutex g_tex_mutex;
 
 void ImGenerateOrUpdateTexture(ImTextureID& imtexid,int width,int height,int channels,size_t offset,const unsigned char* pixels,bool useMipmapsIfPossible,bool wraps,bool wrapt,bool minFilterNearest,bool magFilterNearest,bool is_vulkan)
 {
@@ -266,15 +267,23 @@ void ImGenerateOrUpdateTexture(ImTextureID& imtexid,int width,int height,int cha
 #if IMGUI_RENDERING_VULKAN
     if (imtexid == 0)
     {
+        g_tex_mutex.lock();
         g_Textures.resize(g_Textures.size() + 1);
         ImTexture& texture = g_Textures.back();
         if (is_vulkan)
             texture.TextureID = (ImTextureVk)ImGui_ImplVulkan_CreateTexture((VkBuffer)pixels, offset, width, height);
         else
             texture.TextureID = (ImTextureVk)ImGui_ImplVulkan_CreateTexture(pixels, width, height);
+        if (!texture.TextureID)
+        {
+            g_Textures.pop_back();
+            g_tex_mutex.unlock();
+            return;
+        }
         texture.Width  = width;
         texture.Height = height;
         imtexid = texture.TextureID;
+        g_tex_mutex.unlock();
         return;
     }
     if (is_vulkan)
@@ -327,11 +336,13 @@ void ImGenerateOrUpdateTexture(ImTextureID& imtexid,int width,int height,int cha
     if (texid==0) 
     {
         glGenTextures(1, &texid);
+        g_tex_mutex.lock();
         g_Textures.resize(g_Textures.size() + 1);
         ImTexture& texture = g_Textures.back();
         texture.TextureID = texid;
         texture.Width  = width;
         texture.Height = height;
+        g_tex_mutex.unlock();
     }
 
     glBindTexture(GL_TEXTURE_2D, texid);
@@ -417,17 +428,26 @@ void ImGenerateOrUpdateTexture(ImTextureID& imtexid,int width,int height,int cha
 ImTextureID ImCreateTexture(const void* data, int width, int height, double time_stamp)
 {
 #if IMGUI_RENDERING_VULKAN
+    g_tex_mutex.lock();
     g_Textures.resize(g_Textures.size() + 1);
     ImTexture& texture = g_Textures.back();
     texture.TextureID = (ImTextureVk)ImGui_ImplVulkan_CreateTexture(data, width, height);
+    if (!texture.TextureID)
+    {
+        g_Textures.pop_back();
+        g_tex_mutex.unlock();
+        return (ImTextureID)nullptr;
+    }
     texture.Width  = width;
     texture.Height = height;
     texture.TimeStamp = time_stamp;
+    g_tex_mutex.unlock();
     return (ImTextureID)texture.TextureID;
 #elif IMGUI_RENDERING_DX11
     ID3D11Device* pd3dDevice = (ID3D11Device*)ImGui_ImplDX11_GetDevice();
     if (!pd3dDevice)
         return nullptr;
+    g_tex_mutex.lock();
     g_Textures.resize(g_Textures.size() + 1);
     ImTexture& texture = g_Textures.back();
 
@@ -464,27 +484,37 @@ ImTextureID ImCreateTexture(const void* data, int width, int height, double time
     texture.Width  = width;
     texture.Height = height;
     texture.TimeStamp = time_stamp;
+    g_tex_mutex.unlock();
     return (ImTextureID)texture.TextureID;
 #elif IMGUI_RENDERING_DX9
     LPDIRECT3DDEVICE9 pd3dDevice = (LPDIRECT3DDEVICE9)ImGui_ImplDX9_GetDevice();
     if (!pd3dDevice)
         return nullptr;
+    g_tex_mutex.lock();
     g_Textures.resize(g_Textures.size() + 1);
     ImTexture& texture = g_Textures.back();
     if (pd3dDevice->CreateTexture(width, height, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &texture.TextureID, NULL) < 0)
+    {
+        g_tex_mutex.unlock();
         return nullptr;
+    }
     D3DLOCKED_RECT tex_locked_rect;
     int bytes_per_pixel = 4;
     if (texture.TextureID->LockRect(0, &tex_locked_rect, NULL, 0) != D3D_OK)
+    {
+        g_tex_mutex.unlock();
         return nullptr;
+    }
     for (int y = 0; y < height; y++)
         memcpy((unsigned char*)tex_locked_rect.pBits + tex_locked_rect.Pitch * y, (unsigned char* )data + (width * bytes_per_pixel) * y, (width * bytes_per_pixel));
     texture.TextureID->UnlockRect(0);
     texture.Width  = width;
     texture.Height = height;
     texture.TimeStamp = time_stamp;
+    g_tex_mutex.unlock();
     return (ImTextureID)texture.TextureID;
 #elif IMGUI_OPENGL
+    g_tex_mutex.lock();
     g_Textures.resize(g_Textures.size() + 1);
     ImTexture& texture = g_Textures.back();
 
@@ -501,6 +531,7 @@ ImTextureID ImCreateTexture(const void* data, int width, int height, double time
     texture.Width  = width;
     texture.Height = height;
     texture.TimeStamp = time_stamp;
+    g_tex_mutex.unlock();
     return reinterpret_cast<ImTextureID>(static_cast<intptr_t>(texture.TextureID));
 #else
     return nullptr;
@@ -510,12 +541,14 @@ ImTextureID ImCreateTexture(const void* data, int width, int height, double time
 #if IMGUI_RENDERING_VULKAN
 ImTextureID ImCreateTexture(ImGui::VkImageMat & image, double time_stamp)
 {
+    g_tex_mutex.lock();
     g_Textures.resize(g_Textures.size() + 1);
     ImTexture& texture = g_Textures.back();
     texture.TextureID = (ImTextureVk)ImVulkanImageToImTexture(image);
     texture.Width  = image.w;
     texture.Height = image.h;
     texture.TimeStamp = time_stamp;
+    g_tex_mutex.unlock();
     return (ImTextureID)texture.TextureID;
 }
 #endif
@@ -541,9 +574,13 @@ static std::vector<ImTexture>::iterator ImFindTexture(ImTextureID texture)
 
 void ImDestroyTexture(ImTextureID texture)
 {
+    g_tex_mutex.lock();
     auto textureIt = ImFindTexture(texture);
     if (textureIt == g_Textures.end())
+    {
+        g_tex_mutex.unlock();
         return;
+    }
 #if IMGUI_RENDERING_VULKAN
     if (textureIt->TextureID)
     {
@@ -570,6 +607,7 @@ void ImDestroyTexture(ImTextureID texture)
     }
 #endif
     g_Textures.erase(textureIt);
+    g_tex_mutex.unlock();
 }
 
 int ImGetTextureWidth(ImTextureID texture)
