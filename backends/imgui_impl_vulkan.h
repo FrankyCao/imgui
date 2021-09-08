@@ -65,7 +65,6 @@ struct ImGui_ImplVulkan_InitInfo
     VkSampleCountFlagBits           MSAASamples;            // >= VK_SAMPLE_COUNT_1_BIT
     const VkAllocationCallbacks*    Allocator;
     void                            (*CheckVkResultFn)(VkResult err);
-    std::mutex                      Vkmutex;
 };
 
 // Called by user code
@@ -161,7 +160,6 @@ typedef struct ImTextureVK
     VkDeviceMemory textureImageMemory = VK_NULL_HANDLE;
     VkImageView textureView = VK_NULL_HANDLE;
     VkSampler textureSampler = VK_NULL_HANDLE;
-    std::mutex renderMutex;
     bool extra_image = false;
     bool mark_to_release = false;
     std::string name;

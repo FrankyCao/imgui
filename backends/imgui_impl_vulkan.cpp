@@ -576,10 +576,8 @@ void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer comm
                 ImTextureVk texture = (ImTextureVk)(pcmd->TextureId);
                 if (texture && texture->textureDescriptor)
                 {
-                    texture->renderMutex.lock();
                     if (texture->mark_to_release)
                     {
-                        texture->renderMutex.unlock();
                         delete texture;
                         continue;
                     }
@@ -590,7 +588,6 @@ void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer comm
                     }
                     // Draw
                     vkCmdDrawIndexed(command_buffer, pcmd->ElemCount, 1, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset, 0);
-                    texture->renderMutex.unlock();
                 }
                 // modify By Dicky
             }
@@ -1996,7 +1993,6 @@ ImTextureID ImGui_ImplVulkan_CreateTexture(const void * pixels, int width, int h
 
     // create texture
     ImTextureVk texture = new ImTextureVK("Texture From CPU");
-    texture->renderMutex.lock();
     // create staging buffer
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
@@ -2007,7 +2003,6 @@ ImTextureID ImGui_ImplVulkan_CreateTexture(const void * pixels, int width, int h
     vkMapMemory(v->Device, stagingBufferMemory, 0, imageSize, 0, &data);
     if (!data)
     {
-        texture->renderMutex.unlock();
         throw std::runtime_error("failed to map image memory!");
     }
     memcpy(data, pixels, static_cast<size_t>(imageSize));
@@ -2025,9 +2020,9 @@ ImTextureID ImGui_ImplVulkan_CreateTexture(const void * pixels, int width, int h
     VkCommandPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     poolInfo.queueFamilyIndex = v->QueueFamily;
+    poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
     if (vkCreateCommandPool(v->Device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
-        texture->renderMutex.unlock();
         throw std::runtime_error("failed to create graphics command pool!");
     }
 
@@ -2044,7 +2039,6 @@ ImTextureID ImGui_ImplVulkan_CreateTexture(const void * pixels, int width, int h
     vkFreeMemory(v->Device, stagingBufferMemory, nullptr);
     vkDestroyCommandPool(v->Device, commandPool, nullptr);
     texture->textureDescriptor = (VkDescriptorSet)ImGui_ImplVulkan_AddTexture(texture->textureSampler, texture->textureView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-    texture->renderMutex.unlock();
     return (ImTextureID)texture;
 }
 
@@ -2058,10 +2052,8 @@ ImTextureID ImGui_ImplVulkan_CreateTexture(VkBuffer buffer, size_t buffer_offset
         return (ImTextureID)0;
     }
 
-    v->Vkmutex.lock();
     // create texture
     ImTextureVk texture = new ImTextureVK("Texture From GPU");
-    texture->renderMutex.lock();
     VkDeviceSize imageSize = width * height * 4;
 
     createImage(v, width,height,VK_FORMAT_R8G8B8A8_UNORM,
@@ -2075,9 +2067,9 @@ ImTextureID ImGui_ImplVulkan_CreateTexture(VkBuffer buffer, size_t buffer_offset
     VkCommandPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     poolInfo.queueFamilyIndex = v->QueueFamily;
+    poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
     if (vkCreateCommandPool(v->Device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
-        v->Vkmutex.unlock();
         throw std::runtime_error("failed to create graphics command pool!");
     }
 
@@ -2092,8 +2084,6 @@ ImTextureID ImGui_ImplVulkan_CreateTexture(VkBuffer buffer, size_t buffer_offset
 
     vkDestroyCommandPool(v->Device, commandPool, nullptr);
     texture->textureDescriptor = (VkDescriptorSet)ImGui_ImplVulkan_AddTexture(texture->textureSampler, texture->textureView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-    texture->renderMutex.unlock();
-    v->Vkmutex.unlock();
     return (ImTextureID)texture;
 }
 
@@ -2102,15 +2092,12 @@ void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, VkBuffer stagingBuffe
     ImTextureVk texture = (ImTextureVk)textureid;
     if (!texture)
         return;
-    texture->renderMutex.lock();
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
     ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
     if (!v || !v->PhysicalDevice)
     {
-        texture->renderMutex.unlock();
         return;
     }
-    v->Vkmutex.lock();
     VkDeviceSize imageSize = width * height * 4;
     
     // create staging buffer
@@ -2119,10 +2106,9 @@ void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, VkBuffer stagingBuffe
     VkCommandPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     poolInfo.queueFamilyIndex = v->QueueFamily;
+    poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
     if (vkCreateCommandPool(v->Device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
-        v->Vkmutex.unlock();
-        texture->renderMutex.unlock();
         throw std::runtime_error("failed to create graphics command pool!");
     }
 
@@ -2136,8 +2122,6 @@ void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, VkBuffer stagingBuffe
     //                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
     vkDestroyCommandPool(v->Device, commandPool, nullptr);
-    v->Vkmutex.unlock();
-    texture->renderMutex.unlock();
 }
 
 void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, const void * pixels, int width, int height)
@@ -2145,12 +2129,10 @@ void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, const void * pixels, 
     ImTextureVk texture = (ImTextureVk)textureid;
     if (!texture)
         return;
-    texture->renderMutex.lock();
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
     ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
     if (!v || !v->PhysicalDevice)
     {
-        texture->renderMutex.unlock();
         return;
     }
 
@@ -2167,7 +2149,6 @@ void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, const void * pixels, 
     vkMapMemory(v->Device, stagingBufferMemory, 0, imageSize, 0, &data);
     if (!data)
     {
-        texture->renderMutex.unlock();
         throw std::runtime_error("failed to map image memory!");
     }
     memcpy(data, pixels, static_cast<size_t>(imageSize));
@@ -2176,9 +2157,9 @@ void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, const void * pixels, 
     VkCommandPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     poolInfo.queueFamilyIndex = v->QueueFamily;
+    poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
     if (vkCreateCommandPool(v->Device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
-        texture->renderMutex.unlock();
         throw std::runtime_error("failed to create graphics command pool!");
     }
 
@@ -2194,19 +2175,16 @@ void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, const void * pixels, 
     vkDestroyBuffer(v->Device, stagingBuffer, nullptr);
     vkFreeMemory(v->Device, stagingBufferMemory, nullptr);
     vkDestroyCommandPool(v->Device, commandPool, nullptr);
-    texture->renderMutex.unlock();
 }
 
 void ImGui_ImplVulkan_SaveTexture(ImTextureVk texture, int width, int height, std::string path)
 {
     if (!texture)
         return;
-    texture->renderMutex.lock();
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
     ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
     if (!v || !v->PhysicalDevice)
     {
-        texture->renderMutex.unlock();
         return;
     }
 
@@ -2221,9 +2199,9 @@ void ImGui_ImplVulkan_SaveTexture(ImTextureVk texture, int width, int height, st
     VkCommandPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     poolInfo.queueFamilyIndex = v->QueueFamily;
+    poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
     if (vkCreateCommandPool(v->Device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
-        texture->renderMutex.unlock();
         throw std::runtime_error("failed to create graphics command pool!");
     }
 
@@ -2236,7 +2214,6 @@ void ImGui_ImplVulkan_SaveTexture(ImTextureVk texture, int width, int height, st
     vkMapMemory(v->Device, stagingBufferMemory, 0, imageSize, 0, &data);
     if (!data)
     {
-        texture->renderMutex.unlock();
         throw std::runtime_error("failed to map image memory!");
     }
     {
@@ -2265,7 +2242,6 @@ void ImGui_ImplVulkan_SaveTexture(ImTextureVk texture, int width, int height, st
     vkDestroyBuffer(v->Device, stagingBuffer, nullptr);
     vkFreeMemory(v->Device, stagingBufferMemory, nullptr);
     vkDestroyCommandPool(v->Device, commandPool, nullptr);
-    texture->renderMutex.unlock();
 }
 
 void ImGui_ImplVulkan_DestroyTexture(ImTextureVk* texture)
@@ -2278,7 +2254,6 @@ void ImGui_ImplVulkan_DestroyTexture(ImTextureVk* texture)
     if (texture && *texture)            
     {
         ImTextureVk textureVK = *texture;
-        textureVK->renderMutex.lock();
         if (!textureVK->extra_image)
         {
             if (textureVK->textureDescriptor) { vkFreeDescriptorSets(v->Device, v->DescriptorPool, 1, &textureVK->textureDescriptor); textureVK->textureDescriptor = VK_NULL_HANDLE; }
@@ -2288,7 +2263,6 @@ void ImGui_ImplVulkan_DestroyTexture(ImTextureVk* texture)
             if (textureVK->textureView) { vkDestroyImageView(v->Device, textureVK->textureView, v->Allocator); textureVK->textureView = VK_NULL_HANDLE; }
         }
         textureVK->mark_to_release = true;
-        textureVK->renderMutex.unlock();
         //delete textureVK;
         *texture = nullptr;
     }
