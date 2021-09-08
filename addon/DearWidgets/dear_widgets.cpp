@@ -1079,7 +1079,7 @@ namespace ImWidgets {
 		const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
 
 		ImGui::ItemSize(total_bb, style.FramePadding.y);
-		if (!ImGui::ItemAdd(total_bb, id, &frame_bb, ImGuiItemAddFlags_Focusable))
+		if (!ImGui::ItemAdd(total_bb, id, &frame_bb, ImGuiItemFlags_Inputable))
 			return false;
 
 		//// Default format string when passing NULL
@@ -1097,13 +1097,13 @@ namespace ImWidgets {
 			const bool focus_requested = temp_input_allowed && ImGui::FocusableItemRegister(window, id);
 			const bool clicked = (hovered && g.IO.MouseClicked[0]);
 			const bool double_clicked = (hovered && g.IO.MouseDoubleClicked[0]);
-			if (focus_requested || clicked || double_clicked || g.NavActivateId == id || g.NavInputId == id)
+			if (focus_requested || clicked || double_clicked || g.NavActivateId == id || g.NavActivateInputId == id)
 			{
 				ImGui::SetActiveID(id, window);
 				ImGui::SetFocusID(id, window);
 				ImGui::FocusWindow(window);
 				g.ActiveIdUsingNavDirMask = (1 << ImGuiDir_Left) | (1 << ImGuiDir_Right);
-				if (temp_input_allowed && (focus_requested || (clicked && g.IO.KeyCtrl) || double_clicked || g.NavInputId == id))
+				if (temp_input_allowed && (focus_requested || (clicked && g.IO.KeyCtrl) || double_clicked || g.NavActivateInputId == id))
 				{
 					temp_input_is_active = true;
 					//ImGui::FocusableItemUnregister(window);
@@ -1114,7 +1114,7 @@ namespace ImWidgets {
 			if (g.IO.ConfigDragClickToInputText && temp_input_allowed && !temp_input_is_active)
 				if (g.ActiveId == id && hovered && g.IO.MouseReleased[0] && !ImGui::IsMouseDragPastThreshold(0, g.IO.MouseDragThreshold * 0.5f/*DRAG_MOUSE_THRESHOLD_FACTOR*/))
 				{
-					g.NavInputId = id;
+					g.NavActivateInputId = id;
 					temp_input_is_active = true;
 					//ImGui::FocusableItemUnregister(window);
 				}
