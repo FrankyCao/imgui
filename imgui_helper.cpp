@@ -8,6 +8,7 @@
 
 #include "imgui_helper.h"
 #include <errno.h>
+#include <mutex>
 
 #ifdef _WIN32
 #include <windows.h>
