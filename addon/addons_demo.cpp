@@ -1055,6 +1055,7 @@ void CleanVulkanDemo()
 {
     if (!g_vkdev)
         return;
+    test_vkimage.release();
     if (g_blob_allocator) { g_vkdev->reclaim_blob_allocator(g_blob_allocator); g_blob_allocator = nullptr; }
     if (g_staging_allocator) { g_vkdev->reclaim_staging_allocator(g_staging_allocator); g_staging_allocator = nullptr; }
     if (g_texture) { ImDestroyTexture(&g_texture); g_texture = nullptr; }

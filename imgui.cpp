@@ -3723,7 +3723,10 @@ void ImGui::UpdateMouseMovingWindowNewFrame()
         KeepAliveID(g.ActiveId);
         IM_ASSERT(g.MovingWindow && g.MovingWindow->RootWindowDockTree);
         ImGuiWindow* moving_window = g.MovingWindow->RootWindowDockTree;
-        if (g.IO.MouseDown[0] && IsMousePosValid(&g.IO.MousePos))
+
+        // When a window stop being submitted while being dragged, it may will its viewport until next Begin()
+        const bool window_disappared = (!moving_window->WasActive || moving_window->Viewport == NULL);
+        if (g.IO.MouseDown[0] && IsMousePosValid(&g.IO.MousePos) && !window_disappared)
         {
             ImVec2 pos = g.IO.MousePos - g.ActiveIdClickOffset;
             if (moving_window->Pos.x != pos.x || moving_window->Pos.y != pos.y)
@@ -3740,17 +3743,20 @@ void ImGui::UpdateMouseMovingWindowNewFrame()
         }
         else
         {
-            // Try to merge the window back into the main viewport.
-            // This works because MouseViewport should be != MovingWindow->Viewport on release (as per code in UpdateViewports)
-            if (g.ConfigFlagsCurrFrame & ImGuiConfigFlags_ViewportsEnable)
-                UpdateTryMergeWindowIntoHostViewport(moving_window, g.MouseViewport);
+            if (!window_disappared)
+            {
+                // Try to merge the window back into the main viewport.
+                // This works because MouseViewport should be != MovingWindow->Viewport on release (as per code in UpdateViewports)
+                if (g.ConfigFlagsCurrFrame & ImGuiConfigFlags_ViewportsEnable)
+                    UpdateTryMergeWindowIntoHostViewport(moving_window, g.MouseViewport);
 
-            // Restore the mouse viewport so that we don't hover the viewport _under_ the moved window during the frame we released the mouse button.
-            if (!IsDragDropPayloadBeingAccepted())
-                g.MouseViewport = moving_window->Viewport;
+                // Restore the mouse viewport so that we don't hover the viewport _under_ the moved window during the frame we released the mouse button.
+                if (!IsDragDropPayloadBeingAccepted())
+                    g.MouseViewport = moving_window->Viewport;
 
-            // Clear the NoInput window flag set by the Viewport system
-            moving_window->Viewport->Flags &= ~ImGuiViewportFlags_NoInputs; // FIXME-VIEWPORT: Test engine managed to crash here because Viewport was NULL.
+                // Clear the NoInput window flag set by the Viewport system
+                moving_window->Viewport->Flags &= ~ImGuiViewportFlags_NoInputs; // FIXME-VIEWPORT: Test engine managed to crash here because Viewport was NULL.
+            }
 
             g.MovingWindow = NULL;
             ClearActiveID();
@@ -11996,7 +12002,8 @@ static void ImGui::UpdateViewportsNewFrame()
 
     // Update mouse reference viewport
     // (when moving a window we aim at its viewport, but this will be overwritten below if we go in drag and drop mode)
-    if (g.MovingWindow)
+    // (MovingViewport->Viewport will be NULL in the rare situation where the window disappared while moving, set UpdateMouseMovingWindowNewFrame() for details)
+    if (g.MovingWindow && g.MovingWindow->Viewport)
         g.MouseViewport = g.MovingWindow->Viewport;
     else
         g.MouseViewport = g.MouseLastHoveredViewport;
@@ -12149,7 +12156,14 @@ static void ImGui::WindowSelectViewport(ImGuiWindow* window)
     else if ((flags & ImGuiWindowFlags_ChildWindow) || (flags & ImGuiWindowFlags_ChildMenu))
     {
         // Always inherit viewport from parent window
+        if (window->DockNode && window->DockNode->HostWindow)
+            IM_ASSERT(window->DockNode->HostWindow->Viewport == window->ParentWindow->Viewport);
         window->Viewport = window->ParentWindow->Viewport;
+    }
+    else if (window->DockNode && window->DockNode->HostWindow)
+    {
+        // This covers the "always inherit viewport from parent window" case for when a window reattach to a node that was just created mid-frame
+        window->Viewport = window->DockNode->HostWindow->Viewport;
     }
     else if (flags & ImGuiWindowFlags_Tooltip)
     {
@@ -12193,7 +12207,7 @@ static void ImGui::WindowSelectViewport(ImGuiWindow* window)
             else
                 window->ViewportAllowPlatformMonitorExtend = window->Viewport->PlatformMonitor;
         }
-        else if (window->Viewport && window != window->Viewport->Window && window->Viewport->Window && !(flags & ImGuiWindowFlags_ChildWindow))
+        else if (window->Viewport && window != window->Viewport->Window && window->Viewport->Window && !(flags & ImGuiWindowFlags_ChildWindow) && window->DockNode == NULL)
         {
             // When called from Begin() we don't have access to a proper version of the Hidden flag yet, so we replicate this code.
             const bool will_be_visible = (window->DockIsActive && !window->DockTabIsVisible) ? false : true;
@@ -13586,6 +13600,7 @@ static void ImGui::DockNodeRemoveWindow(ImGuiDockNode* node, ImGuiWindow* window
         if (node->HostWindow->ViewportOwned && node->IsRootNode())
         {
             // Transfer viewport back to the remaining loose window
+            IMGUI_DEBUG_LOG_VIEWPORT("Node %08X transfer Viewport %08X=>%08X for Window '%s'\n", node->ID, node->HostWindow->Viewport->ID, remaining_window->ID, remaining_window->Name);
             IM_ASSERT(node->HostWindow->Viewport->Window == node->HostWindow);
             node->HostWindow->Viewport->Window = remaining_window;
             node->HostWindow->Viewport->ID = remaining_window->ID;
