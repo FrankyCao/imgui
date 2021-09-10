@@ -15,4 +15,5 @@ namespace ImGui
     IMGUI_API void ImMatToImVulkanMat(const ImMat &src, VkMat &dst);
     IMGUI_API void ImVulkanVkMatToImMat(const VkMat &src, ImMat &dst);
     IMGUI_API void ImVulkanVkMatToVkImageMat(const VkMat &src, VkImageMat &dst);
+    IMGUI_API void ImVulkanShaderClear();
 } //namespace ImGui

@@ -7,6 +7,9 @@
 #include "imgui_impl_dx9.h"
 #include "imgui_impl_win32.h"
 #include "application.h"
+#if IMGUI_VULKAN_SHADER
+#include <ImVulkanShader.h>
+#endif
 #include <d3d9.h>
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
@@ -224,6 +227,10 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
     Application_Finalize(&user_handle);
 
+    // Cleanup
+#if IMGUI_VULKAN_SHADER
+    ImGui::ImVulkanShaderClear();
+#endif
     ImGui_ImplDX9_Shutdown();
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext();

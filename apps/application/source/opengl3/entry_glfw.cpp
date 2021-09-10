@@ -7,6 +7,9 @@
 #include <string>
 #include <cerrno>
 #include "application.h"
+#if IMGUI_VULKAN_SHADER
+#include <ImVulkanShader.h>
+#endif
 #ifdef __APPLE__
 #define GL_SILENCE_DEPRECATION
 #endif
@@ -155,6 +158,9 @@ int main(int, char**)
     Application_Finalize(&user_handle);
 
     // Cleanup
+#if IMGUI_VULKAN_SHADER
+    ImGui::ImVulkanShaderClear();
+#endif
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();

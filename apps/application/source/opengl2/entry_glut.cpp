@@ -9,6 +9,9 @@
 #endif
 #include <string>
 #include "application.h"
+#if IMGUI_VULKAN_SHADER
+#include <ImVulkanShader.h>
+#endif
 
 #ifdef _MSC_VER
 #pragma warning (disable: 4505) // unreferenced local function has been removed
@@ -86,9 +89,12 @@ int main(int argc, char** argv)
 
     glutMainLoop();
 
-    // Cleanup
     Application_Finalize(&user_handle);
 
+    // Cleanup
+#if IMGUI_VULKAN_SHADER
+    ImGui::ImVulkanShaderClear();
+#endif
     ImGui_ImplOpenGL2_Shutdown();
     ImGui_ImplGLUT_Shutdown();
     ImGui::DestroyContext();

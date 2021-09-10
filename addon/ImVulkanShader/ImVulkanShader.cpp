@@ -70,4 +70,9 @@ void ImVulkanVkMatToVkImageMat(const VkMat &src, VkImageMat &dst)
     vkdev->reclaim_blob_allocator(opt.blob_vkallocator);
     vkdev->reclaim_staging_allocator(opt.staging_vkallocator);
 }
+
+void ImVulkanShaderClear()
+{
+    destroy_gpu_instance();
+}
 } // namespace ImGui

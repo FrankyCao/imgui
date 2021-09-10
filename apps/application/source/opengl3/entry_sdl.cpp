@@ -8,6 +8,9 @@
 #include <string>
 #include <cerrno>
 #include "application.h"
+#if IMGUI_VULKAN_SHADER
+#include <ImVulkanShader.h>
+#endif
 #include <SDL.h>
 #if defined(IMGUI_IMPL_OPENGL_ES2)
 #include <SDL_opengles2.h>
@@ -180,6 +183,9 @@ int main(int, char**)
     Application_Finalize(&user_handle);
 
     // Cleanup
+#if IMGUI_VULKAN_SHADER
+    ImGui::ImVulkanShaderClear();
+#endif
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();

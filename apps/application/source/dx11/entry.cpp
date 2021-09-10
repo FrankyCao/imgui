@@ -7,6 +7,9 @@
 #include "imgui_impl_win32.h"
 #include "ScopeGuard.h"
 #include "application.h"
+#if IMGUI_VULKAN_SHADER
+#include <ImVulkanShader.h>
+#endif
 struct IUnknown;
 #include <d3d11.h>
 #define DIRECTINPUT_VERSION 0x0800
@@ -256,6 +259,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     Application_Finalize(&user_handle);
     
     // Cleanup
+#if IMGUI_VULKAN_SHADER
+    ImGui::ImVulkanShaderClear();
+#endif
     ImGui_ImplDX11_Shutdown();
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext();

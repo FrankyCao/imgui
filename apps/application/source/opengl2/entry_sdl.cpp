@@ -10,6 +10,9 @@
 #include <string>
 #include <cerrno>
 #include "application.h"
+#if IMGUI_VULKAN_SHADER
+#include <ImVulkanShader.h>
+#endif
 
 static void * user_handle = nullptr;
 
@@ -146,6 +149,9 @@ int main(int, char**)
     Application_Finalize(&user_handle);
 
     // Cleanup
+#if IMGUI_VULKAN_SHADER
+    ImGui::ImVulkanShaderClear();
+#endif
     ImGui_ImplOpenGL2_Shutdown();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();

@@ -10,7 +10,9 @@
 #include "imgui_impl_vulkan.h"
 #include "imgui_impl_win32.h"
 #include "application.h"
-
+#if IMGUI_VULKAN_SHADER
+#include <ImVulkanShader.h>
+#endif
 #include "entry_vulkan.h"
 
 #ifndef WM_DPICHANGED
@@ -194,6 +196,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     Application_Finalize(&user_handle);
 
     // Cleanup
+#if IMGUI_VULKAN_SHADER
+    ImGui::ImVulkanShaderClear();
+#endif
     err = vkDeviceWaitIdle(g_Device);
     check_vk_result(err);
     ImGui_ImplVulkan_Shutdown();
