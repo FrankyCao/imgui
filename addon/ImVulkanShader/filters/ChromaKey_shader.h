@@ -136,6 +136,75 @@ SHADER_STORE_GRAY_FLOAT16
 SHADER_BLUR_MAIN
 ;
 
+
+#define SHADER_SHARPEN_PARAM \
+" \n\
+layout (push_constant) uniform parameter \n\
+{ \n\
+    int w; \n\
+    int h; \n\
+    int cstep; \n\
+    int in_format; \n\
+    int in_type; \n\
+    \n\
+    int out_w; \n\
+    int out_h; \n\
+    int out_cstep; \n\
+    int out_format; \n\
+    int out_type; \n\
+    \n\
+    float amount; \n\
+} p; \
+"
+
+#define SHADER_SHARPEN_MAIN \
+" \n\
+// sigma = 0.75 \n\
+//const sfp blurKernel[9] = { sfp(0.0509), sfp(0.1238), sfp(0.0509), \n\
+//                            sfp(0.1238), sfp(0.3012), sfp(0.1238), \n\
+//                            sfp(0.0509), sfp(0.1238), sfp(0.0509)};\n\
+// sigma = 0.8 \n\
+const sfp blurKernel[9] = { sfp(0.0571), sfp(0.1248), sfp(0.0571), \n\
+                            sfp(0.1248), sfp(0.2725), sfp(0.1248), \n\
+                            sfp(0.0571), sfp(0.1248), sfp(0.0571)};\n\
+void main() \n\
+{ \n\
+    int gx = int(gl_GlobalInvocationID.x); \n\
+    int gy = int(gl_GlobalInvocationID.y); \n\
+    if (gx >= p.out_w || gy >= p.out_h) \n\
+        return; \n\
+    sfp sum = sfp(0.f); \n\
+    int kInd = 0; \n\
+    sfp current = load_gray_float16(gx, gy, p.w, p.cstep, p.in_format); \n\
+    for (int i = 0; i < 3; ++i) \n\
+    { \n\
+        for (int j = 0; j< 3; ++j) \n\
+        { \n\
+            int x = gx - 1 + j; \n\
+            int y = gy - 1 + i; \n\
+            x = max(0, min(x, p.out_w - 1)); \n\
+            y = max(0, min(y, p.out_h - 1)); \n\
+            sfp val = load_gray_float16(x, y, p.w, p.cstep, p.in_format) * blurKernel[kInd++]; \n\
+            sum = sum + val; \n\
+        } \n\
+    } \n\
+    sfp amount = current * sfp(p.amount) + sum * sfp(1.f - p.amount); \n\
+    store_gray_float16(clamp(amount, sfp(0.f), sfp(1.f)), gx, gy, p.out_w, p.out_cstep, p.out_format); \n\
+} \
+"
+
+static const char Sharpen_data[] = 
+SHADER_HEADER
+SHADER_SHARPEN_PARAM
+R"(
+layout (binding = 0) readonly buffer src { float16_t src_data_float16[]; };
+layout (binding = 1) writeonly buffer dst { float16_t dst_data_float16[]; };
+)"
+SHADER_LOAD_GRAY_FLOAT16
+SHADER_STORE_GRAY_FLOAT16
+SHADER_SHARPEN_MAIN
+;
+
 #define SHADER_DESPILL_PARAM \
 " \n\
 layout (push_constant) uniform parameter \n\

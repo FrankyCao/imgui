@@ -71,9 +71,6 @@ enum ImNodesLinkCreationType_
     ImNodesLinkCreationType_FromDetach
 };
 
-// Callback type used to specify special behavior when hovering a node in the minimap
-typedef void (*ImNodesMiniMapNodeHoveringCallback)(int, void*);
-
 // [SECTION] internal data structures
 
 // The object T must have the following interface:
@@ -217,7 +214,7 @@ struct ImClickInteractionState
 
     struct
     {
-        ImRect Rect;
+        ImRect Rect; // Coordinates in grid space
     } BoxSelector;
 
     ImClickInteractionState() : Type(ImNodesClickInteractionType_None) {}
@@ -254,6 +251,7 @@ struct ImNodesEditorContext
 
     // ui related fields
     ImVec2 Panning;
+    ImVec2 AutoPanningDelta;
 
     ImVector<int> SelectedNodeIndices;
     ImVector<int> SelectedLinkIndices;

@@ -43,6 +43,12 @@ ChromaKey_vulkan::ChromaKey_vulkan(int gpu)
     spirv_data.clear();
 #endif
 
+    compile_spirv_module(Sharpen_data, opt, spirv_data);
+    pipe_sharpen = new Pipeline(vkdev);
+    pipe_sharpen->set_optimal_local_size_xyz(16, 16, 1);
+    pipe_sharpen->create(spirv_data.data(), spirv_data.size() * 4, specializations);
+    spirv_data.clear();
+
     compile_spirv_module(Despill_data, opt, spirv_data);
     pipe_despill = new Pipeline(vkdev);
     pipe_despill->set_optimal_local_size_xyz(16, 16, 1);
@@ -64,6 +70,7 @@ ChromaKey_vulkan::~ChromaKey_vulkan()
 #else
         if (pipe_blur) { delete pipe_blur; pipe_blur = nullptr; }
 #endif
+        if (pipe_sharpen) { delete pipe_sharpen; pipe_sharpen = nullptr; }
         if (pipe_despill) { delete pipe_despill; pipe_despill = nullptr; }
         if (cmd) { delete cmd; cmd = nullptr; }
         if (opt.blob_vkallocator) { vkdev->reclaim_blob_allocator(opt.blob_vkallocator); opt.blob_vkallocator = nullptr; }
@@ -224,7 +231,26 @@ void ChromaKey_vulkan::upload_param(const VkMat& src, VkMat& dst,
     blur_constants[9].i = blur_alpha_mat.type;
     cmd->record_pipeline(pipe_blur, blur_bindings, blur_constants, blur_alpha_mat);
 #endif
-
+/*
+    VkMat sharpen_alpha_mat;
+    sharpen_alpha_mat.create_like(blur_alpha_mat, opt.blob_vkallocator);
+    std::vector<VkMat> sharpen_bindings(2);
+    sharpen_bindings[0] = blur_alpha_mat;
+    sharpen_bindings[1] = sharpen_alpha_mat;
+    std::vector<vk_constant_type> sharpen_constants(11);
+    sharpen_constants[0].i = blur_alpha_mat.w;
+    sharpen_constants[1].i = blur_alpha_mat.h;
+    sharpen_constants[2].i = blur_alpha_mat.c;
+    sharpen_constants[3].i = blur_alpha_mat.color_format;
+    sharpen_constants[4].i = blur_alpha_mat.type;
+    sharpen_constants[5].i = sharpen_alpha_mat.w;
+    sharpen_constants[6].i = sharpen_alpha_mat.h;
+    sharpen_constants[7].i = sharpen_alpha_mat.c;
+    sharpen_constants[8].i = sharpen_alpha_mat.color_format;
+    sharpen_constants[9].i = sharpen_alpha_mat.type;
+    sharpen_constants[10].f = 2.0f;
+    cmd->record_pipeline(pipe_sharpen, sharpen_bindings, sharpen_constants, sharpen_alpha_mat);
+*/
     std::vector<VkMat> despill_bindings(9);
     if      (dst.type == IM_DT_INT8)     despill_bindings[0] = dst;
     else if (dst.type == IM_DT_INT16)    despill_bindings[1] = dst;
