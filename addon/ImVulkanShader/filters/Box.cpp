@@ -19,7 +19,11 @@ void BoxBlur_vulkan::prepare_kernel()
     yksize = ySize;
     xanchor = xSize / 2;
     yanchor = ySize / 2;
+#if 1
     float kvulve = 2.0f / (float)(xSize + ySize);
+#else
+    float kvulve = 1.0f / (float)(xSize * ySize);
+#endif
     kernel.create(xSize, ySize, size_t(4u), 1);
     for (int x = 0; x < xSize; x++)
     {

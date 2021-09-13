@@ -725,7 +725,7 @@ void CleanupDemo()
 }
 
 #if IMGUI_VULKAN_SHADER
-int g_gpu_count = ImGui::get_gpu_count();
+int g_device_count = 0;
 
 static const char glsl_p1_data[] = R"(
 #version 450
@@ -1014,6 +1014,7 @@ static std::string print_result(float gflops)
 
 void PrepareVulkanDemo()
 {
+    g_device_count = ImGui::get_gpu_count();
     g_vkdev = ImGui::get_gpu_device(-1); // auto get gpu
     g_blob_allocator = g_vkdev->acquire_blob_allocator();
     g_staging_allocator = g_vkdev->acquire_staging_allocator();
@@ -1064,7 +1065,7 @@ void CleanVulkanDemo()
 
 void ShowAddonsVulkanShaderWindow()
 {
-    for (int i = 0; i < g_gpu_count; i++)
+    for (int i = 0; i < g_device_count; i++)
     {
         ImGui::VulkanDevice* vkdev = ImGui::get_gpu_device(i);
         uint32_t driver_version = vkdev->info.driver_version();

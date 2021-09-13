@@ -23,6 +23,7 @@ void GaussianBlur_vulkan::prepare_kernel()
     double scale = 1.0f / (sigma * sigma * 2.0);
     double sum = 0.0;
 
+#if 1
     kernel.create(ksize, size_t(4u), 1);
     for (int i = 0; i < ksize; i++) 
     {
@@ -30,7 +31,20 @@ void GaussianBlur_vulkan::prepare_kernel()
         kernel.at<float>(i) = exp(-scale * (x * x));
         sum += kernel.at<float>(i);
     }
-
+#else
+    double cons = scale / M_PI;
+    kernel.create(ksize, ksize, size_t(4u), 1);
+    for (int i = 0; i < ksize; i++)
+    {
+        for (int j = 0; j < ksize; j++)
+        {
+            int x = i - (ksize - 1) / 2;
+            int y = j - (ksize - 1) / 2;
+            kernel.at<float>(i, j) = cons * exp(-scale * (x * x + y * y));
+            sum += kernel.at<float>(i, j);
+        }
+    }
+#endif
     sum = 1.0 / sum;
     kernel *= (float)(sum);
     VkTransfer tran(vkdev);
