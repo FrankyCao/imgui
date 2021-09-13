@@ -409,9 +409,6 @@ void LoadingIndicatorCircle2(const char* label, float indicatorRadiusFactor=1.f,
 
 // Splitter
 IMGUI_API bool Splitter(bool split_vertically, float thickness, float* size1, float* size2, float min_size1, float min_size2, float splitter_long_axis_size = -1.0f);
-
-// Range Slider
-IMGUI_API bool RangeSliderFloat(const char* label, float* v1, float* v2, float v_min, float v_max, const char* display_format = "(%.3f, %.3f)", float power = 1.0f);
 } // namespace ImGui
 
 

@@ -83,18 +83,6 @@ void ShowAddonsDemoWindowWidgets()
         ImGui::CheckboxStyled("Checkbox Styled 2 (custom style)",&checkStyled[1],optionalEightColors,checkBoxSizeScale,checkBoxRounding);
         
         ImGui::Separator();
-        // RangeSliderFloat
-        ImGui::Text("Range Slider:");
-        static float v1 = 0;
-        static float v2 = 1;
-        static float v_min = 0;
-        static float v_max = 1;
-        static float v3 = 0;
-        static float v4 = 1;
-        ImGui::RangeSliderFloat("range 1", &v1, &v2, v_min, v_max, "%.1f  %.1f", 1.0f);
-        ImGui::RangeSliderFloat("range 2", &v3, &v4, v_min, v_max);
-
-        ImGui::Separator();
         // PopupMenuSimple
         static const char* recentFileList[] = {"filename01","filename02","filename03","filename04","filename05","filename06","filename07","filename08","filename09","filename10"};
         static ImGui::PopupMenuSimpleParams pmsParams;
