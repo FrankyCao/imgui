@@ -42,64 +42,70 @@ layout (push_constant) uniform parameter \n\
 
 #define SHADER_LOAD_SRC_YUV \
 " \n\
-sfp load_y_data(int offset) \n\
-{ \n\
-    if (p.in_type == DT_INT8) \n\
-        return sfp(uint(Y_data_int8[offset])) / sfp(p.in_scale); \n\
-    else if (p.in_type == DT_INT16) \n\
-        return sfp(uint(Y_data_int16[offset])) / sfp(p.in_scale); \n\
-    else if (p.in_type == DT_FLOAT16) \n\
-        return sfp(Y_data_float16[offset]); \n\
-    else if (p.in_type == DT_FLOAT32) \n\
-        return sfp(Y_data_float32[offset]); \n\
-    else \n\
-        return sfp(0.f); \n\
-} \n\
-sfp load_u_data(int offset) \n\
-{ \n\
-    if (p.in_type == DT_INT8) \n\
-        return sfp(uint(U_data_int8[offset])) / sfp(p.in_scale); \n\
-    else if (p.in_type == DT_INT16) \n\
-        return sfp(uint(U_data_int16[offset])) / sfp(p.in_scale); \n\
-    else if (p.in_type == DT_FLOAT16) \n\
-        return sfp(U_data_float16[offset]); \n\
-    else if (p.in_type == DT_FLOAT32) \n\
-        return sfp(U_data_float32[offset]); \n\
-    else \n\
-        return sfp(0.5f); \n\
-} \n\
-sfp load_v_data(int offset) \n\
-{ \n\
-    if (p.in_type == DT_INT8) \n\
-        return sfp(uint(V_data_int8[offset])) / sfp(p.in_scale); \n\
-    else if (p.in_type == DT_INT16) \n\
-        return sfp(uint(V_data_int16[offset])) / sfp(p.in_scale); \n\
-    else if (p.in_type == DT_FLOAT16) \n\
-        return sfp(V_data_float16[offset]); \n\
-    else if (p.in_type == DT_FLOAT32) \n\
-        return sfp(V_data_float32[offset]); \n\
-    else \n\
-        return sfp(0.5f); \n\
-} \n\
 sfpvec3 load_src_yuv(int x, int y) \n\
 { \n\
     sfpvec3 yuv_in = {sfp(0.f), sfp(0.5f), sfp(0.5f)}; \n\
     int uv_scale_w = p.in_format == CF_YUV420 || p.in_format == CF_YUV422 ? 2 : 1; \n\
     int uv_scale_h = p.in_format == CF_YUV420 || p.in_format == CF_NV12 ? 2 : 1; \n\
     int y_offset = y * p.w + x; \n\
-    int u_offset = (y / uv_scale_h) * p.w / uv_scale_w + x / uv_scale_w; \n\
-    int v_offset = (y / uv_scale_h) * p.w / uv_scale_w + x / uv_scale_w; \n\
-    ivec2 uv_offset = ((y / 2) * p.w / 2 + x / 2) * 2 + ivec2(0, 1); \n\
-    yuv_in.x = load_y_data(y_offset); \n\
-    if (p.in_format == CF_NV12) \n\
+    int u_offset = p.w * p.h + (y / uv_scale_h) * p.w / uv_scale_w + x / uv_scale_w; \n\
+    int v_offset = p.w * p.h * 2 + (y / uv_scale_h) * p.w / uv_scale_w + x / uv_scale_w; \n\
+    ivec2 uv_offset = p.w * p.h + ((y / 2) * p.w / 2 + x / 2) * 2 + ivec2(0, 1); \n\
+    if (p.in_type == DT_INT8) \n\
     { \n\
-        yuv_in.y = load_u_data(uv_offset.x); \n\
-        yuv_in.z = load_u_data(uv_offset.y); \n\
+        yuv_in.x = sfp(uint(YUV_data_int8[y_offset])) / sfp(p.in_scale); \n\
+        if (p.in_format == CF_NV12) \n\
+        { \n\
+            yuv_in.y = sfp(uint(YUV_data_int8[uv_offset.x])) / sfp(p.in_scale); \n\
+            yuv_in.z = sfp(uint(YUV_data_int8[uv_offset.y])) / sfp(p.in_scale); \n\
+        } \n\
+        else \n\
+        { \n\
+            yuv_in.y = sfp(uint(YUV_data_int8[u_offset])) / sfp(p.in_scale); \n\
+            yuv_in.z = sfp(uint(YUV_data_int8[v_offset])) / sfp(p.in_scale); \n\
+        } \n\
     } \n\
-    else \n\
+    else if (p.in_type == DT_INT16) \n\
     { \n\
-        yuv_in.y = load_u_data(u_offset); \n\
-        yuv_in.z = load_v_data(v_offset); \n\
+        yuv_in.x = sfp(uint(YUV_data_int16[y_offset])) / sfp(p.in_scale); \n\
+        if (p.in_format == CF_NV12) \n\
+        { \n\
+            yuv_in.y = sfp(uint(YUV_data_int16[uv_offset.x])) / sfp(p.in_scale); \n\
+            yuv_in.z = sfp(uint(YUV_data_int16[uv_offset.y])) / sfp(p.in_scale); \n\
+        } \n\
+        else \n\
+        { \n\
+            yuv_in.y = sfp(uint(YUV_data_int16[u_offset])) / sfp(p.in_scale); \n\
+            yuv_in.z = sfp(uint(YUV_data_int16[v_offset])) / sfp(p.in_scale); \n\
+        } \n\
+    } \n\
+    else if (p.in_type == DT_FLOAT16) \n\
+    { \n\
+        yuv_in.x = sfp(YUV_data_float16[y_offset]); \n\
+        if (p.in_format == CF_NV12) \n\
+        { \n\
+            yuv_in.y = sfp(YUV_data_float16[uv_offset.x]); \n\
+            yuv_in.z = sfp(YUV_data_float16[uv_offset.y]); \n\
+        } \n\
+        else \n\
+        { \n\
+            yuv_in.y = sfp(YUV_data_float16[u_offset]); \n\
+            yuv_in.z = sfp(YUV_data_float16[v_offset]); \n\
+        } \n\
+    } \n\
+    else if (p.in_type == DT_FLOAT32) \n\
+    { \n\
+        yuv_in.x = sfp(YUV_data_float32[y_offset]); \n\
+        if (p.in_format == CF_NV12) \n\
+        { \n\
+            yuv_in.y = sfp(YUV_data_float32[uv_offset.x]); \n\
+            yuv_in.z = sfp(YUV_data_float32[uv_offset.y]); \n\
+        } \n\
+        else \n\
+        { \n\
+            yuv_in.y = sfp(YUV_data_float32[u_offset]); \n\
+            yuv_in.z = sfp(YUV_data_float32[v_offset]); \n\
+        } \n\
     } \n\
     return yuv_in; \n\
 } \
@@ -122,19 +128,11 @@ static const char YUV2RGB_data[] =
 SHADER_HEADER
 SHADER_OUTPUT_DATA      // binging 0-3
 R"(
-layout (binding =  4) readonly buffer Y_int8    { uint8_t       Y_data_int8[]; };
-layout (binding =  5) readonly buffer Y_int16   { uint16_t      Y_data_int16[]; };
-layout (binding =  6) readonly buffer Y_float16 { float16_t     Y_data_float16[]; };
-layout (binding =  7) readonly buffer Y_float32 { float         Y_data_float32[]; };
-layout (binding =  8) readonly buffer U_int8    { uint8_t       U_data_int8[]; };
-layout (binding =  9) readonly buffer U_int16   { uint16_t      U_data_int16[]; };
-layout (binding = 10) readonly buffer U_float16 { float16_t     U_data_float16[]; };
-layout (binding = 11) readonly buffer U_float32 { float         U_data_float32[]; };
-layout (binding = 12) readonly buffer V_int8    { uint8_t       V_data_int8[]; };
-layout (binding = 13) readonly buffer V_int16   { uint16_t      V_data_int16[]; };
-layout (binding = 14) readonly buffer V_float16 { float16_t     V_data_float16[]; };
-layout (binding = 15) readonly buffer V_float32 { float         V_data_float32[]; };
-layout (binding = 16) readonly buffer mat_y2r   { float         convert_matrix_y2r[]; };
+layout (binding = 4) readonly buffer YUV_int8       { uint8_t       YUV_data_int8[]; };
+layout (binding = 5) readonly buffer YUV_int16      { uint16_t      YUV_data_int16[]; };
+layout (binding = 6) readonly buffer YUV_float16    { float16_t     YUV_data_float16[]; };
+layout (binding = 7) readonly buffer YUV_float32    { float         YUV_data_float32[]; };
+layout (binding = 8) readonly buffer mat_y2r        { float         convert_matrix_y2r[]; };
 )"
 SHADER_MAT_Y2R
 SHADER_PARAM_Y2R

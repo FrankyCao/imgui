@@ -1108,7 +1108,7 @@ namespace IGFD
 				m_Name = name; //-V820
 				m_AnyWindowsHovered |= ImGui::IsWindowHovered();
 
-				if (dlg_path.empty()) dlg_path = "."; // defaut path is '.'
+				if (dlg_path.empty()) dlg_path = "./"; // defaut path is './'
 				if (m_SelectedFilter.empty() && // no filter selected
 					!m_Filters.empty()) // filter exist
 					m_SelectedFilter = *m_Filters.begin(); // we take the first filter

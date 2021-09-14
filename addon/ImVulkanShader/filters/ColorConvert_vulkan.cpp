@@ -52,43 +52,30 @@ ColorConvert_vulkan::~ColorConvert_vulkan()
 }
 
 // YUV to RGBA functions
-void ColorConvert_vulkan::upload_param(const VkMat& Im_Y, const VkMat& Im_U, const VkMat& Im_V, VkMat& dst, ImColorFormat color_format, ImColorSpace color_space, ImColorRange color_range, int video_depth, int video_shift) const
+void ColorConvert_vulkan::upload_param(const VkMat& Im_YUV, VkMat& dst, ImColorFormat color_format, ImColorSpace color_space, ImColorRange color_range, int video_depth, int video_shift) const
 {
     VkMat matrix_y2r_gpu;
     const ImMat conv_mat_y2r = *color_table[0][color_range][color_space];
     cmd->record_clone(conv_mat_y2r, matrix_y2r_gpu, opt);
-    std::vector<VkMat> bindings(17);
+    std::vector<VkMat> bindings(9);
     if      (dst.type == IM_DT_INT8)     bindings[0] = dst;
     else if (dst.type == IM_DT_INT16)    bindings[1] = dst;
     else if (dst.type == IM_DT_FLOAT16)  bindings[2] = dst;
     else if (dst.type == IM_DT_FLOAT32)  bindings[3] = dst;
 
-    if      (Im_Y.type == IM_DT_INT8)    bindings[4] = Im_Y;
-    else if (Im_Y.type == IM_DT_INT16)   bindings[5] = Im_Y;
-    else if (Im_Y.type == IM_DT_FLOAT16) bindings[6] = Im_Y;
-    else if (Im_Y.type == IM_DT_FLOAT32) bindings[7] = Im_Y;
+    if      (Im_YUV.type == IM_DT_INT8)    bindings[4] = Im_YUV;
+    else if (Im_YUV.type == IM_DT_INT16)   bindings[5] = Im_YUV;
+    else if (Im_YUV.type == IM_DT_FLOAT16) bindings[6] = Im_YUV;
+    else if (Im_YUV.type == IM_DT_FLOAT32) bindings[7] = Im_YUV;
 
-    if      (Im_U.type == IM_DT_INT8)    bindings[ 8] = Im_U;
-    else if (Im_U.type == IM_DT_INT16)   bindings[ 9] = Im_U;
-    else if (Im_U.type == IM_DT_FLOAT16) bindings[10] = Im_U;
-    else if (Im_U.type == IM_DT_FLOAT32) bindings[11] = Im_U;
-
-    if (color_format != IM_CF_NV12)
-    {
-        if      (Im_V.type == IM_DT_INT8)    bindings[12] = Im_V;
-        else if (Im_V.type == IM_DT_INT16)   bindings[13] = Im_V;
-        else if (Im_V.type == IM_DT_FLOAT16) bindings[14] = Im_V;
-        else if (Im_V.type == IM_DT_FLOAT32) bindings[15] = Im_V;
-    }
-
-    bindings[16] = matrix_y2r_gpu;
+    bindings[8] = matrix_y2r_gpu;
 
     std::vector<vk_constant_type> constants(10);
     constants[0].i = dst.w;
     constants[1].i = dst.h;
     constants[2].i = dst.c;
     constants[3].i = color_format;
-    constants[4].i = Im_Y.type;
+    constants[4].i = Im_YUV.type;
     constants[5].i = color_space;
     constants[6].i = color_range;
     constants[7].f = (float)(1 << video_shift);
@@ -98,25 +85,20 @@ void ColorConvert_vulkan::upload_param(const VkMat& Im_Y, const VkMat& Im_U, con
 }
 
 // input YUV planer from CPU buffer and output to RGBA CPU buffer
-void ColorConvert_vulkan::YUV2RGBA(const ImMat& im_Y, const ImMat& im_U, const ImMat& im_V, ImMat & im_RGB, ImColorFormat color_format, ImColorSpace color_space, ImColorRange color_range, int video_depth, int video_shift) const
+void ColorConvert_vulkan::YUV2RGBA(const ImMat& im_YUV, ImMat & im_RGB, ImColorFormat color_format, ImColorSpace color_space, ImColorRange color_range, int video_depth, int video_shift) const
 {
     if (!vkdev || !pipeline_yuv_rgb || !cmd)
     {
         return;
     }
-    VkMat matrix_y2r_gpu;
-    VkMat vk_Y, vk_U, vk_V;
-    VkMat vk_RGB;
-    im_RGB.create_type(im_Y.w, im_Y.h, 4, im_RGB.type);
-    vk_RGB.create_like(im_RGB, opt.blob_vkallocator);
-    cmd->record_clone(im_Y, vk_Y, opt);
-    cmd->record_clone(im_U, vk_U, opt);
-    if (color_format != IM_CF_NV12)
-    {
-        cmd->record_clone(im_V, vk_V, opt);
-    }
 
-    upload_param(vk_Y, vk_U, vk_V, vk_RGB, color_format, color_space, color_range, video_depth, video_shift);
+    VkMat vk_YUV;
+    VkMat vk_RGB;
+    im_RGB.create_type(im_YUV.w, im_YUV.h, 4, im_RGB.type);
+    vk_RGB.create_like(im_RGB, opt.blob_vkallocator);
+    cmd->record_clone(im_YUV, vk_YUV, opt);
+
+    upload_param(vk_YUV, vk_RGB, color_format, color_space, color_range, video_depth, video_shift);
 
     cmd->record_clone(vk_RGB, im_RGB, opt);
     cmd->submit_and_wait();
@@ -124,47 +106,37 @@ void ColorConvert_vulkan::YUV2RGBA(const ImMat& im_Y, const ImMat& im_U, const I
 }
 
 // input YUV planer from CPU buffer and output to RGBA GPU buffer
-void ColorConvert_vulkan::YUV2RGBA(const ImMat& im_Y, const ImMat& im_U, const ImMat& im_V, VkMat & im_RGB, ImColorFormat color_format, ImColorSpace color_space, ImColorRange color_range, int video_depth, int video_shift) const
+void ColorConvert_vulkan::YUV2RGBA(const ImMat& im_YUV, VkMat & im_RGB, ImColorFormat color_format, ImColorSpace color_space, ImColorRange color_range, int video_depth, int video_shift) const
 {
     if (!vkdev || !pipeline_yuv_rgb || !cmd)
     {
         return;
     }
-    VkMat matrix_y2r_gpu;
-    VkMat vk_Y, vk_U, vk_V;
-    im_RGB.create_type(im_Y.w, im_Y.h, 4, im_RGB.type, opt.blob_vkallocator);
-    cmd->record_clone(im_Y, vk_Y, opt);
-    cmd->record_clone(im_U, vk_U, opt);
-    if (color_format != IM_CF_NV12)
-    {
-        cmd->record_clone(im_V, vk_V, opt);
-    }
 
-    upload_param(vk_Y, vk_U, vk_V, im_RGB, color_format, color_space, color_range, video_depth, video_shift);
+    VkMat vk_YUV;
+    im_RGB.create_type(im_YUV.w, im_YUV.h, 4, im_RGB.type, opt.blob_vkallocator);
+    cmd->record_clone(im_YUV, vk_YUV, opt);
+
+    upload_param(vk_YUV, im_RGB, color_format, color_space, color_range, video_depth, video_shift);
 
     cmd->submit_and_wait();
     cmd->reset();
 }
 
 // input YUV planer from CPU buffer and output to float RGBA GPU Image3D
-void ColorConvert_vulkan::YUV2RGBA(const ImMat& im_Y, const ImMat& im_U, const ImMat& im_V, VkImageMat & im_RGB, ImColorFormat color_format, ImColorSpace color_space, ImColorRange color_range, int video_depth, int video_shift) const
+void ColorConvert_vulkan::YUV2RGBA(const ImMat& im_YUV, VkImageMat & im_RGB, ImColorFormat color_format, ImColorSpace color_space, ImColorRange color_range, int video_depth, int video_shift) const
 {
     if (!vkdev || !pipeline_yuv_rgb || !cmd)
     {
         return;
     }
-    VkMat matrix_y2r_gpu;
-    VkMat vk_Y, vk_U, vk_V;
-    VkMat vk_RGB;
-    vk_RGB.create_type(im_Y.w, im_Y.h, 4, im_RGB.type, opt.blob_vkallocator);
-    cmd->record_clone(im_Y, vk_Y, opt);
-    cmd->record_clone(im_U, vk_U, opt);
-    if (color_format != IM_CF_NV12)
-    {
-        cmd->record_clone(im_V, vk_V, opt);
-    }
 
-    upload_param(vk_Y, vk_U, vk_V, vk_RGB, color_format, color_space, color_range, video_depth, video_shift);
+    VkMat vk_YUV;
+    VkMat vk_RGB;
+    vk_RGB.create_type(im_YUV.w, im_YUV.h, 4, im_RGB.type, opt.blob_vkallocator);
+    cmd->record_clone(im_YUV, vk_YUV, opt);
+
+    upload_param(vk_YUV, vk_RGB, color_format, color_space, color_range, video_depth, video_shift);
 
     cmd->record_buffer_to_image(vk_RGB, im_RGB, opt);
     cmd->submit_and_wait();
@@ -172,7 +144,7 @@ void ColorConvert_vulkan::YUV2RGBA(const ImMat& im_Y, const ImMat& im_U, const I
 }
 
 // Gray to RGBA functions
-void ColorConvert_vulkan::upload_param(const VkMat& Im, VkMat& dst, ImColorFormat color_format, ImColorSpace color_space, ImColorRange color_range, int video_depth, int video_shift) const
+void ColorConvert_vulkan::upload_param(const VkMat& Im, VkMat& dst, ImColorSpace color_space, ImColorRange color_range, int video_depth, int video_shift) const
 {
     std::vector<VkMat> bindings(8);
     if      (dst.type == IM_DT_INT8)     bindings[0] = dst;
@@ -189,7 +161,7 @@ void ColorConvert_vulkan::upload_param(const VkMat& Im, VkMat& dst, ImColorForma
     constants[0].i = Im.w;
     constants[1].i = Im.h;
     constants[2].i = Im.c;
-    constants[3].i = color_format;
+    constants[3].i = IM_CF_GRAY;
     constants[4].i = Im.type;
     constants[5].i = dst.w;
     constants[6].i = dst.h;
@@ -199,8 +171,9 @@ void ColorConvert_vulkan::upload_param(const VkMat& Im, VkMat& dst, ImColorForma
     constants[10].f = (float)(1 << video_shift);
     cmd->record_pipeline(pipeline_gray_rgb, bindings, constants, dst);
 }
+
 // input Gray from CPU buffer and output to RGBA CPU buffer
-void ColorConvert_vulkan::GRAY2RGBA(const ImMat& im, ImMat & im_RGB, ImColorFormat color_format, ImColorSpace color_space, ImColorRange color_range, int video_depth, int video_shift) const
+void ColorConvert_vulkan::GRAY2RGBA(const ImMat& im, ImMat & im_RGB, ImColorSpace color_space, ImColorRange color_range, int video_depth, int video_shift) const
 {
     if (!vkdev || !pipeline_gray_rgb || !cmd)
     {
@@ -212,7 +185,7 @@ void ColorConvert_vulkan::GRAY2RGBA(const ImMat& im, ImMat & im_RGB, ImColorForm
     vk_RGB.create_like(im_RGB, opt.blob_vkallocator);
     cmd->record_clone(im, vk_Data, opt);
 
-    upload_param(vk_Data, vk_RGB, color_format, color_space, color_range, video_depth, video_shift);
+    upload_param(vk_Data, vk_RGB, color_space, color_range, video_depth, video_shift);
 
     cmd->record_clone(vk_RGB, im_RGB, opt);
     cmd->submit_and_wait();
@@ -220,7 +193,7 @@ void ColorConvert_vulkan::GRAY2RGBA(const ImMat& im, ImMat & im_RGB, ImColorForm
 }
 
 // input Gray from CPU buffer and output to RGBA GPU buffer
-void ColorConvert_vulkan::GRAY2RGBA(const ImMat& im, VkMat & im_RGB, ImColorFormat color_format, ImColorSpace color_space, ImColorRange color_range, int video_depth, int video_shift) const
+void ColorConvert_vulkan::GRAY2RGBA(const ImMat& im, VkMat & im_RGB, ImColorSpace color_space, ImColorRange color_range, int video_depth, int video_shift) const
 {
     if (!vkdev || !pipeline_gray_rgb || !cmd)
     {
@@ -231,14 +204,14 @@ void ColorConvert_vulkan::GRAY2RGBA(const ImMat& im, VkMat & im_RGB, ImColorForm
     VkMat vk_Data;
     cmd->record_clone(im, vk_Data, opt);
 
-    upload_param(vk_Data, im_RGB, color_format, color_space, color_range, video_depth, video_shift);
+    upload_param(vk_Data, im_RGB, color_space, color_range, video_depth, video_shift);
 
     cmd->submit_and_wait();
     cmd->reset();
 }
 
 // input Gray from CPU buffer and output to float RGBA GPU Image3D
-void ColorConvert_vulkan::GRAY2RGBA(const ImMat& im, VkImageMat & im_RGB, ImColorFormat color_format, ImColorSpace color_space, ImColorRange color_range, int video_depth, int video_shift) const
+void ColorConvert_vulkan::GRAY2RGBA(const ImMat& im, VkImageMat & im_RGB, ImColorSpace color_space, ImColorRange color_range, int video_depth, int video_shift) const
 {
     if (!vkdev || !pipeline_gray_rgb || !cmd)
     {
@@ -249,7 +222,7 @@ void ColorConvert_vulkan::GRAY2RGBA(const ImMat& im, VkImageMat & im_RGB, ImColo
     vk_RGB.create_type(im.w, im.h, 4, im_RGB.type, opt.blob_vkallocator); // ？
     cmd->record_clone(im, vk_Data, opt);
 
-    upload_param(vk_Data, vk_RGB, color_format, color_space, color_range, video_depth, video_shift);
+    upload_param(vk_Data, vk_RGB, color_space, color_range, video_depth, video_shift);
 
     cmd->record_buffer_to_image(vk_RGB, im_RGB, opt);
     cmd->submit_and_wait();
@@ -257,7 +230,7 @@ void ColorConvert_vulkan::GRAY2RGBA(const ImMat& im, VkImageMat & im_RGB, ImColo
 }
 
 // input Gray from GPU buffer and output to float RGBA CPU buffer
-void ColorConvert_vulkan::GRAY2RGBA(const VkMat& im, ImMat & im_RGB, ImColorFormat color_format, ImColorSpace color_space, ImColorRange color_range, int video_depth, int video_shift) const
+void ColorConvert_vulkan::GRAY2RGBA(const VkMat& im, ImMat & im_RGB, ImColorSpace color_space, ImColorRange color_range, int video_depth, int video_shift) const
 {
     if (!vkdev || !pipeline_gray_rgb || !cmd)
     {
@@ -267,7 +240,7 @@ void ColorConvert_vulkan::GRAY2RGBA(const VkMat& im, ImMat & im_RGB, ImColorForm
     VkMat vk_RGB;
     vk_RGB.create_like(im_RGB, opt.blob_vkallocator);
 
-    upload_param(im, vk_RGB, color_format, color_space, color_range, video_depth, video_shift);
+    upload_param(im, vk_RGB, color_space, color_range, video_depth, video_shift);
 
     cmd->record_clone(vk_RGB, im_RGB, opt);
     cmd->submit_and_wait();
@@ -275,7 +248,7 @@ void ColorConvert_vulkan::GRAY2RGBA(const VkMat& im, ImMat & im_RGB, ImColorForm
 }
 
 // input Gray from GPU buffer and output to GPU buffer
-void ColorConvert_vulkan::GRAY2RGBA(const VkMat& im, VkMat & im_RGB, ImColorFormat color_format, ImColorSpace color_space, ImColorRange color_range, int video_depth, int video_shift) const
+void ColorConvert_vulkan::GRAY2RGBA(const VkMat& im, VkMat & im_RGB, ImColorSpace color_space, ImColorRange color_range, int video_depth, int video_shift) const
 {
     if (!vkdev || !pipeline_gray_rgb || !cmd)
     {
@@ -283,14 +256,14 @@ void ColorConvert_vulkan::GRAY2RGBA(const VkMat& im, VkMat & im_RGB, ImColorForm
     }
     im_RGB.create_type(im.w, im.h, 4, im_RGB.type, opt.blob_vkallocator);
 
-    upload_param(im, im_RGB, color_format, color_space, color_range, video_depth, video_shift);
+    upload_param(im, im_RGB, color_space, color_range, video_depth, video_shift);
 
     cmd->submit_and_wait();
     cmd->reset();
 }
 
 // input Gray from GPU buffer and output to float RGBA GPU Image3D
-void ColorConvert_vulkan::GRAY2RGBA(const VkMat& im, VkImageMat & im_RGB, ImColorFormat color_format, ImColorSpace color_space, ImColorRange color_range, int video_depth, int video_shift) const
+void ColorConvert_vulkan::GRAY2RGBA(const VkMat& im, VkImageMat & im_RGB, ImColorSpace color_space, ImColorRange color_range, int video_depth, int video_shift) const
 {
     if (!vkdev || !pipeline_gray_rgb || !cmd)
     {
@@ -299,7 +272,7 @@ void ColorConvert_vulkan::GRAY2RGBA(const VkMat& im, VkImageMat & im_RGB, ImColo
     VkMat vk_RGB;
     vk_RGB.create_type(im.w, im.h, 4, im_RGB.type, opt.blob_vkallocator);
 
-    upload_param(im, vk_RGB, color_format, color_space, color_range, video_depth, video_shift);
+    upload_param(im, vk_RGB, color_space, color_range, video_depth, video_shift);
 
     cmd->record_buffer_to_image(vk_RGB, im_RGB, opt);
     cmd->submit_and_wait();
