@@ -1,7 +1,7 @@
 #pragma once
 #include <imgui.h>
-#include "gpu.h"
-#include "pipeline.h"
+#include "imvk_gpu.h"
+#include "imvk_pipeline.h"
 #include <imgui_mat.h>
 
 #define FILTER_2DS_BLUR 0

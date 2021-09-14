@@ -1,4 +1,4 @@
-#include "gpu.h"
+#include "imvk_gpu.h"
 #include <math.h>
 #include <string.h>
 #include <vulkan/vulkan.h>
@@ -6,10 +6,10 @@
 #include "GlslangToSpv.h"
 #include "ShaderLang.h"
 
-#include "command.h"
-#include "pipelinecache.h"
-#include "Packing_vulkan.h"
-#include "Cast_vulkan.h"
+#include "imvk_command.h"
+#include "imvk_pipelinecache.h"
+#include "imvk_Packing_vulkan.h"
+#include "imvk_Cast_vulkan.h"
 
 // There is known issue that vkDestroyDebugUtilsMessengerEXT crash on exit when vulkan validation layer enabled
 // upstream fix https://github.com/KhronosGroup/Vulkan-Loader/pull/539

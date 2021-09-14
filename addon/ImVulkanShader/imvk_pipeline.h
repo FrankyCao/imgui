@@ -1,6 +1,6 @@
 #pragma once
-#include "platform.h"
-#include "gpu.h"
+#include "imvk_platform.h"
+#include "imvk_gpu.h"
 
 #include <vulkan/vulkan.h>
 

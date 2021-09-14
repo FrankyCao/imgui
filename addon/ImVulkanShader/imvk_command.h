@@ -1,7 +1,7 @@
 #pragma once
-#include "platform.h"
-#include "allocator.h"
-#include "gpu.h"
+#include "imvk_platform.h"
+#include "imvk_allocator.h"
+#include "imvk_gpu.h"
 #include <vulkan/vulkan.h>
 
 namespace ImGui 

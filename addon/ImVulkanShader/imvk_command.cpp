@@ -1,7 +1,6 @@
-#include "command.h"
-
-#include "option.h"
-#include "pipeline.h"
+#include "imvk_command.h"
+#include "imvk_option.h"
+#include "imvk_pipeline.h"
 
 namespace ImGui
 {

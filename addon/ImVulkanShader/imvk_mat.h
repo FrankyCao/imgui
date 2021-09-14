@@ -1,7 +1,7 @@
 #pragma once
-#include "allocator.h"
-#include "option.h"
-#include "platform.h"
+#include "imvk_allocator.h"
+#include "imvk_option.h"
+#include "imvk_platform.h"
 #include <vulkan/vulkan.h>
 #include <string.h>
 #include <imgui_mat.h>

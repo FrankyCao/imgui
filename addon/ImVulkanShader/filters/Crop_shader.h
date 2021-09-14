@@ -1,5 +1,5 @@
 #pragma once
-#include <vk_mat_shader.h>
+#include <imvk_mat_shader.h>
 
 #define SHADER_PARAM \
 " \n\

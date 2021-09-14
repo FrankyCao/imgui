@@ -1,6 +1,6 @@
-#include "pipeline.h"
-#include "pipelinecache.h"
-#include "option.h"
+#include "imvk_pipeline.h"
+#include "imvk_pipelinecache.h"
+#include "imvk_option.h"
 
 #include <math.h>
 

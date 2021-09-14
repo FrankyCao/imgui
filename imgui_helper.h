@@ -5,7 +5,7 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
 #if IMGUI_VULKAN_SHADER
-#include "gpu.h"
+#include <imvk_gpu.h>
 #endif
 #include <functional>
 #include <map>

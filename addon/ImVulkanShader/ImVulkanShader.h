@@ -1,8 +1,8 @@
 #pragma once
 #include "imgui.h"      // IMGUI_IMPL_API
-#include "gpu.h"
-#include "pipeline.h"
-#include "command.h"
+#include "imvk_gpu.h"
+#include "imvk_pipeline.h"
+#include "imvk_command.h"
 #include "filters/ColorConvert_vulkan.h"
 #include "filters/Resize_vulkan.h"
 #include <vulkan/vulkan.h>

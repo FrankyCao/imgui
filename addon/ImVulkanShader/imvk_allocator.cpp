@@ -1,6 +1,6 @@
-#include "allocator.h"
-#include "gpu.h"
-#include "pipeline.h"
+#include "imvk_allocator.h"
+#include "imvk_gpu.h"
+#include "imvk_pipeline.h"
 
 namespace ImGui 
 {

@@ -1051,33 +1051,33 @@ if (VULKAN_FOUND AND (IMGUI_VULKAN OR IMGUI_VULKAN_SHADER))
     endif(IMGUI_VULKAN_BENCHMARK)
     set(IMGUI_SRC
         ${IMGUI_SRC}
-        addon/ImVulkanShader/option.cpp
-        addon/ImVulkanShader/allocator.cpp
-        addon/ImVulkanShader/gpu.cpp
-        addon/ImVulkanShader/command.cpp
-        addon/ImVulkanShader/pipeline.cpp
-        addon/ImVulkanShader/pipelinecache.cpp
-        addon/ImVulkanShader/Cast_vulkan.cpp
-        addon/ImVulkanShader/Packing_vulkan.cpp
+        addon/ImVulkanShader/imvk_option.cpp
+        addon/ImVulkanShader/imvk_allocator.cpp
+        addon/ImVulkanShader/imvk_gpu.cpp
+        addon/ImVulkanShader/imvk_command.cpp
+        addon/ImVulkanShader/imvk_pipeline.cpp
+        addon/ImVulkanShader/imvk_pipelinecache.cpp
+        addon/ImVulkanShader/imvk_Cast_vulkan.cpp
+        addon/ImVulkanShader/imvk_Packing_vulkan.cpp
         addon/ImVulkanShader/ImVulkanShader.cpp
     )
     set(IMGUI_INCS
         ${IMGUI_INCS}
-        addon/ImVulkanShader/platform.h
-        addon/ImVulkanShader/vulkan_header_fix.h
-        addon/ImVulkanShader/option.h
-        addon/ImVulkanShader/allocator.h
-        addon/ImVulkanShader/gpu.h
-        addon/ImVulkanShader/command.h
-        addon/ImVulkanShader/vk_mat.h
-        addon/ImVulkanShader/vk_mat_shader.h
-        addon/ImVulkanShader/vk_image_mat.h
-        addon/ImVulkanShader/pipeline.h
-        addon/ImVulkanShader/pipelinecache.h
-        addon/ImVulkanShader/Cast_shader.h
-        addon/ImVulkanShader/Cast_vulkan.h
-        addon/ImVulkanShader/Packing_shader.h
-        addon/ImVulkanShader/Packing_vulkan.h
+        addon/ImVulkanShader/imvk_platform.h
+        addon/ImVulkanShader/imvk_vulkan_header_fix.h
+        addon/ImVulkanShader/imvk_option.h
+        addon/ImVulkanShader/imvk_allocator.h
+        addon/ImVulkanShader/imvk_gpu.h
+        addon/ImVulkanShader/imvk_command.h
+        addon/ImVulkanShader/imvk_mat.h
+        addon/ImVulkanShader/imvk_mat_shader.h
+        addon/ImVulkanShader/imvk_image_mat.h
+        addon/ImVulkanShader/imvk_pipeline.h
+        addon/ImVulkanShader/imvk_pipelinecache.h
+        addon/ImVulkanShader/imvk_Cast_shader.h
+        addon/ImVulkanShader/imvk_Cast_vulkan.h
+        addon/ImVulkanShader/imvk_Packing_shader.h
+        addon/ImVulkanShader/imvk_Packing_vulkan.h
         addon/ImVulkanShader/ImVulkanShader.h
     )
     set(IMGUI_SRC
