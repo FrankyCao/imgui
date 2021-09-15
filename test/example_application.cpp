@@ -8,54 +8,14 @@
 #include <sstream>
 #include <string>
 #include <cerrno>
-#if IMGUI_VULKAN_SHADER
-#include "imgui_impl_vulkan.h"
-#endif
-#if IMGUI_ADDON_IMPLOTS
-#include "implot.h"
-#endif
-#if IMGUI_ADDON_MARKDOWN
 #include "imgui_markdown.h"
-#endif
-#if IMGUI_ADDON_MEMORY_EDITOR
 #include "imgui_memory_editor.h"
-#endif
-#if IMGUI_ADDON_IMNODES
-#include "imnodes.h"
-#endif
-#if IMGUI_ADDON_NODE_GRAPH
-#include "ImGuiNodeGraphEditor.h"
-#endif
-#if IMGUI_ADDON_TEXT_EDITOR
-#include "TextEditor.h"
-#endif
-#if IMGUI_ADDON_FILE_DIALOG
 #include "ImGuiFileDialog.h"
-#endif
-#if IMGUI_ADDON_FILE_SYSTEM
-#include "ImGuiFileSystem.h"
-#endif
-#if IMGUI_ADDON_TINYFILE
-#include "tinyfiledialogs.h"
-#endif
-#if IMGUI_ADDON_HOTKEY
+#include "ImGuiVariousControls.h"
+#include "imgui_knob.h"
 #include "HotKey.h"
-#endif
-#if IMGUI_ADDON_ZMO
-#include "ImGuizmo.h"
-#endif
-#if IMGUI_ADDON_ZMOQUAT
-#include "imGuIZMOquat.h"
-#endif
-#if IMGUI_ADDON_DEAR_WIDGETS
-#include "dear_widgets.h"
-#endif
-#if IMGUI_ADDON_DATE_CHOOSER || IMGUI_ADDON_KNOB || IMGUI_ADDON_VARIOUS || IMGUI_ADDON_DOCK || IMGUI_ADDON_TABWINDOW || IMGUI_ADDON_PROGRESSES || IMGUI_ADDON_TIMELINE || IMGUI_VULKAN_SHADER
-#include "addon/addons_demo.h"
-#endif
 #include "Config.h"
 
-#if IMGUI_ADDON_HOTKEY
 // Init HotKey
 static std::vector<ImHotKey::HotKey> hotkeys = 
 { 
@@ -65,7 +25,6 @@ static std::vector<ImHotKey::HotKey> hotkeys =
     {"Play/Stop", "Play or stop the animation from the current graph", 0xFFFFFF3F},
     {"SetKey", "Make a new animation key with the current parameters values at the current time", 0xFFFFFF1F}
 };
-#endif
 
 static inline void box(ImGui::ImMat& image, int x1, int y1, int x2, int y2, int R, int G, int B)
 {
@@ -108,134 +67,59 @@ class Example
 public:
     Example() 
     {
-#if IMGUI_ADDON_FILE_DIALOG
         // load file dialog resource
         std::string bookmark_path = std::string(DEFAULT_CONFIG_PATH) + "bookmark.ini";
         prepare_file_dialog_demo_window(&filedialog, bookmark_path.c_str());
-#endif
 
-#if IMGUI_ADDON_MEMORY_EDITOR
         // init memory edit
         mem_edit.Open = false;
         mem_edit.OptShowDataPreview = true;
         mem_edit.OptAddrDigitsCount = 8;
         data = malloc(0x400);
-#endif
 
-#if IMGUI_ADDON_IMNODES
-        // Init imnodes
-        std::string node_ini_path = std::string(DEFAULT_CONFIG_PATH) + "nodes_save_load.ini";
-        std::string node_path = std::string(DEFAULT_CONFIG_PATH) + "nodes_save_load.node";
-        ImNodes::CreateContext();
-        imnodes_example::NodeEditorInitialize(node_ini_path.c_str(), node_path.c_str());
-#endif
-
-#if IMGUI_ADDON_NODE_GRAPH
-        // Init NodeGraphEditor
-        std::string nge_ini_path = std::string(DEFAULT_CONFIG_PATH) + "nodeGraphEditor.nge.ini";
-        std::string nge_style_path = std::string(DEFAULT_CONFIG_PATH) + "nodeGraphEditor.style.ini";
-        nge.save_node_path = nge_ini_path;
-        nge.save_style_path = nge_style_path;
-#endif
-#if IMGUI_VULKAN_SHADER
-        ImGui::PrepareVulkanDemo();
-#endif
+        // init color inspact
         color_bar(image, 0, 0, 255, 191);
         gray_bar(image, 0, 192, 255, 255, 13);
         ImageTexture = ImGui::ImCreateTexture(image.data, image.w, image.h);
     };
     ~Example() 
     {
-#if IMGUI_ADDON_MEMORY_EDITOR
         if (data)
             free(data); 
-#endif
 
-#if IMGUI_ADDON_FILE_DIALOG
         // Store file dialog bookmark
         std::string bookmark_path = std::string(DEFAULT_CONFIG_PATH) + "bookmark.ini";
         end_file_dialog_demo_window(&filedialog, bookmark_path.c_str());
-#endif
-
-#if IMGUI_ADDON_IMNODES
-        // Clean Node Window
-        std::string node_ini_path = std::string(DEFAULT_CONFIG_PATH) + "nodes_save_load.ini";
-        std::string node_path = std::string(DEFAULT_CONFIG_PATH) + "nodes_save_load.node";
-        imnodes_example::NodeEditorShutdown(node_ini_path.c_str(), node_path.c_str());
-        ImNodes::DestroyContext();
-#endif
-
-#if IMGUI_ADDON_DATE_CHOOSER || IMGUI_ADDON_KNOB || IMGUI_ADDON_VARIOUS || IMGUI_ADDON_DOCK || IMGUI_ADDON_TABWINDOW || IMGUI_ADDON_PROGRESSES || IMGUI_ADDON_TIMELINE
-        ImGui::CleanupDemo();
-#endif
-
-#if IMGUI_ADDON_ZMO
-        ImGuizmo::CleanupZMODemo();
-#endif
-
-#if IMGUI_VULKAN_SHADER
-        ImGui::CleanVulkanDemo();
-#endif
         if (ImageTexture) { ImGui::ImDestroyTexture(ImageTexture); ImageTexture = 0; }
     }
+
+public:
+    // init file dialog
+    ImGuiFileDialog filedialog;
+
+    // init memory edit
+    MemoryEditor mem_edit;
+    void* data = nullptr;
+
+    // Init MarkDown
+    ImGui::MarkdownConfig mdConfig;
 
 public:
     bool show_demo_window = true;
     bool show_another_window = false;
 
-#if IMGUI_ADDON_FILE_DIALOG
-    // init file dialog
-    ImGuiFileDialog filedialog;
-#endif
-
-#if IMGUI_ADDON_FILE_SYSTEM
-    // init sample file dialog
-    ImGuiFs::Dialog dlg;
-#endif
-
-#if IMGUI_ADDON_MEMORY_EDITOR
-    // init memory edit
-    MemoryEditor mem_edit;
-    void* data = nullptr;
-#endif
-
-#if IMGUI_ADDON_TEXT_EDITOR
-    // Init Text Edit
-    TextEditor editor;
-#endif
-
-#if IMGUI_ADDON_MARKDOWN
-    // Init MarkDown
-    ImGui::MarkdownConfig mdConfig;
-#endif
-
-#if IMGUI_ADDON_NODE_GRAPH
-    // Init NodeGraphEditor
-    ImGui::NodeGraphEditor nge;
-#endif
-
-public:
-    bool show_implot_window = false;
     bool show_file_dialog_window = false;
-    bool show_sample_file_dialog = false;
-    bool show_tiny_file_dialog = false;
-    bool show_text_edit_window = false;
     bool show_markdown_window = false;
-    bool show_dock_window = false;
-    bool show_tab_window = false;
-    bool show_node_window = false;
-    bool show_node_edit_window = false;
-    bool show_addon_widget = false;
-    bool show_zmo_window = false;
-    bool show_quat_window = false;
-    bool show_dear_widget_window = false;
+    bool show_various_controls_window = false;
+    bool show_knob_window = false;
+
 public:
-#if IMGUI_ADDON_MARKDOWN
+
     std::string get_file_contents(const char *filename);
     static ImGui::MarkdownImageData ImageCallback( ImGui::MarkdownLinkCallbackData data_ );
     static void LinkCallback( ImGui::MarkdownLinkCallbackData data_ );
     static void ExampleMarkdownFormatCallback( const ImGui::MarkdownFormatInfo& markdownFormatInfo_, bool start_ );
-#endif
+
 #if IMGUI_VULKAN_SHADER
 public:
     bool show_shader_window = false;
@@ -245,7 +129,6 @@ public:
     ImTextureID ImageTexture = 0;
 };
 
-#if IMGUI_ADDON_MARKDOWN
 std::string Example::get_file_contents(const char *filename)
 {
     std::string file_path = std::string(DEFAULT_DOCUMENT_PATH) + std::string(filename);
@@ -316,7 +199,6 @@ void Example::ExampleMarkdownFormatCallback( const ImGui::MarkdownFormatInfo& ma
         }
     }
 }
-#endif
 
 static std::string ini_file = std::string(DEFAULT_CONFIG_PATH) + "Application_Example.ini";
 
@@ -330,9 +212,6 @@ void Application_Initialize(void** handle)
     srand((unsigned int)time(0));
     *handle = new Example();
     Example * example = (Example *)*handle;
-#if IMGUI_ADDON_IMPLOTS
-    ImPlot::CreateContext();
-#endif
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.IniFilename = ini_file.c_str();
 }
@@ -345,9 +224,6 @@ void Application_Finalize(void** handle)
         delete example;
         *handle = nullptr;
     }
-#if IMGUI_ADDON_IMPLOTS
-    ImPlot::DestroyContext();
-#endif
 }
 
 bool Application_Frame(void* handle)
@@ -371,55 +247,12 @@ bool Application_Frame(void* handle)
         ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
         ImGui::Checkbox("Demo Window", &example->show_demo_window);      // Edit bools storing our window open/close state
         ImGui::Checkbox("Another Window", &example->show_another_window);
-#if IMGUI_ADDON_IMPLOTS
-        ImGui::Checkbox("ImPlot Window", &example->show_implot_window);
-#endif
-#if IMGUI_ADDON_FILE_DIALOG
         ImGui::Checkbox("File Dialog Window", &example->show_file_dialog_window);
-#endif
-#if IMGUI_ADDON_FILE_SYSTEM
-        ImGui::Checkbox("Sample File Dialog", &example->show_sample_file_dialog);
-#endif
-#if IMGUI_ADDON_TINYFILE
-        ImGui::Checkbox("Tiny File Dialog", &example->show_tiny_file_dialog);
-#endif
-#if IMGUI_ADDON_MEMORY_EDITOR
         ImGui::Checkbox("Memory Edit Window", &example->mem_edit.Open);
-#endif
-#if IMGUI_ADDON_TEXT_EDITOR
-        ImGui::Checkbox("Show Text Edit Window", &example->show_text_edit_window);
-#endif
-#if IMGUI_ADDON_MARKDOWN
         ImGui::Checkbox("Show Markdown Window", &example->show_markdown_window);
-#endif
-#if IMGUI_ADDON_DOCK
-        ImGui::Checkbox("Show Dock Window", &example->show_dock_window);
-#endif
-#if IMGUI_ADDON_TABWINDOW
-        ImGui::Checkbox("Show Tab Window", &example->show_tab_window);
-#endif
-#if IMGUI_ADDON_IMNODES
-        ImGui::Checkbox("Show Node Sample Window", &example->show_node_window);
-#endif
-#if IMGUI_ADDON_NODE_GRAPH
-        ImGui::Checkbox("Show Node Edit Windows", &example->show_node_edit_window);
-#endif
-#if IMGUI_ADDON_DATE_CHOOSER || IMGUI_ADDON_KNOB || IMGUI_ADDON_VARIOUS || IMGUI_ADDON_DOCK || IMGUI_ADDON_TABWINDOW || IMGUI_ADDON_PROGRESSES || IMGUI_ADDON_TIMELINE
-        ImGui::Checkbox("Show Addon Widgets", &example->show_addon_widget);
-#endif
-#if IMGUI_ADDON_ZMO
-        ImGui::Checkbox("Show ZMO Window", &example->show_zmo_window);
-#endif
-#if IMGUI_ADDON_ZMOQUAT
-        ImGui::Checkbox("Show ZMOQuat Window", &example->show_quat_window);
-#endif
-#if IMGUI_ADDON_DEAR_WIDGETS
-        ImGui::Checkbox("Show DearWidgets Window", &example->show_dear_widget_window);
-#endif
-#if IMGUI_VULKAN_SHADER
-        ImGui::Checkbox("Show Shader Window", &example->show_shader_window);
-#endif
-#if IMGUI_ADDON_HOTKEY
+        ImGui::Checkbox("Show VariousControls Window", &example->show_various_controls_window);
+        ImGui::Checkbox("Show KNob Window", &example->show_knob_window);
+
         // show hotkey window
         if (ImGui::Button("Edit Hotkeys"))
         {
@@ -433,7 +266,7 @@ bool Application_Frame(void* handle)
         {
             // handle the hotkey index!
         }
-#endif
+
         ImVec2 displayedTextureSize(256,256);
         ImGui::Image((ImTextureID)(uint64_t)example->ImageTexture, displayedTextureSize);
         {
@@ -461,50 +294,12 @@ bool Application_Frame(void* handle)
         ImGui::End();
     }
 
-#if IMGUI_ADDON_IMPLOTS
-    // Show ImPlot simple window
-    if (example->show_implot_window)
-    {
-        ImPlot::ShowDemoWindow(&example->show_implot_window);
-    }
-#endif
-
-#if IMGUI_ADDON_FILE_DIALOG
     // Show FileDialog demo window
     if (example->show_file_dialog_window)
     {
         show_file_dialog_demo_window(&example->filedialog, &example->show_file_dialog_window);
     }
-#endif
 
-#if IMGUI_ADDON_FILE_SYSTEM
-    // Show Sample FileDialog
-    {
-        //example->dlg.WrapMode = false;
-        const char* filePath = example->dlg.chooseFileDialog(example->show_sample_file_dialog, example->dlg.getLastDirectory(), ".jpg;.jpeg;.png;.gif;.tga;.bmp", "Sample file dialog", ImVec2(400, 800), ImVec2(50, 50));
-        if (strlen(filePath) > 0) 
-        {
-	        //fprintf(stderr,"Browsed..: %s\n",filePath);
-        }
-        example->show_sample_file_dialog = false;
-    }
-#endif
-
-#if IMGUI_ADDON_TINYFILE
-    // Show Tiny FileDialog
-    if (example->show_tiny_file_dialog)
-    {
-        const char* filterPatterns[1] = { "*.cpp" };
-        auto path = tinyfd_openFileDialog(
-            "Open Source Code...",
-            nullptr,
-            1, filterPatterns,
-            "Source Code Files (*.cpp)", 0);
-        example->show_tiny_file_dialog = false;
-    }
-#endif
-
-#if IMGUI_ADDON_MEMORY_EDITOR
     // Show Memory Edit window
     if (example->mem_edit.Open)
     {
@@ -513,17 +308,7 @@ bool Application_Frame(void* handle)
         *test_point = i; i++;
         example->mem_edit.DrawWindow("Memory Editor", example->data, 0x400, 0, &example->mem_edit.Open, 768);
     }
-#endif
 
-#if IMGUI_ADDON_TEXT_EDITOR
-    // Show Text Edit Window
-    if (example->show_text_edit_window)
-    {
-        example->editor.text_edit_demo(&example->show_text_edit_window);
-    }
-#endif
-
-#if IMGUI_ADDON_MARKDOWN
     // Show Markdown Window
     if (example->show_markdown_window)
     {
@@ -542,112 +327,24 @@ bool Application_Frame(void* handle)
         ImGui::Markdown( help_doc.c_str(), help_doc.length(), example->mdConfig );
         ImGui::End();
     }
-#endif
 
-#if IMGUI_ADDON_DOCK
-    // Show Dock Window
-    if (example->show_dock_window)
+    // Show Various Controls Window
+    if (example->show_various_controls_window)
     {
-        ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
-        if(ImGui::Begin("imguidock window (= lumix engine's dock system)",&example->show_dock_window, ImGuiWindowFlags_NoScrollbar))
-        {
-            ImGui::ShowAddonsDuckWindow();
-        }
+        ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
+        ImGui::Begin("Various Controls", &example->show_various_controls_window);
+        ImGui::ShowVariousControlsDemoWindow();
         ImGui::End();
     }
-#endif
 
-#if IMGUI_ADDON_TABWINDOW
-    // Show Tab Window
-    if (example->show_tab_window)
+    // Show KNob Window
+    if (example->show_knob_window)
     {
-        ImGui::SetNextWindowSize(ImVec2(700,600), ImGuiCond_FirstUseEver);
-        if (ImGui::Begin("Example: TabWindow", &example->show_tab_window, ImGuiWindowFlags_NoScrollbar))
-        {
-            ImGui::ShowAddonsTabWindow();   // see its code for further info         
-        }
+        ImGui::SetNextWindowSize(ImVec2(900, 300), ImGuiCond_FirstUseEver);
+        ImGui::Begin("KNob Widget", &example->show_knob_window);
+        ImGui::ShowKnobDemoWindow();
         ImGui::End();
     }
-#endif
 
-#if IMGUI_ADDON_IMNODES
-    // Show Node Sample Window
-    if (example->show_node_window)
-    {
-        imnodes_example::NodeEditorShow(&example->show_node_window);
-    }
-#endif
-
-#if IMGUI_ADDON_NODE_GRAPH
-    // Show Node Edit Window
-    if (example->show_node_edit_window)
-    {
-        ImGui::SetNextWindowSize(ImVec2(700,600), ImGuiCond_FirstUseEver);
-        if (ImGui::Begin("Example: Custom Node Graph",&example->show_node_edit_window, ImGuiWindowFlags_NoScrollbar))
-        {
-            ImGui::TestNodeGraphEditor(&example->nge);   // see its code for further info         
-        }
-        ImGui::End();
-    }
-#endif
-
-#if IMGUI_ADDON_DATE_CHOOSER || IMGUI_ADDON_KNOB || IMGUI_ADDON_VARIOUS || IMGUI_ADDON_DOCK || IMGUI_ADDON_TABWINDOW || IMGUI_ADDON_PROGRESSES || IMGUI_ADDON_TIMELINE
-    // Show Addon Widget.
-    if (example->show_addon_widget)
-    {
-        ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
-        ImGui::Begin("Addon Widget", &example->show_addon_widget);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-        ImGui::ShowAddonsDemoWindowWidgets();
-        ImGui::End();
-    }
-#endif
-
-#if IMGUI_ADDON_ZMO
-    // Show Zmo Window
-    if (example->show_zmo_window)
-    {
-        ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
-        ImGui::SetNextWindowSize(ImVec2(1280, 800), ImGuiCond_FirstUseEver);
-        ImGui::Begin("##ZMO", &example->show_zmo_window, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar);
-        ImGuizmo::ShowAddonsZMOWindow();
-        ImGui::End();
-    }
-#endif
-
-#if IMGUI_ADDON_ZMOQUAT
-    // Show Zmo Quat Window
-    if (example->show_quat_window)
-    {
-        ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
-        ImGui::SetNextWindowSize(ImVec2(1280, 900), ImGuiCond_FirstUseEver);
-        ImGui::Begin("ZMOQuat", &example->show_quat_window, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar);
-        ImGui::ShowGizmoDemo();
-        ImGui::End();
-    }
-#endif
-
-#if IMGUI_ADDON_DEAR_WIDGETS
-    // Show Dear Widgets Window
-    if (example->show_dear_widget_window)
-    {
-        ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
-        ImGui::SetNextWindowSize(ImVec2(1280, 800), ImGuiCond_FirstUseEver);
-        ImGui::Begin("##DearWidgets", &example->show_dear_widget_window, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar);
-        ImWidgets::ShowDemo();
-        ImGui::End();
-    }
-#endif
-
-#if IMGUI_VULKAN_SHADER
-    // Show Shader Window
-    if (example->show_shader_window)
-    {
-        ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
-        ImGui::SetNextWindowSize(ImVec2(400, 850), ImGuiCond_FirstUseEver);
-        ImGui::Begin("##Shader", &example->show_shader_window, ImGuiWindowFlags_NoSavedSettings);
-        ImGui::ShowAddonsVulkanShaderWindow();
-        ImGui::End();
-    }
-#endif
     return done;
 }

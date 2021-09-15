@@ -16,4 +16,9 @@ namespace ImGui
     IMGUI_API void ImVulkanVkMatToImMat(const VkMat &src, ImMat &dst);
     IMGUI_API void ImVulkanVkMatToVkImageMat(const VkMat &src, VkImageMat &dst);
     IMGUI_API void ImVulkanShaderClear();
+    IMGUI_API float ImVulkanPeak(VulkanDevice* vkdev, int loop, int count_mb, int cmd_loop, int storage_type, int arithmetic_type, int packing_type);
+// Demo Window
+#if IMGUI_BUILD_EXAMPLE
+    IMGUI_API void ImVulkanTestWindow(const char* name, bool* p_open = nullptr, ImGuiWindowFlags flags = 0);
+#endif
 } //namespace ImGui

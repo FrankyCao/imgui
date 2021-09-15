@@ -85,6 +85,8 @@ _OPTION(IMGUI_GLEW                  "Build ImGui GLEW backends" ON)
 _OPTION(IMGUI_GLES                  "Build ImGui GLES backends" ON)
 _OPTION(IMGUI_MATAL                 "Build ImGui Apple Metal backends(Apple only)" ON IF APPLE)
 _OPTION(IMGUI_VULKAN                "Build ImGui Vulkan backends" ON)
+_OPTION(IMGUI_VULKAN_SHADER         "Build ImGui With Vulkan compute support" ON)
+_OPTION(IMGUI_VULKAN_BENCHMARK      "Build ImGui With Vulkan Shader Benchmark" OFF)
 _OPTION(IMGUI_DX9                   "Build ImGui Direct9 backends(Windows only)" ON IF WIN32)
 _OPTION(IMGUI_DX10                  "Build ImGui Direct10 backends(Windows only)" ON IF WIN32)
 _OPTION(IMGUI_DX11                  "Build ImGui Direct11 backends(Windows only)" ON IF WIN32)
@@ -99,29 +101,6 @@ _OPTION(IMGUI_FONT_YUAN             "Internal Mono Yuan Fonts build in library" 
 _OPTION(IMGUI_ICONS                 "Internal Icons build in library" ON)
 _OPTION(IMGUI_APPS                  "build apps base on imgui" ON)
 _OPTION(IMGUI_APPLE_APP             "build apple app base on imgui(Apple only)" OFF IF APPLE)
-
-_OPTION(IMGUI_ADDON_DEAR_WIDGETS    "build Dear Widgets addon" OFF)
-_OPTION(IMGUI_ADDON_KNOB            "build ImGui Knob addon" OFF)
-_OPTION(IMGUI_ADDON_DATE_CHOOSER    "build Date chooser addon" OFF)
-_OPTION(IMGUI_ADDON_DOCK            "build ImGuiDock addon" OFF)
-_OPTION(IMGUI_ADDON_FILE_DIALOG     "build ImGuiFileDialog addon" OFF)
-_OPTION(IMGUI_ADDON_FILE_SYSTEM     "build ImGuiFileSystem addon" OFF)
-_OPTION(IMGUI_ADDON_TABWINDOW       "build ImGuiTabWindow addon" OFF)
-_OPTION(IMGUI_ADDON_ZMO             "build ImGuizmo addon" OFF)
-_OPTION(IMGUI_ADDON_ZMOQUAT         "build ImGuiZMO.quat addon" OFF)
-_OPTION(IMGUI_ADDON_IMNODES         "build imnodes base on imgui" OFF)
-_OPTION(IMGUI_ADDON_NODE_GRAPH      "build node graph editor base on imgui" OFF)
-_OPTION(IMGUI_ADDON_VARIOUS         "build Various Controls addon" OFF)
-_OPTION(IMGUI_ADDON_IMPLOTS         "build Implots addon" OFF)
-_OPTION(IMGUI_ADDON_MARKDOWN        "build ImGui Markdown addon" OFF)
-_OPTION(IMGUI_ADDON_MEMORY_EDITOR   "build ImGui Memory editor addon" OFF)
-_OPTION(IMGUI_ADDON_PROGRESSES      "build ImGui Progress indicators addon" OFF)
-_OPTION(IMGUI_ADDON_TEXT_EDITOR     "build ImGui Text editor addon" OFF)
-_OPTION(IMGUI_ADDON_TIMELINE        "build ImGui Timeline addon" OFF)
-_OPTION(IMGUI_ADDON_TINYFILE        "build ImGui tiny file dialog addon" OFF)
-_OPTION(IMGUI_ADDON_HOTKEY          "build ImGui Hot key addon" OFF)
-_OPTION(IMGUI_VULKAN_SHADER         "Build ImGui With Vulkan compute support" ON)
-_OPTION(IMGUI_VULKAN_BENCHMARK      "Build ImGui With Vulkan Shader Benchmark" OFF)
 
 if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
 find_package(OpenGL)
@@ -647,384 +626,97 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/misc/freetype
 )
 
-if (IMGUI_ADDON_FILE_SYSTEM)
-    # ImGuiFileSystem
+# ImGuiFileDialog
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    addon/ImGuiFileDialog/ImGuiFileDialog.cpp
+)
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    addon/ImGuiFileDialog/ImGuiFileDialog.h
+)
+set(IMGUI_INC_DIRS
+    ${IMGUI_INC_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiFileDialog
+)
+if (IMGUI_BUILD_EXAMPLE)
     set(IMGUI_SRC
         ${IMGUI_SRC}
-        addon/ImGuiFileSystem/ImGuiFileSystem.cpp
+        addon/ImGuiFileDialog/ImGuiFileDialogDemo.cpp
     )
-    set(IMGUI_INCS
-        ${IMGUI_INCS}
-        addon/ImGuiFileSystem/ImGuiFileSystem.h
-    )
+endif(IMGUI_BUILD_EXAMPLE)
 
-    if (NOT WIN32 AND ZLIB_FOUND)
-        set(IMGUI_SRC
-            ${IMGUI_SRC}
-            addon/ImGuiFileSystem/minizip/zip.c
-            addon/ImGuiFileSystem/minizip/unzip.c
-            addon/ImGuiFileSystem/minizip/ioapi.c
-        )
-        set(IMGUI_INCS
-            ${IMGUI_INCS}
-            addon/ImGuiFileSystem/minizip/zip.h
-            addon/ImGuiFileSystem/minizip/unzip.h
-            addon/ImGuiFileSystem/minizip/ioapi.h
-            addon/ImGuiFileSystem/minizip/crypt.h
-        )
-    endif(NOT WIN32 AND ZLIB_FOUND)
-
-    set(IMGUI_INC_DIRS
-        ${IMGUI_INC_DIRS}
-        ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiFileSystem
-    )
-endif(IMGUI_ADDON_FILE_SYSTEM)
-
-if (IMGUI_ADDON_FILE_DIALOG)
-    # ImGuiFileDialog
+# KNob
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    addon/imgui_knob/imgui_knob.cpp
+)
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    addon/imgui_knob/imgui_knob.h
+)
+set(IMGUI_INC_DIRS
+    ${IMGUI_INC_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/imgui_knob
+)
+if (IMGUI_BUILD_EXAMPLE)
     set(IMGUI_SRC
         ${IMGUI_SRC}
-        addon/ImGuiFileDialog/ImGuiFileDialog.cpp
+        addon/imgui_knob/imgui_knob_demo.cpp
     )
-    set(IMGUI_INCS
-        ${IMGUI_INCS}
-        addon/ImGuiFileDialog/ImGuiFileDialog.h
-    )
-    set(IMGUI_INC_DIRS
-        ${IMGUI_INC_DIRS}
-        ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiFileDialog
-    )
-    if (IMGUI_BUILD_EXAMPLE)
-        set(IMGUI_SRC
-            ${IMGUI_SRC}
-            addon/ImGuiFileDialog/ImGuiFileDialogDemo.cpp
-        )
-    endif(IMGUI_BUILD_EXAMPLE)
-endif(IMGUI_ADDON_FILE_DIALOG)
+endif(IMGUI_BUILD_EXAMPLE)
 
-if (IMGUI_ADDON_TINYFILE)
-    # TinyFileDialog
-    if (IMGUI_BUILD_EXAMPLE)
-        set(IMGUI_SRC
-            ${IMGUI_SRC}
-            addon/tinyfiledialog/tinyfiledialogs.c
-            addon/tinyfiledialog/tinyfiledialogs.h
-        )
-        set(IMGUI_INCS
-            ${IMGUI_INCS}
-            addon/tinyfiledialog/tinyfiledialogs.h
-        )
-        set(IMGUI_INC_DIRS
-            ${IMGUI_INC_DIRS}
-            ${CMAKE_CURRENT_SOURCE_DIR}/addon/tinyfiledialog
-        )
-    endif(IMGUI_BUILD_EXAMPLE)
-endif(IMGUI_ADDON_TINYFILE)
-
-if (IMGUI_ADDON_IMPLOTS)
-    # implot
+# Various Controls
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    addon/ImGuiVariousControls/ImGuiVariousControls.cpp
+)
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    addon/ImGuiVariousControls/ImGuiVariousControls.h
+)
+set(IMGUI_INC_DIRS
+    ${IMGUI_INC_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiVariousControls
+)
+if (IMGUI_BUILD_EXAMPLE)
     set(IMGUI_SRC
         ${IMGUI_SRC}
-        addon/implot/implot.cpp
-        addon/implot/implot_items.cpp
+        addon/ImGuiVariousControls/ImGuiVariousControls_demo.cpp
+        addon/ImGuiVariousControls/NumberTexture.cpp
+        addon/ImGuiVariousControls/NumberTexture.h
     )
-    set(IMGUI_INCS
-        ${IMGUI_INCS}
-        addon/implot/implot.h
-        addon/implot/implot_internal.h
-    )
-    set(IMGUI_INC_DIRS
-        ${IMGUI_INC_DIRS}
-        ${CMAKE_CURRENT_SOURCE_DIR}/addon/implot
-    )
-    if(IMGUI_BUILD_EXAMPLE)
-        set(IMGUI_SRC
-            ${IMGUI_SRC}
-            addon/implot/implot_demo.cpp
-        )
-    endif(IMGUI_BUILD_EXAMPLE)
-endif(IMGUI_ADDON_IMPLOTS)
+endif(IMGUI_BUILD_EXAMPLE)
 
-if (IMGUI_ADDON_PROGRESSES)
-    # Progress Indicators
-    set(IMGUI_SRC
-        ${IMGUI_SRC}
-        addon/ProgressIndicators/ProgressIndicators.cpp
-    )
-    set(IMGUI_INCS
-        ${IMGUI_INCS}
-        addon/ProgressIndicators/ProgressIndicators.h
-    )
-    set(IMGUI_INC_DIRS
-        ${IMGUI_INC_DIRS}
-        ${CMAKE_CURRENT_SOURCE_DIR}/addon/ProgressIndicators
-    )
-endif(IMGUI_ADDON_PROGRESSES)
+# Memory Editor
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    addon/MemoryEditor/imgui_memory_editor.h
+)
+set(IMGUI_INC_DIRS
+    ${IMGUI_INC_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/MemoryEditor
+)
 
-if (IMGUI_ADDON_TEXT_EDITOR)
-    # Colorful Text Edit
-    set(IMGUI_SRC
-        ${IMGUI_SRC}
-        addon/TextEditor/TextEditor.cpp
-    )
-    set(IMGUI_INCS
-        ${IMGUI_INCS}
-        addon/TextEditor/TextEditor.h
-    )
-    set(IMGUI_INC_DIRS
-        ${IMGUI_INC_DIRS}
-        ${CMAKE_CURRENT_SOURCE_DIR}/addon/TextEditor
-    )
-endif(IMGUI_ADDON_TEXT_EDITOR)
+# Simple Markdown
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    addon/markdown/imgui_markdown.h
+)
+set(IMGUI_INC_DIRS
+    ${IMGUI_INC_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/markdown
+)
 
-if (IMGUI_ADDON_MEMORY_EDITOR)
-    # Memory Editor
-    set(IMGUI_INCS
-        ${IMGUI_INCS}
-        addon/MemoryEditor/imgui_memory_editor.h
-    )
-    set(IMGUI_INC_DIRS
-        ${IMGUI_INC_DIRS}
-        ${CMAKE_CURRENT_SOURCE_DIR}/addon/MemoryEditor
-    )
-endif(IMGUI_ADDON_MEMORY_EDITOR)
-
-if (IMGUI_ADDON_MARKDOWN)
-    # Simple Markdown
-    set(IMGUI_INC_DIRS
-        ${IMGUI_INC_DIRS}
-        ${CMAKE_CURRENT_SOURCE_DIR}/addon/markdown
-    )
-endif(IMGUI_ADDON_MARKDOWN)
-
-if (IMGUI_ADDON_DOCK)
-    # Simple dock window
-    set(IMGUI_SRC
-        ${IMGUI_SRC}
-        addon/imguiDock/imgui_dock.cpp
-    )
-    set(IMGUI_INCS
-        ${IMGUI_INCS}
-        addon/imguiDock/imgui_dock.h
-    )
-    set(IMGUI_INC_DIRS
-        ${IMGUI_INC_DIRS}
-        ${CMAKE_CURRENT_SOURCE_DIR}/addon/imguiDock
-    )
-endif(IMGUI_ADDON_DOCK)
-
-if (IMGUI_ADDON_TABWINDOW)
-    # Tab Window
-    set(IMGUI_SRC
-        ${IMGUI_SRC}
-        addon/ImGuiTabWindow/ImGuiTabWindow.cpp
-    )
-    set(IMGUI_INCS
-        ${IMGUI_INCS}
-        addon/ImGuiTabWindow/ImGuiTabWindow.h
-    )
-    set(IMGUI_INC_DIRS
-        ${IMGUI_INC_DIRS}
-        ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiTabWindow
-    )
-endif(IMGUI_ADDON_TABWINDOW)
-
-    
-if (IMGUI_ADDON_IMNODES)
-    # Simple nodes
-    set(IMGUI_SRC
-        ${IMGUI_SRC}
-        addon/imnodes/imnodes.cpp
-    )
-    if (IMGUI_BUILD_EXAMPLE)
-        set(IMGUI_SRC
-            ${IMGUI_SRC}
-            addon/imnodes/imnodes_demo.cpp
-        )
-    endif(IMGUI_BUILD_EXAMPLE)
-    set(IMGUI_INCS
-        ${IMGUI_INCS}
-        addon/imnodes/imnodes.h
-        addon/imnodes/imnodes_internal.h
-    )
-    set(IMGUI_INC_DIRS
-        ${IMGUI_INC_DIRS}
-        ${CMAKE_CURRENT_SOURCE_DIR}/addon/imnodes
-    )
-endif(IMGUI_ADDON_IMNODES)
-
-    
-if (IMGUI_ADDON_NODE_GRAPH)
-    # Node Graph Edit
-    set(IMGUI_SRC
-        ${IMGUI_SRC}
-        addon/ImGuiNodeGraphEditor/ImGuiNodeGraphEditor.cpp
-    )
-    set(IMGUI_INCS
-        ${IMGUI_INCS}
-        addon/ImGuiNodeGraphEditor/ImGuiNodeGraphEditor.h
-    )
-    set(IMGUI_INC_DIRS
-        ${IMGUI_INC_DIRS}
-        ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiNodeGraphEditor
-    )
-endif(IMGUI_ADDON_NODE_GRAPH)
-
-if (IMGUI_ADDON_TIMELINE)
-    # Simple TimeLine
-    set(IMGUI_SRC
-        ${IMGUI_SRC}
-        addon/Timeline/Timeline.cpp
-    )
-    set(IMGUI_INCS
-        ${IMGUI_INCS}
-        addon/Timeline/Timeline.h
-    )
-    set(IMGUI_INC_DIRS
-        ${IMGUI_INC_DIRS}
-        ${CMAKE_CURRENT_SOURCE_DIR}/addon/Timeline
-    )
-endif(IMGUI_ADDON_TIMELINE)
-
-if (IMGUI_ADDON_KNOB)
-    # KNob
-    set(IMGUI_SRC
-        ${IMGUI_SRC}
-        addon/imgui_knob/imgui_knob.cpp
-    )
-    set(IMGUI_INCS
-        ${IMGUI_INCS}
-        addon/imgui_knob/imgui_knob.h
-    )
-    set(IMGUI_INC_DIRS
-        ${IMGUI_INC_DIRS}
-        ${CMAKE_CURRENT_SOURCE_DIR}/addon/imgui_knob
-    )
-endif(IMGUI_ADDON_KNOB)
-
-if (IMGUI_ADDON_HOTKEY)
-    # HotKeys
-    set(IMGUI_INCS
-        ${IMGUI_INCS}
-        addon/HotKey/HotKey.h
-    )
-    set(IMGUI_INC_DIRS
-        ${IMGUI_INC_DIRS}
-        ${CMAKE_CURRENT_SOURCE_DIR}/addon/HotKey
-    )
-endif(IMGUI_ADDON_HOTKEY)
-
-if (IMGUI_ADDON_DATE_CHOOSER)
-    # Date Chooser
-    set(IMGUI_SRC
-        ${IMGUI_SRC}
-        addon/ImGuiDateChooser/ImGuiDateChooser.cpp
-    )
-    set(IMGUI_INCS
-        ${IMGUI_INCS}
-        addon/ImGuiDateChooser/ImGuiDateChooser.h
-    )
-    set(IMGUI_INC_DIRS
-        ${IMGUI_INC_DIRS}
-        ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiDateChooser
-    )
-endif(IMGUI_ADDON_DATE_CHOOSER)
-
-if (IMGUI_ADDON_VARIOUS)
-    # Various Controls
-    set(IMGUI_SRC
-        ${IMGUI_SRC}
-        addon/ImGuiVariousControls/ImGuiVariousControls.cpp
-    )
-    set(IMGUI_INCS
-        ${IMGUI_INCS}
-        addon/ImGuiVariousControls/ImGuiVariousControls.h
-    )
-    set(IMGUI_INC_DIRS
-        ${IMGUI_INC_DIRS}
-        ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiVariousControls
-    )
-endif(IMGUI_ADDON_VARIOUS)
-
-if (IMGUI_ADDON_ZMO)
-    # ImGuizmo
-    set(IMGUI_SRC
-        ${IMGUI_SRC}
-        addon/ImGuizmo/ImGuizmo.cpp
-        addon/ImGuizmo/ImCurveEdit.cpp
-        addon/ImGuizmo/ImGradient.cpp
-        addon/ImGuizmo/ImSequencer.cpp
-        addon/ImGuizmo/GraphEditor.cpp
-    )
-    set(IMGUI_INCS
-        ${IMGUI_INCS}
-        addon/ImGuizmo/ImGuizmo.h
-        addon/ImGuizmo/ImCurveEdit.h
-        addon/ImGuizmo/ImGradient.h
-        addon/ImGuizmo/ImSequencer.h
-        addon/ImGuizmo/ImZoomSlider.h
-        addon/ImGuizmo/GraphEditor.h
-    )
-    set(IMGUI_INC_DIRS
-        ${IMGUI_INC_DIRS}
-        ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuizmo
-    )
-    if (IMGUI_BUILD_EXAMPLE)
-        set(IMGUI_SRC
-            ${IMGUI_SRC}
-            addon/ImGuizmo/ImGuizmoDemo.cpp
-        )
-    endif(IMGUI_BUILD_EXAMPLE)
-endif(IMGUI_ADDON_ZMO)
-
-if (IMGUI_ADDON_ZMOQUAT)
-    # ImGuiQuat
-    set(IMGUI_SRC
-        ${IMGUI_SRC}
-        addon/ImGuiQuat/imGuIZMOquat.cpp
-    )
-    set(IMGUI_INCS
-        ${IMGUI_INCS}
-        addon/ImGuiQuat/imGuIZMOquat.h
-        addon/ImGuiQuat/vgConfig.h
-        addon/ImGuiQuat/vGizmo.h
-        addon/ImGuiQuat/vGizmoMath.h
-        addon/ImGuiQuat/vgMath.h
-    )
-    set(IMGUI_INC_DIRS
-        ${IMGUI_INC_DIRS}
-        ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiQuat
-    )
-    if (IMGUI_BUILD_EXAMPLE)
-        set(IMGUI_SRC
-            ${IMGUI_SRC}
-            addon/ImGuiQuat/imGuIZMOquat_demo.cpp
-        )
-    endif(IMGUI_BUILD_EXAMPLE)
-endif(IMGUI_ADDON_ZMOQUAT)
-
-if (IMGUI_ADDON_DEAR_WIDGETS)
-    # Dear Widgets
-    set(IMGUI_SRC
-        ${IMGUI_SRC}
-        addon/DearWidgets/dear_widgets.cpp
-    )
-    set(IMGUI_INCS
-        ${IMGUI_INCS}
-        addon/DearWidgets/dear_widgets.h
-        addon/DearWidgets/dear_widgets.hpp
-    )
-    set(IMGUI_INC_DIRS
-        ${IMGUI_INC_DIRS}
-        ${CMAKE_CURRENT_SOURCE_DIR}/addon/DearWidgets
-    )
-    if (IMGUI_BUILD_EXAMPLE)
-        set(IMGUI_SRC
-            ${IMGUI_SRC}
-            addon/DearWidgets/dear_widgets_demo.cpp
-        )
-    endif(IMGUI_BUILD_EXAMPLE)
-endif(IMGUI_ADDON_DEAR_WIDGETS)
+# HotKeys
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    addon/HotKey/HotKey.h
+)
+set(IMGUI_INC_DIRS
+    ${IMGUI_INC_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/HotKey
+)
 
 if (VULKAN_FOUND AND (IMGUI_VULKAN OR IMGUI_VULKAN_SHADER))
     message(STATUS "    [ImGui Build Vulkan Shader]")
@@ -1047,7 +739,7 @@ if (VULKAN_FOUND AND (IMGUI_VULKAN OR IMGUI_VULKAN_SHADER))
         target_compile_options(SPIRV PRIVATE -fvisibility=hidden -fvisibility-inlines-hidden)
     endif()
     if(IMGUI_VULKAN_BENCHMARK)
-        set(SHADER_BENCHMARK ON)
+        set(IMGUI_VULKAN_SHADER_BENCHMARK ON)
     endif(IMGUI_VULKAN_BENCHMARK)
     set(IMGUI_SRC
         ${IMGUI_SRC}
@@ -1183,19 +875,6 @@ if (VULKAN_FOUND AND (IMGUI_VULKAN OR IMGUI_VULKAN_SHADER))
     )
 endif(VULKAN_FOUND AND (IMGUI_VULKAN OR IMGUI_VULKAN_SHADER))
 
-# Addon Demo
-if (IMGUI_BUILD_EXAMPLE)
-    set(IMGUI_SRC
-        ${IMGUI_SRC}
-        addon/addons_demo.cpp
-        addon/NumberTexture.cpp
-    )
-    set(IMGUI_INCS
-        ${IMGUI_INCS}
-        addon/addons_demo.h
-        addon/NumberTexture.h
-    )
-endif(IMGUI_BUILD_EXAMPLE)
 if(ZLIB_FOUND)
     set(LINK_LIBS
         ${LINK_LIBS}
@@ -1382,7 +1061,6 @@ if (IMGUI_BUILD_EXAMPLE AND SDL2_FOUND AND IMGUI_SDL2)
             imgui
             ${LINK_LIBS}
         )
-        if (IMGUI_ADDON_FILE_DIALOG)
         add_executable(
             example_sdl_rendering
             test/example_sdl_rendering.cpp
@@ -1392,7 +1070,6 @@ if (IMGUI_BUILD_EXAMPLE AND SDL2_FOUND AND IMGUI_SDL2)
             imgui
             ${LINK_LIBS}
         )
-        endif(IMGUI_ADDON_FILE_DIALOG)
     elseif(BACKEND_RENDERING MATCHES OPENGL2)
         add_executable(
             example_sdl_opengl2

@@ -1,4 +1,127 @@
 #pragma once
+// for Shader benchmark
+static const char glsl_p1_data[] = R"(
+#version 450
+#if ImVulkan_fp16_storage
+#extension GL_EXT_shader_16bit_storage: require
+#endif
+#if ImVulkan_fp16_arithmetic
+#extension GL_EXT_shader_explicit_arithmetic_types_float16: require
+#endif
+layout (constant_id = 0) const int count = 0;
+layout (constant_id = 1) const int loop = 1;
+layout (binding = 0) readonly buffer a_blob { sfp a_blob_data[]; };
+layout (binding = 1) readonly buffer b_blob { sfp b_blob_data[]; };
+layout (binding = 2) writeonly buffer c_blob { sfp c_blob_data[]; };
+void main()
+{
+    int gx = int(gl_GlobalInvocationID.x);
+    int gy = int(gl_GlobalInvocationID.y);
+    int gz = int(gl_GlobalInvocationID.z);
+    if (gx >= count || gy >= 1 || gz >= 1)
+        return;
+    afp a = buffer_ld1(a_blob_data, gx);
+    afp b = buffer_ld1(b_blob_data, gx);
+    afp c = afp(1.f);
+    for (int i = 0; i < loop; i++)
+    {
+        c = a * c + b;
+        c = a * c + b;
+        c = a * c + b;
+        c = a * c + b;
+        c = a * c + b;
+        c = a * c + b;
+        c = a * c + b;
+        c = a * c + b;
+    }
+    buffer_st1(c_blob_data, gx, c);
+}
+)";
+
+static const char glsl_p4_data[] = R"(
+#version 450
+#if ImVulkan_fp16_storage
+#extension GL_EXT_shader_16bit_storage: require
+#endif
+#if ImVulkan_fp16_arithmetic
+#extension GL_EXT_shader_explicit_arithmetic_types_float16: require
+#endif
+layout (constant_id = 0) const int count = 0;
+layout (constant_id = 1) const int loop = 1;
+layout (binding = 0) readonly buffer a_blob { sfpvec4 a_blob_data[]; };
+layout (binding = 1) readonly buffer b_blob { sfpvec4 b_blob_data[]; };
+layout (binding = 2) writeonly buffer c_blob { sfpvec4 c_blob_data[]; };
+void main()
+{
+    int gx = int(gl_GlobalInvocationID.x);
+    int gy = int(gl_GlobalInvocationID.y);
+    int gz = int(gl_GlobalInvocationID.z);
+    if (gx >= count || gy >= 1 || gz >= 1)
+        return;
+    afpvec4 a = buffer_ld4(a_blob_data, gx);
+    afpvec4 b = buffer_ld4(b_blob_data, gx);
+    afpvec4 c = afpvec4(1.f);
+    for (int i = 0; i < loop; i++)
+    {
+        c = a * c + b;
+        c = a * c + b;
+        c = a * c + b;
+        c = a * c + b;
+        c = a * c + b;
+        c = a * c + b;
+        c = a * c + b;
+        c = a * c + b;
+    }
+    buffer_st4(c_blob_data, gx, c);
+}
+)";
+
+static const char glsl_p8_data[] = R"(
+#version 450
+#if ImVulkan_fp16_storage
+#extension GL_EXT_shader_16bit_storage: require
+#endif
+#if ImVulkan_fp16_arithmetic
+#extension GL_EXT_shader_explicit_arithmetic_types_float16: require
+#endif
+layout (constant_id = 0) const int count = 0;
+layout (constant_id = 1) const int loop = 1;
+layout (binding = 0) readonly buffer a_blob { sfpvec8 a_blob_data[]; };
+layout (binding = 1) readonly buffer b_blob { sfpvec8 b_blob_data[]; };
+layout (binding = 2) writeonly buffer c_blob { sfpvec8 c_blob_data[]; };
+void main()
+{
+    int gx = int(gl_GlobalInvocationID.x);
+    int gy = int(gl_GlobalInvocationID.y);
+    int gz = int(gl_GlobalInvocationID.z);
+    if (gx >= count || gy >= 1 || gz >= 1)
+        return;
+    afpvec8 a = buffer_ld8(a_blob_data, gx);
+    afpvec8 b = buffer_ld8(b_blob_data, gx);
+    afpvec8 c = afpvec8(afpvec4(1.f), afpvec4(1.f));
+    for (int i = 0; i < loop; i++)
+    {
+        c[0] = a[0] * c[0] + b[0];
+        c[1] = a[1] * c[1] + b[1];
+        c[0] = a[0] * c[0] + b[0];
+        c[1] = a[1] * c[1] + b[1];
+        c[0] = a[0] * c[0] + b[0];
+        c[1] = a[1] * c[1] + b[1];
+        c[0] = a[0] * c[0] + b[0];
+        c[1] = a[1] * c[1] + b[1];
+        c[0] = a[0] * c[0] + b[0];
+        c[1] = a[1] * c[1] + b[1];
+        c[0] = a[0] * c[0] + b[0];
+        c[1] = a[1] * c[1] + b[1];
+        c[0] = a[0] * c[0] + b[0];
+        c[1] = a[1] * c[1] + b[1];
+        c[0] = a[0] * c[0] + b[0];
+        c[1] = a[1] * c[1] + b[1];
+    }
+    buffer_st8(c_blob_data, gx, c);
+}
+)";
+
 #define SHADER_HEADER \
 "\
 #version 450 \n\

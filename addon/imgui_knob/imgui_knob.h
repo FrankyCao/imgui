@@ -43,6 +43,10 @@ IMGUI_API bool Knob(char const *label, float *p_value, float v_min, float v_max,
 
 IMGUI_API bool Fader(const char* label, const ImVec2& size, int* v, const int v_min, const int v_max, const char* format = nullptr, float power = 1.0f);
 
+// Demo Window
+#if IMGUI_BUILD_EXAMPLE
+IMGUI_API void ShowKnobDemoWindow();
+#endif
 } // namespace ImGui
 
 

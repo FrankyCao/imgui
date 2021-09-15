@@ -49,9 +49,9 @@ public:
             TYPE_buffer_barrers,
             TYPE_image_barrers,
 
-#if SHADER_BENCHMARK
+#if IMGUI_VULKAN_SHADER_BENCHMARK
             TYPE_write_timestamp,
-#endif // SHADER_BENCHMARK
+#endif // IMGUI_VULKAN_SHADER_BENCHMARK
 
             TYPE_post_download,
             TYPE_post_cast_float16_to_float32,
@@ -144,12 +144,12 @@ public:
                 const VkImageMemoryBarrier* barriers;
             } image_barrers;
 
-#if SHADER_BENCHMARK
+#if IMGUI_VULKAN_SHADER_BENCHMARK
             struct
             {
                 uint32_t query;
             } write_timestamp;
-#endif // SHADER_BENCHMARK
+#endif // IMGUI_VULKAN_SHADER_BENCHMARK
 
             struct
             {
@@ -166,10 +166,10 @@ public:
 
     std::vector<record> delayed_records;
 
-#if SHADER_BENCHMARK
+#if IMGUI_VULKAN_SHADER_BENCHMARK
     uint32_t query_count;
     VkQueryPool query_pool;
-#endif // SHADER_BENCHMARK
+#endif // IMGUI_VULKAN_SHADER_BENCHMARK
 };
 
 VkComputePrivate::VkComputePrivate(const VulkanDevice* _vkdev)
@@ -179,10 +179,10 @@ VkComputePrivate::VkComputePrivate(const VulkanDevice* _vkdev)
     compute_command_buffer = 0;
     compute_command_fence = 0;
 
-#if SHADER_BENCHMARK
+#if IMGUI_VULKAN_SHADER_BENCHMARK
     query_count = 0;
     query_pool = 0;
-#endif // SHADER_BENCHMARK
+#endif // IMGUI_VULKAN_SHADER_BENCHMARK
 
     init();
 }
@@ -218,7 +218,7 @@ VkComputePrivate::~VkComputePrivate()
         }
     }
 
-#if SHADER_BENCHMARK
+#if IMGUI_VULKAN_SHADER_BENCHMARK
     if (query_pool)
     {
         // all submitted commands that refer to queryPool must have completed execution
@@ -226,7 +226,7 @@ VkComputePrivate::~VkComputePrivate()
 
         vkDestroyQueryPool(vkdev->vkdevice(), query_pool, 0);
     }
-#endif // SHADER_BENCHMARK
+#endif // IMGUI_VULKAN_SHADER_BENCHMARK
 
     vkDestroyFence(vkdev->vkdevice(), compute_command_fence, 0);
 
@@ -288,10 +288,10 @@ int VkComputePrivate::init()
     {
         begin_command_buffer();
 
-#if SHADER_BENCHMARK
+#if IMGUI_VULKAN_SHADER_BENCHMARK
         if (query_pool)
             vkCmdResetQueryPool(compute_command_buffer, query_pool, 0, query_count);
-#endif // SHADER_BENCHMARK
+#endif // IMGUI_VULKAN_SHADER_BENCHMARK
     }
 
     return 0;
@@ -1848,7 +1848,7 @@ void VkCompute::record_pipeline(const Pipeline* pipeline, const std::vector<VkMa
     }
 }
 
-#if SHADER_BENCHMARK
+#if IMGUI_VULKAN_SHADER_BENCHMARK
 void VkCompute::record_write_timestamp(uint32_t query)
 {
     if (vkdev->info.support_VK_KHR_push_descriptor())
@@ -1865,7 +1865,7 @@ void VkCompute::record_write_timestamp(uint32_t query)
         d->delayed_records.push_back(r);
     }
 }
-#endif // SHADER_BENCHMARK
+#endif // IMGUI_VULKAN_SHADER_BENCHMARK
 
 
 int VkCompute::submit_and_wait()
@@ -1874,10 +1874,10 @@ int VkCompute::submit_and_wait()
     {
         d->begin_command_buffer();
 
-#if SHADER_BENCHMARK
+#if IMGUI_VULKAN_SHADER_BENCHMARK
         if (d->query_pool)
             vkCmdResetQueryPool(d->compute_command_buffer, d->query_pool, 0, d->query_count);
-#endif // SHADER_BENCHMARK
+#endif // IMGUI_VULKAN_SHADER_BENCHMARK
 
         const size_t record_count = d->delayed_records.size();
 
@@ -1951,14 +1951,14 @@ int VkCompute::submit_and_wait()
                 delete[] r.image_barrers.barriers;
                 break;
             }
-#if SHADER_BENCHMARK
+#if IMGUI_VULKAN_SHADER_BENCHMARK
             case VkComputePrivate::record::TYPE_write_timestamp:
             {
                 if (d->query_pool)
                     vkCmdWriteTimestamp(r.command_buffer, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, d->query_pool, r.write_timestamp.query);
                 break;
             }
-#endif // SHADER_BENCHMARK
+#endif // IMGUI_VULKAN_SHADER_BENCHMARK
             case VkComputePrivate::record::TYPE_post_download:
             case VkComputePrivate::record::TYPE_post_cast_float16_to_float32:
             default:
@@ -2144,16 +2144,16 @@ int VkCompute::reset()
     {
         d->begin_command_buffer();
 
-#if SHADER_BENCHMARK
+#if IMGUI_VULKAN_SHADER_BENCHMARK
         if (d->query_pool)
             vkCmdResetQueryPool(d->compute_command_buffer, d->query_pool, 0, d->query_count);
-#endif // SHADER_BENCHMARK
+#endif // IMGUI_VULKAN_SHADER_BENCHMARK
     }
 
     return 0;
 }
 
-#if SHADER_BENCHMARK
+#if IMGUI_VULKAN_SHADER_BENCHMARK
 int VkCompute::create_query_pool(uint32_t _query_count)
 {
     d->query_count = _query_count;
@@ -2200,7 +2200,7 @@ int VkCompute::get_query_pool_results(uint32_t first_query, uint32_t query_count
 
     return 0;
 }
-#endif // SHADER_BENCHMARK
+#endif // IMGUI_VULKAN_SHADER_BENCHMARK
 
 void VkCompute::barrier_readwrite(const VkMat& binding)
 {
