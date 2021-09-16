@@ -11,7 +11,6 @@
 #include "imgui_markdown.h"
 #include "imgui_memory_editor.h"
 #include "ImGuiFileDialog.h"
-#include "ImGuiVariousControls.h"
 #include "imgui_knob.h"
 #include "HotKey.h"
 #include "Config.h"
@@ -110,7 +109,6 @@ public:
 
     bool show_file_dialog_window = false;
     bool show_markdown_window = false;
-    bool show_various_controls_window = false;
     bool show_knob_window = false;
 
 public:
@@ -250,7 +248,6 @@ bool Application_Frame(void* handle)
         ImGui::Checkbox("File Dialog Window", &example->show_file_dialog_window);
         ImGui::Checkbox("Memory Edit Window", &example->mem_edit.Open);
         ImGui::Checkbox("Show Markdown Window", &example->show_markdown_window);
-        ImGui::Checkbox("Show VariousControls Window", &example->show_various_controls_window);
         ImGui::Checkbox("Show KNob Window", &example->show_knob_window);
 
         // show hotkey window
@@ -325,15 +322,6 @@ bool Application_Frame(void* handle)
         example->mdConfig.userData =             NULL;
         example->mdConfig.formatCallback =       example->ExampleMarkdownFormatCallback;
         ImGui::Markdown( help_doc.c_str(), help_doc.length(), example->mdConfig );
-        ImGui::End();
-    }
-
-    // Show Various Controls Window
-    if (example->show_various_controls_window)
-    {
-        ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
-        ImGui::Begin("Various Controls", &example->show_various_controls_window);
-        ImGui::ShowVariousControlsDemoWindow();
         ImGui::End();
     }
 

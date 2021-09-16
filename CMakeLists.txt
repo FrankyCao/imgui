@@ -666,28 +666,6 @@ if (IMGUI_BUILD_EXAMPLE)
     )
 endif(IMGUI_BUILD_EXAMPLE)
 
-# Various Controls
-set(IMGUI_SRC
-    ${IMGUI_SRC}
-    addon/ImGuiVariousControls/ImGuiVariousControls.cpp
-)
-set(IMGUI_INCS
-    ${IMGUI_INCS}
-    addon/ImGuiVariousControls/ImGuiVariousControls.h
-)
-set(IMGUI_INC_DIRS
-    ${IMGUI_INC_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiVariousControls
-)
-if (IMGUI_BUILD_EXAMPLE)
-    set(IMGUI_SRC
-        ${IMGUI_SRC}
-        addon/ImGuiVariousControls/ImGuiVariousControls_demo.cpp
-        addon/ImGuiVariousControls/NumberTexture.cpp
-        addon/ImGuiVariousControls/NumberTexture.h
-    )
-endif(IMGUI_BUILD_EXAMPLE)
-
 # Memory Editor
 set(IMGUI_INCS
     ${IMGUI_INCS}

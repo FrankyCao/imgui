@@ -726,6 +726,99 @@ void Debug_DrawItemRect(const ImVec4& col)
     drawList->AddRect(itemMin, itemMax, ImColor(col));
 }
 
+// ToggleButton
+void ToggleButton(const char* str_id, bool* v)
+{
+    ImVec2 p = ImGui::GetCursorScreenPos();
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+    float height = ImGui::GetFrameHeight();
+    float width = height * 1.55f;
+    float radius = height * 0.50f;
+
+    ImGui::InvisibleButton(str_id, ImVec2(width, height));
+    if (ImGui::IsItemClicked())
+        *v = !*v;
+
+    float t = *v ? 1.0f : 0.0f;
+
+    ImGuiContext& g = *GImGui;
+    float ANIM_SPEED = 0.08f;
+    if (g.LastActiveId == g.CurrentWindow->GetID(str_id))
+    {
+        float t_anim = ImSaturate(g.LastActiveIdTimer / ANIM_SPEED);
+        t = *v ? (t_anim) : (1.0f - t_anim);
+    }
+
+    ImU32 col_bg;
+    if (ImGui::IsItemHovered())
+        col_bg = ImGui::GetColorU32(ImLerp(ImVec4(0.78f, 0.78f, 0.78f, 1.0f), ImVec4(0.64f, 0.83f, 0.34f, 1.0f), t));
+    else
+        col_bg = ImGui::GetColorU32(ImLerp(ImVec4(0.85f, 0.85f, 0.85f, 1.0f), ImVec4(0.56f, 0.83f, 0.26f, 1.0f), t));
+
+    draw_list->AddRectFilled(p, ImVec2(p.x + width, p.y + height), col_bg, height * 0.5f);
+    draw_list->AddCircleFilled(ImVec2(p.x + radius + t * (width - radius * 2.0f), p.y + radius), radius - 1.5f, IM_COL32(255, 255, 255, 255));
+}
+
+bool ToggleButton(const char *str_id, bool *v, const ImVec2 &size)
+{
+    bool valueChange = false;
+
+    ImVec2 pos = ImGui::GetCursorScreenPos();
+    ImDrawList *draw_list = ImGui::GetWindowDrawList();
+
+    ImGui::InvisibleButton(str_id, size);
+    if (ImGui::IsItemClicked())
+    {
+        *v = !*v;
+        valueChange = true;
+    }
+
+    ImU32 col_tint = ImGui::GetColorU32((*v ? ImGui::GetColorU32(ImGuiCol_Text) : ImGui::GetColorU32(ImGuiCol_Border)));
+    ImU32 col_bg = ImGui::GetColorU32(ImGui::GetColorU32(ImGuiCol_WindowBg));
+    if (ImGui::IsItemHovered())
+    {
+        col_bg = ImGui::GetColorU32(ImGuiCol_ButtonHovered);
+    }
+    if (ImGui::IsItemActive() || *v)
+    {
+        col_bg = ImGui::GetColorU32(ImGuiCol_Button);
+    }
+
+    draw_list->AddRectFilled(pos, pos + size, ImGui::GetColorU32(col_bg));
+
+    auto textSize = ImGui::CalcTextSize(str_id);
+    draw_list->AddText(ImVec2(pos.x + (size.x - textSize.x) / 2, pos.y), col_tint, str_id);
+
+    return valueChange;
+}
+
+bool BulletToggleButton(const char* label, bool* v, ImVec2 &pos, ImVec2 &size)
+{
+    bool valueChange = false;
+
+    ImDrawList *draw_list = ImGui::GetWindowDrawList();
+    ImVec2 old_pos = ImGui::GetCursorScreenPos();
+    ImGui::SetCursorScreenPos(pos);
+    ImGui::InvisibleButton(label, size);
+    if (ImGui::IsItemClicked())
+    {
+        *v = !*v;
+        valueChange = true;
+    }
+    pos += size / 2;
+    if (*v)
+    {
+        draw_list->AddCircleFilled(pos, draw_list->_Data->FontSize * 0.20f, IM_COL32(255, 0, 0, 255), 8);
+    }
+    else
+    {
+        draw_list->AddCircleFilled(pos, draw_list->_Data->FontSize * 0.20f, IM_COL32(128, 128, 128, 255), 8);
+    }
+    ImGui::SetCursorScreenPos(old_pos);
+    return valueChange;
+}
+
 #ifndef NO_IMGUIHELPER_FONT_METHODS
 const ImFont *GetFont(int fntIndex) {return (fntIndex>=0 && fntIndex<ImGui::GetIO().Fonts->Fonts.size()) ? ImGui::GetIO().Fonts->Fonts[fntIndex] : NULL;}
 void PushFont(int fntIndex)    {
@@ -2156,6 +2249,7 @@ void StringAppend(char *&destText, const char *textToAppend, bool allowNullDestT
     if (mustAppendLF) strcat(&totalText[0],"\n");
     destText = (char*) ImGui::MemAlloc(totalTextSz+1);strcpy(destText,&totalText[0]);
 }
+
 int StringAppend(ImVector<char>& v,const char* fmt, ...) {
     IM_ASSERT(v.size()>0 && v[v.size()-1]=='\0');
     va_list args,args2;

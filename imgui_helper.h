@@ -49,6 +49,11 @@ IMGUI_API void TextColored(int fntIndex,const ImVec4& col, const char* fmt, ...)
 IMGUI_API void TextV(int fntIndex,const char* fmt, va_list args);
 IMGUI_API void Text(int fntIndex,const char* fmt, ...) IM_FMTARGS(2);
 
+// ToggleButton
+IMGUI_API void ToggleButton(const char* str_id, bool* v);
+IMGUI_API bool ToggleButton(const char *str_id, bool *v, const ImVec2 &size);
+IMGUI_API bool BulletToggleButton(const char* label,bool* v, ImVec2 &pos, ImVec2 &size);
+
 // Handy if we want to use ImGui::Image(...) or ImGui::ImageButton(...) with a glyph
 IMGUI_API bool GetTexCoordsFromGlyph(unsigned short glyph,ImVec2& uv0,ImVec2& uv1);
 // Returns the height of the main menu based on the current font and style
