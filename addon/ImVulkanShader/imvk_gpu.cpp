@@ -3,8 +3,8 @@
 #include <string.h>
 #include <vulkan/vulkan.h>
 
-#include "GlslangToSpv.h"
-#include "ShaderLang.h"
+#include "SPIRV/GlslangToSpv.h"
+#include "glslang/Public/ShaderLang.h"
 
 #include "imvk_command.h"
 #include "imvk_pipelinecache.h"
@@ -3608,8 +3608,10 @@ int compile_spirv_module(const char* comp_data, int comp_data_size, const Option
         }
         else
         {
+            glslang::SpvOptions options;
+            options.disableOptimizer = false;
             glslang::TIntermediate* ir = s.getIntermediate();
-            glslang::GlslangToSpv(*ir, spirv);
+            glslang::GlslangToSpv(*ir, spirv, &options);
         }
     }
 
