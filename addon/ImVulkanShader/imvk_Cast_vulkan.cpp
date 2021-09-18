@@ -358,7 +358,7 @@ int Cast_vulkan::forward(const ImMat& bottom_blob, ImMat& top_blob, const Option
 
     if (type_from == 1 && type_to == 2)
     {
-        #pragma omp parallel for num_threads(opt.num_threads)
+        #pragma omp parallel for
         for (int q = 0; q < channels; q++)
         {
             const float* ptr = bottom_blob.channel(q);
@@ -373,7 +373,7 @@ int Cast_vulkan::forward(const ImMat& bottom_blob, ImMat& top_blob, const Option
 
     if (type_from == 2 && type_to == 1)
     {
-        #pragma omp parallel for num_threads(opt.num_threads)
+        #pragma omp parallel for
         for (int q = 0; q < channels; q++)
         {
             const unsigned short* ptr = bottom_blob.channel(q);
@@ -388,7 +388,7 @@ int Cast_vulkan::forward(const ImMat& bottom_blob, ImMat& top_blob, const Option
 
     if (type_from == 3 && type_to == 1)
     {
-        #pragma omp parallel for num_threads(opt.num_threads)
+        #pragma omp parallel for
         for (int q = 0; q < channels; q++)
         {
             const signed char* ptr = bottom_blob.channel(q);
@@ -403,7 +403,7 @@ int Cast_vulkan::forward(const ImMat& bottom_blob, ImMat& top_blob, const Option
 
     if (type_from == 1 && type_to == 4)
     {
-        #pragma omp parallel for num_threads(opt.num_threads)
+        #pragma omp parallel for
         for (int q = 0; q < channels; q++)
         {
             const float* ptr = bottom_blob.channel(q);
@@ -418,7 +418,7 @@ int Cast_vulkan::forward(const ImMat& bottom_blob, ImMat& top_blob, const Option
 
     if (type_from == 4 && type_to == 1)
     {
-        #pragma omp parallel for num_threads(opt.num_threads)
+        #pragma omp parallel for
         for (int q = 0; q < channels; q++)
         {
             const unsigned short* ptr = bottom_blob.channel(q);
@@ -433,7 +433,7 @@ int Cast_vulkan::forward(const ImMat& bottom_blob, ImMat& top_blob, const Option
 
     if (type_from == 3 && type_to == 2)
     {
-        #pragma omp parallel for num_threads(opt.num_threads)
+        #pragma omp parallel for
         for (int q = 0; q < channels; q++)
         {
             const signed char* ptr = bottom_blob.channel(q);
