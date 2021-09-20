@@ -479,7 +479,7 @@ ImGuiFontStudio is using also ImGuiFileDialog.
 #ifndef IMGUIFILEDIALOG_H
 #define IMGUIFILEDIALOG_H
 
-#define IMGUIFILEDIALOG_VERSION "v0.5.6"
+#define IMGUIFILEDIALOG_VERSION "v0.5.7"
 
 #ifndef CUSTOM_IMGUIFILEDIALOG_CONFIG
 #include "ImGuiFileDialogConfig.h"
@@ -498,7 +498,7 @@ enum ImGuiFileDialogFlags_
 	ImGuiFileDialogFlags_HideColumnSize = (1 << 4),	// hide column file size
 	ImGuiFileDialogFlags_HideColumnDate = (1 << 5),	// hide column file date
 	ImGuiFileDialogFlags_ShowBookmark = (1 << 6),	// show bookmark when open dialog
-	ImGuiFileDialogFlags_Default = ImGuiFileDialogFlags_None // for the moment we have no default options but its comming :)
+	ImGuiFileDialogFlags_Default = ImGuiFileDialogFlags_ConfirmOverwrite
 };
 
 #ifdef __cplusplus

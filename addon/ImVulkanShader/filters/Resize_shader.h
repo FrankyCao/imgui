@@ -236,7 +236,10 @@ void main() \n\
     if (gx >= p.out_w || gy >= p.out_h) \n\
         return; \n\
     sfpvec4 v = interplate(gx, gy); \n\
-    store_rgba(v, gx, gy, p.out_w, p.out_cstep, p.out_format, p.out_type); \n\
+    if (p.out_cstep == 4) \n\
+        store_rgba(v, gx, gy, p.out_w, p.out_cstep, p.out_format, p.out_type); \n\
+    else if (p.out_cstep == 3) \n\
+        store_rgb(v.rgb, gx, gy, p.out_w, p.out_cstep, p.out_format, p.out_type); \n\
 } \
 "
 
@@ -246,6 +249,7 @@ SHADER_PARAM
 SHADER_INPUT_OUTPUT_DATA
 SHADER_LOAD_RGBA
 SHADER_STORE_RGBA
+SHADER_STORE_RGB
 INTERPLATE_NEAREST
 INTERPLATE_BILINEAR
 INTERPLATE_BICUBIC

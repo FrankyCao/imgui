@@ -17,8 +17,7 @@ public:
 	DLClass(std::string module_name);
 	~DLClass();
 
-	template <typename... Args>
-	std::shared_ptr<T> make_obj(Args... args);
+	std::shared_ptr<T> make_obj();
 	int32_t get_version();
 
 private:
@@ -105,8 +104,8 @@ int32_t DLClass<T>::get_version() {
 	return shared->version();
 }
 
-template <class T> template< typename... Args>
-std::shared_ptr<T> DLClass<T>::make_obj(Args... args) {
+template <class T>
+std::shared_ptr<T> DLClass<T>::make_obj() {
 	if (!shared->create || !shared->destroy) {
 		if (!shared->open_module(module)) {
 			return std::shared_ptr<T>(NULL);
@@ -115,7 +114,7 @@ std::shared_ptr<T> DLClass<T>::make_obj(Args... args) {
 
 	//    auto create_args = ((T* (*)(Args...))create);    
 	std::shared_ptr<shared_obj> my_shared = shared;
-	auto the_ptr = shared->create(args...);
+	auto the_ptr = shared->create();
 	if (the_ptr == nullptr || the_ptr == NULL) {
 		std::cerr << "Failed to load the dynamic obj: obj->create returns nullptr or NULL." << std::endl;
 		return nullptr;

@@ -68,7 +68,10 @@ void Resize_vulkan::Resize(const ImMat& src, ImMat& dst, float fx, float fy, ImI
     cmd->record_clone(src, vk_src, opt);
     int dst_width = Im_AlignSize((fx == 0.f ? src.w : src.w * fx), 4);
     int dst_height = Im_AlignSize((fx == 0.f ? src.h : fy == 0.f ? src.h * fx : src.h * fy), 4);
-    dst_buffer.create_type(dst_width, dst_height, 4, dst.type, opt.blob_vkallocator);
+    auto color_format = dst.color_format;
+    int channels = IM_ISALPHA(color_format) ? 4 : IM_ISRGB(color_format) ? 3 : IM_ISMONO(color_format) ? 1 : 4;
+    dst_buffer.create_type(dst_width, dst_height, channels, dst.type, opt.blob_vkallocator);
+    dst_buffer.color_format = color_format;
 
     upload_param(vk_src, dst_buffer, type);
 
@@ -84,7 +87,10 @@ void Resize_vulkan::Resize(const ImMat& src, VkMat& dst, float fx, float fy, ImI
     cmd->record_clone(src, vk_src, opt);
     int dst_width = Im_AlignSize((fx == 0.f ? src.w : src.w * fx), 4);
     int dst_height = Im_AlignSize((fx == 0.f ? src.h : fy == 0.f ? src.h * fx : src.h * fy), 4);
-    dst.create_type(dst_width, dst_height, 4, dst.type, opt.blob_vkallocator);
+    auto color_format = dst.color_format;
+    int channels = IM_ISALPHA(color_format) ? 4 : IM_ISRGB(color_format) ? 3 : IM_ISMONO(color_format) ? 1 : 4;
+    dst.create_type(dst_width, dst_height, channels, dst.type, opt.blob_vkallocator);
+    dst.color_format = color_format;
 
     upload_param(vk_src, dst, type);
 
@@ -98,7 +104,10 @@ void Resize_vulkan::Resize(const VkMat& src, ImMat& dst, float fx, float fy, ImI
     VkMat dst_buffer;
     int dst_width = Im_AlignSize((fx == 0.f ? src.w : src.w * fx), 4);
     int dst_height = Im_AlignSize((fx == 0.f ? src.h : fy == 0.f ? src.h * fx : src.h * fy), 4);
-    dst_buffer.create_type(dst_width, dst_height, 4, dst.type, opt.blob_vkallocator);
+    auto color_format = dst.color_format;
+    int channels = IM_ISALPHA(color_format) ? 4 : IM_ISRGB(color_format) ? 3 : IM_ISMONO(color_format) ? 1 : 4;
+    dst_buffer.create_type(dst_width, dst_height, channels, dst.type, opt.blob_vkallocator);
+    dst_buffer.color_format = color_format;
 
     upload_param(src, dst_buffer, type);
 
@@ -112,7 +121,10 @@ void Resize_vulkan::Resize(const VkMat& src, VkMat& dst, float fx, float fy, ImI
 {
     int dst_width = Im_AlignSize((fx == 0.f ? src.w : src.w * fx), 4);
     int dst_height = Im_AlignSize((fx == 0.f ? src.h : fy == 0.f ? src.h * fx : src.h * fy), 4);
-    dst.create_type(dst_width, dst_height, 4, dst.type, opt.blob_vkallocator);
+    auto color_format = dst.color_format;
+    int channels = IM_ISALPHA(color_format) ? 4 : IM_ISRGB(color_format) ? 3 : IM_ISMONO(color_format) ? 1 : 4;
+    dst.create_type(dst_width, dst_height, channels, dst.type, opt.blob_vkallocator);
+    dst.color_format = color_format;
 
     upload_param(src, dst, type);
 
