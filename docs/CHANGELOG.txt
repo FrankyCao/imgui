@@ -124,7 +124,14 @@ Other Changes:
   to common idioms (e.g. passing .data(), .data() + .size() from a null string). (#3615)
 - Nav: Fixed toggling menu layer with Alt or exiting menu layer with Esc not moving mouse when
   the NavEnableSetMousePos config flag is set.
-- Menus: adjust closing logic to accomodate for varying font size and dpi.
+- Nav: Fixed a few widgets from not setting reference keyboard/gamepad navigation ID when
+  activated with mouse. More specifically: BeginTabItem(), the scrolling arrows of BeginTabBar(),
+  the arrow section of TreeNode(), the +/- buttons of InputInt()/InputFloat(), Selectable() with
+  ImGuiSelectableFlags_SelectOnRelease. More generally: any direct use of ButtonBehavior() with
+  the PressedOnClick/PressedOnDoubleClick/PressedOnRelease button policy.
+- Menus: Fixed vertical alignments of MenuItem() calls within a menu bar. (broken in 1.84). (#4538)
+- Menus: Adjust closing logic to accomodate for varying font size and dpi.
+- Menus: Fixed crash when navigating left inside a child window inside a sub-menu. (#4510).
 - Drag and Drop: Fixed using BeginDragDropSource() inside a BeginChild() that returned false. (#4515)
 - PlotHistogram: Fixed zero-line position when manually specifying min<0 and max>0. (#4349) [@filippocrocchini]
 - IO: Added 'io.WantCaptureMouseUnlessPopupClose' alternative to `io.WantCaptureMouse'. (#4480)
@@ -145,7 +152,12 @@ Docking+Viewports Branch:
   docking hierarchy. Added ImGuiFocusedFlags_DockHierarchy flag to consider docking hierarchy in the test.
 - IsWindowHovered: Fixed using ImGuiHoveredFlags_ChildWindows (without _RootWindow) from leaking the
   docking hierarchy. Added ImGuiHoveredFlags_DockHierarchy flag to consider docking hierarchy in the test.
-- Docking: fixed settings load issue when mouse wheeling. (#4310)
+- Nav: Fixed an issue with losing focus on docked windows when pressing Alt while keyboard navigation
+  is disabled. (#4547, #4439) [@PathogenDavid]
+- Docking: Improved resizing system so that non-central zone are better at keeping their fixed size.
+  The algorithm is still not handling the repartition of size idealy for nested sibling, but it got better.
+- Docking: Fixed settings load issue when mouse wheeling. (#4310)
+- Docking: Fixed manually created floating node with a central node from not hiding when windows are gone.
 - Docking + Drag and Drop: Fixed using BeginDragDropSource() or BeginDragDropTarget() inside a Begin()
   that returned false because the window is docked. (#4515)
 - Viewports: Fixed a crash while a window owning its viewport disappear while being dragged.
