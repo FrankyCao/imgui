@@ -758,7 +758,7 @@ namespace IGFD
 	typedef std::function<void(IGFD_Thumbnail_Info*)> CreateThumbnailFun;	// texture 2d creation function binding
 	typedef std::function<void(IGFD_Thumbnail_Info*)> DestroyThumbnailFun;// texture 2d destroy function binding
 #endif
-	class ThumbnailFeature
+	class IMGUI_API ThumbnailFeature
 	{
 	protected:
 		ThumbnailFeature();
@@ -819,7 +819,7 @@ namespace IGFD
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	class BookMarkFeature
+	class IMGUI_API BookMarkFeature
 	{
 	protected:
 		BookMarkFeature();

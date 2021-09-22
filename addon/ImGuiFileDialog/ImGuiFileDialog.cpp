@@ -53,7 +53,27 @@ SOFTWARE.
 #define stat _stat
 #define stricmp _stricmp
 #include <cctype>
-#include "dirent/dirent.h" // directly open the dirent file attached to this lib
+// modify by Dicky
+#include "dirent_portable.h" // directly open the dirent file attached to this lib
+// Convert a wide Unicode string to an UTF8 string
+inline static void wide_to_utf8(const wchar_t* wstr,char* rv)    {
+    rv[0]='\0';
+    if (!wstr) return;
+    int size_needed = WideCharToMultiByte(CP_UTF8, 0, wstr, -1, NULL, 0, NULL, NULL);
+    WideCharToMultiByte                  (CP_UTF8, 0, wstr, -1, &rv[0], size_needed, NULL, NULL);
+    //rv[size_needed]='\0';              // If the parameter after wstr is -1, the function processes the entire input string, including the terminating null character. Therefore, the resulting character string has a terminating null character, and the length returned by the function includes this character.
+    return ;
+}
+// Convert an UTF8 string to a wide Unicode String
+inline static void utf8_to_wide(const char* str,wchar_t* rv)    {
+    rv[0]=L'\0';
+    if (!str) return;
+    int size_needed = MultiByteToWideChar(CP_UTF8, 0, str, -1, NULL, 0);
+    MultiByteToWideChar                  (CP_UTF8, 0, str, -1, &rv[0], size_needed);
+    //rv[size_needed]=L'\0';            // // If the parameter after str is -1, the function processes the entire input string, including the terminating null character. Therefore, the resulting character string has a terminating null character, and the length returned by the function includes this character.
+    return;
+}
+// modify By Dicky end
 #define PATH_SEP '\\'
 #ifndef PATH_MAX
 #define PATH_MAX 260
@@ -312,7 +332,7 @@ namespace IGFD
 		return strcoll((*a)->d_name, (*b)->d_name);
 	}
 
-#ifdef WIN32
+#if 0 // def WIN32 disable by Dicky
 	inline bool inWReplaceString(std::wstring& str, const std::wstring& oldStr, const std::wstring& newStr)
 	{
 		bool found = false;
@@ -347,7 +367,7 @@ namespace IGFD
 		}
 		return arr;
 	}
-#endif
+#endif // Disable By Dicky end
 
 	inline bool inReplaceString(std::string& str, const std::string& oldStr, const std::string& newStr)
 	{
@@ -423,7 +443,7 @@ namespace IGFD
 		return bExists;    // this is not a directory!
 	}
 
-#ifdef WIN32
+#if 0 // def WIN32 diabled by Dicky
 	inline std::wstring inWGetString(const char* str)
 	{
 		std::wstring ret;
@@ -435,7 +455,7 @@ namespace IGFD
 		}
 		return ret;
 	}
-#endif
+#endif // Disable By Dicky end
 
 	inline bool inCreateDirectoryIfNotExist(const std::string& name)
 	{
@@ -446,8 +466,15 @@ namespace IGFD
 			if (!inIsDirectoryExist(name))
 			{
 #ifdef WIN32
+				// Modify By Dicky
+				/*
 				std::wstring wname = inWGetString(name.c_str());
 				if (CreateDirectoryW(wname.c_str(), nullptr))
+				*/
+				// Modify By Dicky end
+				static wchar_t wname[PATH_MAX+1];
+				utf8_to_wide(name.c_str(), wname);
+				if (CreateDirectoryW(wname, nullptr))
 				{
 					res = true;
 				}
@@ -1444,6 +1471,8 @@ namespace IGFD
 		{
 #ifdef WIN32
 			DWORD numchar = 0;
+			// Modify By Dicky
+			/*
 			//			numchar = GetFullPathNameA(path.c_str(), PATH_MAX, real_path, nullptr);
 			std::wstring wpath = inWGetString(path.c_str());
 			numchar = GetFullPathNameW(wpath.c_str(), 0, nullptr, nullptr);
@@ -1451,6 +1480,13 @@ namespace IGFD
 			GetFullPathNameW(wpath.c_str(), numchar, (wchar_t*)fpath.data(), nullptr);
 			int error = dirent_wcstombs_s(nullptr, real_path, PATH_MAX, fpath.c_str(), PATH_MAX - 1);
 			if (error)numchar = 0;
+			*/
+			static wchar_t wpath[PATH_MAX+1];
+			static wchar_t buffer[PATH_MAX+1];
+			utf8_to_wide(path.c_str(), wpath);
+			numchar = GetFullPathNameW(&wpath[0], PATH_MAX+1, &buffer[0], NULL);
+			wide_to_utf8(&buffer[0], real_path);
+			// Modify By Dicky end
 			if (!numchar)
 			{
 				std::cout << "fail to obtain FullPathName " << path << std::endl;
