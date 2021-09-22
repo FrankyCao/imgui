@@ -248,6 +248,7 @@ set(IMGUI_INCS
     misc/cpp/dir_iterate.h
     misc/stb_image.h
     misc/stb_image_write.h
+    misc/stb_image_resize.h
     misc/DynObjectLoader.h
 )
 

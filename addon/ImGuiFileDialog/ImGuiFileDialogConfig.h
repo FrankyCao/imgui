@@ -5,6 +5,22 @@
 //#define MAX_FILE_DIALOG_NAME_BUFFER 1024
 //#define MAX_PATH_BUFFER_SIZE 1024
 
+#define USE_THUMBNAILS
+//the thumbnail generation use the stb_image and stb_resize lib who need to define the implementation
+//btw if you already use them in your app, you can have compiler error due to "implemntation found in double"
+//so uncomment these line for prevent the creation of implementation of these libs again
+//#define DONT_DEFINE_AGAIN__STB_IMAGE_IMPLEMENTATION
+//#define DONT_DEFINE_AGAIN__STB_IMAGE_RESIZE_IMPLEMENTATION
+//#define IMGUI_RADIO_BUTTON RadioButton
+//#define DisplayMode_ThumbailsList_ImageHeight 32.0f
+//#define DisplayMode_FilesList_ButtonString "FL"
+//#define DisplayMode_FilesList_ButtonHelp "File List"
+//#define DisplayMode_ThumbailsList_ButtonString "TL"
+//#define DisplayMode_ThumbailsList_ButtonHelp "Thumbnails List"
+// todo
+//#define DisplayMode_ThumbailsGrid_ButtonString "TG"
+//#define DisplayMode_ThumbailsGrid_ButtonHelp "Thumbnails Grid"
+
 //#define USE_EXPLORATION_BY_KEYS
 // this mapping by default is for GLFW but you can use another
 //#include <GLFW/glfw3.h> 
@@ -16,6 +32,10 @@
 //#define IGFD_KEY_ENTER GLFW_KEY_ENTER
 // BackSpace for comming back to the last directory
 //#define IGFD_KEY_BACKSPACE GLFW_KEY_BACKSPACE
+
+// by ex you can quit the dialog by pressing the key excape
+//#define USE_DIALOG_EXIT_WITH_KEY
+//#define IGFD_EXIT_KEY GLFW_KEY_ESCAPE
 
 // widget
 // filter combobox width
@@ -32,36 +52,33 @@
 #define cancelButtonString ICON_IGFD_CANCEL " Cancel"
 #define resetButtonString ICON_IGFD_RESET
 #define drivesButtonString ICON_IGFD_DRIVES
-//#define searchString ICON_IGFD_SEARCH
 #define dirEntryString ICON_IGFD_FOLDER
 #define linkEntryString ICON_IGFD_LINK
 #define fileEntryString ICON_IGFD_FILE
-#else
-#define createDirButtonString "+"
-#define okButtonString " OK"
-#define cancelButtonString " Cancel"
-#define resetButtonString "R"
-#define drivesButtonString "Drives"
-//#define searchString "Search"
-#define dirEntryString "[DIR] "
-#define linkEntryString "[LINK] "
-#define fileEntryString "[FILE] "
+#define OverWriteDialogConfirmButtonString ICON_IGFD_OK " Confirm"
+#define OverWriteDialogCancelButtonString ICON_IGFD_CANCEL " Cancel"
 #endif
+//#define createDirButtonString "+"
+//#define okButtonString " OK"
+//#define cancelButtonString " Cancel"
+//#define resetButtonString "R"
+//#define drivesButtonString "Drives"
+//#define editPathButtonString "E"
+//#define searchString "Search"
+//#define dirEntryString "[DIR] "
+//#define linkEntryString "[LINK] "
+//#define fileEntryString "[FILE] "
 //#define fileNameString "File Name : "
 //#define dirNameString "Directory Path :"
 //#define buttonResetSearchString "Reset search"
 //#define buttonDriveString "Drives"
+//#define buttonEditPathString "Edit path\nYou can also right click on path buttons"
 //#define buttonResetPathString "Reset to current directory"
 //#define buttonCreateDirString "Create Directory"
 //#define OverWriteDialogTitleString "The file Already Exist !"
 //#define OverWriteDialogMessageString "Would you like to OverWrite it ?"
-#if IMGUI_ICONS
-#define OverWriteDialogConfirmButtonString ICON_IGFD_OK " Confirm"
-#define OverWriteDialogCancelButtonString ICON_IGFD_CANCEL " Cancel"
-#else
-#define OverWriteDialogConfirmButtonString "Confirm"
-#define OverWriteDialogCancelButtonString "Cancel"
-#endif
+//#define OverWriteDialogConfirmButtonString "Confirm"
+//#define OverWriteDialogCancelButtonString "Cancel"
 
 // DateTimeFormat
 // see strftime functionin <ctime> for customize
@@ -74,25 +91,23 @@
 #if IMGUI_ICONS
 #define tableHeaderAscendingIcon ICON_IGFD_CHEVRON_UP
 #define tableHeaderDescendingIcon ICON_IGFD_CHEVRON_DOWN
-#else
-#define tableHeaderAscendingIcon "A|"
-#define tableHeaderDescendingIcon "D|"
 #endif
-#define tableHeaderFileNameString " File name"
-#define tableHeaderFileTypeString " Type"
-#define tableHeaderFileSizeString " Size"
-#define tableHeaderFileDateString " Date"
+//#define tableHeaderAscendingIcon "A|"
+//#define tableHeaderDescendingIcon "D|"
+//#define tableHeaderFileNameString " File name"
+//#define tableHeaderFileTypeString " Type"
+//#define tableHeaderFileSizeString " Size"
+//#define tableHeaderFileDateTimeString " Date"
 
 #define USE_BOOKMARK
-//#define bookmarkPaneWith 150.0f
-//#define IMGUI_TOGGLE_BUTTON ToggleButton
 #if IMGUI_ICONS
 #define bookmarksButtonString ICON_IGFD_BOOKMARK
 #define addBookmarkButtonString ICON_IGFD_ADD
 #define removeBookmarkButtonString ICON_IGFD_REMOVE
-#else
-#define bookmarksButtonString "Bookmark"
-#define bookmarksButtonHelpString "Bookmark"
-#define addBookmarkButtonString "+"
-#define removeBookmarkButtonString "-"
 #endif
+//#define bookmarkPaneWith 150.0f
+//#define IMGUI_TOGGLE_BUTTON ToggleButton
+//#define bookmarksButtonString "Bookmark"
+//#define bookmarksButtonHelpString "Bookmark"
+//#define addBookmarkButtonString "+"
+//#define removeBookmarkButtonString "-"

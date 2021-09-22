@@ -11,7 +11,7 @@
 #define ICON_IGFD_CHEVRON_DOWN u8"\uf078"
 #define ICON_IGFD_CHEVRON_UP u8"\uf077"
 #define ICON_IGFD_DRIVES u8"\uf0a0"
-#define ICON_IGFD_FILE u8"\uf15b"
+#define ICON_IGFD_FILE u8"\uf0f6"
 #define ICON_IGFD_FILE_LIST u8"\uf03a"
 #define ICON_IGFD_FILE_PIC u8"\uf1c5"
 #define ICON_IGFD_FOLDER u8"\uf07b"
