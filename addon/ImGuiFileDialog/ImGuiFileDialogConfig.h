@@ -6,6 +6,10 @@
 //#define MAX_PATH_BUFFER_SIZE 1024
 
 #define USE_THUMBNAILS
+#if IMGUI_ICONS
+#define DisplayMode_FilesList_ButtonString ICON_IGFD_FILE_LIST
+#define DisplayMode_ThumbailsList_ButtonString ICON_IGFD_FILE_LIST_THUMBNAILS
+#endif
 //the thumbnail generation use the stb_image and stb_resize lib who need to define the implementation
 //btw if you already use them in your app, you can have compiler error due to "implemntation found in double"
 //so uncomment these line for prevent the creation of implementation of these libs again
@@ -55,6 +59,7 @@
 #define dirEntryString ICON_IGFD_FOLDER
 #define linkEntryString ICON_IGFD_LINK
 #define fileEntryString ICON_IGFD_FILE
+#define editPathButtonString ICON_IGFD_EDIT
 #define OverWriteDialogConfirmButtonString ICON_IGFD_OK " Confirm"
 #define OverWriteDialogCancelButtonString ICON_IGFD_CANCEL " Cancel"
 #endif

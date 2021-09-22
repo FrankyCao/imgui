@@ -3031,6 +3031,9 @@ namespace IGFD
 		prFileDialogInternal.puFileManager.ClearAll();
 		
 		prFileDialogInternal.puShowDialog = true;					// open dialog
+#ifdef USE_BOOKMARK
+		prBookmarkPaneShown = vFlags & ImGuiFileDialogFlags_ShowBookmark ? true : false; // Modify By Dicky
+#endif // USE_BOOKMARK
 	}
 
 	// path and filename are obtained from filePathName
@@ -3082,6 +3085,9 @@ namespace IGFD
 		prFileDialogInternal.puFileManager.ClearAll();
 		
 		prFileDialogInternal.puShowDialog = true;
+#ifdef USE_BOOKMARK
+		prBookmarkPaneShown = vFlags & ImGuiFileDialogFlags_ShowBookmark ? true : false; // Modify By Dicky
+#endif // USE_BOOKMARK
 	}
 
 	// with pane
@@ -3128,6 +3134,9 @@ namespace IGFD
 		prFileDialogInternal.puFileManager.ClearAll();
 		
 		prFileDialogInternal.puShowDialog = true;					// open dialog
+#ifdef USE_BOOKMARK
+		prBookmarkPaneShown = vFlags & ImGuiFileDialogFlags_ShowBookmark ? true : false; // Modify By Dicky
+#endif // USE_BOOKMARK
 	}
 
 	// with pane
@@ -3181,6 +3190,9 @@ namespace IGFD
 		prFileDialogInternal.puFileManager.ClearAll();
 
 		prFileDialogInternal.puShowDialog = true;
+#ifdef USE_BOOKMARK
+		prBookmarkPaneShown = vFlags & ImGuiFileDialogFlags_ShowBookmark ? true : false; // Modify By Dicky
+#endif // USE_BOOKMARK
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3360,7 +3372,7 @@ namespace IGFD
 				//	fdFilter.puSelectedFilter = *fdFilter.puParsedFilters.begin(); // we take the first filter
 
 				if (fdFile.puDLGpath.empty())
-					fdFile.puDLGpath = "."; // defaut path is '.'
+					fdFile.puDLGpath = "./"; // defaut path is './' // modify by dicky
 
 				// init list of files
 				if (fdFile.IsFileListEmpty() && !fdFile.puShowDrives)
