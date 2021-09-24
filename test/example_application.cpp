@@ -13,6 +13,7 @@
 #include "ImGuiFileDialog.h"
 #include "imgui_knob.h"
 #include "HotKey.h"
+#include "TextEditor.h"
 #include "Config.h"
 
 // Init HotKey
@@ -103,6 +104,9 @@ public:
     // Init MarkDown
     ImGui::MarkdownConfig mdConfig;
 
+    // Init Colorful Text Edit
+    TextEditor editor;
+
 public:
     bool show_demo_window = true;
     bool show_another_window = false;
@@ -110,6 +114,7 @@ public:
     bool show_file_dialog_window = false;
     bool show_markdown_window = false;
     bool show_knob_window = false;
+    bool show_text_editor_window = false;
 
 public:
 
@@ -249,6 +254,7 @@ bool Application_Frame(void* handle)
         ImGui::Checkbox("Memory Edit Window", &example->mem_edit.Open);
         ImGui::Checkbox("Show Markdown Window", &example->show_markdown_window);
         ImGui::Checkbox("Show KNob Window", &example->show_knob_window);
+        ImGui::Checkbox("Show Text Edit Window", &example->show_text_editor_window);
 
         // show hotkey window
         if (ImGui::Button("Edit Hotkeys"))
@@ -332,6 +338,12 @@ bool Application_Frame(void* handle)
         ImGui::Begin("KNob Widget", &example->show_knob_window);
         ImGui::ShowKnobDemoWindow();
         ImGui::End();
+    }
+
+    // Show Text Edit Window
+    if (example->show_text_editor_window)
+    {
+        example->editor.text_edit_demo(&example->show_text_editor_window);
     }
 
     return done;

@@ -648,6 +648,20 @@ if (IMGUI_BUILD_EXAMPLE)
     )
 endif(IMGUI_BUILD_EXAMPLE)
 
+# Colorful Text Edit
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    addon/TextEditor/TextEditor.cpp
+)
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    addon/TextEditor/TextEditor.h
+)
+set(IMGUI_INC_DIRS
+    ${IMGUI_INC_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/TextEditor
+)
+
 # KNob
 set(IMGUI_SRC
     ${IMGUI_SRC}

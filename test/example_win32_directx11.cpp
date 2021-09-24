@@ -16,6 +16,7 @@
 #include "imgui_memory_editor.h"
 #include "ImGuiFileDialog.h"
 #include "HotKey.h"
+#include "TextEditor.h"
 #include "Config.h"
 
 // Data
@@ -168,7 +169,10 @@ int main(int, char**)
     void* data = malloc(data_size);
 
     // Init MarkDown
-    ImGui::MarkdownConfig mdConfig; 
+    ImGui::MarkdownConfig mdConfig;
+
+    // Init Colorful Text Edit
+    TextEditor editor;
 
     // Init HotKey
     static std::vector<ImHotKey::HotKey> hotkeys = 
@@ -231,6 +235,7 @@ int main(int, char**)
             ImGui::Checkbox("File Dialog Window", &show_file_dialog_window);
             ImGui::Checkbox("Memory Edit Window", &mem_edit.Open);
             ImGui::Checkbox("Show Markdown Window", &show_markdown_window);
+            ImGui::Checkbox("Show Text Editor Window", &show_text_editor_window);
 
             // show hotkey window
             if (ImGui::Button("Edit Hotkeys"))
@@ -288,6 +293,12 @@ int main(int, char**)
             ImGui::Markdown( help_doc.c_str(), help_doc.length(), mdConfig );
         }
 
+        // Show Text Edit Window
+        if (show_text_editor_window)
+        {
+            editor.text_edit_demo(&show_text_editor_window);
+        }
+        
         // Rendering
         ImGui::Render();
         const float clear_color_with_alpha[4] = { clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w };

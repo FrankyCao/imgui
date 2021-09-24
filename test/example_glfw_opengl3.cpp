@@ -10,6 +10,7 @@
 #include "imgui_memory_editor.h"
 #include "ImGuiFileDialog.h"
 #include "HotKey.h"
+#include "TextEditor.h"
 #include <stdio.h>
 #include <fstream>
 #include <sstream>
@@ -211,6 +212,9 @@ int main(int, char**)
     // Init MarkDown
     ImGui::MarkdownConfig mdConfig; 
 
+    // Init Colorful Text Edit
+    TextEditor editor;
+
     // Init HotKey
     static std::vector<ImHotKey::HotKey> hotkeys = 
     { 
@@ -227,6 +231,7 @@ int main(int, char**)
 
     bool show_file_dialog_window = false;
     bool show_markdown_window = false;
+    bool show_text_editor_window = false;
 
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
@@ -262,6 +267,7 @@ int main(int, char**)
             ImGui::Checkbox("File Dialog Window", &show_file_dialog_window);
             ImGui::Checkbox("Memory Edit Window", &mem_edit.Open);
             ImGui::Checkbox("Show Markdown Window", &show_markdown_window);
+            ImGui::Checkbox("Show Text Editor Window", &show_text_editor_window);
 
             // show hotkey window
             if (ImGui::Button("Edit Hotkeys"))
@@ -317,6 +323,12 @@ int main(int, char**)
             mdConfig.userData =             NULL;
             mdConfig.formatCallback =       ExampleMarkdownFormatCallback;
             ImGui::Markdown( help_doc.c_str(), help_doc.length(), mdConfig );
+        }
+
+        // Show Text Edit Window
+        if (show_text_editor_window)
+        {
+            editor.text_edit_demo(&show_text_editor_window);
         }
 
         // Rendering
