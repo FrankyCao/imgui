@@ -303,7 +303,8 @@ IMGUI_API VulkanDevice* get_gpu_device(int device_index = get_default_gpu_index(
 
 // online spirv compilation
 IMGUI_API int compile_spirv_module(const char* comp_string, const Option& opt, std::vector<uint32_t>& spirv);
-IMGUI_API int compile_spirv_module(const char* comp_data, int comp_data_size, const Option& opt, std::vector<uint32_t>& spirv);
+IMGUI_API int compile_spirv_module(const char* comp_string, const Option& opt, std::vector<uint32_t>& spirv, std::string& log);
+IMGUI_API int compile_spirv_module(const char* comp_data, int comp_data_size, const Option& opt, std::vector<uint32_t>& spirv, std::string& log);
 
 // info from spirv
 class ShaderInfo

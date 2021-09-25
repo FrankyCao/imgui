@@ -189,8 +189,10 @@ bool    ImGui_ImplWin32_Init(void* hwnd)
 
 void    ImGui_ImplWin32_Shutdown()
 {
-    ImGuiIO& io = ImGui::GetIO();
     ImGui_ImplWin32_Data* bd = ImGui_ImplWin32_GetBackendData();
+    IM_ASSERT(bd != NULL && "No platform backend to shutdown, or already shutdown?");
+    ImGuiIO& io = ImGui::GetIO();
+
     ImGui_ImplWin32_ShutdownPlatformInterface();
 
     // Unload XInput library
@@ -1013,7 +1015,7 @@ static void ImGui_ImplWin32_ShutdownPlatformInterface()
 // Transparency related helpers (optional)
 //--------------------------------------------------------------------------------------------------------
 
-#if defined(_MSC_VER) // disable when we using mingw
+#if defined(_MSC_VER) // disable when we using mingw by Dicky
 #pragma comment(lib, "dwmapi")  // Link with dwmapi.lib. MinGW will require linking with '-ldwmapi'
 
 // [experimental]

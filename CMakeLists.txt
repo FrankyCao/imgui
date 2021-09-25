@@ -483,10 +483,12 @@ if (IMGUI_SDL2 AND SDL2_FOUND)
     set(IMGUI_PLATFORM_SDL2 ON)
     set(IMGUI_SRC
         ${IMGUI_SRC}
+        #backends/imgui_impl_sdlrenderer.cpp
         backends/imgui_impl_sdl.cpp
     )
     set(IMGUI_INCS
         ${IMGUI_INCS}
+        #backends/imgui_impl_sdlrenderer.h
         backends/imgui_impl_sdl.h
     )
 endif(IMGUI_SDL2 AND SDL2_FOUND)
@@ -494,10 +496,12 @@ else()
 set(IMGUI_PLATFORM_SDL2 ON)
     set(IMGUI_SRC
         ${IMGUI_SRC}
+        #backends/imgui_impl_sdlrenderer.cpp
         backends/imgui_impl_sdl.cpp
     )
     set(IMGUI_INCS
         ${IMGUI_INCS}
+        #backends/imgui_impl_sdlrenderer.h
         backends/imgui_impl_sdl.h
     )
 endif()

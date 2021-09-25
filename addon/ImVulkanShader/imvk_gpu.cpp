@@ -3155,12 +3155,18 @@ static TBuiltInResource get_default_TBuiltInResource()
 
 int compile_spirv_module(const char* comp_string, const Option& opt, std::vector<uint32_t>& spirv)
 {
-    // -1 for omitting the tail '\0'
-    int length = strlen(comp_string) - 1;
-    return compile_spirv_module(comp_string, length, opt, spirv);
+    std::string compile_log;
+    return compile_spirv_module(comp_string, opt, spirv, compile_log);
 }
 
-int compile_spirv_module(const char* comp_data, int comp_data_size, const Option& opt, std::vector<uint32_t>& spirv)
+int compile_spirv_module(const char* comp_string, const Option& opt, std::vector<uint32_t>& spirv, std::string& log)
+{
+    // -1 for omitting the tail '\0'
+    int length = strlen(comp_string) - 1;
+    return compile_spirv_module(comp_string, length, opt, spirv, log);
+}
+
+int compile_spirv_module(const char* comp_data, int comp_data_size, const Option& opt, std::vector<uint32_t>& spirv, std::string& log)
 {
     std::vector<std::pair<const char*, const char*> > custom_defines;
 
@@ -3596,14 +3602,14 @@ int compile_spirv_module(const char* comp_data, int comp_data_size, const Option
         }
 
         TBuiltInResource resources = get_default_TBuiltInResource();
-
-        bool pr = s.parse(&resources, 100, false, EShMsgDefault);
+        EShMessages messages = (EShMessages)(EShMsgSpvRules | EShMsgVulkanRules | EShMsgSuppressWarnings | EShMsgDebugInfo | EShMsgCascadingErrors);
+        bool pr = s.parse(&resources, 100, false, messages);
         if (!pr)
         {
             fprintf(stderr, "compile spir-v module failed");
             fprintf(stderr, "%s", s.getInfoLog());
             fprintf(stderr, "%s", s.getInfoDebugLog());
-
+            log = std::string(s.getInfoLog());
             compile_success = false;
         }
         else
