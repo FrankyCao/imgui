@@ -1078,12 +1078,12 @@ if(NOT IMGUI_STATIC)
 target_link_libraries(imgui ${LINK_LIBS})
 endif(NOT IMGUI_STATIC)
 # Build Tools
-if (APPLE AND IMGUI_MATAL)
+if (APPLE AND IMGUI_MATAL AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_compile_options(
         imgui 
         PUBLIC "-fobjc-arc"
     )
-endif(APPLE AND IMGUI_MATAL)
+endif()
 
 if (IMGUI_BUILD_EXAMPLE AND SDL2_FOUND AND IMGUI_SDL2)
     # Build utils
@@ -1213,10 +1213,12 @@ if (IMGUI_BUILD_EXAMPLE AND APPLE AND IMGUI_MATAL AND BACKEND_RENDERING MATCHES 
             "-framework Cocoa"
             "-framework QuartzCore"
         )
+        if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
         target_compile_options(
             example_apple_metal 
             PUBLIC "-fobjc-arc"
         )
+        endif()
         set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/test/metal.icns PROPERTIES
                 MACOSX_PACKAGE_LOCATION "Resources"
         )
@@ -1243,10 +1245,12 @@ if (IMGUI_BUILD_EXAMPLE AND APPLE AND IMGUI_MATAL AND BACKEND_RENDERING MATCHES 
             example_glfw_metal
             test/example_glfw_metal.mm
         )
+        if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
         target_compile_options(
             example_glfw_metal 
             PUBLIC "-fobjc-arc"
         )
+        endif()
         target_link_libraries(
             example_glfw_metal
             imgui
