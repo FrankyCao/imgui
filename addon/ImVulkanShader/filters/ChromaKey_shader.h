@@ -35,7 +35,7 @@ sfpvec3 extractColor(sfpvec3 color, sfp lumaMask) \n\
 { \n\
     sfp luma = dot(color, sfpvec3(1.0f)); \n\
     // 亮度指数 \n\
-    sfp colorMask = exp(-luma * 2 * PI / lumaMask); \n\
+    sfp colorMask = exp(-luma * sfp(2.0f) * PI / lumaMask); \n\
     // color*(1-colorMask)+color*luma \n\
     color = mix(color, sfpvec3(luma), colorMask); \n\
     // 生成基于亮度的饱和度图 \n\

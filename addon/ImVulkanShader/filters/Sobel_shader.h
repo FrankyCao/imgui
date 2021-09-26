@@ -52,8 +52,8 @@ void main() \n\
     int gy = int(gl_GlobalInvocationID.y); \n\
     if (gx >= p.out_w || gy >= p.out_h) \n\
         return; \n\
-    sfp vertical = 0.0f; \n\
-    sfp horizont = 0.0f; \n\
+    sfp vertical = sfp(0.0f); \n\
+    sfp horizont = sfp(0.0f); \n\
     for (int i = 0; i < 3; ++i) \n\
     { \n\
         for (int j = 0; j < 3; ++j) \n\

@@ -38,7 +38,7 @@ sfpvec3 hue(sfpvec3 color) \n\
     sfp   hue       = atan (Q, I); \n\
     sfp   chroma    = sqrt (I * I + Q * Q); \n\
     // Make the user's adjustments \n\
-    hue += (-p.hue); //why negative rotation? \n\
+    hue += sfp(-p.hue); //why negative rotation? \n\
     // Convert back to YIQ \n\
     Q = chroma * sin (hue); \n\
     I = chroma * cos (hue); \n\

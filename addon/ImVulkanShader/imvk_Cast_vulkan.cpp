@@ -143,6 +143,7 @@ Cast_vulkan::Cast_vulkan()
 
 int Cast_vulkan::create_pipeline(const Option& opt)
 {
+    vkdev = opt.blob_vkallocator->vkdev;
     const ImMat& shape = bottom_shapes.empty() ? ImMat() : bottom_shapes[0];
     const ImMat& out_shape = top_shapes.empty() ? ImMat() : top_shapes[0];
 

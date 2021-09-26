@@ -30,7 +30,7 @@ void main() \n\
     if (gx >= p.out_w || gy >= p.out_h) \n\
         return; \n\
     sfpvec4 color = load_rgba(gx, gy, p.w, p.cstep, p.in_format, p.in_type); \n\
-    sfpvec3 result = color.rgb * pow(sfp(2.0f), p.exposure); \n\
+    sfpvec3 result = color.rgb * pow(sfp(2.0f), sfp(p.exposure)); \n\
     result = clamp(result, sfpvec3(0.f), sfpvec3(1.0f)); \n\
     store_rgba(sfpvec4(result, 1.0f), gx, gy, p.out_w, p.out_cstep, p.out_format, p.out_type); \n\
 } \

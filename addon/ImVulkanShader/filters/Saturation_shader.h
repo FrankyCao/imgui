@@ -32,7 +32,7 @@ void main() \n\
         return; \n\
     sfpvec3 color = load_rgba(gx, gy, p.w, p.cstep, p.in_format, p.in_type).rgb; \n\
     sfp luminance = dot(color.rgb, W); \n\
-    sfpvec3 result = mix(sfpvec3(luminance), color.rgb, p.saturation); \n\
+    sfpvec3 result = mix(sfpvec3(luminance), color.rgb, sfp(p.saturation)); \n\
     result = clamp(result, sfpvec3(0.f), sfpvec3(1.0f)); \n\
     store_rgba(sfpvec4(result, 1.0f), gx, gy, p.out_w, p.out_cstep, p.out_format, p.out_type); \n\
 } \

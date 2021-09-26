@@ -11,6 +11,7 @@ CopyTo_vulkan::CopyTo_vulkan(int gpu)
     opt.staging_vkallocator = vkdev->acquire_staging_allocator();
     opt.use_image_storage = true;
     opt.use_fp16_arithmetic = true;
+    opt.use_fp16_storage = true;
     cmd = new VkCompute(vkdev);
 
     std::vector<vk_specialization_type> specializations(0);

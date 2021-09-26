@@ -43,14 +43,14 @@ void main() \n\
     { \n\
         for (int cx = uv.x - r; cx < tx; ++cx) \n\
         { \n\
-            sfp space2 = (uv.x - cx) * (uv.x - cx) + (uv.y - cy) * (uv.y - cy); \n\
+            sfp space2 = sfp((uv.x - cx) * (uv.x - cx) + (uv.y - cy) * (uv.y - cy)); \n\
             if (space2 < r2) \n\
             { \n\
                 int bx = max(0, min(cx, p.out_w - 1)); \n\
                 int by = max(0, min(cy, p.out_h - 1)); \n\
                 sfpvec3 color = load_rgba(bx, by, p.w, p.cstep, p.in_format, p.in_type).rgb; \n\
                 sfp norm = dot(abs(color - center), sfpvec3(1.0f)); \n\
-                sfp weight = exp(space2 * p.sigma_spatial2_inv_half + norm * norm * p.sigma_color2_inv_half); \n\
+                sfp weight = exp(space2 * sfp(p.sigma_spatial2_inv_half) + norm * norm * sfp(p.sigma_color2_inv_half)); \n\
                 sum1 = sum1 + weight * color; \n\
                 sum2 = sum2 + weight; \n\
             } \n\

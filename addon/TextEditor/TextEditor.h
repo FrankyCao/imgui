@@ -208,6 +208,7 @@ public:
 	bool IsOverwrite() const { return mOverwrite; }
 
 	void SetReadOnly(bool aValue);
+	void SetTextChanged(bool changed); 
 	bool IsReadOnly() const { return mReadOnly; }
 	bool IsTextChanged() const { return mTextChanged; }
 	bool IsCursorPositionChanged() const { return mCursorPositionChanged; }

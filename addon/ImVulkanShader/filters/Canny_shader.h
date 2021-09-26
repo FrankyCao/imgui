@@ -116,7 +116,7 @@ void main() \n\
     sfp secondGradientMagnitude = load_rgb(gx - int(direction.x), gy - int(direction.y), p.w, p.cstep, p.in_format, p.in_type).x; \n\
     sfp multiplier = step(firstGradientMagnitude, gradinetAndDirection.x); \n\
     multiplier = multiplier * step(secondGradientMagnitude, gradinetAndDirection.x); \n\
-    sfp thresholdCompliance = smoothstep(p.minThreshold, p.maxThreshold, gradinetAndDirection.x); \n\
+    sfp thresholdCompliance = smoothstep(sfp(p.minThreshold), sfp(p.maxThreshold), gradinetAndDirection.x); \n\
     multiplier = multiplier * thresholdCompliance; \n\
     store_gray(multiplier, gx, gy, p.out_w, p.out_cstep, p.out_format, p.out_type); \n\
 } \

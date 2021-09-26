@@ -2602,18 +2602,20 @@ VkTransfer::~VkTransfer()
 void VkTransfer::record_upload(const ImMat& src, VkMat& dst, const Option& opt, bool flatten)
 {
     // NOTE keep the hack here ?
+    /*
     if (src.elembits() == 32)
     {
         if (opt.use_fp16_storage || (opt.use_fp16_packed && src.elempack % 4 == 0))
         {
             ImMat src_fp16;
-            cast_float32_to_float16(src, src_fp16);
+            cast_float32_to_float16(src, src_fp16, opt);
 
             record_upload(src_fp16, dst, opt, flatten);
 
             return;
         }
     }
+    */
 
     ImMat src_flattened = flatten ? src.reshape(src.w * src.h * src.c) : src;
 

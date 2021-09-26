@@ -919,5 +919,10 @@ layout (push_constant) uniform parameter \n\
     int out_cstep; \n\
     int out_format; \n\
     int out_type; \n\
+    \n\
+    float param_x; \n\
+    float param_y; \n\
+    float param_z; \n\
+    float param_w; \n\
 } p; \n\
 "

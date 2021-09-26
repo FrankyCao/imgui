@@ -33,7 +33,7 @@ void main() \n\
     sfp average = (color.r + color.g + color.b) / sfp(3.0f); \n\
     sfp mx = max(color.r, max(color.g, color.b)); \n\
     sfp amt = (mx - average) * sfp(-p.vibrance * 3.0f); \n\
-    sfpvec3 result = mix(color.rgb, vec3(mx), amt); \n\
+    sfpvec3 result = mix(color.rgb, sfpvec3(mx), amt); \n\
     result = clamp(result, sfpvec3(0.f), sfpvec3(1.0f)); \n\
     store_rgba(sfpvec4(result, 1.0f), gx, gy, p.out_w, p.out_cstep, p.out_format, p.out_type); \n\
 } \

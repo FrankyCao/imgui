@@ -1393,6 +1393,11 @@ void TextEditor::SetReadOnly(bool aValue)
 	mReadOnly = aValue;
 }
 
+void TextEditor::SetTextChanged(bool changed)
+{
+	mTextChanged = changed;
+}
+
 void TextEditor::SetColorizerEnable(bool aValue)
 {
 	mColorizerEnabled = aValue;
