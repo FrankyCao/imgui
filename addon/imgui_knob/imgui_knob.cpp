@@ -524,7 +524,7 @@ static void draw_tick(ImVec2 center, float radius, float start, float end, float
             width * radius);
 }
 
-bool ImGui::Knob(char const *label, float *p_value, float v_min, float v_max, float v_default, float size,
+bool ImGui::Knob(char const *label, float *p_value, float v_min, float v_max, float v_step, float v_default, float size,
                 ColorSet circle_color, ColorSet wiper_color, ColorSet track_color, ColorSet tick_color,
                 ImGuiKnobType type, char const *format, int tick_steps)
 {
@@ -539,6 +539,7 @@ bool ImGui::Knob(char const *label, float *p_value, float v_min, float v_max, fl
     ImVec2 pos = ImGui::GetCursorScreenPos();
     ImVec2 center = ImVec2(pos.x + radius, pos.y + radius);
     auto textSize = CalcTextSize(label);
+    bool is_no_limit = isnan(v_min) || isnan(v_max);
     if (showLabel)
     {
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -548,17 +549,20 @@ bool ImGui::Knob(char const *label, float *p_value, float v_min, float v_max, fl
 
     ImGui::InvisibleButton(label, ImVec2(radius * 2, radius * 2 + line_height));
 
+    float step = isnan(v_step) ? (v_max - v_min) / 200.f : v_step;
     bool value_changed = false;
     bool is_active = ImGui::IsItemActive();
     bool is_hovered = ImGui::IsItemActive();
     if (is_active && io.MouseDelta.y != 0.0f)
     {
-        float step = (v_max - v_min) / 200.0f;
         *p_value -= io.MouseDelta.y * step;
-        if (*p_value < v_min)
-            *p_value = v_min;
-        if (*p_value > v_max)
-            *p_value = v_max;
+        if (!is_no_limit)
+        {
+            if (*p_value < v_min)
+                *p_value = v_min;
+            if (*p_value > v_max)
+                *p_value = v_max;
+        }
         value_changed = true;
     }
 
@@ -574,6 +578,12 @@ bool ImGui::Knob(char const *label, float *p_value, float v_min, float v_max, fl
     float angle_min = IM_PI * 0.75;
     float angle_max = IM_PI * 2.25;
     float t = (*p_value - v_min) / (v_max - v_min);
+    if (is_no_limit)
+    {
+        angle_min = -IM_PI * 0.5;
+        angle_max = IM_PI * 1.5;
+        t = *p_value;
+    }
     float angle = angle_min + (angle_max - angle_min) * t;
 
     switch (type)
@@ -588,31 +598,71 @@ bool ImGui::Knob(char const *label, float *p_value, float v_min, float v_max, fl
         break;
         case IMKNOB_TICK_WIPER:
             draw_circle(center, 0.6, true, 32, radius, circle_color);
-            draw_arc(center, 0.85, 0.25, radius, angle_min, angle_max, 16, 2, track_color);
-            if (t > 0.01)
-                draw_arc(center, 0.85, 0.27, radius, angle_min, angle, 16, 2, wiper_color);
+            if (!is_no_limit)
+            {
+                draw_arc(center, 0.85, 0.25, radius, angle_min, angle_max, 16, 2, track_color);
+                if (t > 0.01)
+                    draw_arc(center, 0.85, 0.27, radius, angle_min, angle, 16, 2, wiper_color);
+            }
+            else
+            {
+                draw_circle(center, 0.75, false, 32, radius, circle_color);
+            }
             draw_tick(center, radius, 0.4, 0.6, 0.1, angle, wiper_color);
         break;
         case IMKNOB_WIPER:
             draw_circle(center, 0.7, true, 32, radius, circle_color);
-            draw_arc(center, 0.8, 0.41, radius, angle_min, angle_max, 16, 2, track_color);
-            if (t > 0.01)
-                draw_arc(center, 0.8, 0.43, radius, angle_min, angle, 16, 2, wiper_color);
+            if (!is_no_limit)
+            {
+                draw_arc(center, 0.8, 0.41, radius, angle_min, angle_max, 16, 2, track_color);
+                if (t > 0.01)
+                    draw_arc(center, 0.8, 0.43, radius, angle_min, angle, 16, 2, wiper_color);
+            }
+            else
+            {
+                draw_circle(center, 0.9, false, 32, radius, circle_color);
+                draw_tick(center, radius, 0.75, 0.9, 0.1, angle, wiper_color);
+            }
         break;
         case IMKNOB_WIPER_TICK:
             draw_circle(center, 0.6, true, 32, radius, circle_color);
-            draw_arc(center, 0.85, 0.41, radius, angle_min, angle_max, 16, 2, track_color);
+            if (!is_no_limit)
+            {
+                draw_arc(center, 0.85, 0.41, radius, angle_min, angle_max, 16, 2, track_color);
+            }
+            else
+            {
+                draw_circle(center, 0.75, false, 32, radius, circle_color);
+                draw_circle(center, 0.9, false, 32, radius, circle_color);
+            }
             draw_tick(center, radius, 0.75, 0.9, 0.1, angle, wiper_color);
         break;
         case IMKNOB_WIPER_DOT:
             draw_circle(center, 0.6, true, 32, radius, circle_color);
-            draw_arc(center, 0.85, 0.41, radius, angle_min, angle_max, 16, 2, track_color);
+            if (!is_no_limit)
+            {
+                draw_arc(center, 0.85, 0.41, radius, angle_min, angle_max, 16, 2, track_color);
+            }
+            else
+            {
+                draw_circle(center, 0.80, false, 32, radius, circle_color);
+                draw_circle(center, 0.95, false, 32, radius, circle_color);
+            }
             draw_dot(center, 0.85, 0.1, radius, angle, true, 12, wiper_color);
         break;
         case IMKNOB_WIPER_ONLY:
-            draw_arc(center, 0.8, 0.41, radius, angle_min, angle_max, 32, 2, track_color);
-            if (t > 0.01)
-                draw_arc(center, 0.8, 0.43, radius, angle_min, angle, 16, 2, wiper_color);
+            if (!is_no_limit)
+            {
+                draw_arc(center, 0.8, 0.41, radius, angle_min, angle_max, 32, 2, track_color);
+                if (t > 0.01)
+                    draw_arc(center, 0.8, 0.43, radius, angle_min, angle, 16, 2, wiper_color);
+            }
+            else
+            {
+                draw_circle(center, 0.75, false, 32, radius, circle_color);
+                draw_circle(center, 0.90, false, 32, radius, circle_color);
+                draw_tick(center, radius, 0.75, 0.9, 0.1, angle, wiper_color);
+            }
         break;
         case IMKNOB_STEPPED_TICK:
             for (int i = 0; i < tick_steps; i++)
@@ -636,7 +686,7 @@ bool ImGui::Knob(char const *label, float *p_value, float v_min, float v_max, fl
         break;
         case IMKNOB_SPACE:
             draw_circle(center, 0.3 - t * 0.1, true, 16, radius, circle_color);
-            if (t > 0.01)
+            if (t > 0.01 && !is_no_limit)
             {
                 draw_arc(center, 0.4, 0.15, radius, angle_min - 1.0, angle - 1.0, 16, 2, wiper_color);
                 draw_arc(center, 0.6, 0.15, radius, angle_min + 1.0, angle + 1.0, 16, 2, wiper_color);
@@ -649,7 +699,14 @@ bool ImGui::Knob(char const *label, float *p_value, float v_min, float v_max, fl
 
     ImGui::PushItemWidth(size);
     std::string DragID = "###" + std::string(label) + "_KNOB_DRAG_CONTORL_";
-    ImGui::DragFloat(DragID.c_str(), p_value, (v_max - v_min) / 200.0, v_min, v_max, format);
+    if (is_no_limit)
+    {
+        ImGui::DragFloat(DragID.c_str(), p_value, step, FLT_MIN, FLT_MAX, format);
+    }
+    else
+    {
+        ImGui::DragFloat(DragID.c_str(), p_value, step, v_min, v_max, format);
+    }
     ImGui::PopItemWidth();
     ImGui::EndChild();
     return value_changed;

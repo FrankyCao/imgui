@@ -32,25 +32,49 @@ void ShowKnobDemoWindow()
     ColorSet tick_color = {tick_base_color, tick_active_color, tick_hovered_color};
 
     float knob_size = 80.f;
-    ImGui::Knob("##Tick", &val, 0.0f, 1.0f, val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_TICK, "%.03fdB");
+    float knob_step = NAN; // (max - min) / 200.f
+    ImGui::Knob("##Tick", &val, 0.0f, 1.0f, knob_step, val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_TICK, "%.03fdB");
     ImGui::SameLine();
-    ImGui::Knob("TickDot", &val, 0.0f, 1.0f, val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_TICK_DOT, "%.03fdB");
+    ImGui::Knob("TickDot", &val, 0.0f, 1.0f, knob_step, val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_TICK_DOT, "%.03fdB");
     ImGui::SameLine();
-    ImGui::Knob("TickWiper", &val, 0.0f, 1.0f, val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_TICK_WIPER, "%.03fdB");
+    ImGui::Knob("TickWiper", &val, 0.0f, 1.0f, knob_step, val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_TICK_WIPER, "%.03fdB");
     ImGui::SameLine();
-    ImGui::Knob("Wiper", &val, 0.0f, 1.0f, val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_WIPER, "%.03fdB");
+    ImGui::Knob("Wiper", &val, 0.0f, 1.0f, knob_step, val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_WIPER, "%.03fdB");
     ImGui::SameLine();
-    ImGui::Knob("WiperTick", &val, 0.0f, 1.0f, val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_WIPER_TICK, "%.03fdB");
+    ImGui::Knob("WiperTick", &val, 0.0f, 1.0f, knob_step, val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_WIPER_TICK, "%.03fdB");
     ImGui::SameLine();
-    ImGui::Knob("WiperDot", &val, 0.0f, 1.0f, val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_WIPER_DOT, "%.03fdB");
+    ImGui::Knob("WiperDot", &val, 0.0f, 1.0f, knob_step, val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_WIPER_DOT, "%.03fdB");
     ImGui::SameLine();
-    ImGui::Knob("WiperOnly", &val, 0.0f, 1.0f, val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_WIPER_ONLY, "%.03fdB");
+    ImGui::Knob("WiperOnly", &val, 0.0f, 1.0f, knob_step, val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_WIPER_ONLY, "%.03fdB");
     ImGui::SameLine();
-    ImGui::Knob("SteppedTick", &val, 0.0f, 1.0f, val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_STEPPED_TICK, "%.03fdB", 10);
+    ImGui::Knob("SteppedTick", &val, 0.0f, 1.0f, knob_step, val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_STEPPED_TICK, "%.03fdB", 10);
     ImGui::SameLine();
-    ImGui::Knob("SteppedDot", &val, 0.0f, 1.0f, val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_STEPPED_DOT, "%.03fdB", 10);
+    ImGui::Knob("SteppedDot", &val, 0.0f, 1.0f, knob_step, val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_STEPPED_DOT, "%.03fdB", 10);
     ImGui::SameLine();
-    ImGui::Knob("Space", &val, 0.0f, 1.0f, val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_SPACE, "%.03fdB");
+    ImGui::Knob("Space", &val, 0.0f, 1.0f, knob_step, val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_SPACE, "%.03fdB");
+
+    // no limit knob
+    static float no_limit_val = 0.5, no_limit_val_default = 0.5;
+    float no_limit_knob_step = 0.01; // (max - min) / 200.f
+    ImGui::Knob("##TickNL", &no_limit_val, NAN, NAN, no_limit_knob_step, no_limit_val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_TICK, "%.03f");
+    ImGui::SameLine();
+    ImGui::Knob("TickDotNL", &no_limit_val, NAN, NAN, no_limit_knob_step, no_limit_val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_TICK_DOT, "%.03f");
+    ImGui::SameLine();
+    ImGui::Knob("TickWiperNL", &no_limit_val, NAN, NAN, no_limit_knob_step, no_limit_val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_TICK_WIPER, "%.03f");
+    ImGui::SameLine();
+    ImGui::Knob("WiperNL", &no_limit_val, NAN, NAN, no_limit_knob_step, no_limit_val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_WIPER, "%.03f");
+    ImGui::SameLine();
+    ImGui::Knob("WiperTickNL", &no_limit_val, NAN, NAN, no_limit_knob_step, no_limit_val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_WIPER_TICK, "%.03f");
+    ImGui::SameLine();
+    ImGui::Knob("WiperDotNL", &no_limit_val, NAN, NAN, no_limit_knob_step, no_limit_val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_WIPER_DOT, "%.03f");
+    ImGui::SameLine();
+    ImGui::Knob("WiperOnlyNL", &no_limit_val, NAN, NAN, no_limit_knob_step, no_limit_val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_WIPER_ONLY, "%.03f");
+    ImGui::SameLine();
+    ImGui::Knob("SteppedTickNL", &no_limit_val, NAN, NAN, no_limit_knob_step, no_limit_val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_STEPPED_TICK, "%.03f", 10);
+    ImGui::SameLine();
+    ImGui::Knob("SteppedDotNL", &no_limit_val, NAN, NAN, no_limit_knob_step, no_limit_val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_STEPPED_DOT, "%.03f", 10);
+    ImGui::SameLine();
+    ImGui::Knob("SpaceNL", &no_limit_val, NAN, NAN, no_limit_knob_step, no_limit_val_default, knob_size, circle_color,  wiper_color, track_color, tick_color, ImGui::ImGuiKnobType::IMKNOB_SPACE, "%.03f");
 
     int idb = val * 80;
     ImGui::Fader("##mastervol", ImVec2(20, 80), &idb, 0, 80, "%d", 1.0f); ImGui::ShowTooltipOnHover("Slide.");

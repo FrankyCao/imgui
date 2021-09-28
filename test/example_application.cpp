@@ -334,7 +334,7 @@ bool Application_Frame(void* handle)
     // Show KNob Window
     if (example->show_knob_window)
     {
-        ImGui::SetNextWindowSize(ImVec2(900, 300), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(900, 400), ImGuiCond_FirstUseEver);
         ImGui::Begin("KNob Widget", &example->show_knob_window);
         ImGui::ShowKnobDemoWindow();
         ImGui::End();

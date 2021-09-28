@@ -37,7 +37,7 @@ IMGUI_API bool SliderBehavior(const ImRect& bb, ImGuiID id, ImGuiDataType data_t
 IMGUI_API void UvMeter(char const *label, ImVec2 const &size, int *value, int v_min, int v_max, int steps = 10, int* stack = nullptr, int* count = nullptr);
 IMGUI_API void UvMeter(char const *label, ImVec2 const &size, float *value, float v_min, float v_max, int steps = 10, float* stack = nullptr, int* count = nullptr);
 
-IMGUI_API bool Knob(char const *label, float *p_value, float v_min, float v_max, float v_default, float size,
+IMGUI_API bool Knob(char const *label, float *p_value, float v_min, float v_max, float v_step, float v_default, float size,
                     ColorSet circle_color, ColorSet wiper_color, ColorSet track_color, ColorSet tick_color,
                     ImGuiKnobType type = IMKNOB_WIPER, char const *format = nullptr, int tick_steps = 0);
 
