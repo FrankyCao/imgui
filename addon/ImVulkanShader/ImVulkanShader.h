@@ -3,6 +3,7 @@
 #include "imvk_gpu.h"
 #include "imvk_pipeline.h"
 #include "imvk_command.h"
+#include "imvk_substract_mean_normalize.h"
 #include "filters/ColorConvert_vulkan.h"
 #include "filters/Resize_vulkan.h"
 #include <vulkan/vulkan.h>

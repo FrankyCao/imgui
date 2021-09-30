@@ -807,6 +807,7 @@ if (VULKAN_FOUND AND (IMGUI_VULKAN OR IMGUI_VULKAN_SHADER))
         addon/ImVulkanShader/imvk_pipelinecache.cpp
         addon/ImVulkanShader/imvk_Cast_vulkan.cpp
         addon/ImVulkanShader/imvk_Packing_vulkan.cpp
+        addon/ImVulkanShader/imvk_substract_mean_normalize.cpp
         addon/ImVulkanShader/ImVulkanShader.cpp
     )
     set(IMGUI_INCS
@@ -826,6 +827,8 @@ if (VULKAN_FOUND AND (IMGUI_VULKAN OR IMGUI_VULKAN_SHADER))
         addon/ImVulkanShader/imvk_Cast_vulkan.h
         addon/ImVulkanShader/imvk_Packing_shader.h
         addon/ImVulkanShader/imvk_Packing_vulkan.h
+        addon/ImVulkanShader/imvk_substract_mean_normalize_shader.h
+        addon/ImVulkanShader/imvk_substract_mean_normalize.h
         addon/ImVulkanShader/ImVulkanShader.h
     )
     set(IMGUI_SRC

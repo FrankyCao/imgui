@@ -806,10 +806,10 @@ void store_rgb_float_no_clamp(sfpvec3 val, int x, int y, int w, int cstep, int f
 void store_rgba_float16_no_clamp_"#dst"(sfpvec4 val, int x, int y, int w, int cstep, int format) \n\
 { \n\
     ivec4 o_offset = (y * w + x) * cstep + (format == CF_ABGR ? ivec4(0, 1, 2, 3) : ivec4(2, 1, 0, 3)); \n\
-    "#dst"_data[o_offset.r] = float16_t(val.r); \n\
-    "#dst"_data[o_offset.g] = float16_t(val.g); \n\
-    "#dst"_data[o_offset.b] = float16_t(val.b); \n\
-    "#dst"_data[o_offset.a] = float16_t(val.a); \n\
+    "#dst"_data_float16[o_offset.r] = float16_t(val.r); \n\
+    "#dst"_data_float16[o_offset.g] = float16_t(val.g); \n\
+    "#dst"_data_float16[o_offset.b] = float16_t(val.b); \n\
+    "#dst"_data_float16[o_offset.a] = float16_t(val.a); \n\
 } \n\
 "
 
@@ -818,10 +818,10 @@ void store_rgba_float16_no_clamp_"#dst"(sfpvec4 val, int x, int y, int w, int cs
 void store_rgba_float32_no_clamp_"#dst"(sfpvec4 val, int x, int y, int w, int cstep, int format) \n\
 { \n\
     ivec4 o_offset = (y * w + x) * cstep + (format == CF_ABGR ? ivec4(0, 1, 2, 3) : ivec4(2, 1, 0, 3)); \n\
-    "#dst"_data[o_offset.r] = float(val.r); \n\
-    "#dst"_data[o_offset.g] = float(val.g); \n\
-    "#dst"_data[o_offset.b] = float(val.b); \n\
-    "#dst"_data[o_offset.a] = float(val.a); \n\
+    "#dst"_data_float32[o_offset.r] = float(val.r); \n\
+    "#dst"_data_float32[o_offset.g] = float(val.g); \n\
+    "#dst"_data_float32[o_offset.b] = float(val.b); \n\
+    "#dst"_data_float32[o_offset.a] = float(val.a); \n\
 } \n\
 "
 
