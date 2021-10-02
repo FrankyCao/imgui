@@ -53,11 +53,10 @@ SOFTWARE.
 	#define stricmp _stricmp
 	#include <cctype>
 	// this option need c++17
-	#ifdef USE_STD_FILESYSTEM
+	// Modify By Dicky
 		#include <Windows.h>
-	#else
-		#include "dirent/dirent.h" // directly open the dirent file attached to this lib
-	#endif // USE_STD_FILESYSTEM
+		#include <dirent_portable.h> // directly open the dirent file attached to this lib
+	// Modify By Dicky end
 	#define PATH_SEP '\\'
 	#ifndef PATH_MAX
 		#define PATH_MAX 260
