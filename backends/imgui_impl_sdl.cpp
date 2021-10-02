@@ -81,6 +81,12 @@
 static const Uint32 SDL_WINDOW_VULKAN = 0x10000000;
 #endif
 
+// Add By Dicky
+extern "C" {
+    extern DECLSPEC void SDLCALL SDL_Vulkan_GetDrawableSize(SDL_Window * window, int * w, int * h);
+}
+// Add By Dicky end
+
 // SDL Data
 struct ImGui_ImplSDL2_Data
 {
@@ -522,7 +528,15 @@ void ImGui_ImplSDL2_NewFrame()
     SDL_GetWindowSize(bd->Window, &w, &h);
     if (SDL_GetWindowFlags(bd->Window) & SDL_WINDOW_MINIMIZED)
         w = h = 0;
-    SDL_GL_GetDrawableSize(bd->Window, &display_w, &display_h);
+    
+    // Modify By Dicky
+    //SDL_GL_GetDrawableSize(bd->Window, &display_w, &display_h);
+    if (SDL_GetWindowFlags(bd->Window) & SDL_WINDOW_VULKAN)
+        SDL_Vulkan_GetDrawableSize(bd->Window, &display_w, &display_h);
+    else
+        SDL_GL_GetDrawableSize(bd->Window, &display_w, &display_h);
+    // Modify By Dicky end
+
     io.DisplaySize = ImVec2((float)w, (float)h);
     if (w > 0 && h > 0)
         io.DisplayFramebufferScale = ImVec2((float)display_w / w, (float)display_h / h);

@@ -2,14 +2,17 @@
 #include <imgui.h>
 // uncomment and modify defines under for customize ImGuiFileDialog
 
+//this options need c++17
+//#define USE_STD_FILESYSTEM
+
 //#define MAX_FILE_DIALOG_NAME_BUFFER 1024
 //#define MAX_PATH_BUFFER_SIZE 1024
 
-#define USE_THUMBNAILS
-#if IMGUI_ICONS
-#define DisplayMode_FilesList_ButtonString ICON_IGFD_FILE_LIST
-#define DisplayMode_ThumbailsList_ButtonString ICON_IGFD_FILE_LIST_THUMBNAILS
-#endif
+//#define USE_THUMBNAILS
+//#if IMGUI_ICONS
+//#define DisplayMode_FilesList_ButtonString ICON_IGFD_FILE_LIST
+//#define DisplayMode_ThumbailsList_ButtonString ICON_IGFD_FILE_LIST_THUMBNAILS
+//#endif
 //the thumbnail generation use the stb_image and stb_resize lib who need to define the implementation
 //btw if you already use them in your app, you can have compiler error due to "implemntation found in double"
 //so uncomment these line for prevent the creation of implementation of these libs again
@@ -17,6 +20,7 @@
 //#define DONT_DEFINE_AGAIN__STB_IMAGE_RESIZE_IMPLEMENTATION
 //#define IMGUI_RADIO_BUTTON RadioButton
 //#define DisplayMode_ThumbailsList_ImageHeight 32.0f
+//#define tableHeaderFileThumbnailsString "Thumbnails"
 //#define DisplayMode_FilesList_ButtonString "FL"
 //#define DisplayMode_FilesList_ButtonHelp "File List"
 //#define DisplayMode_ThumbailsList_ButtonString "TL"
@@ -24,6 +28,7 @@
 // todo
 //#define DisplayMode_ThumbailsGrid_ButtonString "TG"
 //#define DisplayMode_ThumbailsGrid_ButtonHelp "Thumbnails Grid"
+
 
 //#define USE_EXPLORATION_BY_KEYS
 // this mapping by default is for GLFW but you can use another
