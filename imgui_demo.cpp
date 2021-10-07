@@ -312,6 +312,7 @@ void ImGui::ShowDemoWindow(bool* p_open)
 
     // Dear ImGui Apps (accessible from the "Tools" menu)
     static bool show_app_metrics = false;
+    static bool show_app_stack_tool = false;
     static bool show_app_style_editor = false;
     static bool show_app_theme_generator = false;   // Add By Dicky
 #if IMGUI_VULKAN_SHADER
@@ -320,6 +321,7 @@ void ImGui::ShowDemoWindow(bool* p_open)
     static bool show_app_about = false;
 
     if (show_app_metrics)       { ImGui::ShowMetricsWindow(&show_app_metrics); }
+    if (show_app_stack_tool)    { ImGui::ShowStackToolWindow(&show_app_stack_tool); }
     if (show_app_about)         { ImGui::ShowAboutWindow(&show_app_about); }
     if (show_app_style_editor)
     {
@@ -419,7 +421,10 @@ void ImGui::ShowDemoWindow(bool* p_open)
         //if (ImGui::MenuItem("MenuItem")) {} // You can also use MenuItem() inside a menu bar!
         if (ImGui::BeginMenu("Tools"))
         {
+#ifndef IMGUI_DISABLE_METRICS_WINDOW
             ImGui::MenuItem("Metrics/Debugger", NULL, &show_app_metrics);
+            ImGui::MenuItem("Stack Tool", NULL, &show_app_stack_tool);
+#endif
             ImGui::MenuItem("Style Editor", NULL, &show_app_style_editor);
             ImGui::MenuItem("Theme Generator", NULL, &show_app_theme_generator); // Add By Dicky
 #if IMGUI_VULKAN_SHADER
