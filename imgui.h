@@ -1,4 +1,4 @@
-// dear imgui, v1.85 WIP
+// dear imgui, v1.85
 // (headers)
 
 // Help:
@@ -64,8 +64,8 @@ Index of this file:
 #include <stdint.h>                 // int64_t add by Dicky
 // Version
 // (Integer encoded as XYYZZ for use in #if preprocessor conditionals. Work in progress versions typically starts at XYY99 then bounce up to XYY00, XYY01 etc. when release tagging happens)
-#define IMGUI_VERSION               "1.85 WIP"
-#define IMGUI_VERSION_NUM           18419
+#define IMGUI_VERSION               "1.85"
+#define IMGUI_VERSION_NUM           18500
 #define IMGUI_CHECKVERSION()        ImGui::DebugCheckVersionAndDataLayout(IMGUI_VERSION, sizeof(ImGuiIO), sizeof(ImGuiStyle), sizeof(ImVec2), sizeof(ImVec4), sizeof(ImDrawVert), sizeof(ImDrawIdx))
 #define IMGUI_HAS_TABLE
 #define IMGUI_HAS_VIEWPORT          // Viewport WIP branch
@@ -281,10 +281,12 @@ struct ImVec4
     float                                           x, y, z, w;
     ImVec4()                                        { x = y = z = w = 0.0f; }
     ImVec4(float _x, float _y, float _z, float _w)  { x = _x; y = _y; z = _z; w = _w; }
-    bool operator==(const ImVec4& d) const          { return x == d.x && y == d.y && z == d.z && w == d.w; } // Add By Dicky
-    bool operator==(const ImVec4& d)                { return x == d.x && y == d.y && z == d.z && w == d.w; } // Add By Dicky
-    bool operator!=(const ImVec4& d) const          { return x != d.x || y != d.y || z != d.z || w != d.w; } // Add By Dicky
-    bool operator!=(const ImVec4& d)                { return x != d.x || y != d.y || z != d.z || w != d.w; } // Add By Dicky
+    // Add By Dicky
+    bool operator==(const ImVec4& d) const          { return x == d.x && y == d.y && z == d.z && w == d.w; }
+    bool operator==(const ImVec4& d)                { return x == d.x && y == d.y && z == d.z && w == d.w; }
+    bool operator!=(const ImVec4& d) const          { return x != d.x || y != d.y || z != d.z || w != d.w; }
+    bool operator!=(const ImVec4& d)                { return x != d.x || y != d.y || z != d.z || w != d.w; }
+    // Add By Dicky end
 
 #ifdef IM_VEC4_CLASS_EXTRA
     IM_VEC4_CLASS_EXTRA     // Define additional constructors and implicit cast operators in imconfig.h to convert back and forth between your math types and ImVec4.
