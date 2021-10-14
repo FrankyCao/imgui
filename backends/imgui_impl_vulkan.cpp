@@ -370,8 +370,7 @@ static uint32_t ImGui_ImplVulkan_MemoryType(VkMemoryPropertyFlags properties, ui
 static void check_vk_result(VkResult err)
 {
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
-    if (!bd)
-        return;
+    if (!bd) return;
     ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo; // modify by Dicky
     if (v->CheckVkResultFn)
         v->CheckVkResultFn(err);
@@ -1986,15 +1985,13 @@ static void copyImageToBuffer(ImGui_ImplVulkan_InitInfo* v, VkCommandPool comman
 ImTextureID ImGui_ImplVulkan_CreateTexture(const void * pixels, int width, int height)
 {
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
+    if (!bd) return (ImTextureID)0;
     ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
-    VkCommandPool commandPool = VK_NULL_HANDLE;
-    VkDeviceSize imageSize = width * height * 4;
-    if (!v || !v->PhysicalDevice)
-    {
-        return (ImTextureID)0;
-    }
+    if (!v || !v->PhysicalDevice) return (ImTextureID)0;
 
     // create texture
+    VkCommandPool commandPool = VK_NULL_HANDLE;
+    VkDeviceSize imageSize = width * height * 4;
     ImTextureVk texture = new ImTextureVK("Texture From CPU");
     // create staging buffer
     VkBuffer stagingBuffer;
@@ -2048,14 +2045,12 @@ ImTextureID ImGui_ImplVulkan_CreateTexture(const void * pixels, int width, int h
 ImTextureID ImGui_ImplVulkan_CreateTexture(VkBuffer buffer, size_t buffer_offset, int width, int height)
 {
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
+    if (!bd) return (ImTextureID)0;
     ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
-    VkCommandPool commandPool = VK_NULL_HANDLE;
-    if (!v || !v->PhysicalDevice)
-    {
-        return (ImTextureID)0;
-    }
+    if (!v || !v->PhysicalDevice) return (ImTextureID)0;
 
     // create texture
+    VkCommandPool commandPool = VK_NULL_HANDLE;
     ImTextureVk texture = new ImTextureVK("Texture From GPU");
     VkDeviceSize imageSize = width * height * 4;
 
@@ -2093,14 +2088,11 @@ ImTextureID ImGui_ImplVulkan_CreateTexture(VkBuffer buffer, size_t buffer_offset
 void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, VkBuffer stagingBuffer, size_t buffer_offset, int width, int height)
 {
     ImTextureVk texture = (ImTextureVk)textureid;
-    if (!texture)
-        return;
+    if (!texture) return;
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
+    if (!bd) return;
     ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
-    if (!v || !v->PhysicalDevice)
-    {
-        return;
-    }
+    if (!v || !v->PhysicalDevice) return;
     VkDeviceSize imageSize = width * height * 4;
     
     // create staging buffer
@@ -2130,14 +2122,11 @@ void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, VkBuffer stagingBuffe
 void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, const void * pixels, int width, int height)
 {
     ImTextureVk texture = (ImTextureVk)textureid;
-    if (!texture)
-        return;
+    if (!texture) return;
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
+    if (!bd) return;
     ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
-    if (!v || !v->PhysicalDevice)
-    {
-        return;
-    }
+    if (!v || !v->PhysicalDevice) return;
 
     VkDeviceSize imageSize = width * height * 4;
     
@@ -2182,14 +2171,11 @@ void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, const void * pixels, 
 
 void ImGui_ImplVulkan_SaveTexture(ImTextureVk texture, int width, int height, std::string path)
 {
-    if (!texture)
-        return;
+    if (!texture) return;
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
+    if (!bd) return;
     ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
-    if (!v || !v->PhysicalDevice)
-    {
-        return;
-    }
+    if (!v || !v->PhysicalDevice) return;
 
     VkDeviceSize imageSize = width * height * 4;
     VkBuffer stagingBuffer;
@@ -2250,9 +2236,9 @@ void ImGui_ImplVulkan_SaveTexture(ImTextureVk texture, int width, int height, st
 void ImGui_ImplVulkan_DestroyTexture(ImTextureVk* texture)
 {
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
+    if (!bd) return;
     ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
-    if (!v || !v->PhysicalDevice)
-        return;
+    if (!v || !v->PhysicalDevice) return;
 
     if (texture && *texture)            
     {
@@ -2275,9 +2261,9 @@ VkDescriptorSet ImGui_ImplVulkan_AddTexture(VkSampler sampler, VkImageView image
 {
     VkResult err;
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
+    if (!bd) return {};
     ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
-    if (!v || !v->PhysicalDevice)
-        return {};
+    if (!v || !v->PhysicalDevice) return {};
 
     VkDescriptorSet descriptor_set;
     // Create Descriptor Set:
@@ -2312,9 +2298,9 @@ VkDescriptorSet ImGui_ImplVulkan_AddTexture(VkSampler sampler, VkImageView image
 std::string ImGui_ImplVulkan_GetDeviceName()
 {
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
+    if (!bd) return "Unknown";
     ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
-    if (!v || !v->PhysicalDevice)
-        return "Unknown";
+    if (!v || !v->PhysicalDevice) return "Unknown";
     VkPhysicalDeviceProperties physicalDeviceProperties;
     vkGetPhysicalDeviceProperties(v->PhysicalDevice, &physicalDeviceProperties);
     return std::string(physicalDeviceProperties.deviceName);
@@ -2323,9 +2309,9 @@ std::string ImGui_ImplVulkan_GetDeviceName()
 std::string ImGui_ImplVulkan_GetApiVersion()
 {
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
+    if (!bd) return "Unknown";
     ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
-    if (!v || !v->PhysicalDevice)
-        return "Unknown";
+    if (!v || !v->PhysicalDevice) return "Unknown";
     VkPhysicalDeviceProperties physicalDeviceProperties;
     vkGetPhysicalDeviceProperties(v->PhysicalDevice, &physicalDeviceProperties);
     return  std::to_string(VK_VERSION_MAJOR(physicalDeviceProperties.apiVersion)) + "." +
@@ -2336,9 +2322,9 @@ std::string ImGui_ImplVulkan_GetApiVersion()
 std::string ImGui_ImplVulkan_GetDrvVersion()
 {
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
+    if (!bd) return "Unknown";
     ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
-    if (!v || !v->PhysicalDevice)
-        return "Unknown";
+    if (!v || !v->PhysicalDevice) return "Unknown";
     VkPhysicalDeviceProperties physicalDeviceProperties;
     vkGetPhysicalDeviceProperties(v->PhysicalDevice, &physicalDeviceProperties);
     return  std::to_string(VK_VERSION_MAJOR(physicalDeviceProperties.driverVersion)) + "." +
@@ -2349,6 +2335,7 @@ std::string ImGui_ImplVulkan_GetDrvVersion()
 ImGui_ImplVulkan_InitInfo* ImGui_ImplVulkan_GetInitInfo()
 {
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
+    if (!bd) return {};
     ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
     return v;
 }
