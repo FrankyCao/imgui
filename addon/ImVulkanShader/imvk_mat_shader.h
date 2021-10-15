@@ -144,6 +144,7 @@ void main()
 #define CF_YUV444   9 \n\
 #define CF_YUVA     10 \n\
 #define CF_NV12     11 \n\
+#define CF_P010LE   12 \n\
 #define INTERPOLATE_NEAREST     0 \n\
 #define INTERPOLATE_BILINEAR    1 \n\
 #define INTERPOLATE_BICUBIC     2 \n\

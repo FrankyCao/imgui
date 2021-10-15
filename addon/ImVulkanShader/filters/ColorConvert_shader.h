@@ -186,72 +186,88 @@ sfpvec3 rgb_to_yuv(sfpvec3 rgb) \n\
 
 #define SHADER_STORE_YUV_INT8 \
 " \n\
-void store_yuv_int8(sfpvec3 v, int y_offset, int u_offset, int v_offset, ivec2 uv_offset) \n\
+void store_yuv_int8(sfpvec3 yuv, int y_offset, int u_offset, int v_offset, ivec2 uv_offset) \n\
 { \n\
-    dst_data_int8[y_offset] = uint8_t(clamp(uint(floor(v.x * sfp(255.0f))), 0, 255)); \n\
+    dst_data_int8[y_offset] = uint8_t(clamp(uint(floor(yuv.x * sfp(255.0f))), 0, 255)); \n\
     if (p.out_format == CF_NV12) \n\
     { \n\
-        dst_data_int8[uv_offset.x] = uint8_t(clamp(uint(floor(v.y * sfp(255.0f))), 0, 255)); \n\
-        dst_data_int8[uv_offset.y] = uint8_t(clamp(uint(floor(v.z * sfp(255.0f))), 0, 255)); \n\
+        dst_data_int8[uv_offset.x] = uint8_t(clamp(uint(floor(yuv.y * sfp(255.0f))), 0, 255)); \n\
+        dst_data_int8[uv_offset.y] = uint8_t(clamp(uint(floor(yuv.z * sfp(255.0f))), 0, 255)); \n\
     } \n\
     else \n\
     { \n\
-        dst_data_int8[u_offset] = uint8_t(clamp(uint(floor(v.y * sfp(255.0f))), 0, 255)); \n\
-        dst_data_int8[v_offset] = uint8_t(clamp(uint(floor(v.z * sfp(255.0f))), 0, 255)); \n\
+        dst_data_int8[u_offset] = uint8_t(clamp(uint(floor(yuv.y * sfp(255.0f))), 0, 255)); \n\
+        dst_data_int8[v_offset] = uint8_t(clamp(uint(floor(yuv.z * sfp(255.0f))), 0, 255)); \n\
     } \n\
 } \
 "
 
 #define SHADER_STORE_YUV_INT16 \
 " \n\
-void store_yuv_int16(sfpvec3 v, int y_offset, int u_offset, int v_offset, ivec2 uv_offset) \n\
+void store_yuv_int16(sfpvec3 yuv, int y_offset, int u_offset, int v_offset, ivec2 uv_offset) \n\
 { \n\
-    dst_data_int16[y_offset] = uint16_t(clamp(uint(floor(v.x * sfp(p.in_scale))), 0, uint(p.in_scale))); \n\
+    if (p.out_format == CF_P010LE) \n\
+    { \n\
+        uint16_t y = uint16_t(uint(floor(yuv.x * sfp(255.0)))); \n\
+        uint16_t hy = uint16_t(uint(floor(yuv.x * sfp(65535.0)))); \n\
+        dst_data_int16[y_offset] = y | hy; \n\
+    } \n\
+    else \n\
+        dst_data_int16[y_offset] = uint16_t(clamp(uint(floor(yuv.x * sfp(p.in_scale))), 0, uint(p.in_scale))); \n\
     if (p.out_format == CF_NV12) \n\
     { \n\
-        dst_data_int16[uv_offset.x] = uint16_t(clamp(uint(floor(v.y * sfp(p.in_scale))), 0, uint(p.in_scale))); \n\
-        dst_data_int16[uv_offset.y] = uint16_t(clamp(uint(floor(v.z * sfp(p.in_scale))), 0, uint(p.in_scale))); \n\
+        dst_data_int16[uv_offset.x] = uint16_t(clamp(uint(floor(yuv.y * sfp(p.in_scale))), 0, uint(p.in_scale))); \n\
+        dst_data_int16[uv_offset.y] = uint16_t(clamp(uint(floor(yuv.z * sfp(p.in_scale))), 0, uint(p.in_scale))); \n\
+    } \n\
+    else if (p.out_format == CF_P010LE) \n\
+    { \n\
+        uint16_t u = uint16_t(uint(floor(yuv.y * sfp(255.0)))); \n\
+        uint16_t hu = uint16_t(uint(floor(yuv.y * sfp(65535.0)))); \n\
+        uint16_t v = uint16_t(uint(floor(yuv.z * sfp(255.0)))); \n\
+        uint16_t hv = uint16_t(uint(floor(yuv.z * sfp(65535.0)))); \n\
+        dst_data_int16[uv_offset.x] = u | hu; \n\
+        dst_data_int16[uv_offset.y] = v | hv; \n\
     } \n\
     else \n\
     { \n\
-        dst_data_int16[u_offset] = uint16_t(clamp(uint(floor(v.y * sfp(p.in_scale))), 0, uint(p.in_scale))); \n\
-        dst_data_int16[v_offset] = uint16_t(clamp(uint(floor(v.z * sfp(p.in_scale))), 0, uint(p.in_scale))); \n\
+        dst_data_int16[u_offset] = uint16_t(clamp(uint(floor(yuv.y * sfp(p.in_scale))), 0, uint(p.in_scale))); \n\
+        dst_data_int16[v_offset] = uint16_t(clamp(uint(floor(yuv.z * sfp(p.in_scale))), 0, uint(p.in_scale))); \n\
     } \n\
 } \
 "
 
 #define SHADER_STORE_YUV_FLOAT16 \
 " \n\
-void store_yuv_float16(sfpvec3 v, int y_offset, int u_offset, int v_offset, ivec2 uv_offset) \n\
+void store_yuv_float16(sfpvec3 yuv, int y_offset, int u_offset, int v_offset, ivec2 uv_offset) \n\
 { \n\
-    dst_data_float16[y_offset] = float16_t(clamp(v.x, sfp(0.0f), sfp(1.0f))); \n\
+    dst_data_float16[y_offset] = float16_t(clamp(yuv.x, sfp(0.0f), sfp(1.0f))); \n\
     if (p.out_format == CF_NV12) \n\
     { \n\
-        dst_data_float16[uv_offset.x] = float16_t(clamp(v.y, sfp(0.0f), sfp(1.0f))); \n\
-        dst_data_float16[uv_offset.y] = float16_t(clamp(v.z, sfp(0.0f), sfp(1.0f))); \n\
+        dst_data_float16[uv_offset.x] = float16_t(clamp(yuv.y, sfp(0.0f), sfp(1.0f))); \n\
+        dst_data_float16[uv_offset.y] = float16_t(clamp(yuv.z, sfp(0.0f), sfp(1.0f))); \n\
     } \n\
     else \n\
     { \n\
-        dst_data_float16[u_offset] = float16_t(clamp(v.y, sfp(0.0f), sfp(1.0f))); \n\
-        dst_data_float16[v_offset] = float16_t(clamp(v.z, sfp(0.0f), sfp(1.0f))); \n\
+        dst_data_float16[u_offset] = float16_t(clamp(yuv.y, sfp(0.0f), sfp(1.0f))); \n\
+        dst_data_float16[v_offset] = float16_t(clamp(yuv.z, sfp(0.0f), sfp(1.0f))); \n\
     } \n\
 } \
 "
 
 #define SHADER_STORE_YUV_FLOAT32 \
 " \n\
-void store_yuv_float32(sfpvec3 v, int y_offset, int u_offset, int v_offset, ivec2 uv_offset) \n\
+void store_yuv_float32(sfpvec3 yuv, int y_offset, int u_offset, int v_offset, ivec2 uv_offset) \n\
 { \n\
-    dst_data_float32[y_offset] = clamp(v.x, sfp(0.0f), sfp(1.0f)); \n\
+    dst_data_float32[y_offset] = clamp(yuv.x, sfp(0.0f), sfp(1.0f)); \n\
     if (p.out_format == CF_NV12) \n\
     { \n\
-        dst_data_float32[uv_offset.x] = float(clamp(v.y, sfp(0.0f), sfp(1.0f))); \n\
-        dst_data_float32[uv_offset.y] = float(clamp(v.z, sfp(0.0f), sfp(1.0f))); \n\
+        dst_data_float32[uv_offset.x] = float(clamp(yuv.y, sfp(0.0f), sfp(1.0f))); \n\
+        dst_data_float32[uv_offset.y] = float(clamp(yuv.z, sfp(0.0f), sfp(1.0f))); \n\
     } \n\
     else \n\
     { \n\
-        dst_data_float32[u_offset] = float(clamp(v.y, sfp(0.0f), sfp(1.0f))); \n\
-        dst_data_float32[v_offset] = float(clamp(v.z, sfp(0.0f), sfp(1.0f))); \n\
+        dst_data_float32[u_offset] = float(clamp(yuv.y, sfp(0.0f), sfp(1.0f))); \n\
+        dst_data_float32[v_offset] = float(clamp(yuv.z, sfp(0.0f), sfp(1.0f))); \n\
     } \n\
 } \
 "

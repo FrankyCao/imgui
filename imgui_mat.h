@@ -153,6 +153,7 @@ enum ImColorFormat {
     IM_CF_YUV444,
     IM_CF_YUVA,
     IM_CF_NV12,
+    IM_CF_P010LE,
 };
 
 enum ImInterpolateMode {
