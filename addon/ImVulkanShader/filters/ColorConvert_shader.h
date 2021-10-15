@@ -167,6 +167,7 @@ layout (push_constant) uniform parameter \n\
     int out_type; \n\
     int out_space; \n\
     int out_range; \n\
+    float in_scale; \n\
 } p;\
 "
 
@@ -205,16 +206,16 @@ void store_yuv_int8(sfpvec3 v, int y_offset, int u_offset, int v_offset, ivec2 u
 " \n\
 void store_yuv_int16(sfpvec3 v, int y_offset, int u_offset, int v_offset, ivec2 uv_offset) \n\
 { \n\
-    dst_data_int16[y_offset] = uint16_t(clamp(uint(floor(v.x * 65535.0)), 0, 65535)); \n\
+    dst_data_int16[y_offset] = uint16_t(clamp(uint(floor(v.x * sfp(p.in_scale))), 0, uint(p.in_scale))); \n\
     if (p.out_format == CF_NV12) \n\
     { \n\
-        dst_data_int16[uv_offset.x] = uint16_t(clamp(uint(floor(v.y * 65535.0)), 0, 65535)); \n\
-        dst_data_int16[uv_offset.y] = uint16_t(clamp(uint(floor(v.z * 65535.0)), 0, 65535)); \n\
+        dst_data_int16[uv_offset.x] = uint16_t(clamp(uint(floor(v.y * sfp(p.in_scale))), 0, uint(p.in_scale))); \n\
+        dst_data_int16[uv_offset.y] = uint16_t(clamp(uint(floor(v.z * sfp(p.in_scale))), 0, uint(p.in_scale))); \n\
     } \n\
     else \n\
     { \n\
-        dst_data_int16[u_offset] = uint16_t(clamp(uint(floor(v.y * 65535.0)), 0, 65535)); \n\
-        dst_data_int16[v_offset] = uint16_t(clamp(uint(floor(v.z * 65535.0)), 0, 65535)); \n\
+        dst_data_int16[u_offset] = uint16_t(clamp(uint(floor(v.y * sfp(p.in_scale))), 0, uint(p.in_scale))); \n\
+        dst_data_int16[v_offset] = uint16_t(clamp(uint(floor(v.z * sfp(p.in_scale))), 0, uint(p.in_scale))); \n\
     } \n\
 } \
 "
