@@ -793,6 +793,7 @@ static void ImGui_ImplSDL2_InitPlatformInterface(SDL_Window* window, void* sdl_g
 
 static void ImGui_ImplSDL2_ShutdownPlatformInterface()
 {
+    ImGui::DestroyPlatformWindows();
 }
 
 // Add By Dicky
