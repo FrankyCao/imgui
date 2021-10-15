@@ -27,7 +27,7 @@ IMGUI_API int ImGetTextureWidth(ImTextureID texture);
 IMGUI_API int ImGetTextureHeight(ImTextureID texture);
 IMGUI_API double ImGetTextureTimeStamp(ImTextureID texture);
 IMGUI_API bool ImTextureToFile(ImTextureID texture, std::string path);
-#if IMGUI_RENDERING_VULKAN
+#if IMGUI_RENDERING_VULKAN && IMGUI_VULKAN_SHADER
 IMGUI_API ImTextureID ImCreateTexture(ImGui::VkImageMat & image, double time_stamp = NAN);
 #endif
 // Experimental: tested on Ubuntu only. Should work with urls, folders and files.

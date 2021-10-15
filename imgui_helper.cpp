@@ -539,7 +539,7 @@ ImTextureID ImCreateTexture(const void* data, int width, int height, double time
 #endif
 }
 
-#if IMGUI_RENDERING_VULKAN
+#if IMGUI_RENDERING_VULKAN && IMGUI_VULKAN_SHADER
 ImTextureID ImCreateTexture(ImGui::VkImageMat & image, double time_stamp)
 {
     g_tex_mutex.lock();
