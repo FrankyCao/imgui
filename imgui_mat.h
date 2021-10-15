@@ -453,7 +453,7 @@ public:
 
     // flag
     // sample rate for audio data
-    // frame plane index for video data
+    // custom setting for video data
     int flag;
 };
 
