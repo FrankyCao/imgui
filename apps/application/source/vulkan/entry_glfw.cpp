@@ -28,21 +28,26 @@ int main(int, char**)
     if (!glfwInit())
         return 1;
 
-    int window_width = 1440;
-    int window_height = 960;
-    float window_scale = 1;
+    ApplicationWindowProperty property;
+    Application_GetWindowProperties(property);
+
     ImVec2 display_scale = ImVec2(1.0, 1.0);
 
-    std::string title = Application_GetName(user_handle);
+    std::string title = property.name;
     title += " Vulkan GLFW";
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    GLFWwindow* window = glfwCreateWindow(window_width, window_height, title.c_str(), NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(property.width, property.height, title.c_str(), NULL, NULL);
+    if (!window)
+    {
+        printf("GLFW: Create Main window Error!!!\n");
+        return 1;
+    }
 #if !defined(__APPLE__) && GLFW_VERSION_MAJOR >= 3 && GLFW_VERSION_MINOR >=3
     float x_scale, y_scale;
     glfwGetWindowContentScale(window, &x_scale, &y_scale);
     if (x_scale != 1.0 || y_scale != 1.0)
     {
-        window_scale = x_scale == 1.0 ? x_scale : y_scale;
+        property.scale = x_scale == 1.0 ? x_scale : y_scale;
         display_scale = ImVec2(x_scale, y_scale);
     }
 #endif
@@ -52,7 +57,10 @@ int main(int, char**)
         printf("GLFW: Vulkan Not Supported\n");
         return 1;
     }
-
+    if (!property.center)
+    {
+        glfwSetWindowPos(window, property.pos_x, property.pos_y);
+    }
     uint32_t extensions_count = 0;
     const char** extensions = glfwGetRequiredInstanceExtensions(&extensions_count);
     SetupVulkan(extensions, extensions_count);
@@ -73,14 +81,14 @@ int main(int, char**)
     SetupVulkanWindow(wd, surface, w, h);
 
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.FontGlobalScale = window_scale;
+    io.FontGlobalScale = property.scale;
     io.DisplayFramebufferScale = display_scale;
+    if (property.power_save) io.ConfigFlags |= ImGuiConfigFlags_EnableLowRefreshMode;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
-    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
-    //io.ConfigViewportsNoAutoMerge = true;
-    //io.ConfigViewportsNoTaskBarIcon = true;
+    if (property.docking) io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
+    if (property.viewport)io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
+    if (!property.auto_merge) io.ConfigViewportsNoAutoMerge = true;
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
@@ -111,7 +119,7 @@ int main(int, char**)
 
     UpdateVulkanFont(wd);
 
-    Application_Initialize(&user_handle);
+    Application_Initialize(&property.handle);
 
     // Main loop
     bool done = false;
@@ -139,9 +147,9 @@ int main(int, char**)
         ImGui::NewFrame();
 
         if (io.ConfigFlags & ImGuiConfigFlags_EnableLowRefreshMode)
-            ImGui::SetMaxWaitBeforeNextFrame(1.0 / 30.0);
+            ImGui::SetMaxWaitBeforeNextFrame(1.0 / property.fps);
 
-        done = Application_Frame(user_handle);
+        done = Application_Frame(property.handle);
 
         ImGui::EndFrame();
         // Rendering
@@ -149,7 +157,7 @@ int main(int, char**)
         FrameRendering(wd);
     }
 
-    Application_Finalize(&user_handle);
+    Application_Finalize(&property.handle);
 
     // Cleanup
 #if IMGUI_VULKAN_SHADER

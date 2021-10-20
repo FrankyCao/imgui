@@ -205,9 +205,9 @@ void Example::ExampleMarkdownFormatCallback( const ImGui::MarkdownFormatInfo& ma
 
 static std::string ini_file = std::string(DEFAULT_CONFIG_PATH) + "Application_Example.ini";
 
-const char* Application_GetName(void* handle)
+void Application_GetWindowProperties(ApplicationWindowProperty& property)
 {
-    return "Application_Example";
+    property.name = "Application_Example";
 }
 
 void Application_Initialize(void** handle)

@@ -23,14 +23,16 @@ int main(int, char**)
     }
 
     // Setup window
-    int window_width = 1440;
-    int window_height = 960;
-    float window_scale = 1.0;
+    ApplicationWindowProperty property;
+    Application_GetWindowProperties(property);
 
-    std::string title = Application_GetName(user_handle);
+    std::string title = property.name;
     title += " Vulkan SDL";
-    SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-    SDL_Window* window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, window_width, window_height, window_flags);
+    int window_flags = SDL_WINDOW_VULKAN | SDL_WINDOW_ALLOW_HIGHDPI;
+    if (property.resizable) window_flags |= SDL_WINDOW_RESIZABLE;
+    SDL_Window* window = SDL_CreateWindow(title.c_str(), property.center ? SDL_WINDOWPOS_CENTERED : property.pos_x, 
+                                                        property.center ? SDL_WINDOWPOS_CENTERED : property.pos_y, 
+                                                        property.width, property.height, window_flags);
     if (!window)
     {
         fprintf(stderr, "Failed to Create Window: %s\n", SDL_GetError());
@@ -58,13 +60,13 @@ int main(int, char**)
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.FontGlobalScale = window_scale;
+    io.FontGlobalScale = property.scale;
+    if (property.power_save) io.ConfigFlags |= ImGuiConfigFlags_EnableLowRefreshMode;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
-    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
-    //io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
-    //io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
+    if (property.docking) io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
+    if (property.viewport)io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
+    if (!property.auto_merge) io.ConfigViewportsNoAutoMerge = true;
 
     // Create Framebuffers
     int w, h;
@@ -100,7 +102,7 @@ int main(int, char**)
 
     UpdateVulkanFont(wd);
 
-    Application_Initialize(&user_handle);
+    Application_Initialize(&property.handle);
 
     // Main loop
     bool done = false;
@@ -139,7 +141,7 @@ int main(int, char**)
         // Resize swap chain?
         int width, height;
         SDL_GetWindowSize(window, &width, &height);
-        if (g_SwapChainRebuild || width > window_width || height > window_height)
+        if (g_SwapChainRebuild || width > property.width || height > property.height)
         {
             if (width > 0 && height > 0)
             {
@@ -147,8 +149,8 @@ int main(int, char**)
                 ImGui_ImplVulkanH_CreateOrResizeWindow(g_Instance, g_PhysicalDevice, g_Device, &g_MainWindowData, g_QueueFamily, g_Allocator, width, height, g_MinImageCount);
                 g_MainWindowData.FrameIndex = 0;
                 g_SwapChainRebuild = false;
-                window_width = width;
-                window_height = height;
+                property.width = width;
+                property.height = height;
             }
         }
 
@@ -158,9 +160,9 @@ int main(int, char**)
         ImGui::NewFrame();
 
         if (io.ConfigFlags & ImGuiConfigFlags_EnableLowRefreshMode)
-            ImGui::SetMaxWaitBeforeNextFrame(1.0 / 30.0);
+            ImGui::SetMaxWaitBeforeNextFrame(1.0 / property.fps);
 
-        app_done = Application_Frame(user_handle);
+        app_done = Application_Frame(property.handle);
 
         ImGui::EndFrame();
         // Rendering
@@ -168,7 +170,7 @@ int main(int, char**)
         FrameRendering(wd);
     }
 
-    Application_Finalize(&user_handle);
+    Application_Finalize(&property.handle);
 
     // Cleanup
 #if IMGUI_VULKAN_SHADER

@@ -14,8 +14,6 @@
 #define IMGUI_VULKAN_DEBUG_REPORT
 #endif
 
-static void * user_handle = nullptr;
-
 static VkAllocationCallbacks*   g_Allocator = NULL;
 static VkInstance               g_Instance = VK_NULL_HANDLE;
 static VkPhysicalDevice         g_PhysicalDevice = VK_NULL_HANDLE;

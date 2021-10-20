@@ -17,8 +17,7 @@
 #pragma warning (disable: 4505) // unreferenced local function has been removed
 #endif
 
-static void * user_handle = nullptr;
-
+static ApplicationWindowProperty property;
 static ImVec4 clear_color = ImVec4(0.f, 0.f, 0.f, 1.f);
 static bool done = false;
 
@@ -30,9 +29,9 @@ void glut_display_func()
     ImGui_ImplGLUT_NewFrame();
 
     if (io.ConfigFlags & ImGuiConfigFlags_EnableLowRefreshMode)
-        ImGui::SetMaxWaitBeforeNextFrame(1.0 / 30.0);
+        ImGui::SetMaxWaitBeforeNextFrame(1.0 / property.fps);
 
-    done = Application_Frame(user_handle);
+    done = Application_Frame(property.handle);
 
     ImGui::EndFrame();
     // Rendering
@@ -54,12 +53,13 @@ int main(int argc, char** argv)
 #ifdef __FREEGLUT_EXT_H__
     glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS);
 #endif
-    int window_width = 1440;
-    int window_height = 960;
-    float window_scale = 1;
+    
+    Application_GetWindowProperties(property);
+
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_DEPTH | GLUT_MULTISAMPLE);
-    glutInitWindowSize(window_width, window_height);
-    std::string title = Application_GetName(user_handle);
+    glutInitWindowSize(property.width, property.height);
+    if (!property.center) glutInitWindowPosition(property.pos_x, property.pos_y);
+    std::string title = property.name;
     title += " GLUT_GL2";
     glutCreateWindow(title.c_str());
     // Setup GLUT display function
@@ -71,10 +71,13 @@ int main(int argc, char** argv)
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.FontGlobalScale = window_scale;
+    io.FontGlobalScale = property.scale;
+    if (property.power_save) io.ConfigFlags |= ImGuiConfigFlags_EnableLowRefreshMode;
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
-    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
+    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    if (property.docking) io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
+    if (property.viewport)io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
+    if (!property.auto_merge) io.ConfigViewportsNoAutoMerge = true;
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
@@ -85,11 +88,11 @@ int main(int argc, char** argv)
     ImGui_ImplOpenGL2_Init();
 
     // init application
-    Application_Initialize(&user_handle);
+    Application_Initialize(&property.handle);
 
     glutMainLoop();
 
-    Application_Finalize(&user_handle);
+    Application_Finalize(&property.handle);
 
     // Cleanup
 #if IMGUI_VULKAN_SHADER

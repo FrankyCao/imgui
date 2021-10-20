@@ -14,8 +14,6 @@
 #include <ImVulkanShader.h>
 #endif
 
-static void * user_handle = nullptr;
-
 int main(int, char**)
 {
     // Setup SDL
@@ -26,9 +24,9 @@ int main(int, char**)
         printf("Error: %s\n", SDL_GetError());
         return -1;
     }
-    int window_width = 1440;
-    int window_height = 960;
-    float window_scale = 1.0;
+
+    ApplicationWindowProperty property;
+    Application_GetWindowProperties(property);
 
     // Create window with graphics context
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -36,10 +34,13 @@ int main(int, char**)
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-    SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-    std::string title = Application_GetName(user_handle);
+    int window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI;
+    if (property.resizable) window_flags |= SDL_WINDOW_RESIZABLE;
+    std::string title = property.name;
     title += " SDL_GL2";
-    SDL_Window* window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, window_width, window_height, window_flags);
+    SDL_Window* window = SDL_CreateWindow(title.c_str(), property.center ? SDL_WINDOWPOS_CENTERED : property.pos_x,
+                                                        property.center ? SDL_WINDOWPOS_CENTERED : property.pos_y,
+                                                        property.width, property.height, window_flags);
     if (!window)
     {
         fprintf(stderr, "Failed to Create Window: %s\n", SDL_GetError());
@@ -53,13 +54,13 @@ int main(int, char**)
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.FontGlobalScale = window_scale;
+    io.FontGlobalScale = property.scale;
+    if (property.power_save) io.ConfigFlags |= ImGuiConfigFlags_EnableLowRefreshMode;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
-    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
-    //io.ConfigViewportsNoAutoMerge = true;
-    //io.ConfigViewportsNoTaskBarIcon = true;
+    if (property.docking) io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
+    if (property.viewport)io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
+    if (!property.auto_merge) io.ConfigViewportsNoAutoMerge = true;
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
@@ -77,7 +78,7 @@ int main(int, char**)
 
     ImVec4 clear_color = ImVec4(0.f, 0.f, 0.f, 1.f);
 
-    Application_Initialize(&user_handle);
+    Application_Initialize(&property.handle);
 
     // Main loop
     bool done = false;
@@ -119,9 +120,9 @@ int main(int, char**)
         ImGui::NewFrame();
 
         if (io.ConfigFlags & ImGuiConfigFlags_EnableLowRefreshMode)
-            ImGui::SetMaxWaitBeforeNextFrame(1.0 / 30.0);
+            ImGui::SetMaxWaitBeforeNextFrame(1.0 / property.fps);
 
-        app_done = Application_Frame(user_handle);
+        app_done = Application_Frame(property.handle);
 
         ImGui::EndFrame();
 
@@ -146,7 +147,7 @@ int main(int, char**)
         SDL_GL_SwapWindow(window);
     }
 
-    Application_Finalize(&user_handle);
+    Application_Finalize(&property.handle);
 
     // Cleanup
 #if IMGUI_VULKAN_SHADER

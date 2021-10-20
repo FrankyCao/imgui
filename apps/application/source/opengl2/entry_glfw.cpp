@@ -24,8 +24,6 @@
 #pragma comment(lib, "legacy_stdio_definitions")
 #endif
 
-static void * user_handle = nullptr;
-
 static void error_callback(int error, const char* description)
 {
     fprintf(stderr, "Error %d: %s\n", error, description);
@@ -38,28 +36,38 @@ int main(int, char**)
     if (!glfwInit())
         return 1;
 
-    int window_width = 1440;
-    int window_height = 960;
-    float window_scale = 1;
+    ApplicationWindowProperty property;
+    Application_GetWindowProperties(property);
     ImVec2 display_scale = ImVec2(1.0, 1.0);
 
-    std::string title = Application_GetName(user_handle);
+    std::string title = property.name;
     title += " GLFW_GL2";
-    GLFWwindow* window = glfwCreateWindow(window_width, window_height, title.c_str(), NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(property.width, property.height, title.c_str(), NULL, NULL);
+    if (!window)
+    {
+        printf("GLFW: Create Main window Error!!!\n");
+        return 1;
+    }
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1); // Enable vsync
+
+    if (!property.center)
+    {
+        glfwSetWindowPos(window, property.pos_x, property.pos_y);
+    }
+
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.FontGlobalScale = window_scale;
+    io.FontGlobalScale = property.scale;
     io.DisplayFramebufferScale = display_scale;
+    if (property.power_save) io.ConfigFlags |= ImGuiConfigFlags_EnableLowRefreshMode;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
-    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
-    //io.ConfigViewportsNoAutoMerge = true;
-    //io.ConfigViewportsNoTaskBarIcon = true;
+    if (property.docking) io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
+    if (property.viewport)io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
+    if (!property.auto_merge) io.ConfigViewportsNoAutoMerge = true;
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
@@ -77,7 +85,7 @@ int main(int, char**)
 
     ImVec4 clear_color = ImVec4(0.f, 0.f, 0.f, 1.f);
 
-    Application_Initialize(&user_handle);
+    Application_Initialize(&property.handle);
 
     // Main loop
     bool done = false;
@@ -92,9 +100,9 @@ int main(int, char**)
         ImGui::NewFrame();
 
         if (io.ConfigFlags & ImGuiConfigFlags_EnableLowRefreshMode)
-            ImGui::SetMaxWaitBeforeNextFrame(1.0 / 30.0);
+            ImGui::SetMaxWaitBeforeNextFrame(1.0 / property.fps);
 
-        done = Application_Frame(user_handle);
+        done = Application_Frame(property.handle);
 
         ImGui::EndFrame();
         // Rendering
@@ -119,7 +127,7 @@ int main(int, char**)
         glfwSwapBuffers(window);
     }
 
-    Application_Finalize(&user_handle);
+    Application_Finalize(&property.handle);
 
     // Cleanup
 #if IMGUI_VULKAN_SHADER

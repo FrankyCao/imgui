@@ -21,8 +21,6 @@ LPDIRECT3DDEVICE9        g_pd3dDevice = NULL;
 static LPDIRECT3D9              g_pD3D = NULL;
 static D3DPRESENT_PARAMETERS    g_d3dpp = {};
 
-static void * user_handle = nullptr;
-
 # if defined(_UNICODE)
 std::wstring widen(const std::string& str)
 {
@@ -113,10 +111,12 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd)
 {
     const auto c_ClassName  = _T("Imgui Application Class");
+    ApplicationWindowProperty property;
+    Application_GetWindowProperties(property);
 # if defined(_UNICODE)
-    const std::wstring c_WindowName = widen(Application_GetName(user_handle));
+    const std::wstring c_WindowName = widen(property.name);
 # else
-    const std::string c_WindowName = Application_GetName(user_handle) + std::string(" DX9");
+    const std::string c_WindowName = property.name + std::string(" DX9");
 # endif
 
 # if defined(_DEBUG)
@@ -127,7 +127,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
         LoadCursor(nullptr, IDC_ARROW), nullptr, nullptr, c_ClassName, LoadIcon(GetModuleHandle(nullptr), IDI_APPLICATION) };
     RegisterClassEx(&wc);
 
-    auto hwnd = CreateWindow(c_ClassName, c_WindowName.c_str(), WS_OVERLAPPEDWINDOW, 100, 100, 1440, 800, nullptr, nullptr, wc.hInstance, nullptr);
+    auto hwnd = CreateWindow(c_ClassName, c_WindowName.c_str(), WS_OVERLAPPEDWINDOW,
+                            property.center ? 100 : property.pos_x, property.center ? 100 : property.pos_y, property.width, property.height,
+                            nullptr, nullptr, wc.hInstance, nullptr);
 
     // Initialize Direct3D
     if (!CreateDeviceD3D(hwnd))
@@ -145,12 +147,13 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.FontGlobalScale = property.scale;
+    if (property.power_save) io.ConfigFlags |= ImGuiConfigFlags_EnableLowRefreshMode;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
-    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
-    //io.ConfigViewportsNoAutoMerge = true;
-    //io.ConfigViewportsNoTaskBarIcon = true;
+    if (property.docking) io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
+    if (property.viewport)io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
+    if (!property.auto_merge) io.ConfigViewportsNoAutoMerge = true;
 
     ImGui::StyleColorsDark();
     // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
@@ -167,7 +170,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
     ImVec4 clear_color = ImVec4(0.f, 0.f, 0.f, 1.00f);
 
-    Application_Initialize(&user_handle);
+    Application_Initialize(&property.handle);
 
     // Main loop
     bool done = false;
@@ -191,9 +194,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
         ImGui::NewFrame();
 
         if (io.ConfigFlags & ImGuiConfigFlags_EnableLowRefreshMode)
-            ImGui::SetMaxWaitBeforeNextFrame(1.0 / 30.0);
+            ImGui::SetMaxWaitBeforeNextFrame(1.0 / property.fps);
 
-        done = Application_Frame(user_handle);
+        done = Application_Frame(property.handle);
         if (done)
             ::PostQuitMessage(0);
 
@@ -225,7 +228,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
             ResetDevice();
     }
 
-    Application_Finalize(&user_handle);
+    Application_Finalize(&property.handle);
 
     // Cleanup
 #if IMGUI_VULKAN_SHADER

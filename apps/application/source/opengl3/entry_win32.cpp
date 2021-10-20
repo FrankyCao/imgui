@@ -19,8 +19,6 @@
 #include <ImVulkanShader.h>
 #endif
 
-static void * user_handle = nullptr;
-
 #ifndef WM_DPICHANGED
 #define WM_DPICHANGED 0x02E0 // From Windows SDK 8.1+ headers
 #endif
@@ -74,10 +72,12 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     PIXELFORMATDESCRIPTOR pfd;
     ZeroMemory(&pfd, sizeof(PIXELFORMATDESCRIPTOR));
     const auto c_ClassName  = _T("Imgui Application Class");
+    ApplicationWindowProperty property;
+    Application_GetWindowProperties(property);
 # if defined(_UNICODE)
-    const std::wstring c_WindowName = widen(Application_GetName(user_handle));
+    const std::wstring c_WindowName = widen(property.name);
 # else
-    const std::string c_WindowName = Application_GetName(user_handle) + std::string(" Win32_GL3");
+    const std::string c_WindowName = property.name + std::string(" Win32_GL3");
 # endif
 
 # if defined(_DEBUG)
@@ -88,11 +88,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
         LoadCursor(nullptr, IDC_ARROW), nullptr, nullptr, c_ClassName, LoadIcon(GetModuleHandle(nullptr), IDI_APPLICATION) };
     RegisterClassEx(&wc);
 
-    int window_width = 1440;
-    int window_height = 960;
-    float window_scale = 1;
-
-    auto hwnd = CreateWindow(c_ClassName, c_WindowName.c_str(), WS_OVERLAPPEDWINDOW, 100, 100, window_width, window_height, nullptr, nullptr, wc.hInstance, nullptr);
+    auto hwnd = CreateWindow(c_ClassName, c_WindowName.c_str(), WS_OVERLAPPEDWINDOW,
+                            property.center ? 100 : property.pos_x, property.center ? 100 : property.pos_y, property.width, property.height,
+                            nullptr, nullptr, wc.hInstance, nullptr);
     if (hwnd == nullptr)
     {
         fprintf(stderr, "Failed to Open window! %s\n", c_WindowName.c_str());
@@ -136,13 +134,12 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.FontGlobalScale = window_scale;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
+    io.FontGlobalScale = property.scale;
+    if (property.power_save) io.ConfigFlags |= ImGuiConfigFlags_EnableLowRefreshMode;
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
-    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
-    //io.ConfigViewportsNoAutoMerge = true;
-    //io.ConfigViewportsNoTaskBarIcon = true;
+    if (property.docking) io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
+    if (property.viewport)io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
+    if (!property.auto_merge) io.ConfigViewportsNoAutoMerge = true;
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
@@ -164,7 +161,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     ::ShowWindow(hwnd, SW_SHOWDEFAULT);
     ::UpdateWindow(hwnd);
 
-    Application_Initialize(&user_handle);
+    Application_Initialize(&property.handle);
 
     // Main loop
     bool done = false;
@@ -188,9 +185,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
         ImGui::NewFrame();
 
         if (io.ConfigFlags & ImGuiConfigFlags_EnableLowRefreshMode)
-            ImGui::SetMaxWaitBeforeNextFrame(1.0 / 30.0);
+            ImGui::SetMaxWaitBeforeNextFrame(1.0 / property.fps);
 
-        done = Application_Frame(user_handle);
+        done = Application_Frame(property.handle);
         if (done)
             ::PostQuitMessage(0);
 
@@ -213,7 +210,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
         SwapBuffers(dc);
     }
 
-    Application_Finalize(&user_handle);
+    Application_Finalize(&property.handle);
 
     // Cleanup
 #if IMGUI_VULKAN_SHADER
