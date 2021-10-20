@@ -190,6 +190,7 @@ int main(int, char**)
 
     bool show_file_dialog_window = false;
     bool show_markdown_window = false;
+    bool show_text_editor_window = false;
 
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 

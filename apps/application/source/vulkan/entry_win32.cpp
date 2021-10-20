@@ -111,7 +111,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
     // Create Framebuffers
     ImGui_ImplVulkanH_Window* wd = &g_MainWindowData;
-    SetupVulkanWindow(wd, surface, window_width, window_height);
+    SetupVulkanWindow(wd, surface, property.width, property.height);
 
     // Setup ImGui binding
     IMGUI_CHECKVERSION();
