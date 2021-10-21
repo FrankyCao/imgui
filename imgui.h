@@ -3238,6 +3238,8 @@ namespace ImGui
     IMGUI_API double            get_current_time();
     IMGUI_API uint32_t          get_current_time_msec();
     IMGUI_API uint64_t          get_current_time_usec();
+    IMGUI_API void              sleep(float seconds);
+    IMGUI_API void              sleep(int ms_seconds);
 } // namespace ImGui
 // add By Dicky end
 #endif // #ifndef IMGUI_DISABLE

@@ -18649,6 +18649,7 @@ typedef struct timeval {
 #else // _WIN32
 #include <sys/time.h>
 #endif // _WIN32
+#include <thread>
 
 double ImGui::get_current_time()
 {
@@ -18693,6 +18694,25 @@ uint64_t ImGui::get_current_time_usec()
     gettimeofday(&tv, NULL);
     return ((uint64_t)tv.tv_sec * 1000000 + (uint64_t)tv.tv_usec);
 #endif
+}
+
+void ImGui::sleep(float seconds)
+{
+    IM_ASSERT(seconds >= 0 && !isinf(seconds));
+    const int waiting_time_ms = seconds * 1000;
+    if (waiting_time_ms == 0)
+        std::this_thread::yield();
+    else
+        std::this_thread::sleep_for(std::chrono::milliseconds(waiting_time_ms));
+}
+
+void ImGui::sleep(int ms_seconds)
+{
+    IM_ASSERT(ms_seconds >= 0);
+    if (ms_seconds == 0)
+        std::this_thread::yield();
+    else
+        std::this_thread::sleep_for(std::chrono::milliseconds(ms_seconds));
 }
 // Add By Dicky
 

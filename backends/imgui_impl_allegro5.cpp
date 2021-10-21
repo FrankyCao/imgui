@@ -40,7 +40,6 @@
 #include <stdint.h>     // uint64_t
 #include <cstring>      // memcpy
 #include <math.h>       // isinf needed by Dicky
-#include <thread>       // sleep_for By Dicky
 #include "imgui.h"
 #include "imgui_impl_allegro5.h"
 
@@ -499,7 +498,7 @@ void ImGui_ImplAllegro5_WaitForEvent(ALLEGRO_EVENT_QUEUE* queue)
             if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_EnablePowerSavingMode)
                 al_wait_for_event_timed(queue, NULL, waiting_time);
             else
-                std::this_thread::sleep_for(std::chrono::milliseconds((uint64_t)(waiting_time * 1000)));
+                ImGui::sleep((float)waiting_time);
         }
     }
 }

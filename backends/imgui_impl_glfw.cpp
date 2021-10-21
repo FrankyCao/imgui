@@ -49,7 +49,6 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include <math.h> // isinf needed by Dicky
-#include <thread> // sleep_for by Dicky
 
 // GLFW
 #include <GLFW/glfw3.h>
@@ -1012,7 +1011,7 @@ void ImGui_ImplGlfw_WaitForEvent()
             if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_EnablePowerSavingMode)
                 glfwWaitEventsTimeout(waiting_time);
             else
-                std::this_thread::sleep_for(std::chrono::milliseconds((uint64_t)(waiting_time * 1000)));
+                ImGui::sleep((float)waiting_time);
         }
     }
 }

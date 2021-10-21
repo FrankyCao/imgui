@@ -139,7 +139,7 @@ int main(int, char**)
 
         if (!show && !(io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable))
         {
-            SDL_Delay(10);
+            ImGui::sleep(10);
             continue;
         }
         

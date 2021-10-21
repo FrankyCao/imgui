@@ -64,7 +64,6 @@
 #include <TargetConditionals.h>
 #endif
 #include <math.h> // isinf needed By Dicky
-#include <thread> // sleep_for By Dicky
 
 #if SDL_VERSION_ATLEAST(2,0,4) && !defined(__EMSCRIPTEN__) && !defined(__ANDROID__) && !(defined(__APPLE__) && TARGET_OS_IOS)
 #define SDL_HAS_CAPTURE_AND_GLOBAL_MOUSE    1
@@ -817,7 +816,7 @@ void ImGui_ImplSDL2_WaitForEvent()
             if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_EnablePowerSavingMode)
                 SDL_WaitEventTimeout(NULL, waiting_time_ms);
             else
-                std::this_thread::sleep_for(std::chrono::milliseconds(waiting_time_ms));
+                ImGui::sleep(waiting_time_ms);
         }
     }
 }

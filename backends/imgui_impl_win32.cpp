@@ -22,7 +22,6 @@
 #include <tchar.h>
 #include <dwmapi.h>
 #include <math.h> // isinf needed By Dicky
-#include <thread> // sleep_for By Dicky
 
 // Configuration flags to add in your imconfig.h file:
 //#define IMGUI_IMPL_WIN32_DISABLE_GAMEPAD              // Disable gamepad support. This was meaningful before <1.81 but we now load XInput dynamically so the option is now less relevant.
@@ -1070,7 +1069,7 @@ void ImGui_ImplWin32_WaitForEvent()
             if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_EnablePowerSavingMode)
                 ::MsgWaitForMultipleObjectsEx(0, NULL, waiting_time_ms, QS_ALLINPUT, MWMO_INPUTAVAILABLE|MWMO_ALERTABLE);
             else
-                std::this_thread::sleep_for(std::chrono::milliseconds(waiting_time_ms));
+                ImGui::sleep((int)waiting_time_ms);
         }
     }
 }
