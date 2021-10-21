@@ -52,7 +52,7 @@ void ImVulkanVkMatToImMat(const VkMat &src, ImMat &dst)
     opt.staging_vkallocator = vkdev->acquire_staging_allocator();
     dst.create_like(src);
     VkCompute cmd(vkdev);
-    cmd.record_download(src, dst, opt);
+    cmd.record_clone(src, dst, opt);
     cmd.submit_and_wait();
     vkdev->reclaim_blob_allocator(opt.blob_vkallocator);
     vkdev->reclaim_staging_allocator(opt.staging_vkallocator);
