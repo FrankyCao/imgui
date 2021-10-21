@@ -210,7 +210,8 @@ int main(int, char**)
             ImGui::EndMainMenuBar();
         }
 
-        ImVec2 maxSize = ImVec2((float)io.DisplaySize.x, (float)io.DisplaySize.y);
+        auto viewport = ImGui::GetWindowViewport();
+        ImVec2 maxSize = viewport->Size;
 		ImVec2 minSize = maxSize * 0.5f;
         const char* filters = ".*,.jpg,.jpeg,.png";
         if (filedialog.Display("ChooseFileDlgKey", ImGuiWindowFlags_NoCollapse, minSize, maxSize))

@@ -61,6 +61,7 @@ int main(int, char**)
     {
         glfwSetWindowPos(window, property.pos_x, property.pos_y);
     }
+
     uint32_t extensions_count = 0;
     const char** extensions = glfwGetRequiredInstanceExtensions(&extensions_count);
     SetupVulkan(extensions, extensions_count);
