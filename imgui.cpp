@@ -18642,10 +18642,6 @@ void ImGui::UpdateDebugToolStackQueries() {}
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-typedef struct timeval {
-    long tv_sec;
-    long tv_usec;
-} timeval;
 #else // _WIN32
 #include <sys/time.h>
 #endif // _WIN32
