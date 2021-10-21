@@ -492,7 +492,7 @@ void ImGui_ImplAllegro5_WaitForEvent(ALLEGRO_EVENT_QUEUE* queue)
     double waiting_time = window_is_hidden ? INFINITY : ImGui::GetEventWaitingTime();
     if (waiting_time > 0.0)
     {
-        if (isinf(waiting_time))
+        if (isinf(waiting_time) || waiting_time > 2.0)
             al_wait_for_event(queue, NULL);
         else
         {

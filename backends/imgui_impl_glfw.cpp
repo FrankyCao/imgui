@@ -1005,7 +1005,7 @@ void ImGui_ImplGlfw_WaitForEvent()
     double waiting_time = window_is_hidden ? INFINITY : ImGui::GetEventWaitingTime();
     if (waiting_time > 0.0)
     {
-        if (isinf(waiting_time))
+        if (isinf(waiting_time) || waiting_time > 2.0)
             glfwWaitEvents();
         else
         {

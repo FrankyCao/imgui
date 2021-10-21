@@ -75,7 +75,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 # if defined(_UNICODE)
     const std::wstring c_WindowName = widen(property.name);
 # else
-    const std::string c_WindowName = property.name + std::string(" Win32");
+    const std::string c_WindowName = property.name + std::string(" Win32 Vulkan");
 # endif
 
 # if defined(_DEBUG)

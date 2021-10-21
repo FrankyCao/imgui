@@ -1064,11 +1064,14 @@ void ImGui_ImplWin32_WaitForEvent()
     double waiting_time = window_is_hidden ? INFINITE : ImGui::GetEventWaitingTime();
     if (waiting_time > 0.0)
     {
-        DWORD waiting_time_ms = isinf(waiting_time) ? INFINITE : (DWORD)(1000.0 * waiting_time);
-        if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_EnablePowerSavingMode)
-            ::MsgWaitForMultipleObjectsEx(0, NULL, waiting_time_ms, QS_ALLINPUT, MWMO_INPUTAVAILABLE|MWMO_ALERTABLE);
-        else
-            std::this_thread::sleep_for(std::chrono::milliseconds(waiting_time_ms));
+        if (!isinf(waiting_time) && waiting_time <= 2.0)
+        {
+            DWORD waiting_time_ms = isinf(waiting_time) ? INFINITE : (DWORD)(1000.0 * waiting_time);
+            if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_EnablePowerSavingMode)
+                ::MsgWaitForMultipleObjectsEx(0, NULL, waiting_time_ms, QS_ALLINPUT, MWMO_INPUTAVAILABLE|MWMO_ALERTABLE);
+            else
+                std::this_thread::sleep_for(std::chrono::milliseconds(waiting_time_ms));
+        }
     }
 }
 // Add By Dicky end
