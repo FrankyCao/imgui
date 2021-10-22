@@ -706,6 +706,20 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/addon/markdown
 )
 
+#Sequencer
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    addon/ImSequencer/ImSequencer.cpp
+)
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    addon/ImSequencer/ImSequencer.h
+)
+set(IMGUI_INC_DIRS
+    ${IMGUI_INC_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImSequencer
+)
+
 # HotKeys
 set(IMGUI_INCS
     ${IMGUI_INCS}
