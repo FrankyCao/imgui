@@ -24,12 +24,13 @@
 // SOFTWARE.
 //
 #pragma once
-
+#include "imgui.h"
+#include "imgui_internal.h"
 #include <cstddef>
 
 struct ImDrawList;
 struct ImRect;
-namespace ImSequencer
+namespace ImGui
 {
    enum SEQUENCER_OPTIONS
    {
@@ -72,13 +73,8 @@ namespace ImSequencer
 
 
    // return true if selection is made
-   bool Sequencer(SequenceInterface* sequence, int* currentFrame, bool* expanded, int* selectedEntry, int* firstFrame, int* lastFrame, int sequenceOptions);
-
-}
-
+   IMGUI_API bool Sequencer(SequenceInterface* sequence, int* currentFrame, bool* expanded, int* selectedEntry, int* firstFrame, int* lastFrame, int sequenceOptions);
 #if IMGUI_BUILD_EXAMPLE
-namespace ImGui
-{
    IMGUI_API void  ShowSequencerDemoWindow();
-}
 #endif
+}

@@ -1,34 +1,7 @@
-// https://github.com/CedricGuillemet/ImGuizmo
-// v 1.84 WIP
-//
-// The MIT License(MIT)
-//
-// Copyright(c) 2021 Cedric Guillemet
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files(the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions :
-//
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
-//
 #include "ImSequencer.h"
-#include "imgui.h"
-#include "imgui_internal.h"
 #include <cstdlib>
 
-namespace ImSequencer
+namespace ImGui
 {
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
    static ImVec2 operator+(const ImVec2& a, const ImVec2& b) {
@@ -699,7 +672,7 @@ namespace ImGui
 {
 static const char* SequencerItemTypeNames[] = { "Video","Audio", "Subtitle" };
 
-struct MySequence : public ImSequencer::SequenceInterface
+struct MySequence : public ImGui::SequenceInterface
 {
    // interface with sequencer   
    virtual int GetFrameMin() const {
@@ -797,7 +770,7 @@ void ShowSequencerDemoWindow()
       play = !play;
    }
    ImGui::PopItemWidth();
-   Sequencer(&mySequence, &currentFrame, &expanded, &selectedEntry, &firstFrame, &lastFrame, ImSequencer::SEQUENCER_EDIT_STARTEND | ImSequencer::SEQUENCER_ADD | ImSequencer::SEQUENCER_DEL | ImSequencer::SEQUENCER_COPYPASTE | ImSequencer::SEQUENCER_CHANGE_FRAME);
+   Sequencer(&mySequence, &currentFrame, &expanded, &selectedEntry, &firstFrame, &lastFrame, ImGui::SEQUENCER_EDIT_STARTEND | ImGui::SEQUENCER_ADD | ImGui::SEQUENCER_DEL | ImGui::SEQUENCER_COPYPASTE | ImGui::SEQUENCER_CHANGE_FRAME);
    // add a UI to edit that particular item
    if (selectedEntry != -1)
    {
