@@ -166,6 +166,23 @@ enum ImInterpolateMode {
     IM_NB_INTERP_MODE
 };
 
+#define IM_MAT_FLAGS_NONE               (0 << 0)
+// 0-7 bits for video
+#define IM_MAT_FLAGS_VIDEO_FRAME        (1 << 0)
+#define IM_MAT_FLAGS_VIDEO_INTERLACED   (1 << 1)
+#define IM_MAT_FLAGS_VIDEO_FRAME_I      (1 << 2)
+#define IM_MAT_FLAGS_VIDEO_FRAME_P      (1 << 3)
+#define IM_MAT_FLAGS_VIDEO_FRAME_B      (1 << 4)
+#define IM_MAT_FLAGS_VIDEO_HDR_PQ       (1 << 5)
+#define IM_MAT_FLAGS_VIDEO_HDR_HLG      (1 << 6)
+#define IM_MAT_FLAGS_VIDEO_FRAME_UV     (1 << 7)
+// 8-15 bits for audio
+#define IM_MAT_FLAGS_AUDIO_FRAME        (1 << 8)
+//16-23 bits for image
+#define IM_MAT_FLAGS_IMAGE_FRAME        (1 << 16)
+//24-31 bits for custom
+#define IM_MAT_FLAGS_CUSTOM_FRAME       (1 << 24)
+
 #define IM_ESIZE(a)    (a == IM_DT_INT8 ? (size_t)1u : (a == IM_DT_INT16 || a == IM_DT_FLOAT16) ? (size_t)2u : (a == IM_DT_INT32 || a == IM_DT_FLOAT32) ? (size_t)4u : (a == IM_DT_INT64 || a == IM_DT_FLOAT64) ? (size_t)8u : (size_t)0u)
 #define IM_DEPTH(a)    (a == IM_DT_INT8 ? 8 : (a == IM_DT_INT16 || a == IM_DT_FLOAT16) ? 16 : (a == IM_DT_INT32 || a == IM_DT_FLOAT32) ? 32 : (a == IM_DT_INT64 || a == IM_DT_FLOAT64) ? 64 : 0)
 #define IM_ISMONO(a)   (a == IM_CF_GRAY)
@@ -461,8 +478,8 @@ public:
     // 1 = NARROW_RANGE
     ImColorRange color_range;
 
-    // flag
-    int flag;
+    // flags, see define IM_MAT_FLAGS_XXX
+    int flags;
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -477,7 +494,7 @@ inline ImMat::ImMat()
     color_space = IM_CS_SRGB;
     color_format = IM_CF_ABGR;
     color_range = IM_CR_FULL_RANGE;
-    flag = 0;
+    flags = IM_MAT_FLAGS_NONE;
     depth = 32;
     rate = {0, 0};
 }
@@ -528,7 +545,7 @@ inline ImMat::ImMat(const ImMat& m)
     color_format = m.color_format;
     color_space = m.color_space;
     color_range = m.color_range;
-    flag = m.flag;
+    flags = m.flags;
     rate = m.rate;
     depth = m.depth;
 }
@@ -541,7 +558,7 @@ inline ImMat::ImMat(int _w, void* _data, size_t _elemsize, Allocator* _allocator
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
-    flag = 0;
+    flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
     depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 }
@@ -554,7 +571,7 @@ inline ImMat::ImMat(int _w, int _h, void* _data, size_t _elemsize, Allocator* _a
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
-    flag = 0;
+    flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
     depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 }
@@ -567,7 +584,7 @@ inline ImMat::ImMat(int _w, int _h, int _c, void* _data, size_t _elemsize, Alloc
     color_space = IM_CS_SRGB;
     color_format = c == 1 ? IM_CF_GRAY : c == 3 ? IM_CF_BGR : IM_CF_ABGR;
     color_range = IM_CR_FULL_RANGE;
-    flag = 0;
+    flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
     depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 }
@@ -580,7 +597,7 @@ inline ImMat::ImMat(int _w, void* _data, size_t _elemsize, int _elempack, Alloca
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
-    flag = 0;
+    flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
     depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 }
@@ -593,7 +610,7 @@ inline ImMat::ImMat(int _w, int _h, void* _data, size_t _elemsize, int _elempack
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
-    flag = 0;
+    flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
     depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 }
@@ -606,7 +623,7 @@ inline ImMat::ImMat(int _w, int _h, int _c, void* _data, size_t _elemsize, int _
     color_space = IM_CS_SRGB;
     color_format = c == 1 ? IM_CF_GRAY : c == 3 ? IM_CF_BGR : IM_CF_ABGR;
     color_range = IM_CR_FULL_RANGE;
-    flag = 0;
+    flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
     depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 }
@@ -642,7 +659,7 @@ inline ImMat& ImMat::operator=(const ImMat& m)
     color_space = m.color_space;
     color_format = m.color_format;
     color_range = m.color_range;
-    flag = m.flag;
+    flags = m.flags;
     rate = m.rate;
     depth = m.depth;
 
@@ -672,7 +689,7 @@ inline void ImMat::create(int _w, size_t _elemsize, Allocator* _allocator)
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
-    flag = 0;
+    flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
     depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 
@@ -713,7 +730,7 @@ inline void ImMat::create(int _w, int _h, size_t _elemsize, Allocator* _allocato
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
-    flag = 0;
+    flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
     depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 
@@ -754,7 +771,7 @@ inline void ImMat::create(int _w, int _h, int _c, size_t _elemsize, Allocator* _
     color_space = IM_CS_SRGB;
     color_format = c == 1 ? IM_CF_GRAY : c == 3 ? IM_CF_BGR : IM_CF_ABGR;
     color_range = IM_CR_FULL_RANGE;
-    flag = 0;
+    flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
     depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 
@@ -795,7 +812,7 @@ inline void ImMat::create(int _w, size_t _elemsize, int _elempack, Allocator* _a
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
-    flag = 0;
+    flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
     depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 
@@ -836,7 +853,7 @@ inline void ImMat::create(int _w, int _h, size_t _elemsize, int _elempack, Alloc
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
-    flag = 0;
+    flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
     depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 
@@ -877,7 +894,7 @@ inline void ImMat::create(int _w, int _h, int _c, size_t _elemsize, int _elempac
     color_space = IM_CS_SRGB;
     color_format = c == 1 ? IM_CF_GRAY : c == 3 ? IM_CF_BGR : IM_CF_ABGR;
     color_range = IM_CR_FULL_RANGE;
-    flag = 0;
+    flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
     depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 
@@ -920,7 +937,7 @@ inline void ImMat::create_type(int _w, ImDataType _t, Allocator* _allocator)
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
-    flag = 0;
+    flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
     time_stamp = NAN;
     depth = IM_DEPTH(_t);
@@ -962,7 +979,7 @@ inline void ImMat::create_type(int _w, int _h, ImDataType _t, Allocator* _alloca
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
-    flag = 0;
+    flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
     time_stamp = NAN;
     depth = IM_DEPTH(_t);
@@ -1004,7 +1021,7 @@ inline void ImMat::create_type(int _w, int _h, int _c, ImDataType _t, Allocator*
     color_space = IM_CS_SRGB;
     color_format = c == 1 ? IM_CF_GRAY : c == 3 ? IM_CF_BGR : IM_CF_ABGR;
     color_range = IM_CR_FULL_RANGE;
-    flag = 0;
+    flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
     time_stamp = NAN;
     depth = IM_DEPTH(_t);
@@ -1047,7 +1064,7 @@ inline void ImMat::create_type(int _w, void* _data, ImDataType _t, Allocator* _a
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
-    flag = 0;
+    flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
     time_stamp = NAN;
     depth = IM_DEPTH(_t);
@@ -1076,7 +1093,7 @@ inline void ImMat::create_type(int _w, int _h, void* _data, ImDataType _t, Alloc
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
-    flag = 0;
+    flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
     time_stamp = NAN;
     depth = IM_DEPTH(_t);
@@ -1105,7 +1122,7 @@ inline void ImMat::create_type(int _w, int _h, int _c, void* _data, ImDataType _
     color_space = IM_CS_SRGB;
     color_format = c == 1 ? IM_CF_GRAY : c == 3 ? IM_CF_BGR : IM_CF_ABGR;
     color_range = IM_CR_FULL_RANGE;
-    flag = 0;
+    flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
     time_stamp = NAN;
     depth = IM_DEPTH(_t);
@@ -1125,7 +1142,7 @@ inline void ImMat::create_like(const ImMat& m, Allocator* _allocator)
     color_space = m.color_space;
     color_format = m.color_format;
     color_range = m.color_range;
-    flag = m.flag;
+    flags = m.flags;
     rate = m.rate;
     depth = m.depth;
     time_stamp = m.time_stamp;
@@ -1164,7 +1181,7 @@ inline void ImMat::release()
     color_space = IM_CS_SRGB;
     color_format = IM_CF_ABGR;
     color_range = IM_CR_FULL_RANGE;
-    flag = 0;
+    flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
     depth = 32;
     time_stamp = NAN;
@@ -1397,7 +1414,7 @@ inline ImMat ImMat::copy(Allocator* _allocator) const
     m.color_space = color_space;
     m.type = type;
     m.time_stamp = time_stamp;
-    m.flag = flag;
+    m.flags = flags;
     m.depth = depth;
     m.rate = rate;
     return m;
@@ -1432,7 +1449,7 @@ inline ImMat ImMat::clone() const
     m.time_stamp = time_stamp;
     m.device = device;
     m.device_number = device_number;
-    m.flag = flag;
+    m.flags = flags;
     m.rate = rate;
     m.depth = depth;
     return m;
@@ -1471,7 +1488,7 @@ inline ImMat ImMat::reshape(int _w, Allocator* _allocator) const
     m.color_format = IM_CF_GRAY;
 
     m.time_stamp = time_stamp;
-    m.flag = flag;
+    m.flags = flags;
     m.rate = rate;
 
     return m;
@@ -1509,7 +1526,7 @@ inline ImMat ImMat::reshape(int _w, int _h, Allocator* _allocator) const
     m.cstep = (size_t)_w * _h;
 
     m.time_stamp = time_stamp;
-    m.flag = flag;
+    m.flags = flags;
     m.rate = rate;
 
     return m;
@@ -1555,7 +1572,7 @@ inline ImMat ImMat::reshape(int _w, int _h, int _c, Allocator* _allocator) const
     m.cstep = Im_AlignSize((size_t)_w * _h * elemsize, 16) / elemsize;
 
     m.time_stamp = time_stamp;
-    m.flag = flag;
+    m.flags = flags;
     m.rate = rate;
 
     return m;
