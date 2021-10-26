@@ -2233,17 +2233,34 @@ ImFont* ImFontAtlas::AddFontDefault(const ImFontConfig* font_cfg_template)
 #endif
         ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "DroidSans, %dpx", (int)font_cfg.SizePixels);
         AddFontFromMemoryCompressedBase85TTF(DroidSans_compressed_data_base85, font_cfg.SizePixels, &font_cfg, glyph_ranges);
+#if IMGUI_ICONS
+        ImGui::LoadInternalIcons(this);
+#endif
         ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "ProggyClean, %dpx", (int)font_cfg.SizePixels);
         AddFontFromMemoryCompressedBase85TTF(proggy_clean_ttf_compressed_data_base85, font_cfg.SizePixels, &font_cfg, glyph_ranges);
+#if IMGUI_ICONS
+        ImGui::LoadInternalIcons(this);
+#endif
         ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "ProggyTiny, %dpx", (int)font_cfg.SizePixels);
         AddFontFromMemoryCompressedBase85TTF(ProggyTiny_compressed_data_base85, font_cfg.SizePixels, &font_cfg, glyph_ranges);
+#if IMGUI_ICONS
+        ImGui::LoadInternalIcons(this);
+#endif
         ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "Cousine-Regular, %dpx", (int)font_cfg.SizePixels);
         AddFontFromMemoryCompressedBase85TTF(Cousine_Regular_compressed_data_base85, font_cfg.SizePixels, &font_cfg, glyph_ranges);
+#if IMGUI_ICONS
+        ImGui::LoadInternalIcons(this);
+#endif
         ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "Karla-Regular, %dpx", (int)font_cfg.SizePixels);
         AddFontFromMemoryCompressedBase85TTF(Karla_Regular_compressed_data_base85, font_cfg.SizePixels, &font_cfg, glyph_ranges);
+#if IMGUI_ICONS
+        ImGui::LoadInternalIcons(this);
+#endif
         ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "Roboto-Medium, %dpx", (int)font_cfg.SizePixels);
         AddFontFromMemoryCompressedBase85TTF(Roboto_Medium_compressed_data_base85, font_cfg.SizePixels, &font_cfg, glyph_ranges);
-        
+#if IMGUI_ICONS
+        ImGui::LoadInternalIcons(this);
+#endif
         if (font == nullptr) font = cfont;
     }
 
