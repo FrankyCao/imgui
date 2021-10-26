@@ -324,15 +324,23 @@ namespace IGFD
 	//// FILE EXTENTIONS INFOS //////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////////
 
-	IGFD::FileExtentionInfos::FileExtentionInfos() : color(0, 0, 0, 0)
+	IGFD::FileStyle::FileStyle() : color(0, 0, 0, 0)
 	{ 
-
+		prEmpty = true;
 	}
 
-	IGFD::FileExtentionInfos::FileExtentionInfos(const ImVec4& vColor, const std::string& vIcon)
+	IGFD::FileStyle::FileStyle(const ImVec4& vColor, const std::string& vIcon, ImFont* vFont)
 	{ 
 		color = vColor; 
 		icon = vIcon; 
+		font = vFont;
+
+		prEmpty = false;
+	}
+
+	bool IGFD::FileStyle::empty() const
+	{
+		return prEmpty;
 	}
 
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -651,11 +659,11 @@ namespace IGFD
 	{
 		if (!vTag.empty())
 		{
-			if (fileName_optimized == "..") return true;
+			if (fileNameExt_optimized == "..") return true;
 
 			return
-				fileName_optimized.find(vTag) != std::string::npos ||	// first try wihtout case and accents
-				fileName.find(vTag) != std::string::npos;				// second if searched with case and accents
+				fileNameExt_optimized.find(vTag) != std::string::npos ||	// first try wihtout case and accents
+				fileNameExt.find(vTag) != std::string::npos;				// second if searched with case and accents
 		}
 
 		// if tag is empty => its a special case but all is found
@@ -823,38 +831,171 @@ namespace IGFD
 		}
 	}
 
-	void IGFD::FilterManager::SetExtentionInfos(const std::string& vFilter, const FileExtentionInfos& vInfos)
+	void IGFD::FilterManager::SetFileStyle(const IGFD_FileStyleFlags& vFlags, const std::string& vCriteria, const FileStyle& vInfos)
 	{
-		prFileExtentionInfos[vFilter] = vInfos;
+		prFilesStyle[vFlags][vCriteria] = vInfos;
+		prFilesStyle[vFlags][vCriteria].flags = vFlags;
 	}
 
-	void IGFD::FilterManager::SetExtentionInfos(const std::string& vFilter, const ImVec4& vColor, const std::string& vIcon)
+	// todo : to refactor this fucking function
+	bool IGFD::FilterManager::GetFileStyle(
+		const IGFD_FileStyleFlags& vFlags,
+		const std::string& vCriteria, 
+		FileStyle& vFileStyle) const
 	{
-		prFileExtentionInfos[vFilter] = FileExtentionInfos(vColor, vIcon);
+		if (!prFilesStyle.empty())
+		{
+			if (prFilesStyle.find(vFlags) != prFilesStyle.end()) // found
+			{
+				if (vFlags & IGFD_FileStyleByContainedInFullName)
+				{
+					// search for vCriteria who are containing the criteria
+					const auto& _files = prFilesStyle.at(vFlags);
+					for (const auto& _file : _files)
+					{
+						if (vCriteria.find(_file.first) != std::string::npos)
+						{
+							vFileStyle = prFilesStyle.at(vFlags).at(_file.first);
+							return true;
+						}
+					}
+				}
+				else
+				{
+					if (prFilesStyle.at(vFlags).find(vCriteria) != prFilesStyle.at(vFlags).end()) // found
+					{
+						vFileStyle = prFilesStyle.at(vFlags).at(vCriteria);
+						return true;
+					}
+				}
+			}
+			else
+			{
+				// search for flag composition
+				for (const auto& _flag : prFilesStyle)
+				{
+					if (_flag.first & vFlags)
+					{
+						if (_flag.first & IGFD_FileStyleByContainedInFullName)
+						{
+							// search for vCriteria who are containing the criteria
+							for (const auto& _file : _flag.second)
+							{
+								if (vCriteria.find(_file.first) != std::string::npos)
+								{
+									vFileStyle = prFilesStyle.at(_flag.first).at(_file.first);
+									return true;
+								}
+							}
+						}
+						else
+						{
+							if (prFilesStyle.at(_flag.first).find(vCriteria) != prFilesStyle.at(_flag.first).end()) // found
+							{
+								vFileStyle = prFilesStyle.at(_flag.first).at(vCriteria);
+								return true;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return false;
 	}
 
-	bool IGFD::FilterManager::GetExtentionInfos(const std::string& vFilter, ImVec4* vOutColor, std::string* vOutIcon)
+	void IGFD::FilterManager::SetFileStyle(const IGFD_FileStyleFlags& vFlags, const std::string& vCriteria, const ImVec4& vColor, const std::string& vIcon, ImFont* vFont)
+	{
+		prFilesStyle[vFlags][vCriteria] = FileStyle(vColor, vIcon, vFont);
+		prFilesStyle[vFlags][vCriteria].flags = vFlags;
+	}
+
+	// todo : to refactor this fucking function
+	bool IGFD::FilterManager::GetFileStyle(const IGFD_FileStyleFlags& vFlags, const std::string& vCriteria, ImVec4* vOutColor, std::string* vOutIcon, ImFont **vOutFont)
 	{
 		if (vOutColor)
 		{
-			if (prFileExtentionInfos.find(vFilter) != prFileExtentionInfos.end()) // found
+			if (!prFilesStyle.empty())
 			{
-				*vOutColor = prFileExtentionInfos[vFilter].color;
-				if (vOutIcon)
+				if (prFilesStyle.find(vFlags) != prFilesStyle.end()) // found
 				{
-					*vOutIcon = prFileExtentionInfos[vFilter].icon;
+					if (vFlags & IGFD_FileStyleByContainedInFullName)
+					{
+						// search for vCriteria who are containing the criteria
+						for (const auto& _file : prFilesStyle.at(vFlags))
+						{
+							if (vCriteria.find(_file.first) != std::string::npos)
+							{
+								*vOutColor = prFilesStyle[vFlags][_file.first].color;
+								if (vOutIcon)
+									*vOutIcon = prFilesStyle[vFlags][_file.first].icon;
+								if (vOutFont)
+									*vOutFont = prFilesStyle[vFlags][_file.first].font;
+								return true;
+							}
+						}
+					}
+					else
+					{
+						if (prFilesStyle.at(vFlags).find(vCriteria) != prFilesStyle.at(vFlags).end()) // found
+						{
+							*vOutColor = prFilesStyle[vFlags][vCriteria].color;
+							if (vOutIcon)
+								*vOutIcon = prFilesStyle[vFlags][vCriteria].icon;
+							if (vOutFont)
+								*vOutFont = prFilesStyle[vFlags][vCriteria].font;
+							return true;
+						}
+					}
 				}
-				return true;
+				else
+				{
+					// search for flag composition
+					for (const auto& _flag : prFilesStyle)
+					{
+						if (_flag.first & vFlags)
+						{
+							if (_flag.first & IGFD_FileStyleByContainedInFullName)
+							{
+								// search for vCriteria who are containing the criteria
+								for (const auto& _file : prFilesStyle.at(_flag.first))
+								{
+									if (vCriteria.find(_file.first) != std::string::npos)
+									{
+										*vOutColor = prFilesStyle[vFlags][_file.first].color;
+										if (vOutIcon)
+											*vOutIcon = prFilesStyle[vFlags][_file.first].icon;
+										if (vOutFont)
+											*vOutFont = prFilesStyle[vFlags][_file.first].font;
+										return true;
+									}
+								}
+							}
+							else
+							{
+								if (prFilesStyle.at(_flag.first).find(vCriteria) != prFilesStyle.at(_flag.first).end()) // found
+								{
+									*vOutColor = prFilesStyle[vFlags][vCriteria].color;
+									if (vOutIcon)
+										*vOutIcon = prFilesStyle[vFlags][vCriteria].icon;
+									if (vOutFont)
+										*vOutFont = prFilesStyle[vFlags][vCriteria].font;
+									return true;
+								}
+							}
+						}
+					}
+				}
 			}
 		}
 		return false;
 	}
 
-	void IGFD::FilterManager::ClearExtentionInfos()
+	void IGFD::FilterManager::ClearFilesStyle()
 	{
-		prFileExtentionInfos.clear();
+		prFilesStyle.clear();
 	}
-
+		
 	bool IGFD::FilterManager::IsCoveredByFilters(const std::string& vTag) const
 	{
 		if (!puDLGFilters.empty() && !prSelectedFilter.empty())
@@ -1000,17 +1141,17 @@ namespace IGFD
 						// use code from https://github.com/jackm97/ImGuiFileDialog/commit/bf40515f5a1de3043e60562dc1a494ee7ecd3571
 						// strict ordering for file/directory types beginning in '.'
 						// common on Linux platforms
-						if (a->fileName[0] == '.' && b->fileName[0] != '.')
+						if (a->fileNameExt[0] == '.' && b->fileNameExt[0] != '.')
 							return false;
-						if (a->fileName[0] != '.' && b->fileName[0] == '.')
+						if (a->fileNameExt[0] != '.' && b->fileNameExt[0] == '.')
 							return true;
-						if (a->fileName[0] == '.' && b->fileName[0] == '.')
+						if (a->fileNameExt[0] == '.' && b->fileNameExt[0] == '.')
 						{
-							return (stricmp(a->fileName.c_str(), b->fileName.c_str()) < 0); // sort in insensitive case
+							return (stricmp(a->fileNameExt.c_str(), b->fileNameExt.c_str()) < 0); // sort in insensitive case
 						}
 						*/
 						if (a->fileType != b->fileType) return (a->fileType == 'd'); // directory in first
-						return (stricmp(a->fileName.c_str(), b->fileName.c_str()) < 0); // sort in insensitive case
+						return (stricmp(a->fileNameExt.c_str(), b->fileNameExt.c_str()) < 0); // sort in insensitive case
 					});
 			}
 			else
@@ -1029,16 +1170,16 @@ namespace IGFD
 						// use code from https://github.com/jackm97/ImGuiFileDialog/commit/bf40515f5a1de3043e60562dc1a494ee7ecd3571
 						// strict ordering for file/directory types beginning in '.'
 						// common on Linux platforms
-						if (a->fileName[0] == '.' && b->fileName[0] != '.')
+						if (a->fileNameExt[0] == '.' && b->fileNameExt[0] != '.')
 							return false;
-						if (a->fileName[0] != '.' && b->fileName[0] == '.')
+						if (a->fileNameExt[0] != '.' && b->fileNameExt[0] == '.')
 							return true;
-						if (a->fileName[0] == '.' && b->fileName[0] == '.')
+						if (a->fileNameExt[0] == '.' && b->fileNameExt[0] == '.')
 						{
-							return (stricmp(a->fileName.c_str(), b->fileName.c_str()) > 0); // sort in insensitive case
+							return (stricmp(a->fileNameExt.c_str(), b->fileNameExt.c_str()) > 0); // sort in insensitive case
 						}
 						*/
-						return (stricmp(a->fileName.c_str(), b->fileName.c_str()) > 0); // sort in insensitive case
+						return (stricmp(a->fileNameExt.c_str(), b->fileNameExt.c_str()) > 0); // sort in insensitive case
 					});
 			}
 		}
@@ -1212,13 +1353,13 @@ namespace IGFD
 		prFileList.clear();
 	}
 
-	std::string IGFD::FileManager::prOptimizeFilenameForSearchOperations(const std::string& vFileName)
+	std::string IGFD::FileManager::prOptimizeFilenameForSearchOperations(const std::string& vFileNameExt)
 	{
-		auto fileName = vFileName;
+		auto fileNameExt = vFileNameExt;
 		// convert to lower case
-		for (char& c : fileName)
+		for (char& c : fileNameExt)
 			c = (char)std::tolower(c);
-		return fileName;
+		return fileNameExt;
 	}
 
 	void IGFD::FileManager::AddFile(const FileDialogInternal& vFileDialogInternal, const std::string& vPath, const std::string& vFileName, const char& vFileType)
@@ -1226,23 +1367,44 @@ namespace IGFD
 		auto infos = std::make_shared<FileInfos>();
 
 		infos->filePath = vPath;
-		infos->fileName = vFileName;
-		infos->fileName_optimized = prOptimizeFilenameForSearchOperations(infos->fileName);
-
-		if (infos->fileName.empty() || (infos->fileName == "." && !vFileDialogInternal.puFilterManager.puDLGFilters.empty())) return; // filename empty or filename is the current dir '.'
-		if (infos->fileName != ".." && (vFileDialogInternal.puDLGflags & ImGuiFileDialogFlags_DontShowHiddenFiles) && infos->fileName[0] == '.') // dont show hidden files
-			if (!vFileDialogInternal.puFilterManager.puDLGFilters.empty() || (vFileDialogInternal.puFilterManager.puDLGFilters.empty() && infos->fileName != ".")) // except "." if in directory mode
-				return;
-
+		infos->fileNameExt = vFileName;
+		infos->fileNameExt_optimized = prOptimizeFilenameForSearchOperations(infos->fileNameExt);
 		infos->fileType = vFileType;
+
+		// file style
+
+		static std::string emptyString;
+
+		if (infos->fileType == 'd')
+			vFileDialogInternal.puFilterManager.GetFileStyle(IGFD_FileStyleByTypeDir, emptyString, infos->fileStyle);
+		else if (infos->fileType == 'f')
+			vFileDialogInternal.puFilterManager.GetFileStyle(IGFD_FileStyleByTypeFile, emptyString, infos->fileStyle);
+		else if (infos->fileType == 'l')
+			vFileDialogInternal.puFilterManager.GetFileStyle(IGFD_FileStyleByTypeLink, emptyString, infos->fileStyle);
+
+		vFileDialogInternal.puFilterManager.GetFileStyle(IGFD_FileStyleByExtention, infos->fileExt, infos->fileStyle);
+		vFileDialogInternal.puFilterManager.GetFileStyle(IGFD_FileStyleByFullName, infos->fileNameExt, infos->fileStyle);
+		vFileDialogInternal.puFilterManager.GetFileStyle(IGFD_FileStyleByContainedInFullName, infos->fileNameExt, infos->fileStyle);
+
+		if (infos->fileType == 'd')
+			vFileDialogInternal.puFilterManager.GetFileStyle(IGFD_FileStyleByTypeDir | IGFD_FileStyleByContainedInFullName, infos->fileNameExt, infos->fileStyle);
+		else if (infos->fileType == 'f')
+			vFileDialogInternal.puFilterManager.GetFileStyle(IGFD_FileStyleByTypeFile | IGFD_FileStyleByContainedInFullName, infos->fileNameExt, infos->fileStyle);
+		else if (infos->fileType == 'l')
+			vFileDialogInternal.puFilterManager.GetFileStyle(IGFD_FileStyleByTypeLink | IGFD_FileStyleByContainedInFullName, infos->fileNameExt, infos->fileStyle);
+
+		if (infos->fileNameExt.empty() || (infos->fileNameExt == "." && !vFileDialogInternal.puFilterManager.puDLGFilters.empty())) return; // filename empty or filename is the current dir '.'
+		if (infos->fileNameExt != ".." && (vFileDialogInternal.puDLGflags & ImGuiFileDialogFlags_DontShowHiddenFiles) && infos->fileNameExt[0] == '.') // dont show hidden files
+			if (!vFileDialogInternal.puFilterManager.puDLGFilters.empty() || (vFileDialogInternal.puFilterManager.puDLGFilters.empty() && infos->fileNameExt != ".")) // except "." if in directory mode
+				return;
 
 		if (infos->fileType == 'f' ||
 			infos->fileType == 'l') // link can have the same extention of a file
 		{
-			size_t lpt = infos->fileName.find_last_of('.');
+			size_t lpt = infos->fileNameExt.find_last_of('.');
 			if (lpt != std::string::npos)
 			{
-				infos->fileExt = infos->fileName.substr(lpt);
+				infos->fileExt = infos->fileNameExt.substr(lpt);
 			}
 
 			if (!vFileDialogInternal.puFilterManager.IsCoveredByFilters(infos->fileExt))
@@ -1287,8 +1449,8 @@ namespace IGFD
 					fileType = 'd';
 				else
 					fileType = 'f';
-				auto fileName = file.path().filename().string();
-				AddFile(vFileDialogInternal, path, fileName, fileType);
+				auto fileNameExt = file.path().filename().string();
+				AddFile(vFileDialogInternal, path, fileNameExt, fileType);
 			}
 #else // dirent
 			struct dirent** files = nullptr;
@@ -1310,9 +1472,9 @@ namespace IGFD
 						fileType = 'l'; break;
 					}
 
-					auto fileName = ent->d_name;
+					auto fileNameExt = ent->d_name;
 
-					AddFile(vFileDialogInternal, path, fileName, fileType);
+					AddFile(vFileDialogInternal, path, fileNameExt, fileType);
 				}
 
 				for (int i = 0; i < n; i++)
@@ -1339,12 +1501,12 @@ namespace IGFD
 			for (auto& drive : drives)
 			{
 				auto info = std::make_shared<FileInfos>();
-				info->fileName = drive;
-				info->fileName_optimized = drive;
-				prOptimizeFilenameForSearchOperations(info->fileName_optimized);
+				info->fileNameExt = drive;
+				info->fileNameExt_optimized = drive;
+				prOptimizeFilenameForSearchOperations(info->fileNameExt_optimized);
 				info->fileType = 'd';
 
-				if (!info->fileName.empty())
+				if (!info->fileNameExt.empty())
 				{
 					prFileList.push_back(info);
 				}
@@ -1477,8 +1639,8 @@ namespace IGFD
 		if (!vInfos.use_count())
 			return;
 
-		if (vInfos->fileName != "." &&
-			vInfos->fileName != "..")
+		if (vInfos->fileNameExt != "." &&
+			vInfos->fileNameExt != "..")
 		{
 			// _stat struct :
 			//dev_t     st_dev;     /* ID of device containing file */
@@ -1498,7 +1660,7 @@ namespace IGFD
 			std::string fpn;
 
 			if (vInfos->fileType == 'f' || vInfos->fileType == 'l' || vInfos->fileType == 'd') // file
-				fpn = vInfos->filePath + std::string(1u, PATH_SEP) + vInfos->fileName;
+				fpn = vInfos->filePath + std::string(1u, PATH_SEP) + vInfos->fileNameExt;
 
 			struct stat statInfos = {};
 			char timebuf[100];
@@ -1725,7 +1887,7 @@ namespace IGFD
 
 		bool pathClick = false;
 
-		if (vInfos->fileName == "..")
+		if (vInfos->fileNameExt == "..")
 		{
 			pathClick = SetPathOnParentDirectoryIfAny();
 		}
@@ -1735,23 +1897,23 @@ namespace IGFD
 
 			if (puShowDrives)
 			{
-				newPath = vInfos->fileName + std::string(1u, PATH_SEP);
+				newPath = vInfos->fileNameExt + std::string(1u, PATH_SEP);
 			}
 			else
 			{
 #ifdef __linux__
 				if (puFsRoot == prCurrentPath)
-					newPath = prCurrentPath + vInfos->fileName;
+					newPath = prCurrentPath + vInfos->fileNameExt;
 				else
 #endif // __linux__
-					newPath = prCurrentPath + std::string(1u, PATH_SEP) + vInfos->fileName;
+					newPath = prCurrentPath + std::string(1u, PATH_SEP) + vInfos->fileNameExt;
 			}
 
 			if (IGFD::Utils::IsDirectoryExist(newPath))
 			{
 				if (puShowDrives)
 				{
-					prCurrentPath = vInfos->fileName;
+					prCurrentPath = vInfos->fileNameExt;
 					puFsRoot = prCurrentPath;
 				}
 				else
@@ -1774,26 +1936,26 @@ namespace IGFD
 		{
 			if (puDLGcountSelectionMax == 0) // infinite selection
 			{
-				if (prSelectedFileNames.find(vInfos->fileName) == prSelectedFileNames.end()) // not found +> add
+				if (prSelectedFileNames.find(vInfos->fileNameExt) == prSelectedFileNames.end()) // not found +> add
 				{
-					prAddFileNameInSelection(vInfos->fileName, true);
+					prAddFileNameInSelection(vInfos->fileNameExt, true);
 				}
 				else // found +> remove
 				{
-					prRemoveFileNameInSelection(vInfos->fileName);
+					prRemoveFileNameInSelection(vInfos->fileNameExt);
 				}
 			}
 			else // selection limited by size
 			{
 				if (prSelectedFileNames.size() < puDLGcountSelectionMax)
 				{
-					if (prSelectedFileNames.find(vInfos->fileName) == prSelectedFileNames.end()) // not found +> add
+					if (prSelectedFileNames.find(vInfos->fileNameExt) == prSelectedFileNames.end()) // not found +> add
 					{
-						prAddFileNameInSelection(vInfos->fileName, true);
+						prAddFileNameInSelection(vInfos->fileNameExt, true);
 					}
 					else // found +> remove
 					{
-						prRemoveFileNameInSelection(vInfos->fileName);
+						prRemoveFileNameInSelection(vInfos->fileNameExt);
 					}
 				}
 			}
@@ -1805,7 +1967,7 @@ namespace IGFD
 				prSelectedFileNames.clear();
 				// we will iterate filelist and get the last selection after the start selection
 				bool startMultiSelection = false;
-				std::string fileNameToSelect = vInfos->fileName;
+				std::string fileNameToSelect = vInfos->fileNameExt;
 				std::string savedLastSelectedFileName; // for invert selection mode
 				for (const auto& file : prFileList)
 				{
@@ -1816,7 +1978,7 @@ namespace IGFD
 					if (!file->IsTagFound(vFileDialogInternal.puSearchManager.puSearchTag)) canTake = false;
 					if (canTake) // if not filtered, we will take files who are filtered by the dialog
 					{
-						if (file->fileName == prLastSelectedFileName)
+						if (file->fileNameExt == prLastSelectedFileName)
 						{
 							startMultiSelection = true;
 							prAddFileNameInSelection(prLastSelectedFileName, false);
@@ -1825,13 +1987,13 @@ namespace IGFD
 						{
 							if (puDLGcountSelectionMax == 0) // infinite selection
 							{
-								prAddFileNameInSelection(file->fileName, false);
+								prAddFileNameInSelection(file->fileNameExt, false);
 							}
 							else // selection limited by size
 							{
 								if (prSelectedFileNames.size() < puDLGcountSelectionMax)
 								{
-									prAddFileNameInSelection(file->fileName, false);
+									prAddFileNameInSelection(file->fileNameExt, false);
 								}
 								else
 								{
@@ -1843,7 +2005,7 @@ namespace IGFD
 							}
 						}
 
-						if (file->fileName == fileNameToSelect)
+						if (file->fileNameExt == fileNameToSelect)
 						{
 							if (!startMultiSelection) // we are before the last Selected FileName, so we must inverse
 							{
@@ -1869,7 +2031,7 @@ namespace IGFD
 		{
 			prSelectedFileNames.clear();
 			IGFD::Utils::ResetBuffer(puFileNameBuffer);
-			prAddFileNameInSelection(vInfos->fileName, true);
+			prAddFileNameInSelection(vInfos->fileNameExt, true);
 		}
 	}
 
@@ -2237,7 +2399,7 @@ namespace IGFD
 							//|| file->fileExt == ".hdr" => format float so in few times
 							)
 						{
-							auto fpn = file->filePath + std::string(1u, PATH_SEP) + file->fileName;
+							auto fpn = file->filePath + std::string(1u, PATH_SEP) + file->fileNameExt;
 
 							int w = 0;
 							int h = 0;
@@ -2628,8 +2790,8 @@ namespace IGFD
 				auto nfo = fdi.GetFilteredFileAt(i);
 				if (nfo.use_count())
 				{
-					if (nfo->fileName_optimized[0] == vC || // lower case search
-						nfo->fileName[0] == vC) // maybe upper case search
+					if (nfo->fileNameExt_optimized[0] == vC || // lower case search
+						nfo->fileNameExt[0] == vC) // maybe upper case search
 					{
 						//float p = ((float)i) * ImGui::GetTextLineHeightWithSpacing();
 						float p = (float)((double)i / (double)countFiles) * ImGui::GetScrollMaxY();
@@ -2811,7 +2973,7 @@ namespace IGFD
 						if (exitDirectory)
 						{
 							auto nfo = std::make_shared<FileInfos>();
-							nfo->fileName = "..";
+							nfo->fileNameExt = "..";
 
 							if (fdi.SelectDirectory(nfo))
 							{
@@ -3056,33 +3218,33 @@ namespace IGFD
         //SetTypeInfos(std::to_string('d'), ImVec4(0.0f, 0.0f, 0.0f, 0.9f), ICON_FK_FOLDER);
         //SetTypeInfos(std::to_string('l'), ImVec4(0.5f, 0.5f, 1.0f, 0.9f), ICON_FK_EXTERNAL_LINK);
         // set format color and icons
-        SetExtentionInfos(".txt", ImVec4(0.0f, 0.0f, 0.0f, 0.9f), ICON_FA4_FILE_TEXT_O);
-        SetExtentionInfos(".cpp", ImVec4(0.5f, 0.5f, 0.0f, 0.9f), ICON_FA5_FILE_CODE);
-        SetExtentionInfos(".h", ImVec4(0.0f, 0.15f, 0.15f, 0.9f), ICON_FA5_FILE_CODE);
-        SetExtentionInfos(".hpp", ImVec4(0.0f, 0.0f, 0.5f, 0.9f), ICON_FA5_FILE_CODE);
-        SetExtentionInfos(".md", ImVec4(0.15f, 0.0f, 0.15f, 0.9f), ICON_FK_MARKDOWN);
-        SetExtentionInfos(".png", ImVec4(0.0f, 0.5f, 0.5f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
-        SetExtentionInfos(".bmp", ImVec4(0.0f, 0.5f, 0.5f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
-        SetExtentionInfos(".jpg", ImVec4(0.0f, 0.5f, 0.5f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
-        SetExtentionInfos(".jpeg", ImVec4(0.0f, 0.5f, 0.5f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
-        SetExtentionInfos(".mp4", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA4_FILE_VIDEO_O);
-        SetExtentionInfos(".MP4", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA4_FILE_VIDEO_O);
-        SetExtentionInfos(".mkv", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA4_FILE_VIDEO_O);
-        SetExtentionInfos(".MKV", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA4_FILE_VIDEO_O);
-        SetExtentionInfos(".mov", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA4_FILE_VIDEO_O);
-        SetExtentionInfos(".MOV", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA4_FILE_VIDEO_O);
-        SetExtentionInfos(".webm", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA4_FILE_VIDEO_O);
-        SetExtentionInfos(".ttf", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FK_FONT);
-        SetExtentionInfos(".TTF", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FK_FONT);
-        SetExtentionInfos(".doc", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA5_FILE_WORD);
-        SetExtentionInfos(".docx", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA5_FILE_WORD);
-        SetExtentionInfos(".ppt",  ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA5_FILE_POWERPOINT);
-        SetExtentionInfos(".pptx", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA5_FILE_POWERPOINT);
-        SetExtentionInfos(".xls",  ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA5_FILE_EXCEL);
-        SetExtentionInfos(".xlsx", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA5_FILE_EXCEL);
-        SetExtentionInfos(".pdf",  ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA5_FILE_PDF);
+        SetFileStyle(IGFD_FileStyleByExtention, ".txt", ImVec4(0.0f, 0.0f, 0.0f, 0.9f), ICON_FA4_FILE_TEXT_O);
+        SetFileStyle(IGFD_FileStyleByExtention, ".cpp", ImVec4(0.5f, 0.5f, 0.0f, 0.9f), ICON_FA5_FILE_CODE);
+        SetFileStyle(IGFD_FileStyleByExtention, ".h", ImVec4(0.0f, 0.15f, 0.15f, 0.9f), ICON_FA5_FILE_CODE);
+        SetFileStyle(IGFD_FileStyleByExtention, ".hpp", ImVec4(0.0f, 0.0f, 0.5f, 0.9f), ICON_FA5_FILE_CODE);
+        SetFileStyle(IGFD_FileStyleByExtention, ".md", ImVec4(0.15f, 0.0f, 0.15f, 0.9f), ICON_FK_MARKDOWN);
+        SetFileStyle(IGFD_FileStyleByExtention, ".png", ImVec4(0.0f, 0.5f, 0.5f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
+        SetFileStyle(IGFD_FileStyleByExtention, ".bmp", ImVec4(0.0f, 0.5f, 0.5f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
+        SetFileStyle(IGFD_FileStyleByExtention, ".jpg", ImVec4(0.0f, 0.5f, 0.5f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
+        SetFileStyle(IGFD_FileStyleByExtention, ".jpeg", ImVec4(0.0f, 0.5f, 0.5f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
+        SetFileStyle(IGFD_FileStyleByExtention, ".mp4", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA4_FILE_VIDEO_O);
+        SetFileStyle(IGFD_FileStyleByExtention, ".MP4", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA4_FILE_VIDEO_O);
+        SetFileStyle(IGFD_FileStyleByExtention, ".mkv", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA4_FILE_VIDEO_O);
+        SetFileStyle(IGFD_FileStyleByExtention, ".MKV", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA4_FILE_VIDEO_O);
+        SetFileStyle(IGFD_FileStyleByExtention, ".mov", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA4_FILE_VIDEO_O);
+        SetFileStyle(IGFD_FileStyleByExtention, ".MOV", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA4_FILE_VIDEO_O);
+        SetFileStyle(IGFD_FileStyleByExtention, ".webm", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA4_FILE_VIDEO_O);
+        SetFileStyle(IGFD_FileStyleByExtention, ".ttf", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FK_FONT);
+        SetFileStyle(IGFD_FileStyleByExtention, ".TTF", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FK_FONT);
+        SetFileStyle(IGFD_FileStyleByExtention, ".doc", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA5_FILE_WORD);
+        SetFileStyle(IGFD_FileStyleByExtention, ".docx", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA5_FILE_WORD);
+        SetFileStyle(IGFD_FileStyleByExtention, ".ppt",  ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA5_FILE_POWERPOINT);
+        SetFileStyle(IGFD_FileStyleByExtention, ".pptx", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA5_FILE_POWERPOINT);
+        SetFileStyle(IGFD_FileStyleByExtention, ".xls",  ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA5_FILE_EXCEL);
+        SetFileStyle(IGFD_FileStyleByExtention, ".xlsx", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA5_FILE_EXCEL);
+        SetFileStyle(IGFD_FileStyleByExtention, ".pdf",  ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA5_FILE_PDF);
 #endif
-        SetExtentionInfos(".gif", ImVec4(0.0f, 0.5f, 0.5f, 0.9f), "[GIF]"); // add an text for a filter type
+        SetFileStyle(IGFD_FileStyleByExtention, ".gif", ImVec4(0.0f, 0.5f, 0.5f, 0.9f), "[GIF]"); // add an text for a filter type
 	}
 
 	void IGFD::FileDialog::SetDarkStyle()
@@ -3093,40 +3255,40 @@ namespace IGFD
         //SetTypeInfos(std::to_string('d'), ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FK_FOLDER);
         //SetTypeInfos(std::to_string('l'), ImVec4(0.5f, 0.5f, 1.0f, 0.9f), ICON_FK_EXTERNAL_LINK);
         // set format color and icons
-        SetExtentionInfos(".txt", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_TEXT_O);
-        SetExtentionInfos(".cpp", ImVec4(1.0f, 1.0f, 0.0f, 0.9f), ICON_FA5_FILE_CODE);
-        SetExtentionInfos(".h", ImVec4(0.0f, 1.0f, 0.0f, 0.9f), ICON_FA5_FILE_CODE);
-        SetExtentionInfos(".hpp", ImVec4(0.0f, 0.0f, 1.0f, 0.9f), ICON_FA5_FILE_CODE);
-        SetExtentionInfos(".md", ImVec4(1.0f, 0.0f, 1.0f, 0.9f), ICON_FK_MARKDOWN);
-        SetExtentionInfos(".png", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
-        SetExtentionInfos(".bmp", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
-        SetExtentionInfos(".jpg", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
-        SetExtentionInfos(".jpeg", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
-        SetExtentionInfos(".mp4", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
-        SetExtentionInfos(".MP4", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
-        SetExtentionInfos(".mkv", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
-        SetExtentionInfos(".MKV", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
-        SetExtentionInfos(".mov", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
-        SetExtentionInfos(".MOV", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
-        SetExtentionInfos(".webm", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
-        SetExtentionInfos(".ttf", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FK_FONT);
-        SetExtentionInfos(".TTF", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FK_FONT);
-        SetExtentionInfos(".doc", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_WORD);
-        SetExtentionInfos(".docx", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_WORD);
-        SetExtentionInfos(".ppt", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_POWERPOINT);
-        SetExtentionInfos(".pptx", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_POWERPOINT);
-        SetExtentionInfos(".xls", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_EXCEL);
-        SetExtentionInfos(".xlsx", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_EXCEL);
-        SetExtentionInfos(".pdf", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_PDF);
+        SetFileStyle(IGFD_FileStyleByExtention, ".txt", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_TEXT_O);
+        SetFileStyle(IGFD_FileStyleByExtention, ".cpp", ImVec4(1.0f, 1.0f, 0.0f, 0.9f), ICON_FA5_FILE_CODE);
+        SetFileStyle(IGFD_FileStyleByExtention, ".h", ImVec4(0.0f, 1.0f, 0.0f, 0.9f), ICON_FA5_FILE_CODE);
+        SetFileStyle(IGFD_FileStyleByExtention, ".hpp", ImVec4(0.0f, 0.0f, 1.0f, 0.9f), ICON_FA5_FILE_CODE);
+        SetFileStyle(IGFD_FileStyleByExtention, ".md", ImVec4(1.0f, 0.0f, 1.0f, 0.9f), ICON_FK_MARKDOWN);
+        SetFileStyle(IGFD_FileStyleByExtention, ".png", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
+        SetFileStyle(IGFD_FileStyleByExtention, ".bmp", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
+        SetFileStyle(IGFD_FileStyleByExtention, ".jpg", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
+        SetFileStyle(IGFD_FileStyleByExtention, ".jpeg", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
+        SetFileStyle(IGFD_FileStyleByExtention, ".mp4", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
+        SetFileStyle(IGFD_FileStyleByExtention, ".MP4", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
+        SetFileStyle(IGFD_FileStyleByExtention, ".mkv", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
+        SetFileStyle(IGFD_FileStyleByExtention, ".MKV", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
+        SetFileStyle(IGFD_FileStyleByExtention, ".mov", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
+        SetFileStyle(IGFD_FileStyleByExtention, ".MOV", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
+        SetFileStyle(IGFD_FileStyleByExtention, ".webm", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
+        SetFileStyle(IGFD_FileStyleByExtention, ".ttf", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FK_FONT);
+        SetFileStyle(IGFD_FileStyleByExtention, ".TTF", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FK_FONT);
+        SetFileStyle(IGFD_FileStyleByExtention, ".doc", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_WORD);
+        SetFileStyle(IGFD_FileStyleByExtention, ".docx", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_WORD);
+        SetFileStyle(IGFD_FileStyleByExtention, ".ppt", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_POWERPOINT);
+        SetFileStyle(IGFD_FileStyleByExtention, ".pptx", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_POWERPOINT);
+        SetFileStyle(IGFD_FileStyleByExtention, ".xls", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_EXCEL);
+        SetFileStyle(IGFD_FileStyleByExtention, ".xlsx", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_EXCEL);
+        SetFileStyle(IGFD_FileStyleByExtention, ".pdf", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_PDF);
 #endif
-        SetExtentionInfos(".gif", ImVec4(0.0f, 1.0f, 0.5f, 0.9f), "[GIF]"); // add an text for a filter type
+        SetFileStyle(IGFD_FileStyleByExtention, ".gif", ImVec4(0.0f, 1.0f, 0.5f, 0.9f), "[GIF]"); // add an text for a filter type
 	}
 	
 	//////////////////////////////////////////////////////////////////////////////////////////////////
 	///// FILE DIALOG STANDARD DIALOG ////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////////////////////////////
 
-	// path and fileName can be specified
+	// path and fileNameExt can be specified
 	void IGFD::FileDialog::OpenDialog(
 		const std::string& vKey,
 		const std::string& vTitle,
@@ -3225,7 +3387,7 @@ namespace IGFD
 	}
 
 	// with pane
-	// path and fileName can be specified
+	// path and fileNameExt can be specified
 	void IGFD::FileDialog::OpenDialog(
 		const std::string& vKey,
 		const std::string& vTitle,
@@ -3375,7 +3537,7 @@ namespace IGFD
 	}
 
 	// with pane
-	// path and fileName can be specified
+	// path and fileNameExt can be specified
 	void IGFD::FileDialog::OpenModal(
 		const std::string& vKey,
 		const std::string& vTitle,
@@ -3794,6 +3956,38 @@ namespace IGFD
 		return false;
 	}
 
+	void IGFD::FileDialog::prBeginFileColorIconStyle(std::shared_ptr<FileInfos> vFileInfos, bool& vOutShowColor, std::string& vOutStr, ImFont** vOutFont)
+	{
+		vOutStr.clear();
+		vOutShowColor = false;
+
+		//Directory and Link infos override the one specified by extension
+		
+		vOutShowColor = !vFileInfos->fileStyle.empty();
+
+		*vOutFont = vFileInfos->fileStyle.font;
+
+		if (vOutShowColor && !vFileInfos->fileStyle.icon.empty()) vOutStr = vFileInfos->fileStyle.icon;
+		else if (vFileInfos->fileType == 'd') vOutStr = dirEntryString;
+		else if (vFileInfos->fileType == 'l') vOutStr = linkEntryString;
+		else if (vFileInfos->fileType == 'f') vOutStr = fileEntryString;
+
+		vOutStr += " " + vFileInfos->fileNameExt;
+
+		if (vOutShowColor)
+			ImGui::PushStyleColor(ImGuiCol_Text, vFileInfos->fileStyle.color);
+		if (*vOutFont)
+			ImGui::PushFont(*vOutFont);
+	}
+
+	void IGFD::FileDialog::prEndFileColorIconStyle(bool& vShowColor, ImFont* vFont)
+	{
+		if (vFont)
+			ImGui::PopFont();
+		if (vShowColor)
+			ImGui::PopStyleColor();
+	}
+
 	void IGFD::FileDialog::prDrawFileListView(ImVec2 vSize)
 	{
 		auto& fdi = prFileDialogInternal.puFileManager;
@@ -3863,6 +4057,10 @@ namespace IGFD
 #endif // USE_CUSTOM_SORTING_ICON
 			if (!fdi.IsFilteredListEmpty())
 			{
+				std::string _str;
+				ImFont* _font = nullptr;
+				bool _showColor = false;
+				
 				prFileListClipper.Begin((int)fdi.GetFilteredListSize(), ImGui::GetTextLineHeightWithSpacing());
 				while (prFileListClipper.Step())
 				{
@@ -3874,25 +4072,9 @@ namespace IGFD
 						if (!infos.use_count())
 							continue;
 
-						ImVec4 c;
-						std::string icon;
-						bool showColor = prFileDialogInternal.puFilterManager.GetExtentionInfos(infos->fileExt, &c, &icon);
-						if (showColor)
-							ImGui::PushStyleColor(ImGuiCol_Text, c);
-
-						std::string str;// = " " + infos->fileName;
-						if (infos->fileType == 'd') str = dirEntryString;
-						else if (infos->fileType == 'l') str = linkEntryString;
-						else if (infos->fileType == 'f')
-						{
-							if (showColor && !icon.empty())
-								str = icon;
-							else
-								str = fileEntryString;
-						}
-						str += " " + infos->fileName;
-						
-						bool selected = fdi.IsFileNameSelected(infos->fileName); // found
+						prBeginFileColorIconStyle(infos, _showColor, _str, &_font);
+					
+						bool selected = fdi.IsFileNameSelected(infos->fileNameExt); // found
 
 						ImGui::TableNextRow();
 
@@ -3900,7 +4082,7 @@ namespace IGFD
 
 						if (ImGui::TableNextColumn()) // file name
 						{
-							needToBreakTheloop = prSelectableItem(i, infos, selected, str.c_str());
+							needToBreakTheloop = prSelectableItem(i, infos, selected, _str.c_str());
 						}
 						if (ImGui::TableNextColumn()) // file type
 						{
@@ -3922,8 +4104,7 @@ namespace IGFD
 							ImGui::Text("%s", infos->fileModifDate.c_str());
 						}
 
-						if (showColor)
-							ImGui::PopStyleColor();
+						prEndFileColorIconStyle(_showColor, _font);
 
 						if (needToBreakTheloop)
 							break;
@@ -4027,6 +4208,10 @@ namespace IGFD
 #endif // USE_CUSTOM_SORTING_ICON
 			if (!fdi.IsFilteredListEmpty())
 			{
+				std::string _str;
+				ImFont* _font = nullptr;
+				bool _showColor = false;
+
 				ImGuiContext& g = *GImGui;
 				const float itemHeight = ImMax(g.FontSize, DisplayMode_ThumbailsList_ImageHeight) + g.Style.ItemSpacing.y;
 
@@ -4041,24 +4226,9 @@ namespace IGFD
 						if (!infos.use_count())
 							continue;
 
-						ImVec4 c;
-						std::string icon;
-						bool showColor = prFileDialogInternal.puFilterManager.GetExtentionInfos(infos->fileExt, &c, &icon);
-						if (showColor)
-							ImGui::PushStyleColor(ImGuiCol_Text, c);
+						prBeginFileColorIconStyle(infos, _showColor, _str, &_font);
 
-						std::string str;
-						if (infos->fileType == 'd') str = dirEntryString;
-						else if (infos->fileType == 'l') str = linkEntryString;
-						else if (infos->fileType == 'f')
-						{
-							if (showColor && !icon.empty())
-								str = icon;
-							else
-								str = fileEntryString;
-						}
-						str += " " + infos->fileName;
-						bool selected = fdi.IsFileNameSelected(infos->fileName); // found
+						bool selected = fdi.IsFileNameSelected(infos->fileNameExt); // found
 
 						ImGui::TableNextRow();
 
@@ -4066,7 +4236,7 @@ namespace IGFD
 
 						if (ImGui::TableNextColumn()) // file name
 						{
-							needToBreakTheloop = prSelectableItem(i, infos, selected, str.c_str());
+							needToBreakTheloop = prSelectableItem(i, infos, selected, _str.c_str());
 						}
 						if (ImGui::TableNextColumn()) // file type
 						{
@@ -4102,8 +4272,7 @@ namespace IGFD
 							}
 						}
 
-						if (showColor)
-							ImGui::PopStyleColor();
+						prEndFileColorIconStyle(_showColor, _font);
 
 						if (needToBreakTheloop)
 							break;
@@ -4237,24 +4406,24 @@ namespace IGFD
 		return prFileDialogInternal.puIsOk;
 	}
 
-	void IGFD::FileDialog::SetExtentionInfos(const std::string& vFilter, const FileExtentionInfos& vInfos)
+	void IGFD::FileDialog::SetFileStyle(const IGFD_FileStyleFlags& vFlags, const std::string& vCriteria, const FileStyle& vInfos)
 	{
-		prFileDialogInternal.puFilterManager.SetExtentionInfos(vFilter, vInfos);
+		prFileDialogInternal.puFilterManager.SetFileStyle(vFlags, vCriteria, vInfos);
 	}
 
-	void IGFD::FileDialog::SetExtentionInfos(const std::string& vFilter, const ImVec4& vColor, const std::string& vIcon)
+	void IGFD::FileDialog::SetFileStyle(const IGFD_FileStyleFlags& vFlags, const std::string& vCriteria, const ImVec4& vColor, const std::string& vIcon, ImFont* vFont)
 	{
-		prFileDialogInternal.puFilterManager.SetExtentionInfos(vFilter, vColor, vIcon);
+		prFileDialogInternal.puFilterManager.SetFileStyle(vFlags, vCriteria, vColor, vIcon, vFont);
 	}
 
-	bool IGFD::FileDialog::GetExtentionInfos(const std::string& vFilter, ImVec4* vOutColor, std::string* vOutIcon)
+	bool IGFD::FileDialog::GetFileStyle(const IGFD_FileStyleFlags& vFlags, const std::string& vCriteria, ImVec4* vOutColor, std::string* vOutIcon, ImFont **vOutFont)
 	{
-		return prFileDialogInternal.puFilterManager.GetExtentionInfos(vFilter, vOutColor, vOutIcon);
+		return prFileDialogInternal.puFilterManager.GetFileStyle(vFlags, vCriteria, vOutColor, vOutIcon, vOutFont);
 	}
 
-	void IGFD::FileDialog::ClearExtentionInfos()
+	void IGFD::FileDialog::ClearFilesStyle()
 	{
-		prFileDialogInternal.puFilterManager.ClearExtentionInfos();
+		prFileDialogInternal.puFilterManager.ClearFilesStyle();
 	}
 
 	void IGFD::FileDialog::SetLocales(const int& vLocaleCategory, const std::string& vLocaleBegin, const std::string& vLocaleEnd)
@@ -4668,7 +4837,7 @@ IMGUIFILEDIALOG_API IGFD_Selection IGFD_GetSelection(ImGuiFileDialog* vContext)
 			{
 				IGFD_Selection_Pair* pair = res.table + idx++;
 
-				// fileName
+				// fileNameExt
 				if (!s.first.empty())
 				{
 					size_t siz = s.first.size() + 1U;
@@ -4804,31 +4973,31 @@ IMGUIFILEDIALOG_API void* IGFD_GetUserDatas(ImGuiFileDialog* vContext)
 	return nullptr;
 }
 
-IMGUIFILEDIALOG_API void IGFD_SetExtentionInfos(ImGuiFileDialog* vContext,
-	const char* vFilter, ImVec4 vColor, const char* vIcon)
+IMGUIFILEDIALOG_API void IGFD_SetFileStyle(ImGuiFileDialog* vContext,
+	IGFD_FileStyleFlags vFlags, const char* vCriteria, ImVec4 vColor, const char* vIcon, ImFont* vFont)
 {
 	if (vContext)
 	{
-		vContext->SetExtentionInfos(vFilter, vColor, vIcon);
+		vContext->SetFileStyle(vFlags, vCriteria, vColor, vIcon, vFont);
 	}
 }
 
-IMGUIFILEDIALOG_API void IGFD_SetExtentionInfos2(ImGuiFileDialog* vContext,
-	const char* vFilter, float vR, float vG, float vB, float vA, const char* vIcon)
+IMGUIFILEDIALOG_API void IGFD_SetFileStyle2(ImGuiFileDialog* vContext,
+	IGFD_FileStyleFlags vFlags, const char* vCriteria, float vR, float vG, float vB, float vA, const char* vIcon, ImFont* vFont)
 {
 	if (vContext)
 	{
-		vContext->SetExtentionInfos(vFilter, ImVec4(vR, vG, vB, vA), vIcon);
+		vContext->SetFileStyle(vFlags, vCriteria, ImVec4(vR, vG, vB, vA), vIcon, vFont);
 	}
 }
 
-IMGUIFILEDIALOG_API bool IGFD_GetExtentionInfos(ImGuiFileDialog* vContext,
-	const char* vFilter, ImVec4* vOutColor, char** vOutIcon)
+IMGUIFILEDIALOG_API bool IGFD_GetFileStyle(ImGuiFileDialog* vContext,
+	IGFD_FileStyleFlags vFlags, const char* vCriteria, ImVec4* vOutColor, char** vOutIcon, ImFont** vOutFont)
 {
 	if (vContext)
 	{
 		std::string icon;
-		bool res = vContext->GetExtentionInfos(vFilter, vOutColor, &icon);
+		bool res = vContext->GetFileStyle(vFlags, vCriteria, vOutColor, &icon, vOutFont);
 		if (!icon.empty() && vOutIcon)
 		{
 			size_t siz = icon.size() + 1U;
@@ -4846,13 +5015,14 @@ IMGUIFILEDIALOG_API bool IGFD_GetExtentionInfos(ImGuiFileDialog* vContext,
 	return false;
 }
 
-IMGUIFILEDIALOG_API void IGFD_ClearExtentionInfos(ImGuiFileDialog* vContext)
+IMGUIFILEDIALOG_API void IGFD_ClearFilesStyle(ImGuiFileDialog* vContext)
 {
 	if (vContext)
 	{
-		vContext->ClearExtentionInfos();
+		vContext->ClearFilesStyle();
 	}
 }
+
 IMGUIFILEDIALOG_API void SetLocales(ImGuiFileDialog* vContext, const int vCategory, const char* vBeginLocale, const char* vEndLocale)
 {
 	if (vContext)
