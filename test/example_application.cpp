@@ -14,7 +14,6 @@
 #include "imgui_knob.h"
 #include "HotKey.h"
 #include "TextEditor.h"
-#include "ImSequencer.h"
 #include "Config.h"
 
 // Init HotKey
@@ -116,7 +115,6 @@ public:
     bool show_markdown_window = false;
     bool show_knob_window = false;
     bool show_text_editor_window = false;
-    bool show_sequencer_window = false;
 
 public:
 
@@ -257,7 +255,6 @@ bool Application_Frame(void* handle)
         ImGui::Checkbox("Show Markdown Window", &example->show_markdown_window);
         ImGui::Checkbox("Show KNob Window", &example->show_knob_window);
         ImGui::Checkbox("Show Text Edit Window", &example->show_text_editor_window);
-        ImGui::Checkbox("Show Sequencer Window", &example->show_sequencer_window);
 
         // show hotkey window
         if (ImGui::Button("Edit Hotkeys"))
@@ -349,14 +346,5 @@ bool Application_Frame(void* handle)
         example->editor.text_edit_demo(&example->show_text_editor_window);
     }
 
-    // Show Sequencer Windows
-    if (example->show_sequencer_window)
-    {
-        ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
-        ImGui::SetNextWindowSize(ImVec2(1440, 500), ImGuiCond_FirstUseEver);
-        ImGui::Begin("##Sequencer", &example->show_sequencer_window, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar);
-        ImGui::ShowSequencerDemoWindow();
-        ImGui::End();
-    }
     return done;
 }
