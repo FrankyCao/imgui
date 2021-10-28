@@ -471,6 +471,7 @@ public:
     //  9 = YUV444
     // 10 = YUVA
     // 11 = NV12
+    // 12 = P010LE
     ImColorFormat color_format;
 
     // range

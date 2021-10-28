@@ -85,7 +85,7 @@ void ColorConvert_vulkan::upload_param(const VkMat& Im_YUV, VkMat& dst, ImColorF
     constants[4].i = Im_YUV.type;
     constants[5].i = color_space;
     constants[6].i = color_range;
-    constants[7].f = (float)(1 << video_shift);
+    constants[7].f = (float)((1 << video_shift) - 1);
     constants[8].i = dst.color_format;
     constants[9].i = dst.type;
     cmd->record_pipeline(pipeline_yuv_rgb, bindings, constants, dst);
@@ -216,7 +216,7 @@ void ColorConvert_vulkan::upload_param(const VkMat& Im_RGB, VkMat& dst, ImColorF
     constants[9].i = dst.type;
     constants[10].i = color_space;
     constants[11].i = color_range;
-    constants[12].f = (float)(1 << video_shift);
+    constants[12].f = (float)((1 << video_shift) - 1);
     cmd->record_pipeline(pipeline_rgb_yuv, bindings, constants, dst);
 }
 
@@ -316,7 +316,7 @@ void ColorConvert_vulkan::upload_param(const VkMat& Im, VkMat& dst, ImColorSpace
     constants[7].i = dst.c;
     constants[8].i = dst.color_format;
     constants[9].i = dst.type;
-    constants[10].f = (float)(1 << video_shift);
+    constants[10].f = (float)((1 << video_shift) - 1);
     cmd->record_pipeline(pipeline_gray_rgb, bindings, constants, dst);
 }
 

@@ -55,7 +55,7 @@ sfpvec3 load_src_yuv(int x, int y) \n\
 { \n\
     sfpvec3 yuv_in = {sfp(0.f), sfp(0.5f), sfp(0.5f)}; \n\
     int uv_scale_w = p.in_format == CF_YUV420 || p.in_format == CF_YUV422 ? 2 : 1; \n\
-    int uv_scale_h = p.in_format == CF_YUV420 || p.in_format == CF_NV12 ? 2 : 1; \n\
+    int uv_scale_h = p.in_format == CF_YUV420 || p.in_format == CF_NV12 || p.in_format == CF_P010LE ? 2 : 1; \n\
     int y_offset = y * p.w + x; \n\
     int u_offset = p.w * p.h + (y / uv_scale_h) * p.w / uv_scale_w + x / uv_scale_w; \n\
     int v_offset = p.w * p.h * 2 + (y / uv_scale_h) * p.w / uv_scale_w + x / uv_scale_w; \n\
@@ -76,11 +76,19 @@ sfpvec3 load_src_yuv(int x, int y) \n\
     } \n\
     else if (p.in_type == DT_INT16) \n\
     { \n\
-        yuv_in.x = sfp(uint(YUV_data_int16[y_offset])) / sfp(p.in_scale); \n\
+        if (p.in_format == CF_P010LE) \n\
+            yuv_in.x = sfp(uint(YUV_data_int16[y_offset])) / sfp(65535.0); \n\
+        else \n\
+            yuv_in.x = sfp(uint(YUV_data_int16[y_offset])) / sfp(p.in_scale); \n\
         if (p.in_format == CF_NV12) \n\
         { \n\
             yuv_in.y = sfp(uint(YUV_data_int16[uv_offset.x])) / sfp(p.in_scale); \n\
             yuv_in.z = sfp(uint(YUV_data_int16[uv_offset.y])) / sfp(p.in_scale); \n\
+        } \n\
+        else if (p.in_format == CF_P010LE) \n\
+        { \n\
+            yuv_in.y = sfp(uint(YUV_data_int16[uv_offset.x])) / sfp(65535.0); \n\
+            yuv_in.z = sfp(uint(YUV_data_int16[uv_offset.y])) / sfp(65535.0); \n\
         } \n\
         else \n\
         { \n\
