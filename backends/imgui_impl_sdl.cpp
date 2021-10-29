@@ -741,6 +741,14 @@ static void ImGui_ImplSDL2_SwapBuffers(ImGuiViewport* viewport, void*)
     }
 }
 
+// Add By Dicky
+static void ImGui_ImplSDL2_FullScreen(ImGuiViewport* viewport, bool on)
+{
+    ImGui_ImplSDL2_ViewportData* vd = (ImGui_ImplSDL2_ViewportData*)viewport->PlatformUserData;
+    SDL_SetWindowFullscreen(vd->Window, on ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+}
+// Add By Dicky end
+
 // Vulkan support (the Vulkan renderer needs to call a platform-side support function to create the surface)
 // SDL is graceful enough to _not_ need <vulkan/vulkan.h> so we can safely include this.
 #if SDL_HAS_VULKAN
@@ -777,6 +785,8 @@ static void ImGui_ImplSDL2_InitPlatformInterface(SDL_Window* window, void* sdl_g
 #if SDL_HAS_VULKAN
     platform_io.Platform_CreateVkSurface = ImGui_ImplSDL2_CreateVkSurface;
 #endif
+    // add By Dicky
+    platform_io.Platform_FullScreen = ImGui_ImplSDL2_FullScreen;
 
     // Register main window handle (which is owned by the main application, not by us)
     // This is mostly for simplicity and consistency, so that our code (e.g. mouse handling etc.) can use same logic for main and secondary viewports.
@@ -820,4 +830,4 @@ void ImGui_ImplSDL2_WaitForEvent()
         }
     }
 }
-// Add By Dicky end
+ // Add By Dicky

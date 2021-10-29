@@ -894,6 +894,17 @@ static void ImGui_ImplGlfw_SwapBuffers(ImGuiViewport* viewport, void*)
     }
 }
 
+// add By Dicky
+static void ImGui_ImplGlfw_FullScreen(ImGuiViewport* viewport, bool on)
+{
+    ImGui_ImplGlfw_ViewportData* vd = (ImGui_ImplGlfw_ViewportData*)viewport->PlatformUserData;
+    if (on)
+        glfwMaximizeWindow(vd->Window);
+    else
+        glfwRestoreWindow(vd->Window);
+}
+// add By Dicky end
+
 //--------------------------------------------------------------------------------------------------------
 // IME (Input Method Editor) basic support for e.g. Asian language users
 //--------------------------------------------------------------------------------------------------------
@@ -976,6 +987,8 @@ static void ImGui_ImplGlfw_InitPlatformInterface()
 #if HAS_WIN32_IME
     platform_io.Platform_SetImeInputPos = ImGui_ImplWin32_SetImeInputPos;
 #endif
+    // Add By Dicky
+    platform_io.Platform_FullScreen = ImGui_ImplGlfw_FullScreen;
 
     // Register main window handle (which is owned by the main application, not by us)
     // This is mostly for simplicity and consistency, so that our code (e.g. mouse handling etc.) can use same logic for main and secondary viewports.
