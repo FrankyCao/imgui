@@ -139,6 +139,11 @@ std::wstring widen(const std::string& str)
 }
 # endif
 
+void Application_FullScreen(bool on)
+{
+    // TODO::Dicky
+}
+
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd)
 {
     const auto c_ClassName  = _T("Imgui Application Class");

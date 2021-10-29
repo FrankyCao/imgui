@@ -741,14 +741,6 @@ static void ImGui_ImplSDL2_SwapBuffers(ImGuiViewport* viewport, void*)
     }
 }
 
-// Add By Dicky
-static void ImGui_ImplSDL2_FullScreen(ImGuiViewport* viewport, bool on)
-{
-    ImGui_ImplSDL2_ViewportData* vd = (ImGui_ImplSDL2_ViewportData*)viewport->PlatformUserData;
-    SDL_SetWindowFullscreen(vd->Window, on ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
-}
-// Add By Dicky end
-
 // Vulkan support (the Vulkan renderer needs to call a platform-side support function to create the surface)
 // SDL is graceful enough to _not_ need <vulkan/vulkan.h> so we can safely include this.
 #if SDL_HAS_VULKAN
@@ -830,4 +822,18 @@ void ImGui_ImplSDL2_WaitForEvent()
         }
     }
 }
- // Add By Dicky
+
+void ImGui_ImplSDL2_FullScreen(ImGuiViewport* viewport, bool on)
+{
+    if ((ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable))
+    {
+        ImGui_ImplSDL2_ViewportData* vd = (ImGui_ImplSDL2_ViewportData*)viewport->PlatformUserData;
+        SDL_SetWindowFullscreen(vd->Window, on ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+    }
+    else
+    {
+        ImGui_ImplSDL2_Data* bd = ImGui_ImplSDL2_GetBackendData();
+        SDL_SetWindowFullscreen(bd->Window, on ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+    }
+}
+// Add By Dicky

@@ -18,6 +18,11 @@
 #include <SDL_opengl.h>
 #endif
 
+void Application_FullScreen(bool on)
+{
+    ImGui_ImplSDL2_FullScreen(ImGui::GetMainViewport(), on);
+}
+
 int main(int, char**)
 {
     // Setup SDL

@@ -25,3 +25,4 @@ void Application_GetWindowProperties(ApplicationWindowProperty& property);
 void Application_Initialize(void** handle = nullptr);
 void Application_Finalize(void** handle = nullptr);
 bool Application_Frame(void* handle = nullptr);
+void Application_FullScreen(bool on);

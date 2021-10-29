@@ -894,17 +894,6 @@ static void ImGui_ImplGlfw_SwapBuffers(ImGuiViewport* viewport, void*)
     }
 }
 
-// add By Dicky
-static void ImGui_ImplGlfw_FullScreen(ImGuiViewport* viewport, bool on)
-{
-    ImGui_ImplGlfw_ViewportData* vd = (ImGui_ImplGlfw_ViewportData*)viewport->PlatformUserData;
-    if (on)
-        glfwMaximizeWindow(vd->Window);
-    else
-        glfwRestoreWindow(vd->Window);
-}
-// add By Dicky end
-
 //--------------------------------------------------------------------------------------------------------
 // IME (Input Method Editor) basic support for e.g. Asian language users
 //--------------------------------------------------------------------------------------------------------
@@ -1026,6 +1015,22 @@ void ImGui_ImplGlfw_WaitForEvent()
             else
                 ImGui::sleep((float)waiting_time);
         }
+    }
+}
+
+void ImGui_ImplGlfw_FullScreen(ImGuiViewport* viewport, bool on)
+{
+    if ((ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable))
+    {
+        ImGui_ImplGlfw_ViewportData* vd = (ImGui_ImplGlfw_ViewportData*)viewport->PlatformUserData;
+        if (on) glfwMaximizeWindow(vd->Window);
+        else glfwRestoreWindow(vd->Window);
+    }
+    else
+    {
+        ImGui_ImplGlfw_Data* bd = ImGui_ImplGlfw_GetBackendData();
+        if (on) glfwMaximizeWindow(bd->Window);
+        else glfwRestoreWindow(bd->Window);
     }
 }
 // Add By Dicky end

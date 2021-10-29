@@ -15,10 +15,14 @@
 #endif
 #include "entry_vulkan.h"
 
-
 static void glfw_error_callback(int error, const char* description)
 {
     fprintf(stderr, "Glfw Error %d: %s\n", error, description);
+}
+
+void Application_FullScreen(bool on)
+{
+    ImGui_ImplGlfw_FullScreen(ImGui::GetMainViewport(), on);
 }
 
 int main(int, char**)
