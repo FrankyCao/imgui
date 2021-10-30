@@ -919,10 +919,29 @@ if (VULKAN_FOUND AND (IMGUI_VULKAN OR IMGUI_VULKAN_SHADER))
         addon/ImVulkanShader/filters/Concat_shader.h
         addon/ImVulkanShader/filters/Concat_vulkan.h
     )
+
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
+        addon/ImVulkanShader/filters/lut3d/Lut3D.cpp
+    )
+
+    set(IMGUI_INCS
+        ${IMGUI_INCS}
+        addon/ImVulkanShader/filters/lut3d/Lut3D.h
+        addon/ImVulkanShader/filters/lut3d/Lut3D_Shader.h
+        addon/ImVulkanShader/filters/lut3d/SDR709_HDR2020_HLG.h
+        addon/ImVulkanShader/filters/lut3d/SDR709_HDR2020_PQ.h
+        addon/ImVulkanShader/filters/lut3d/HDR2020_HLG_SDR709.h
+        addon/ImVulkanShader/filters/lut3d/HDR2020_PQ_SDR709.h
+        addon/ImVulkanShader/filters/lut3d/HDR2020HLG_HDR2020PQ.h
+        addon/ImVulkanShader/filters/lut3d/HDR2020PQ_HDR2020HLG.h
+    )
+
     set(IMGUI_INC_DIRS
         ${IMGUI_INC_DIRS}
         ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImVulkanShader
         ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImVulkanShader/filters
+        ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImVulkanShader/filters/lut3d
     )
 
     set(GLSLANG_LIBRARY
