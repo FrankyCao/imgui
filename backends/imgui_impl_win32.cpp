@@ -93,7 +93,8 @@ struct ImGui_ImplWin32_Data
     PFN_XInputGetState          XInputGetState;
 #endif
 
-    RECT                        SavedWindowSize; // Add By Dicky
+    RECT                        SavedWindowSize;    // Add By Dicky
+    LONG                        SavedWndowStyle;    // Add By Dicky
 
     ImGui_ImplWin32_Data()      { memset(this, 0, sizeof(*this)); }
 };
@@ -704,7 +705,7 @@ struct ImGui_ImplWin32_ViewportData
     DWORD   DwStyle;
     DWORD   DwExStyle;
 
-    RECT                        SavedWindowSize; // Add By Dicky
+    RECT    SavedWindowSize; // Add By Dicky
 
     ImGui_ImplWin32_ViewportData() { Hwnd = NULL; HwndOwned = false;  DwStyle = DwExStyle = 0; }
     ~ImGui_ImplWin32_ViewportData() { IM_ASSERT(Hwnd == NULL); }
@@ -1097,17 +1098,18 @@ void ImGui_ImplWin32_FullScreen(ImGuiViewport* viewport, bool on)
         {
             rc = vd->SavedWindowSize;
         }
-        ::SetWindowLong(vd->Hwnd, GWL_STYLE, WS_BORDER);   
-        ::SetWindowPos(vd->Hwnd, HWND_TOPMOST, 0, 0, rc.right, c.bottom, SWP_SHOWWINDOW);
+        ::SetWindowLong(vd->Hwnd, GWL_STYLE, on ? WS_BORDER : vd->DwStyle);   
+        ::SetWindowPos(vd->Hwnd, on ? HWND_TOPMOST : NULL, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, on ? SWP_SHOWWINDOW : SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
     }
     else
     {
         ImGui_ImplWin32_Data* bd = ImGui_ImplWin32_GetBackendData();
         IM_ASSERT(bd->hWnd != 0);
-        RECT rc;   
+        RECT rc;
         if (on)
         {
             ::GetWindowRect(bd->hWnd, &bd->SavedWindowSize);
+            bd->SavedWndowStyle = GetWindowLong(bd->hWnd, GWL_STYLE);
             HWND hDesk = ::GetDesktopWindow();
             ::GetWindowRect(hDesk, &rc);
         } 
@@ -1115,8 +1117,8 @@ void ImGui_ImplWin32_FullScreen(ImGuiViewport* viewport, bool on)
         {
             rc = bd->SavedWindowSize;
         }
-        ::SetWindowLong(bd->hWnd, GWL_STYLE, WS_BORDER);   
-        ::SetWindowPos(bd->hWnd, HWND_TOPMOST, 0, 0, rc.right, c.bottom, SWP_SHOWWINDOW);
+        ::SetWindowLong(bd->hWnd, GWL_STYLE, on ? WS_BORDER : bd->SavedWndowStyle);
+        ::SetWindowPos(bd->hWnd, on ? HWND_TOPMOST : NULL, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, on ? SWP_SHOWWINDOW : SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
     }
 }
 // Add By Dicky end

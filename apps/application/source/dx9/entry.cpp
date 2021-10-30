@@ -110,7 +110,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 void Application_FullScreen(bool on)
 {
-    // TODO::Dicky
+    ImGui_ImplWin32_FullScreen(ImGui::GetMainViewport(), on);
 }
 
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd)
