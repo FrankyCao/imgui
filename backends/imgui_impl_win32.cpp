@@ -93,6 +93,8 @@ struct ImGui_ImplWin32_Data
     PFN_XInputGetState          XInputGetState;
 #endif
 
+    RECT                        SavedWindowSize; // Add By Dicky
+
     ImGui_ImplWin32_Data()      { memset(this, 0, sizeof(*this)); }
 };
 
@@ -702,6 +704,8 @@ struct ImGui_ImplWin32_ViewportData
     DWORD   DwStyle;
     DWORD   DwExStyle;
 
+    RECT                        SavedWindowSize; // Add By Dicky
+
     ImGui_ImplWin32_ViewportData() { Hwnd = NULL; HwndOwned = false;  DwStyle = DwExStyle = 0; }
     ~ImGui_ImplWin32_ViewportData() { IM_ASSERT(Hwnd == NULL); }
 };
@@ -994,6 +998,8 @@ static void ImGui_ImplWin32_InitPlatformInterface()
     platform_io.Platform_SetImeInputPos = ImGui_ImplWin32_SetImeInputPos;
 #endif
 
+    // add By Dicky
+    platform_io.Platform_FullScreen = ImGui_ImplWin32_FullScreen;
     // Register main window handle (which is owned by the main application, not by us)
     // This is mostly for simplicity and consistency, so that our code (e.g. mouse handling etc.) can use same logic for main and secondary viewports.
     ImGuiViewport* main_viewport = ImGui::GetMainViewport();
@@ -1071,6 +1077,46 @@ void ImGui_ImplWin32_WaitForEvent()
             else
                 ImGui::sleep((int)waiting_time_ms);
         }
+    }
+}
+
+void ImGui_ImplWin32_FullScreen(ImGuiViewport* viewport, bool on)
+{
+    if ((ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable))
+    {
+        ImGui_ImplWin32_ViewportData* vd = (ImGui_ImplWin32_ViewportData*)viewport->PlatformUserData;
+        IM_ASSERT(vd->Hwnd != 0); 
+        RECT rc;
+        if (on)
+        {
+            ::GetWindowRect(vd->Hwnd, &vd->SavedWindowSize);
+            HWND hDesk = ::GetDesktopWindow();
+            ::GetWindowRect(hDesk, &rc);
+        } 
+        else 
+        {
+            rc = vd->SavedWindowSize;
+        }
+        ::SetWindowLong(vd->Hwnd, GWL_STYLE, WS_BORDER);   
+        ::SetWindowPos(vd->Hwnd, HWND_TOPMOST, 0, 0, rc.right, c.bottom, SWP_SHOWWINDOW);
+    }
+    else
+    {
+        ImGui_ImplWin32_Data* bd = ImGui_ImplWin32_GetBackendData();
+        IM_ASSERT(bd->hWnd != 0);
+        RECT rc;   
+        if (on)
+        {
+            ::GetWindowRect(bd->hWnd, &bd->SavedWindowSize);
+            HWND hDesk = ::GetDesktopWindow();
+            ::GetWindowRect(hDesk, &rc);
+        } 
+        else 
+        {
+            rc = bd->SavedWindowSize;
+        }
+        ::SetWindowLong(bd->hWnd, GWL_STYLE, WS_BORDER);   
+        ::SetWindowPos(bd->hWnd, HWND_TOPMOST, 0, 0, rc.right, c.bottom, SWP_SHOWWINDOW);
     }
 }
 // Add By Dicky end
