@@ -866,6 +866,7 @@ if (VULKAN_FOUND AND (IMGUI_VULKAN OR IMGUI_VULKAN_SHADER))
         addon/ImVulkanShader/filters/CAS_vulkan.cpp
         addon/ImVulkanShader/filters/HQDN3D_vulkan.cpp
         addon/ImVulkanShader/filters/DeBand_vulkan.cpp
+        addon/ImVulkanShader/filters/DeInterlace_vulkan.cpp
     )
     set(IMGUI_INCS
         ${IMGUI_INCS}
@@ -930,6 +931,8 @@ if (VULKAN_FOUND AND (IMGUI_VULKAN OR IMGUI_VULKAN_SHADER))
         addon/ImVulkanShader/filters/HQDN3D_vulkan.h
         addon/ImVulkanShader/filters/DeBand_shader.h
         addon/ImVulkanShader/filters/DeBand_vulkan.h
+        addon/ImVulkanShader/filters/DeInterlace_shader.h
+        addon/ImVulkanShader/filters/Deinterlace_vulkan.h
     )
 
     set(IMGUI_SRC
