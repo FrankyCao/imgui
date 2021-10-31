@@ -862,6 +862,7 @@ if (VULKAN_FOUND AND (IMGUI_VULKAN OR IMGUI_VULKAN_SHADER))
         addon/ImVulkanShader/filters/Box.cpp
         addon/ImVulkanShader/filters/Laplacian.cpp
         addon/ImVulkanShader/filters/Concat_vulkan.cpp
+        addon/ImVulkanShader/filters/ALM_vulkan.cpp
     )
     set(IMGUI_INCS
         ${IMGUI_INCS}
@@ -918,6 +919,8 @@ if (VULKAN_FOUND AND (IMGUI_VULKAN OR IMGUI_VULKAN_SHADER))
         addon/ImVulkanShader/filters/Laplacian.h
         addon/ImVulkanShader/filters/Concat_shader.h
         addon/ImVulkanShader/filters/Concat_vulkan.h
+        addon/ImVulkanShader/filters/ALM_shader.h
+        addon/ImVulkanShader/filters/ALM_vulkan.h
     )
 
     set(IMGUI_SRC
