@@ -710,18 +710,18 @@ namespace IGFD
 	//// FILTER INFOS ///////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////////
 
-	void IGFD::FilterManager::FilterInfosStruct::clear()
+	void IGFD::FilterManager::FilterInfos::clear()
 	{
 		filter.clear(); 
 		collectionfilters.clear();
 	}
 
-	bool IGFD::FilterManager::FilterInfosStruct::empty() const
+	bool IGFD::FilterManager::FilterInfos::empty() const
 	{
 		return filter.empty() && collectionfilters.empty();
 	}
 
-	bool IGFD::FilterManager::FilterInfosStruct::exist(const std::string& vFilter) const
+	bool IGFD::FilterManager::FilterInfos::exist(const std::string& vFilter) const
 	{
 		return filter == vFilter || (collectionfilters.find(vFilter) != collectionfilters.end());
 	}
@@ -750,7 +750,7 @@ namespace IGFD
 			size_t p = 0, lp = 0;
 			while ((p = puDLGFilters.find_first_of("{,", p)) != nan)
 			{
-				FilterInfosStruct infos;
+				FilterInfos infos;
 
 				if (puDLGFilters[p] == '{') // {
 				{
@@ -788,7 +788,7 @@ namespace IGFD
 			std::string token = puDLGFilters.substr(lp);
 			if (!token.empty())
 			{
-				FilterInfosStruct infos;
+				FilterInfos infos;
 				infos.filter = std::move(token);
 				prParsedFilters.emplace_back(infos);
 			}
@@ -805,7 +805,7 @@ namespace IGFD
 		{
 			if (!vFilter.empty())
 			{
-				// std::map<std::string, FilterInfosStruct>
+				// std::map<std::string, FilterInfos>
 				for (const auto& infos : prParsedFilters)
 				{
 					if (vFilter == infos.filter)
@@ -1140,7 +1140,7 @@ namespace IGFD
 		return false;
 	}
 
-	IGFD::FilterManager::FilterInfosStruct IGFD::FilterManager::GetSelectedFilter()
+	IGFD::FilterManager::FilterInfos IGFD::FilterManager::GetSelectedFilter()
 	{
 		return prSelectedFilter;
 	}
@@ -3986,6 +3986,8 @@ namespace IGFD
 			if (vInfos->fileType == 'd')
 			{
 				// nav system, selectebale cause open directory or select directory
+                // we try to do double click for select directory modify by Dicky
+                /*
 				if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_NavEnableKeyboard)
 				{
 					if (fdi.puDLGDirectoryMode) // directory chooser
@@ -3998,6 +4000,7 @@ namespace IGFD
 					}
 				}
 				else // no nav system => classic behavior
+                */
 				{
 					if (ImGui::IsMouseDoubleClicked(0)) // 0 -> left mouse button double click
 					{
