@@ -207,6 +207,7 @@ inline VkMat& VkMat::operator=(const VkMat& m)
     device = m.device;
     device_number = m.device_number;
     time_stamp = m.time_stamp;
+    duration = m.duration;
     depth = m.depth;
 
     return *this;
@@ -242,6 +243,7 @@ inline VkMat& VkMat::clone_from(const ImMat& m)
     device = m.device;
     device_number = m.device_number;
     time_stamp = m.time_stamp;
+    duration = m.duration;
     depth = m.depth;
 
     return *this;
@@ -603,6 +605,7 @@ inline void VkMat::create_like(const ImMat& m, VkAllocator* _allocator)
     color_format = m.color_format;
     color_range = m.color_range;
     time_stamp = m.time_stamp;
+    duration = m.duration;
     depth = m.depth;
     device = IM_DD_VULKAN;
     device_number = _allocator ? _allocator->getDeviceIndex() : -1;
@@ -622,6 +625,7 @@ inline void VkMat::create_like(const VkMat& m, VkAllocator* _allocator)
     color_format = m.color_format;
     color_range = m.color_range;
     time_stamp = m.time_stamp;
+    duration = m.duration;
     depth = m.depth;
     allocator = _allocator;
     device = IM_DD_VULKAN;

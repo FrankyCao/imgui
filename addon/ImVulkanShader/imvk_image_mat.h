@@ -198,6 +198,7 @@ inline VkImageMat& VkImageMat::operator=(const VkImageMat& m)
     device = m.device;
     device_number = m.device_number;
     time_stamp = m.time_stamp;
+    duration = m.duration;
     depth = m.depth;
 
     return *this;
@@ -439,6 +440,7 @@ inline void VkImageMat::create_like(const ImMat& m, VkAllocator* _allocator)
     color_format = m.color_format;
     color_range = m.color_range;
     time_stamp = m.time_stamp;
+    duration = m.duration;
     depth = m.depth;
     allocator = _allocator;
     device = IM_DD_VULKAN_IMAGE;
@@ -459,6 +461,7 @@ inline void VkImageMat::create_like(const VkImageMat& m, VkAllocator* _allocator
     color_format = m.color_format;
     color_range = m.color_range;
     time_stamp = m.time_stamp;
+    duration = m.duration;
     depth = m.depth;
     allocator = _allocator;
     device = IM_DD_VULKAN_IMAGE;
