@@ -5,160 +5,160 @@
 
 extern const char fontaudio_compressed_data_base85[];
 
-#define ICON_MIN_FAD 0xf101
-#define ICON_MAX_FAD 0xf19b
-#define ICON_FAD_ADR "\xef\x84\x81"	// U+f101
-#define ICON_FAD_ADSR "\xef\x84\x82"	// U+f102
-#define ICON_FAD_AHDSR "\xef\x84\x83"	// U+f103
-#define ICON_FAD_AR "\xef\x84\x84"	// U+f104
-#define ICON_FAD_ARMRECORDING "\xef\x84\x85"	// U+f105
-#define ICON_FAD_ARPCHORD "\xef\x84\x86"	// U+f106
-#define ICON_FAD_ARPDOWN "\xef\x84\x87"	// U+f107
-#define ICON_FAD_ARPDOWNANDUP "\xef\x84\x88"	// U+f108
-#define ICON_FAD_ARPDOWNUP "\xef\x84\x89"	// U+f109
-#define ICON_FAD_ARPPLAYORDER "\xef\x84\x8a"	// U+f10a
-#define ICON_FAD_ARPRANDOM "\xef\x84\x8b"	// U+f10b
-#define ICON_FAD_ARPUP "\xef\x84\x8c"	// U+f10c
-#define ICON_FAD_ARPUPANDOWN "\xef\x84\x8d"	// U+f10d
-#define ICON_FAD_ARPUPDOWN "\xef\x84\x8e"	// U+f10e
-#define ICON_FAD_ARROWS_HORZ "\xef\x84\x8f"	// U+f10f
-#define ICON_FAD_ARROWS_VERT "\xef\x84\x90"	// U+f110
-#define ICON_FAD_AUTOMATION_2P "\xef\x84\x91"	// U+f111
-#define ICON_FAD_AUTOMATION_3P "\xef\x84\x92"	// U+f112
-#define ICON_FAD_AUTOMATION_4P "\xef\x84\x93"	// U+f113
-#define ICON_FAD_BACKWARD "\xef\x84\x94"	// U+f114
-#define ICON_FAD_BLUETOOTH "\xef\x84\x95"	// U+f115
-#define ICON_FAD_CARET_DOWN "\xef\x84\x96"	// U+f116
-#define ICON_FAD_CARET_LEFT "\xef\x84\x97"	// U+f117
-#define ICON_FAD_CARET_RIGHT "\xef\x84\x98"	// U+f118
-#define ICON_FAD_CARET_UP "\xef\x84\x99"	// U+f119
-#define ICON_FAD_CLOSE "\xef\x84\x9a"	// U+f11a
-#define ICON_FAD_COPY "\xef\x84\x9b"	// U+f11b
-#define ICON_FAD_CPU "\xef\x84\x9c"	// U+f11c
-#define ICON_FAD_CUTTER "\xef\x84\x9d"	// U+f11d
-#define ICON_FAD_DIGITAL_COLON "\xef\x84\x9e"	// U+f11e
-#define ICON_FAD_DIGITAL_DOT "\xef\x84\x9f"	// U+f11f
-#define ICON_FAD_DIGITAL0 "\xef\x84\xa0"	// U+f120
-#define ICON_FAD_DIGITAL1 "\xef\x84\xa1"	// U+f121
-#define ICON_FAD_DIGITAL2 "\xef\x84\xa2"	// U+f122
-#define ICON_FAD_DIGITAL3 "\xef\x84\xa3"	// U+f123
-#define ICON_FAD_DIGITAL4 "\xef\x84\xa4"	// U+f124
-#define ICON_FAD_DIGITAL5 "\xef\x84\xa5"	// U+f125
-#define ICON_FAD_DIGITAL6 "\xef\x84\xa6"	// U+f126
-#define ICON_FAD_DIGITAL7 "\xef\x84\xa7"	// U+f127
-#define ICON_FAD_DIGITAL8 "\xef\x84\xa8"	// U+f128
-#define ICON_FAD_DIGITAL9 "\xef\x84\xa9"	// U+f129
-#define ICON_FAD_DISKIO "\xef\x84\xaa"	// U+f12a
-#define ICON_FAD_DRUMPAD "\xef\x84\xab"	// U+f12b
-#define ICON_FAD_DUPLICATE "\xef\x84\xac"	// U+f12c
-#define ICON_FAD_ERASER "\xef\x84\xad"	// U+f12d
-#define ICON_FAD_FFWD "\xef\x84\xae"	// U+f12e
-#define ICON_FAD_FILTER_BANDPASS "\xef\x84\xaf"	// U+f12f
-#define ICON_FAD_FILTER_BELL "\xef\x84\xb0"	// U+f130
-#define ICON_FAD_FILTER_BYPASS "\xef\x84\xb1"	// U+f131
-#define ICON_FAD_FILTER_HIGHPASS "\xef\x84\xb2"	// U+f132
-#define ICON_FAD_FILTER_LOWPASS "\xef\x84\xb3"	// U+f133
-#define ICON_FAD_FILTER_NOTCH "\xef\x84\xb4"	// U+f134
-#define ICON_FAD_FILTER_REZ_HIGHPASS "\xef\x84\xb5"	// U+f135
-#define ICON_FAD_FILTER_REZ_LOWPASS "\xef\x84\xb6"	// U+f136
-#define ICON_FAD_FILTER_SHELVING_HI "\xef\x84\xb7"	// U+f137
-#define ICON_FAD_FILTER_SHELVING_LO "\xef\x84\xb8"	// U+f138
-#define ICON_FAD_FOLDBACK "\xef\x84\xb9"	// U+f139
-#define ICON_FAD_FORWARD "\xef\x84\xba"	// U+f13a
-#define ICON_FAD_H_EXPAND "\xef\x84\xbb"	// U+f13b
-#define ICON_FAD_HARDCLIP "\xef\x84\xbc"	// U+f13c
-#define ICON_FAD_HARDCLIPCURVE "\xef\x84\xbd"	// U+f13d
-#define ICON_FAD_HEADPHONES "\xef\x84\xbe"	// U+f13e
-#define ICON_FAD_KEYBOARD "\xef\x84\xbf"	// U+f13f
-#define ICON_FAD_LOCK "\xef\x85\x80"	// U+f140
-#define ICON_FAD_LOGO_AAX "\xef\x85\x81"	// U+f141
-#define ICON_FAD_LOGO_ABLETONLINK "\xef\x85\x82"	// U+f142
-#define ICON_FAD_LOGO_AU "\xef\x85\x83"	// U+f143
-#define ICON_FAD_LOGO_AUDACITY "\xef\x85\x84"	// U+f144
-#define ICON_FAD_LOGO_AUDIOBUS "\xef\x85\x85"	// U+f145
-#define ICON_FAD_LOGO_CUBASE "\xef\x85\x86"	// U+f146
-#define ICON_FAD_LOGO_FL "\xef\x85\x87"	// U+f147
-#define ICON_FAD_LOGO_JUCE "\xef\x85\x88"	// U+f148
-#define ICON_FAD_LOGO_LADSPA "\xef\x85\x89"	// U+f149
-#define ICON_FAD_LOGO_LIVE "\xef\x85\x8a"	// U+f14a
-#define ICON_FAD_LOGO_LV2 "\xef\x85\x8b"	// U+f14b
-#define ICON_FAD_LOGO_PROTOOLS "\xef\x85\x8c"	// U+f14c
-#define ICON_FAD_LOGO_RACKEXT "\xef\x85\x8d"	// U+f14d
-#define ICON_FAD_LOGO_REAPER "\xef\x85\x8e"	// U+f14e
-#define ICON_FAD_LOGO_REASON "\xef\x85\x8f"	// U+f14f
-#define ICON_FAD_LOGO_REWIRE "\xef\x85\x90"	// U+f150
-#define ICON_FAD_LOGO_STUDIOONE "\xef\x85\x91"	// U+f151
-#define ICON_FAD_LOGO_TRACKTION "\xef\x85\x92"	// U+f152
-#define ICON_FAD_LOGO_VST "\xef\x85\x93"	// U+f153
-#define ICON_FAD_LOGO_WAVEFORM "\xef\x85\x94"	// U+f154
-#define ICON_FAD_LOOP "\xef\x85\x95"	// U+f155
-#define ICON_FAD_METRONOME "\xef\x85\x96"	// U+f156
-#define ICON_FAD_MICROPHONE "\xef\x85\x97"	// U+f157
-#define ICON_FAD_MIDIPLUG "\xef\x85\x98"	// U+f158
-#define ICON_FAD_MODRANDOM "\xef\x85\x99"	// U+f159
-#define ICON_FAD_MODSAWDOWN "\xef\x85\x9a"	// U+f15a
-#define ICON_FAD_MODSAWUP "\xef\x85\x9b"	// U+f15b
-#define ICON_FAD_MODSH "\xef\x85\x9c"	// U+f15c
-#define ICON_FAD_MODSINE "\xef\x85\x9d"	// U+f15d
-#define ICON_FAD_MODSQUARE "\xef\x85\x9e"	// U+f15e
-#define ICON_FAD_MODTRI "\xef\x85\x9f"	// U+f15f
-#define ICON_FAD_MODULARPLUG "\xef\x85\xa0"	// U+f160
-#define ICON_FAD_MONO "\xef\x85\xa1"	// U+f161
-#define ICON_FAD_MUTE "\xef\x85\xa2"	// U+f162
-#define ICON_FAD_NEXT "\xef\x85\xa3"	// U+f163
-#define ICON_FAD_OPEN "\xef\x85\xa4"	// U+f164
-#define ICON_FAD_PASTE "\xef\x85\xa5"	// U+f165
-#define ICON_FAD_PAUSE "\xef\x85\xa6"	// U+f166
-#define ICON_FAD_PEN "\xef\x85\xa7"	// U+f167
-#define ICON_FAD_PHASE "\xef\x85\xa8"	// U+f168
-#define ICON_FAD_PLAY "\xef\x85\xa9"	// U+f169
-#define ICON_FAD_POINTER "\xef\x85\xaa"	// U+f16a
-#define ICON_FAD_POWERSWITCH "\xef\x85\xab"	// U+f16b
-#define ICON_FAD_PRESET_A "\xef\x85\xac"	// U+f16c
-#define ICON_FAD_PRESET_AB "\xef\x85\xad"	// U+f16d
-#define ICON_FAD_PRESET_B "\xef\x85\xae"	// U+f16e
-#define ICON_FAD_PRESET_BA "\xef\x85\xaf"	// U+f16f
-#define ICON_FAD_PREV "\xef\x85\xb0"	// U+f170
-#define ICON_FAD_PUNCH_IN "\xef\x85\xb1"	// U+f171
-#define ICON_FAD_PUNCH_OUT "\xef\x85\xb2"	// U+f172
-#define ICON_FAD_RAM "\xef\x85\xb3"	// U+f173
-#define ICON_FAD_RANDOM_1DICE "\xef\x85\xb4"	// U+f174
-#define ICON_FAD_RANDOM_2DICE "\xef\x85\xb5"	// U+f175
-#define ICON_FAD_RECORD "\xef\x85\xb6"	// U+f176
-#define ICON_FAD_REDO "\xef\x85\xb7"	// U+f177
-#define ICON_FAD_REPEAT_ONE "\xef\x85\xb8"	// U+f178
-#define ICON_FAD_REPEAT "\xef\x85\xb9"	// U+f179
-#define ICON_FAD_REW "\xef\x85\xba"	// U+f17a
-#define ICON_FAD_ROUNDSWITCH_OFF "\xef\x85\xbb"	// U+f17b
-#define ICON_FAD_ROUNDSWITCH_ON "\xef\x85\xbc"	// U+f17c
-#define ICON_FAD_SAVE "\xef\x85\xbd"	// U+f17d
-#define ICON_FAD_SAVEAS "\xef\x85\xbe"	// U+f17e
-#define ICON_FAD_SCISSORS "\xef\x85\xbf"	// U+f17f
-#define ICON_FAD_SHUFFLE "\xef\x86\x80"	// U+f180
-#define ICON_FAD_SLIDER_ROUND_1 "\xef\x86\x81"	// U+f181
-#define ICON_FAD_SLIDER_ROUND_2 "\xef\x86\x82"	// U+f182
-#define ICON_FAD_SLIDER_ROUND_3 "\xef\x86\x83"	// U+f183
-#define ICON_FAD_SLIDERHANDLE_1 "\xef\x86\x84"	// U+f184
-#define ICON_FAD_SLIDERHANDLE_2 "\xef\x86\x85"	// U+f185
-#define ICON_FAD_SOFTCLIP "\xef\x86\x86"	// U+f186
-#define ICON_FAD_SOFTCLIPCURVE "\xef\x86\x87"	// U+f187
-#define ICON_FAD_SOLO "\xef\x86\x88"	// U+f188
-#define ICON_FAD_SPEAKER "\xef\x86\x89"	// U+f189
-#define ICON_FAD_SQUARESWITCH_OFF "\xef\x86\x8a"	// U+f18a
-#define ICON_FAD_SQUARESWITCH_ON "\xef\x86\x8b"	// U+f18b
-#define ICON_FAD_STEREO "\xef\x86\x8c"	// U+f18c
-#define ICON_FAD_STOP "\xef\x86\x8d"	// U+f18d
-#define ICON_FAD_THUNDERBOLT "\xef\x86\x8e"	// U+f18e
-#define ICON_FAD_TIMESELECT "\xef\x86\x8f"	// U+f18f
-#define ICON_FAD_UNDO "\xef\x86\x90"	// U+f190
-#define ICON_FAD_UNLOCK "\xef\x86\x91"	// U+f191
-#define ICON_FAD_USB "\xef\x86\x92"	// U+f192
-#define ICON_FAD_V_EXPAND "\xef\x86\x93"	// U+f193
-#define ICON_FAD_VROUNDSWITCH_OFF "\xef\x86\x94"	// U+f194
-#define ICON_FAD_VROUNDSWITCH_ON "\xef\x86\x95"	// U+f195
-#define ICON_FAD_VSQUARESWITCH_OFF "\xef\x86\x96"	// U+f196
-#define ICON_FAD_VSQUARESWITCH_ON "\xef\x86\x97"	// U+f197
-#define ICON_FAD_WAVEFORM "\xef\x86\x98"	// U+f198
-#define ICON_FAD_XLRPLUG "\xef\x86\x99"	// U+f199
-#define ICON_FAD_ZOOMIN "\xef\x86\x9a"	// U+f19a
-#define ICON_FAD_ZOOMOUT "\xef\x86\x9b"	// U+f19b
+#define ICON_MIN_FAD 0xe451
+#define ICON_MAX_FAD 0xe4eb
+#define ICON_FAD_ADR            u8"\ue451"
+#define ICON_FAD_ADSR           u8"\ue452"
+#define ICON_FAD_AHDSR          u8"\ue453"
+#define ICON_FAD_AR             u8"\ue454"
+#define ICON_FAD_ARMRECORDING   u8"\ue455"
+#define ICON_FAD_ARPCHORD       u8"\ue456"
+#define ICON_FAD_ARPDOWN        u8"\ue457"
+#define ICON_FAD_ARPDOWNANDUP   u8"\ue458"
+#define ICON_FAD_ARPDOWNUP      u8"\ue459"
+#define ICON_FAD_ARPPLAYORDER   u8"\ue45a"
+#define ICON_FAD_ARPRANDOM      u8"\ue45b"
+#define ICON_FAD_ARPUP          u8"\ue45c"
+#define ICON_FAD_ARPUPANDOWN    u8"\ue45d"
+#define ICON_FAD_ARPUPDOWN      u8"\ue45e"
+#define ICON_FAD_ARROWS_HORZ    u8"\ue45f"
+#define ICON_FAD_ARROWS_VERT    u8"\ue460"
+#define ICON_FAD_AUTOMATION_2P  u8"\ue461"
+#define ICON_FAD_AUTOMATION_3P  u8"\ue462"
+#define ICON_FAD_AUTOMATION_4P  u8"\ue463"
+#define ICON_FAD_BACKWARD       u8"\ue464"
+#define ICON_FAD_BLUETOOTH      u8"\ue465"
+#define ICON_FAD_CARET_DOWN     u8"\ue466"
+#define ICON_FAD_CARET_LEFT     u8"\ue467"
+#define ICON_FAD_CARET_RIGHT    u8"\ue468"
+#define ICON_FAD_CARET_UP       u8"\ue469"
+#define ICON_FAD_CLOSE          u8"\ue46a"
+#define ICON_FAD_COPY           u8"\ue46b"
+#define ICON_FAD_CPU            u8"\ue46c"
+#define ICON_FAD_CUTTER         u8"\ue46d"
+#define ICON_FAD_DIGITAL_COLON  u8"\ue46e"
+#define ICON_FAD_DIGITAL_DOT    u8"\ue46f"
+#define ICON_FAD_DIGITAL0       u8"\ue470"
+#define ICON_FAD_DIGITAL1       u8"\ue471"
+#define ICON_FAD_DIGITAL2       u8"\ue472"
+#define ICON_FAD_DIGITAL3       u8"\ue473"
+#define ICON_FAD_DIGITAL4       u8"\ue474"
+#define ICON_FAD_DIGITAL5       u8"\ue475"
+#define ICON_FAD_DIGITAL6       u8"\ue476"
+#define ICON_FAD_DIGITAL7       u8"\ue477"
+#define ICON_FAD_DIGITAL8       u8"\ue478"
+#define ICON_FAD_DIGITAL9       u8"\ue479"
+#define ICON_FAD_DISKIO         u8"\ue47a"
+#define ICON_FAD_DRUMPAD        u8"\ue47b"
+#define ICON_FAD_DUPLICATE      u8"\ue47c"
+#define ICON_FAD_ERASER         u8"\ue47d"
+#define ICON_FAD_FFWD           u8"\ue47e"
+#define ICON_FAD_FILTER_BANDPASS u8"\ue47f"
+#define ICON_FAD_FILTER_BELL        u8"\ue480"
+#define ICON_FAD_FILTER_BYPASS      u8"\ue481"
+#define ICON_FAD_FILTER_HIGHPASS    u8"\ue482"
+#define ICON_FAD_FILTER_LOWPASS     u8"\ue483"
+#define ICON_FAD_FILTER_NOTCH       u8"\ue484"
+#define ICON_FAD_FILTER_REZ_HIGHPASS u8"\ue485"
+#define ICON_FAD_FILTER_REZ_LOWPASS u8"\ue486"
+#define ICON_FAD_FILTER_SHELVING_HI u8"\ue487"
+#define ICON_FAD_FILTER_SHELVING_LO u8"\ue488"
+#define ICON_FAD_FOLDBACK           u8"\ue489"
+#define ICON_FAD_FORWARD            u8"\ue48a"
+#define ICON_FAD_H_EXPAND           u8"\ue48b"
+#define ICON_FAD_HARDCLIP           u8"\ue48c"
+#define ICON_FAD_HARDCLIPCURVE      u8"\ue48d"
+#define ICON_FAD_HEADPHONES         u8"\ue48e"
+#define ICON_FAD_KEYBOARD           u8"\ue48f"
+#define ICON_FAD_LOCK               u8"\ue490"
+#define ICON_FAD_LOGO_AAX           u8"\ue491"
+#define ICON_FAD_LOGO_ABLETONLINK   u8"\ue492"
+#define ICON_FAD_LOGO_AU            u8"\ue493"
+#define ICON_FAD_LOGO_AUDACITY      u8"\ue494"
+#define ICON_FAD_LOGO_AUDIOBUS      u8"\ue495"
+#define ICON_FAD_LOGO_CUBASE        u8"\ue496"
+#define ICON_FAD_LOGO_FL            u8"\ue497"
+#define ICON_FAD_LOGO_JUCE          u8"\ue498"
+#define ICON_FAD_LOGO_LADSPA        u8"\ue499"
+#define ICON_FAD_LOGO_LIVE          u8"\ue49a"
+#define ICON_FAD_LOGO_LV2           u8"\ue49b"
+#define ICON_FAD_LOGO_PROTOOLS      u8"\ue49c"
+#define ICON_FAD_LOGO_RACKEXT       u8"\ue49d"
+#define ICON_FAD_LOGO_REAPER        u8"\ue49e"
+#define ICON_FAD_LOGO_REASON        u8"\ue49f"
+#define ICON_FAD_LOGO_REWIRE        u8"\ue4a0"
+#define ICON_FAD_LOGO_STUDIOONE     u8"\ue4a1"
+#define ICON_FAD_LOGO_TRACKTION     u8"\ue4a2"
+#define ICON_FAD_LOGO_VST           u8"\ue4a3"
+#define ICON_FAD_LOGO_WAVEFORM      u8"\ue4a4"
+#define ICON_FAD_LOOP               u8"\ue4a5"
+#define ICON_FAD_METRONOME          u8"\ue4a6"
+#define ICON_FAD_MICROPHONE         u8"\ue4a7"
+#define ICON_FAD_MIDIPLUG           u8"\ue4a8"
+#define ICON_FAD_MODRANDOM          u8"\ue4a9"
+#define ICON_FAD_MODSAWDOWN         u8"\ue4aa"
+#define ICON_FAD_MODSAWUP           u8"\ue4ab"
+#define ICON_FAD_MODSH              u8"\ue4ac"
+#define ICON_FAD_MODSINE            u8"\ue4ad"
+#define ICON_FAD_MODSQUARE          u8"\ue4ae"
+#define ICON_FAD_MODTRI             u8"\ue4af"
+#define ICON_FAD_MODULARPLUG        u8"\ue4b0"
+#define ICON_FAD_MONO               u8"\ue4b1"
+#define ICON_FAD_MUTE               u8"\ue4b2"
+#define ICON_FAD_NEXT               u8"\ue4b3"
+#define ICON_FAD_OPEN               u8"\ue4b4"
+#define ICON_FAD_PASTE              u8"\ue4b5"
+#define ICON_FAD_PAUSE              u8"\ue4b6"
+#define ICON_FAD_PEN                u8"\ue4b7"
+#define ICON_FAD_PHASE              u8"\ue4b8"
+#define ICON_FAD_PLAY               u8"\ue4b9"
+#define ICON_FAD_POINTER            u8"\ue4ba"
+#define ICON_FAD_POWERSWITCH        u8"\ue4bb"
+#define ICON_FAD_PRESET_A           u8"\ue4bc"
+#define ICON_FAD_PRESET_AB          u8"\ue4bd"
+#define ICON_FAD_PRESET_B           u8"\ue4be"
+#define ICON_FAD_PRESET_BA          u8"\ue4bf"
+#define ICON_FAD_PREV               u8"\ue4c0"
+#define ICON_FAD_PUNCH_IN           u8"\ue4c1"
+#define ICON_FAD_PUNCH_OUT          u8"\ue4c2"
+#define ICON_FAD_RAM                u8"\ue4c3"
+#define ICON_FAD_RANDOM_1DICE       u8"\ue4c4"
+#define ICON_FAD_RANDOM_2DICE       u8"\ue4c5"
+#define ICON_FAD_RECORD             u8"\ue4c6"
+#define ICON_FAD_REDO               u8"\ue4c7"
+#define ICON_FAD_REPEAT_ONE         u8"\ue4c8"
+#define ICON_FAD_REPEAT             u8"\ue4c9"
+#define ICON_FAD_REW                u8"\ue4ca"
+#define ICON_FAD_ROUNDSWITCH_OFF    u8"\ue4cb"
+#define ICON_FAD_ROUNDSWITCH_ON     u8"\ue4cc"
+#define ICON_FAD_SAVE               u8"\ue4cd"
+#define ICON_FAD_SAVEAS             u8"\ue4ce"
+#define ICON_FAD_SCISSORS           u8"\ue4cf"
+#define ICON_FAD_SHUFFLE            u8"\ue4d0"
+#define ICON_FAD_SLIDER_ROUND_1     u8"\ue4d1"
+#define ICON_FAD_SLIDER_ROUND_2     u8"\ue4d2"
+#define ICON_FAD_SLIDER_ROUND_3     u8"\ue4d3"
+#define ICON_FAD_SLIDERHANDLE_1     u8"\ue4d4"
+#define ICON_FAD_SLIDERHANDLE_2     u8"\ue4d5"
+#define ICON_FAD_SOFTCLIP           u8"\ue4d6"
+#define ICON_FAD_SOFTCLIPCURVE      u8"\ue4d7"
+#define ICON_FAD_SOLO               u8"\ue4d8"
+#define ICON_FAD_SPEAKER            u8"\ue4d9"
+#define ICON_FAD_SQUARESWITCH_OFF   u8"\ue4da"
+#define ICON_FAD_SQUARESWITCH_ON    u8"\ue4db"
+#define ICON_FAD_STEREO             u8"\ue4dc"
+#define ICON_FAD_STOP               u8"\ue4dd"
+#define ICON_FAD_THUNDERBOLT        u8"\ue4de"
+#define ICON_FAD_TIMESELECT         u8"\ue4df"
+#define ICON_FAD_UNDO               u8"\ue4e0"
+#define ICON_FAD_UNLOCK             u8"\ue4e1"
+#define ICON_FAD_USB                u8"\ue4e2"
+#define ICON_FAD_V_EXPAND           u8"\ue4e3"
+#define ICON_FAD_VROUNDSWITCH_OFF   u8"\ue4e4"
+#define ICON_FAD_VROUNDSWITCH_ON    u8"\ue4e5"
+#define ICON_FAD_VSQUARESWITCH_OFF  u8"\ue4e6"
+#define ICON_FAD_VSQUARESWITCH_ON   u8"\ue4e7"
+#define ICON_FAD_WAVEFORM           u8"\ue4e8"
+#define ICON_FAD_XLRPLUG            u8"\ue4e9"
+#define ICON_FAD_ZOOMIN             u8"\ue4ea"
+#define ICON_FAD_ZOOMOUT            u8"\ue4eb"
