@@ -308,6 +308,8 @@ public:
     ImMat reshape(int w, int h, Allocator* allocator = 0) const;
     // reshape dim
     ImMat reshape(int w, int h, int c, Allocator* allocator = 0) const;
+    // transpose
+    ImMat transpose(Allocator* allocator = 0) const;
 
     // refcount++
     void addref();
@@ -382,6 +384,7 @@ public:
         else
             return *(const _Tp*)((unsigned char*)data + (y * w + x) * elemsize * c + _c); 
     };
+
 
     // convenient access float vec element
     float& operator[](size_t i);
@@ -1594,6 +1597,75 @@ inline ImMat ImMat::reshape(int _w, int _h, int _c, Allocator* _allocator) const
     m.rate = rate;
 
     return m;
+}
+
+inline ImMat ImMat::transpose(Allocator* _allocator) const
+{
+    IM_ASSERT(device == IM_DD_CPU);
+    if (dims == 1)
+    {
+        ImMat m;
+        m.create(w, elemsize, elempack, _allocator);
+        if (!m.data)
+            return m;
+        const void* ptr = (unsigned char*)data;
+        void* mptr = (unsigned char*)m.data;
+        memcpy(mptr, ptr, (size_t)w * h * elemsize);
+        m.w = 1;
+        m.h = w;
+
+        return m;
+    }
+    else if (dims == 2)
+    {
+        ImMat m;
+        m.create(h, w, elemsize, elempack, _allocator);
+        if (!m.data)
+            return m;
+        for (int _h = 0; _h < h; _h++)
+        {
+            for (int _w = 0; _w < w; _w++)
+            {
+                switch (elemsize)
+                {
+                    case 1: m.at< int8_t>(_h, _w) = this->at< int8_t>(_w, _h); break;
+                    case 2: m.at<int16_t>(_h, _w) = this->at<int16_t>(_w, _h); break;
+                    case 4: m.at<int32_t>(_h, _w) = this->at<int32_t>(_w, _h); break;
+                    case 8: m.at<int64_t>(_h, _w) = this->at<int64_t>(_w, _h); break;
+                    default: break;
+                }
+            }
+        }
+        return m;
+    }
+    else if (dims == 3)
+    {
+        ImMat m;
+        m.create(c, w, h, elemsize, elempack, _allocator);
+        if (!m.data)
+            return m;
+        
+        for (int _c = 0; _c < c; _c++)
+        {
+            for (int _h = 0; _h < h; _h++)
+            {
+                for (int _w = 0; _w < w; _w++)
+                {
+                    switch (elemsize)
+                    {
+                        case 1: m.at< int8_t>(_c, _w, _h) = this->at< int8_t>(_w, _h, _c); break;
+                        case 2: m.at<int16_t>(_c, _w, _h) = this->at<int16_t>(_w, _h, _c); break;
+                        case 4: m.at<int32_t>(_c, _w, _h) = this->at<int32_t>(_w, _h, _c); break;
+                        case 8: m.at<int64_t>(_c, _w, _h) = this->at<int64_t>(_w, _h, _c); break;
+                        default: break;
+                    }
+                }
+            }
+        }
+
+       return m;
+    }
+    return ImMat();
 }
 
 } // namespace ImGui 
