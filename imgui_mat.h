@@ -181,7 +181,12 @@ enum ImInterpolateMode {
 //16-23 bits for image
 #define IM_MAT_FLAGS_IMAGE_FRAME        (1 << 16)
 //24-31 bits for custom
-#define IM_MAT_FLAGS_CUSTOM_FRAME       (1 << 24)
+#define IM_MAT_FLAGS_CUSTOM_NORMAL      (1 << 24)
+#define IM_MAT_FLAGS_CUSTOM_PREROLL     (1 << 25)
+#define IM_MAT_FLAGS_CUSTOM_EOS         (1 << 26)
+#define IM_MAT_FLAGS_CUSTOM_INVALID     (1 << 27)
+#define IM_MAT_FLAGS_CUSTOM_UNSUPPORTED (1 << 28)
+
 
 #define IM_ESIZE(a)    (a == IM_DT_INT8 ? (size_t)1u : (a == IM_DT_INT16 || a == IM_DT_FLOAT16) ? (size_t)2u : (a == IM_DT_INT32 || a == IM_DT_FLOAT32) ? (size_t)4u : (a == IM_DT_INT64 || a == IM_DT_FLOAT64) ? (size_t)8u : (size_t)0u)
 #define IM_DEPTH(a)    (a == IM_DT_INT8 ? 8 : (a == IM_DT_INT16 || a == IM_DT_FLOAT16) ? 16 : (a == IM_DT_INT32 || a == IM_DT_FLOAT32) ? 32 : (a == IM_DT_INT64 || a == IM_DT_FLOAT64) ? 64 : 0)
