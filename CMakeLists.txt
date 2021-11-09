@@ -725,9 +725,9 @@ if (VULKAN_FOUND AND (IMGUI_VULKAN OR IMGUI_VULKAN_SHADER))
         set(SPIRV_TOOLS_TARGET_DIR "SPIRV-TOOLS-NOTFOUND" CACHE PATH "Absolute path to SPIRV-ToolsTarget.cmake directory")
         set(SPIRV_TOOLS_OPT_TARGET_DIR "SPIRV-TOOLS-OPT-NOTFOUND" CACHE PATH "Absolute path to SPIRV-Tools-optTargets.cmake directory")
         if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-            set(GLSLANG_TARGET_DIR "/usr/lib/x86_64-linux-gnu/cmake/glslang")
+            set(GLSLANG_TARGET_DIR "/usr/lib/x86_64-linux-gnu/cmake")
             set(GLSLANG_INCLUDE_DIR "/usr/include/glslang")
-            set(SPIRV_TARGET_DIR "/usr/lib/x86_64-linux-gnu/cmake/glslang")
+            set(SPIRV_TARGET_DIR "/usr/lib/x86_64-linux-gnu/cmake")
             set(SPIRV_TOOLS_TARGET_DIR "/usr/lib/x86_64-linux-gnu/cmake/SPIRV-Tools")
             set(SPIRV_TOOLS_OPT_TARGET_DIR "/usr/lib/x86_64-linux-gnu/cmake/SPIRV-Tools-opt")
         elseif(APPLE)
@@ -932,7 +932,7 @@ if (VULKAN_FOUND AND (IMGUI_VULKAN OR IMGUI_VULKAN_SHADER))
         addon/ImVulkanShader/filters/DeBand_shader.h
         addon/ImVulkanShader/filters/DeBand_vulkan.h
         addon/ImVulkanShader/filters/DeInterlace_shader.h
-        addon/ImVulkanShader/filters/Deinterlace_vulkan.h
+        addon/ImVulkanShader/filters/DeInterlace_vulkan.h
     )
 
     set(IMGUI_SRC
