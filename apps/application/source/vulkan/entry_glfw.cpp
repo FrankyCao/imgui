@@ -124,6 +124,10 @@ int main(int, char**)
 
     UpdateVulkanFont(wd);
 
+#if IMGUI_VULKAN_SHADER
+    ImGui::ImVulkanShaderInit();
+#endif
+
     Application_Initialize(&property.handle);
 
     // Main loop

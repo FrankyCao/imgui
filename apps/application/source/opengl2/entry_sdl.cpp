@@ -81,6 +81,10 @@ int main(int, char**)
     ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
     ImGui_ImplOpenGL2_Init();
 
+#if IMGUI_VULKAN_SHADER
+    ImGui::ImVulkanShaderInit();
+#endif
+
     ImVec4 clear_color = ImVec4(0.f, 0.f, 0.f, 1.f);
 
     Application_Initialize(&property.handle);

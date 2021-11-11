@@ -87,6 +87,10 @@ int main(int argc, char** argv)
     ImGui_ImplGLUT_InstallFuncs();
     ImGui_ImplOpenGL2_Init();
 
+#if IMGUI_VULKAN_SHADER
+    ImGui::ImVulkanShaderInit();
+#endif
+
     // init application
     Application_Initialize(&property.handle);
 

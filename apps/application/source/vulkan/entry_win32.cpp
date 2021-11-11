@@ -158,6 +158,10 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
     UpdateVulkanFont(wd);
 
+#if IMGUI_VULKAN_SHADER
+    ImGui::ImVulkanShaderInit();
+#endif
+
     Application_Initialize(&property.handle);
 
     // Show the window

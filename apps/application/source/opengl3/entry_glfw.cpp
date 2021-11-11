@@ -123,6 +123,10 @@ int main(int, char**)
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
+#if IMGUI_VULKAN_SHADER
+    ImGui::ImVulkanShaderInit();
+#endif
+
     ImVec4 clear_color = ImVec4(0.f, 0.f, 0.f, 1.f);
 
     Application_Initialize(&property.handle);

@@ -173,6 +173,10 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     ImGui_ImplWin32_Init(hwnd);
     ImGui_ImplDX9_Init(g_pd3dDevice);
 
+#if IMGUI_VULKAN_SHADER
+    ImGui::ImVulkanShaderInit();
+#endif
+
     ImVec4 clear_color = ImVec4(0.f, 0.f, 0.f, 1.00f);
 
     Application_Initialize(&property.handle);
