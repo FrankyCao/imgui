@@ -1,9 +1,13 @@
 #pragma once
 #ifdef __cplusplus
-#if (defined _WIN32 && !(defined __MINGW32__))
-#define WIN32_LEAN_AND_MEAN
+#if (defined _WIN32)
 #include <windows.h>
+#if !(defined __MINGW32__)
+#define WIN32_LEAN_AND_MEAN
 #include <process.h>
+#else
+#include <pthread.h>
+#endif
 #else
 #include <pthread.h>
 #include <sys/time.h>

@@ -1,6 +1,7 @@
 #ifndef __IM_MAT_H__
 #define __IM_MAT_H__
 #include <stddef.h>
+#include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
