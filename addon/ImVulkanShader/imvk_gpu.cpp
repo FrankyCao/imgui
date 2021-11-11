@@ -3,8 +3,13 @@
 #include <string.h>
 #include <vulkan/vulkan.h>
 
+#ifdef VKSHADER_SYSTEM_GLSLANG
 #include "SPIRV/GlslangToSpv.h"
 #include "glslang/Public/ShaderLang.h"
+#else
+#include "libglslang/SPIRV/GlslangToSpv.h"
+#include "glslang/Public/ShaderLang.h"
+#endif
 
 #include "imvk_command.h"
 #include "imvk_pipelinecache.h"
@@ -22,10 +27,10 @@ namespace ImGui
 // global
 static Mutex g_instance_lock;
 
-class __imgui_vulkan_instance_holder
+class __vulkan_shader_instance_holder
 {
 public:
-    __imgui_vulkan_instance_holder()
+    __vulkan_shader_instance_holder()
     {
         instance = 0;
 #if ENABLE_VALIDATION_LAYER
@@ -33,7 +38,7 @@ public:
 #endif
     }
 
-    ~__imgui_vulkan_instance_holder()
+    ~__vulkan_shader_instance_holder()
     {
         destroy_gpu_instance();
     }
@@ -48,7 +53,7 @@ public:
     VkDebugUtilsMessengerEXT callback;
 #endif
 };
-static __imgui_vulkan_instance_holder g_instance;
+static __vulkan_shader_instance_holder g_instance;
 
 static int g_gpu_count = 0;
 static int g_default_gpu_index = -1;
@@ -950,9 +955,9 @@ int create_gpu_instance()
     VkApplicationInfo applicationInfo;
     applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     applicationInfo.pNext = 0;
-    applicationInfo.pApplicationName = "imgui";
+    applicationInfo.pApplicationName = "vkshader";
     applicationInfo.applicationVersion = 0;
-    applicationInfo.pEngineName = "imgui";
+    applicationInfo.pEngineName = "vkshader";
     applicationInfo.engineVersion = 20201010;
     applicationInfo.apiVersion = instance_api_version;
 

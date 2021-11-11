@@ -4,7 +4,7 @@
 
 namespace ImGui 
 {
-class IMGUI_API ColorConvert_vulkan
+class VKSHADER_API ColorConvert_vulkan
 {
 public:
     ColorConvert_vulkan(int gpu = -1);

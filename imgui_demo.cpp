@@ -315,9 +315,6 @@ void ImGui::ShowDemoWindow(bool* p_open)
     static bool show_app_stack_tool = false;
     static bool show_app_style_editor = false;
     static bool show_app_theme_generator = false;   // Add By Dicky
-#if IMGUI_VULKAN_SHADER
-    static bool show_vulkan_test = false;   // Add By Dicky
-#endif
     static bool show_app_about = false;
 
     if (show_app_metrics)       { ImGui::ShowMetricsWindow(&show_app_metrics); }
@@ -334,12 +331,6 @@ void ImGui::ShowDemoWindow(bool* p_open)
     {
         ImGuiHelper::ThemeGenerator("ImGui Theme Generator", &show_app_theme_generator);
     }
-#if IMGUI_VULKAN_SHADER
-    if (show_vulkan_test)
-    {
-        ImGui::ImVulkanTestWindow("ImGui Vulkan test", &show_vulkan_test);
-    }
-#endif
     // Add By Dicky end
 
     // Demonstrate the various window flags. Typically you would just use the default!
@@ -427,9 +418,6 @@ void ImGui::ShowDemoWindow(bool* p_open)
 #endif
             ImGui::MenuItem("Style Editor", NULL, &show_app_style_editor);
             ImGui::MenuItem("Theme Generator", NULL, &show_app_theme_generator); // Add By Dicky
-#if IMGUI_VULKAN_SHADER
-            ImGui::MenuItem("Vulkan Test", NULL, &show_vulkan_test); // Add By Dicky
-#endif
             ImGui::MenuItem("About Dear ImGui", NULL, &show_app_about);
             ImGui::EndMenu();
         }

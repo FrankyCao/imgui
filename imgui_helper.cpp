@@ -232,24 +232,6 @@ void ShowImGuiInfo()
     ImGui::Text("GL Version: %s", ImGui_ImplOpenGL2_GetVerion().c_str());
 #endif
 #endif
-#if IMGUI_VULKAN_SHADER
-    ImGui::Text("Vulkan Shader:");
-    int count = ImGui::get_gpu_count();
-    for (int i = 0; i < count; i++)
-    {
-        const ImGui::GpuInfo& info = ImGui::get_gpu_info(i);
-        ImGui::Text("  %s:", info.device_name());
-        ImGui::Text("    bugs: sbn1=%d bilz=%d copc=%d ihfa=%d", 
-                    info.bug_storage_buffer_no_l1(), info.bug_buffer_image_load_zero(), info.bug_corrupted_online_pipeline_cache(), info.bug_implicit_fp16_arithmetic()); 
-        ImGui::Text("    fp16: p=%d/s=%d/a=%d int8: p=%d/s=%d/a=%d", 
-                    info.support_fp16_packed(), info.support_fp16_storage(), info.support_fp16_arithmetic(), 
-                    info.support_int8_packed(), info.support_int8_storage(), info.support_int8_arithmetic());
-        ImGui::Text("      sg: subgroup=%u basic=%d vote=%d ballot=%d shuffle=%d",
-                    info.subgroup_size(), info.support_subgroup_basic(), info.support_subgroup_vote(),
-                    info.support_subgroup_ballot(), info.support_subgroup_shuffle());
-    }
-    ImGui::Separator();
-#endif
     ImGui::Text("Flash Timer: %.1f", io.ConfigMemoryCompactTimer >= 0.0f ? io.ConfigMemoryCompactTimer : 0);
     ImGui::Separator();
     ImGui::Text("Fonts: %d fonts", io.Fonts->Fonts.Size);
@@ -538,21 +520,6 @@ ImTextureID ImCreateTexture(const void* data, int width, int height, double time
     return nullptr;
 #endif
 }
-
-#if IMGUI_RENDERING_VULKAN && IMGUI_VULKAN_SHADER
-ImTextureID ImCreateTexture(ImGui::VkImageMat & image, double time_stamp)
-{
-    g_tex_mutex.lock();
-    g_Textures.resize(g_Textures.size() + 1);
-    ImTexture& texture = g_Textures.back();
-    texture.TextureID = (ImTextureVk)ImVulkanImageToImTexture(image);
-    texture.Width  = image.w;
-    texture.Height = image.h;
-    texture.TimeStamp = time_stamp;
-    g_tex_mutex.unlock();
-    return (ImTextureID)texture.TextureID;
-}
-#endif
 
 static std::vector<ImTexture>::iterator ImFindTexture(ImTextureID texture)
 {

@@ -1,13 +1,12 @@
 #pragma once
-#include <imgui.h>
 #include "imvk_gpu.h"
 #include "imvk_pipeline.h"
-#include <imgui_mat.h>
+#include "im_mat.h"
 #include <string>
 
 namespace ImGui
 {
-class IMGUI_API Sobel_vulkan
+class VKSHADER_API Sobel_vulkan
 {
 public:
     Sobel_vulkan(int gpu = 0);

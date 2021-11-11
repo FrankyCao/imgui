@@ -85,9 +85,7 @@ _OPTION(IMGUI_GLEW                  "Build ImGui GLEW backends" ON)
 _OPTION(IMGUI_GLES                  "Build ImGui GLES backends" ON)
 _OPTION(IMGUI_MATAL                 "Build ImGui Apple Metal backends(Apple only)" ON IF APPLE)
 _OPTION(IMGUI_VULKAN                "Build ImGui Vulkan backends" ON)
-_OPTION(IMGUI_SYSTEM_GLSLANG        "Try to using system glslang library" ON)
 _OPTION(IMGUI_VULKAN_SHADER         "Build ImGui With Vulkan compute support" ON)
-_OPTION(IMGUI_VULKAN_BENCHMARK      "Build ImGui With Vulkan Shader Benchmark" OFF)
 _OPTION(IMGUI_DX9                   "Build ImGui Direct9 backends(Windows only)" ON IF WIN32)
 _OPTION(IMGUI_DX10                  "Build ImGui Direct10 backends(Windows only)" ON IF WIN32)
 _OPTION(IMGUI_DX11                  "Build ImGui Direct11 backends(Windows only)" ON IF WIN32)
@@ -106,9 +104,9 @@ _OPTION(IMGUI_APPLE_APP             "build apple app base on imgui(Apple only)" 
 if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
 find_package(OpenGL)
 
-if (IMGUI_VULKAN OR IMGUI_VULKAN_SHADER)
+if (IMGUI_VULKAN)
     find_package(Vulkan)
-endif(IMGUI_VULKAN OR IMGUI_VULKAN_SHADER)
+endif(IMGUI_VULKAN)
 
 if (IMGUI_FREETYPE)
     find_package(Freetype)
@@ -135,13 +133,13 @@ if(PKG_CONFIG_FOUND)
             message("glut found")
         endif (GLUT_FOUND)
     endif(IMGUI_GLUT AND NOT GLUT_FOUND)
-    if((IMGUI_VULKAN OR IMGUI_VULKAN_SHADER) AND NOT VULKAN_FOUND)
+    if(IMGUI_VULKAN AND NOT VULKAN_FOUND)
         pkg_search_module(VULKAN REQUIRED vulkan)
         if (VULKAN_FOUND)
             message("vulkan found")
             set (Vulkan_LIBRARY vulkan)
         endif(VULKAN_FOUND)
-    endif((IMGUI_VULKAN OR IMGUI_VULKAN_SHADER) AND NOT VULKAN_FOUND)
+    endif(IMGUI_VULKAN AND NOT VULKAN_FOUND)
     if(NOT OPENGL_FOUND)
         pkg_search_module(OPENGL REQUIRED gl)
         if (OPENGL_FOUND)
@@ -243,7 +241,6 @@ set(IMGUI_INCS
     imstb_textedit.h
     imstb_truetype.h
     imgui_user.h
-    imgui_mat.h
     misc/cpp/imgui_stdlib.h
     misc/cpp/dir_iterate.h
     misc/stb_image.h
@@ -632,6 +629,19 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/misc/freetype
 )
 
+# ImVulkanShader
+if(IMGUI_VULKAN_SHADER)
+    add_subdirectory(addon/ImVulkanShader)
+    set(IMGUI_INC_DIRS
+        ${IMGUI_INC_DIRS}
+        ${VKSHADER_INCLUDE_DIRS}
+    )
+    set(LINK_LIBS
+        ${LINK_LIBS}
+        ${VKSHADER_LIBRARYS}
+    )
+endif(IMGUI_VULKAN_SHADER)
+
 # ImGuiFileDialog
 set(IMGUI_SRC
     ${IMGUI_SRC}
@@ -715,261 +725,6 @@ set(IMGUI_INC_DIRS
     ${IMGUI_INC_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/addon/HotKey
 )
-
-if (VULKAN_FOUND AND (IMGUI_VULKAN OR IMGUI_VULKAN_SHADER))
-    message(STATUS "    [ImGui Build Vulkan Shader]")
-    if (IMGUI_SYSTEM_GLSLANG)
-        set(GLSLANG_TARGET_DIR "GLSLANG-NOTFOUND" CACHE PATH "Absolute path to glslangTargets.cmake directory")
-        set(GLSLANG_INCLUDE_DIR "GLSLANG-NOTFOUND" CACHE PATH "Absolute path to glslang header files directory")
-        set(SPIRV_TARGET_DIR "SPIRV-NOTFOUND" CACHE PATH "Absolute path to SPIRVTargets.cmake directory")
-        set(SPIRV_TOOLS_TARGET_DIR "SPIRV-TOOLS-NOTFOUND" CACHE PATH "Absolute path to SPIRV-ToolsTarget.cmake directory")
-        set(SPIRV_TOOLS_OPT_TARGET_DIR "SPIRV-TOOLS-OPT-NOTFOUND" CACHE PATH "Absolute path to SPIRV-Tools-optTargets.cmake directory")
-        if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-            set(GLSLANG_TARGET_DIR "/usr/lib/x86_64-linux-gnu/cmake/glslang")
-            set(GLSLANG_INCLUDE_DIR "/usr/include/glslang")
-            set(SPIRV_TARGET_DIR "/usr/lib/x86_64-linux-gnu/cmake/glslang")
-            set(SPIRV_TOOLS_TARGET_DIR "/usr/lib/x86_64-linux-gnu/cmake/SPIRV-Tools")
-            set(SPIRV_TOOLS_OPT_TARGET_DIR "/usr/lib/x86_64-linux-gnu/cmake/SPIRV-Tools-opt")
-        elseif(APPLE)
-            set(GLSLANG_TARGET_DIR "/usr/local/lib/cmake")
-            set(GLSLANG_INCLUDE_DIR "/usr/local/include/glslang")
-            set(SPIRV_TARGET_DIR "/usr/local/lib/cmake")
-            set(SPIRV_TOOLS_TARGET_DIR "/usr/local/lib/cmake/SPIRV-Tools")
-            set(SPIRV_TOOLS_OPT_TARGET_DIR "/usr/local/lib/cmake/SPIRV-Tools-opt")
-        elseif(WIN32)
-            set(MINGW_PATH ${CMAKE_ROOT}/../..)
-            set(GLSLANG_TARGET_DIR "${MINGW_PATH}/lib/cmake")
-            set(GLSLANG_INCLUDE_DIR "${MINGW_PATH}/include/glslang")
-            set(SPIRV_TARGET_DIR "${MINGW_PATH}/lib/cmake")
-            set(SPIRV_TOOLS_TARGET_DIR "${MINGW_PATH}/lib/cmake/SPIRV-Tools")
-            set(SPIRV_TOOLS_OPT_TARGET_DIR "${MINGW_PATH}/lib/cmake/SPIRV-Tools-opt")
-        endif()
-        if(NOT GLSLANG_TARGET_DIR AND NOT DEFINED ENV{GLSLANG_TARGET_DIR})
-            message(WARNING "GLSLANG_TARGET_DIR must be defined! IMGUI_SYSTEM_GLSLANG will be turned off.")
-            set(IMGUI_SYSTEM_GLSLANG OFF)
-        else()
-            message(STATUS "Using glslang install located at ${GLSLANG_TARGET_DIR}")
-            find_package(Threads)
-            include("${GLSLANG_TARGET_DIR}/OSDependentTargets.cmake")
-            include("${GLSLANG_TARGET_DIR}/OGLCompilerTargets.cmake")
-            if(EXISTS "${GLSLANG_TARGET_DIR}/HLSLTargets.cmake")
-                # hlsl support can be optional
-                include("${GLSLANG_TARGET_DIR}/HLSLTargets.cmake")
-            endif()
-            include("${GLSLANG_TARGET_DIR}/glslangTargets.cmake")
-            include("${SPIRV_TOOLS_TARGET_DIR}/SPIRV-ToolsTarget.cmake")
-            include("${SPIRV_TOOLS_OPT_TARGET_DIR}/SPIRV-Tools-optTargets.cmake")
-            include("${SPIRV_TARGET_DIR}/SPIRVTargets.cmake")
-
-            if (NOT TARGET glslang OR NOT TARGET SPIRV)
-                message(WARNING "glslang or SPIRV target not found! IMGUI_SYSTEM_GLSLANG will be turned off.")
-                set(IMGUI_SYSTEM_GLSLANG OFF)
-            else()
-                set(IMGUI_INC_DIRS
-                    ${IMGUI_INC_DIRS}
-                    ${GLSLANG_INCLUDE_DIR}
-                )
-            endif()
-        endif()
-    endif (IMGUI_SYSTEM_GLSLANG)
-
-    # Vulkan Shader/Glslang
-    if(NOT IMGUI_SYSTEM_GLSLANG)
-        option(BUILD_EXTERNAL "" OFF)
-        option(ENABLE_SPVREMAPPER "" OFF)
-        option(ENABLE_GLSLANG_BINARIES "" OFF)
-        option(ENABLE_HLSL "" OFF)
-        option(ENABLE_RTTI "" OFF)
-        option(ENABLE_EXCEPTIONS "" OFF)
-        option(ENABLE_OPT "" ON)
-        option(ENABLE_PCH "" OFF)
-        option(ENABLE_CTEST "" OFF)
-        option(SKIP_GLSLANG_INSTALL "" ON)
-        add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/addon/ImVulkanShader/libglslang)
-        if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_SIMULATE_ID MATCHES "MSVC"))
-            target_compile_options(glslang PRIVATE -fvisibility=hidden -fvisibility-inlines-hidden)
-            target_compile_options(OGLCompiler PRIVATE -fvisibility=hidden -fvisibility-inlines-hidden)
-            target_compile_options(OSDependent PRIVATE -fvisibility=hidden -fvisibility-inlines-hidden)
-            target_compile_options(SPIRV PRIVATE -fvisibility=hidden -fvisibility-inlines-hidden)
-        endif()
-    endif()
-
-    if(IMGUI_VULKAN_BENCHMARK)
-        set(IMGUI_VULKAN_SHADER_BENCHMARK ON)
-    endif(IMGUI_VULKAN_BENCHMARK)
-    set(IMGUI_SRC
-        ${IMGUI_SRC}
-        addon/ImVulkanShader/imvk_option.cpp
-        addon/ImVulkanShader/imvk_allocator.cpp
-        addon/ImVulkanShader/imvk_gpu.cpp
-        addon/ImVulkanShader/imvk_command.cpp
-        addon/ImVulkanShader/imvk_pipeline.cpp
-        addon/ImVulkanShader/imvk_pipelinecache.cpp
-        addon/ImVulkanShader/imvk_Cast_vulkan.cpp
-        addon/ImVulkanShader/imvk_Packing_vulkan.cpp
-        addon/ImVulkanShader/imvk_substract_mean_normalize.cpp
-        addon/ImVulkanShader/ImVulkanShader.cpp
-    )
-    set(IMGUI_INCS
-        ${IMGUI_INCS}
-        addon/ImVulkanShader/imvk_platform.h
-        addon/ImVulkanShader/imvk_vulkan_header_fix.h
-        addon/ImVulkanShader/imvk_option.h
-        addon/ImVulkanShader/imvk_allocator.h
-        addon/ImVulkanShader/imvk_gpu.h
-        addon/ImVulkanShader/imvk_command.h
-        addon/ImVulkanShader/imvk_mat.h
-        addon/ImVulkanShader/imvk_mat_shader.h
-        addon/ImVulkanShader/imvk_image_mat.h
-        addon/ImVulkanShader/imvk_pipeline.h
-        addon/ImVulkanShader/imvk_pipelinecache.h
-        addon/ImVulkanShader/imvk_Cast_shader.h
-        addon/ImVulkanShader/imvk_Cast_vulkan.h
-        addon/ImVulkanShader/imvk_Packing_shader.h
-        addon/ImVulkanShader/imvk_Packing_vulkan.h
-        addon/ImVulkanShader/imvk_substract_mean_normalize_shader.h
-        addon/ImVulkanShader/imvk_substract_mean_normalize.h
-        addon/ImVulkanShader/ImVulkanShader.h
-    )
-    set(IMGUI_SRC
-        ${IMGUI_SRC}
-        addon/ImVulkanShader/filters/colorspace_table.cpp
-        addon/ImVulkanShader/filters/ColorConvert_vulkan.cpp
-        addon/ImVulkanShader/filters/Resize_vulkan.cpp
-        addon/ImVulkanShader/filters/CopyTo_vulkan.cpp
-        addon/ImVulkanShader/filters/Filter2D_vulkan.cpp
-        addon/ImVulkanShader/filters/Filter2DS_vulkan.cpp
-        addon/ImVulkanShader/filters/Flip_vulkan.cpp
-        addon/ImVulkanShader/filters/Crop_vulkan.cpp
-        addon/ImVulkanShader/filters/Transpose_vulkan.cpp
-        addon/ImVulkanShader/filters/Brightness_vulkan.cpp
-        addon/ImVulkanShader/filters/Contrast_vulkan.cpp
-        addon/ImVulkanShader/filters/Exposure_vulkan.cpp
-        addon/ImVulkanShader/filters/Gamma_vulkan.cpp
-        addon/ImVulkanShader/filters/Saturation_vulkan.cpp
-        addon/ImVulkanShader/filters/WhiteBalance_vulkan.cpp
-        addon/ImVulkanShader/filters/Hue_vulkan.cpp
-        addon/ImVulkanShader/filters/Vibrance_vulkan.cpp
-        addon/ImVulkanShader/filters/ColorInvert_vulkan.cpp
-        addon/ImVulkanShader/filters/ColorBalance_vulkan.cpp
-        addon/ImVulkanShader/filters/Bilateral_vulkan.cpp
-        addon/ImVulkanShader/filters/Sobel_vulkan.cpp
-        addon/ImVulkanShader/filters/Canny_vulkan.cpp
-        addon/ImVulkanShader/filters/Harris_vulkan.cpp
-        addon/ImVulkanShader/filters/USM_vulkan.cpp
-        addon/ImVulkanShader/filters/ChromaKey_vulkan.cpp
-        addon/ImVulkanShader/filters/GaussianBlur.cpp
-        addon/ImVulkanShader/filters/Box.cpp
-        addon/ImVulkanShader/filters/Laplacian.cpp
-        addon/ImVulkanShader/filters/Concat_vulkan.cpp
-        addon/ImVulkanShader/filters/ALM_vulkan.cpp
-        addon/ImVulkanShader/filters/CAS_vulkan.cpp
-        addon/ImVulkanShader/filters/HQDN3D_vulkan.cpp
-        addon/ImVulkanShader/filters/DeBand_vulkan.cpp
-        addon/ImVulkanShader/filters/DeInterlace_vulkan.cpp
-    )
-    set(IMGUI_INCS
-        ${IMGUI_INCS}
-        addon/ImVulkanShader/filters/ColorConvert_shader.h
-        addon/ImVulkanShader/filters/ColorConvert_vulkan.h
-        addon/ImVulkanShader/filters/Resize_shader.h
-        addon/ImVulkanShader/filters/Resize_vulkan.h
-        addon/ImVulkanShader/filters/CopyTo_shader.h
-        addon/ImVulkanShader/filters/CopyTo_vulkan.h
-        addon/ImVulkanShader/filters/Filter2D_shader.h
-        addon/ImVulkanShader/filters/Filter2D_vulkan.h
-        addon/ImVulkanShader/filters/Filter2DS_shader.h
-        addon/ImVulkanShader/filters/Filter2DS_vulkan.h
-        addon/ImVulkanShader/filters/Flip_shader.h
-        addon/ImVulkanShader/filters/Flip_vulkan.h
-        addon/ImVulkanShader/filters/Crop_shader.h
-        addon/ImVulkanShader/filters/Crop_vulkan.h
-        addon/ImVulkanShader/filters/Transpose_shader.h
-        addon/ImVulkanShader/filters/Transpose_vulkan.h
-        addon/ImVulkanShader/filters/Brightness_shader.h
-        addon/ImVulkanShader/filters/Brightness_vulkan.h
-        addon/ImVulkanShader/filters/Contrast_shader.h
-        addon/ImVulkanShader/filters/Contrast_vulkan.h
-        addon/ImVulkanShader/filters/Exposure_shader.h
-        addon/ImVulkanShader/filters/Exposure_vulkan.h
-        addon/ImVulkanShader/filters/Gamma_shader.h
-        addon/ImVulkanShader/filters/Gamma_vulkan.h
-        addon/ImVulkanShader/filters/Saturation_shader.h
-        addon/ImVulkanShader/filters/Saturation_vulkan.h
-        addon/ImVulkanShader/filters/WhiteBalance_shader.h
-        addon/ImVulkanShader/filters/WhiteBalance_vulkan.h
-        addon/ImVulkanShader/filters/Hue_shader.h
-        addon/ImVulkanShader/filters/Hue_vulkan.h
-        addon/ImVulkanShader/filters/Vibrance_shader.h
-        addon/ImVulkanShader/filters/Vibrance_vulkan.h
-        addon/ImVulkanShader/filters/ColorInvert_shader.h
-        addon/ImVulkanShader/filters/ColorInvert_vulkan.h
-        addon/ImVulkanShader/filters/ColorBalance_shader.h
-        addon/ImVulkanShader/filters/ColorBalance_vulkan.h
-        addon/ImVulkanShader/filters/Bilateral_shader.h
-        addon/ImVulkanShader/filters/Bilateral_vulkan.h
-        addon/ImVulkanShader/filters/Sobel_shader.h
-        addon/ImVulkanShader/filters/Sobel_vulkan.h
-        addon/ImVulkanShader/filters/Canny_shader.h
-        addon/ImVulkanShader/filters/Canny_vulkan.h
-        addon/ImVulkanShader/filters/Harris_vulkan.h
-        addon/ImVulkanShader/filters/Harris_shader.h
-        addon/ImVulkanShader/filters/USM_shader.h
-        addon/ImVulkanShader/filters/USM_vulkan.h
-        addon/ImVulkanShader/filters/ChromaKey_shader.h
-        addon/ImVulkanShader/filters/ChromaKey_vulkan.h
-        addon/ImVulkanShader/filters/GaussianBlur.h
-        addon/ImVulkanShader/filters/Box.h
-        addon/ImVulkanShader/filters/Laplacian.h
-        addon/ImVulkanShader/filters/Concat_shader.h
-        addon/ImVulkanShader/filters/Concat_vulkan.h
-        addon/ImVulkanShader/filters/ALM_shader.h
-        addon/ImVulkanShader/filters/ALM_vulkan.h
-        addon/ImVulkanShader/filters/CAS_shader.h
-        addon/ImVulkanShader/filters/CAS_vulkan.h
-        addon/ImVulkanShader/filters/HQDN3D_shader.h
-        addon/ImVulkanShader/filters/HQDN3D_vulkan.h
-        addon/ImVulkanShader/filters/DeBand_shader.h
-        addon/ImVulkanShader/filters/DeBand_vulkan.h
-        addon/ImVulkanShader/filters/DeInterlace_shader.h
-        addon/ImVulkanShader/filters/DeInterlace_vulkan.h
-    )
-
-    set(IMGUI_SRC
-        ${IMGUI_SRC}
-        addon/ImVulkanShader/filters/lut3d/Lut3D.cpp
-    )
-
-    set(IMGUI_INCS
-        ${IMGUI_INCS}
-        addon/ImVulkanShader/filters/lut3d/Lut3D.h
-        addon/ImVulkanShader/filters/lut3d/Lut3D_Shader.h
-        addon/ImVulkanShader/filters/lut3d/SDR709_HDR2020_HLG.h
-        addon/ImVulkanShader/filters/lut3d/SDR709_HDR2020_PQ.h
-        addon/ImVulkanShader/filters/lut3d/HDR2020_HLG_SDR709.h
-        addon/ImVulkanShader/filters/lut3d/HDR2020_PQ_SDR709.h
-        addon/ImVulkanShader/filters/lut3d/HDR2020HLG_HDR2020PQ.h
-        addon/ImVulkanShader/filters/lut3d/HDR2020PQ_HDR2020HLG.h
-    )
-
-    set(IMGUI_INC_DIRS
-        ${IMGUI_INC_DIRS}
-        ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImVulkanShader
-        ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImVulkanShader/filters
-        ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImVulkanShader/filters/lut3d
-    )
-
-    set(GLSLANG_LIBRARY
-        glslang
-        OGLCompiler
-        OSDependent
-        SPIRV
-    )
-    set(LINK_LIBS
-        ${LINK_LIBS}
-        ${GLSLANG_LIBRARY}
-    )
-endif(VULKAN_FOUND AND (IMGUI_VULKAN OR IMGUI_VULKAN_SHADER))
 
 if(ZLIB_FOUND)
     set(LINK_LIBS

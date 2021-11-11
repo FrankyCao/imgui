@@ -4,7 +4,7 @@
 
 namespace ImGui 
 {
-class IMGUI_API Packing_vulkan
+class VKSHADER_API Packing_vulkan
 {
 public:
     Packing_vulkan();

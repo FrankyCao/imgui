@@ -1,6 +1,10 @@
-#ifndef __IMGUI_MAT_H__
-#define __IMGUI_MAT_H__
-#include <imgui.h>
+#ifndef __IM_MAT_H__
+#define __IM_MAT_H__
+#include <stddef.h>
+#include <string.h>
+#include <stdlib.h>
+#include <math.h>
+#include <assert.h>
 #if __AVX__
 // the alignment of all the allocated buffers
 #define IM_MALLOC_ALIGN 32
@@ -202,7 +206,7 @@ typedef struct Rational{
 
 ////////////////////////////////////////////////////////////////////
 
-namespace ImGui 
+namespace ImGui
 {
 //////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -355,27 +359,27 @@ public:
     // access element data
     template<typename _Tp> _Tp& at(int i=0) 
     {
-        IM_ASSERT(device == IM_DD_CPU && dims == 1);
+        assert(device == IM_DD_CPU && dims == 1);
         return *(_Tp*)((unsigned char*)data + i * elemsize); 
     };
     template<typename _Tp> const _Tp& at(int i=0) const 
     {
-        IM_ASSERT(device == IM_DD_CPU && dims == 1);
+        assert(device == IM_DD_CPU && dims == 1);
         return *(const _Tp*)((unsigned char*)data + i * elemsize); 
     };
     template<typename _Tp> _Tp& at(int x, int y) 
     {
-        IM_ASSERT(device == IM_DD_CPU && dims == 2);
+        assert(device == IM_DD_CPU && dims == 2);
         return *(_Tp*)((unsigned char*)data + (y * w + x) * elemsize); 
     };
     template<typename _Tp> const _Tp& at(int x, int y) const 
     {
-        IM_ASSERT(device == IM_DD_CPU && dims == 2);
+        assert(device == IM_DD_CPU && dims == 2);
         return *(const _Tp*)((unsigned char*)data + (y * w + x) * elemsize); 
     };
     template<typename _Tp> _Tp& at(int x, int y, int _c) 
     {
-        IM_ASSERT(device == IM_DD_CPU && dims == 3);
+        assert(device == IM_DD_CPU && dims == 3);
         if (elempack == 1)
             return *(_Tp*)((unsigned char*)data + _c * cstep * elemsize + (y * w + x) * elemsize); 
         else
@@ -383,7 +387,7 @@ public:
     };
     template<typename _Tp> const _Tp& at(int x, int y, int _c) const 
     {
-        IM_ASSERT(device == IM_DD_CPU && dims == 3);
+        assert(device == IM_DD_CPU && dims == 3);
         if (elempack == 1)
             return *(const _Tp*)((unsigned char*)data + _c * cstep * elemsize + (y * w + x) * elemsize);
         else
@@ -1432,10 +1436,10 @@ inline ImMat ImMat::copy(Allocator* _allocator) const
         else
         {
             // copy by channel for differnet cstep
-            size_t size = w * h;
+            size_t size = (size_t)w * h * elemsize;
             for (int i = 0; i < c; i++)
             {
-                memcpy(m.channel(i), channel(i), size * elemsize);
+                memcpy(m.channel(i), channel(i), size);
             }
         }
     }
@@ -1616,7 +1620,7 @@ inline ImMat ImMat::reshape(int _w, int _h, int _c, Allocator* _allocator) const
 
 inline ImMat ImMat::transpose(Allocator* _allocator) const
 {
-    IM_ASSERT(device == IM_DD_CPU);
+    assert(device == IM_DD_CPU);
     if (dims == 1)
     {
         ImMat m;
@@ -1685,4 +1689,4 @@ inline ImMat ImMat::transpose(Allocator* _allocator) const
 
 } // namespace ImGui 
 
-#endif /* __IMGUI_MAT_H__ */
+#endif /* __IM_MAT_H__ */

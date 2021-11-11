@@ -3,15 +3,15 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #endif
-#include <imgui_mat.h>
 #include "imvk_platform.h"
+#include "im_mat.h"
 #include <stdlib.h>
 #include <vulkan/vulkan.h>
 
 namespace ImGui 
 {
 class VulkanDevice;
-class IMGUI_API VkBufferMemory
+class VKSHADER_API VkBufferMemory
 {
 public:
     VkBuffer buffer;

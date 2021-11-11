@@ -1,12 +1,11 @@
 #pragma once
-#include <imgui.h>
-#include <imgui_mat.h>
+#include "im_mat.h"
+#include "Filter2DS_vulkan.h"
 #include <string>
-#include <Filter2DS_vulkan.h>
 
 namespace ImGui
 {
-class IMGUI_API BoxBlur_vulkan : public Filter2DS_vulkan
+class VKSHADER_API BoxBlur_vulkan : public Filter2DS_vulkan
 {
 public:
     BoxBlur_vulkan(int gpu = 0);

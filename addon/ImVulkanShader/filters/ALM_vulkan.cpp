@@ -6,18 +6,18 @@ namespace ImGui
 {
 ALM_vulkan::ALM_vulkan(int gpu)
 {
-    vkdev = ImGui::get_gpu_device(gpu);
+    vkdev = get_gpu_device(gpu);
     opt.blob_vkallocator = vkdev->acquire_blob_allocator();
     opt.staging_vkallocator = vkdev->acquire_staging_allocator();
     opt.use_image_storage = false;
     opt.use_fp16_arithmetic = true;
     opt.use_fp16_storage = true;
-    cmd = new ImGui::VkCompute(vkdev);
-    std::vector<ImGui::vk_specialization_type> specializations(0);
+    cmd = new VkCompute(vkdev);
+    std::vector<vk_specialization_type> specializations(0);
     std::vector<uint32_t> spirv_data;
 
-    ImGui::compile_spirv_module(ALM_data, opt, spirv_data);
-    pipe = new ImGui::Pipeline(vkdev);
+    compile_spirv_module(ALM_data, opt, spirv_data);
+    pipe = new Pipeline(vkdev);
     pipe->set_optimal_local_size_xyz(16, 16, 1);
     pipe->create(spirv_data.data(), spirv_data.size() * 4, specializations);
 
@@ -42,9 +42,9 @@ void ALM_vulkan::SetParam(float _strength, float _bias, float _gamma)
     gamma = _gamma;
 }
 
-void ALM_vulkan::upload_param(const ImGui::VkMat& src, ImGui::VkMat& dst)
+void ALM_vulkan::upload_param(const VkMat& src, VkMat& dst)
 {
-    std::vector<ImGui::VkMat> bindings(8);
+    std::vector<VkMat> bindings(8);
     if      (dst.type == IM_DT_INT8)     bindings[0] = dst;
     else if (dst.type == IM_DT_INT16)    bindings[1] = dst;
     else if (dst.type == IM_DT_FLOAT16)  bindings[2] = dst;
@@ -55,7 +55,7 @@ void ALM_vulkan::upload_param(const ImGui::VkMat& src, ImGui::VkMat& dst)
     else if (src.type == IM_DT_FLOAT16)  bindings[6] = src;
     else if (src.type == IM_DT_FLOAT32)  bindings[7] = src;
 
-    std::vector<ImGui::vk_constant_type> constants(13);
+    std::vector<vk_constant_type> constants(13);
     constants[0].i = src.w;
     constants[1].i = src.h;
     constants[2].i = src.c;
@@ -72,7 +72,7 @@ void ALM_vulkan::upload_param(const ImGui::VkMat& src, ImGui::VkMat& dst)
     cmd->record_pipeline(pipe, bindings, constants, dst);
 }
 
-void ALM_vulkan::filter(const ImGui::ImMat& src, ImGui::ImMat& dst)
+void ALM_vulkan::filter(const ImMat& src, ImMat& dst)
 {
     if (!vkdev || !pipe || !cmd)
     {
@@ -80,9 +80,9 @@ void ALM_vulkan::filter(const ImGui::ImMat& src, ImGui::ImMat& dst)
     }
     dst.create_type(src.w, src.h, 4, dst.type);
 
-    ImGui::VkMat out_gpu;
+    VkMat out_gpu;
     out_gpu.create_like(dst, opt.blob_vkallocator);
-    ImGui::VkMat in_gpu;
+    VkMat in_gpu;
     cmd->record_clone(src, in_gpu, opt);
 
     upload_param(in_gpu, out_gpu);
@@ -93,7 +93,7 @@ void ALM_vulkan::filter(const ImGui::ImMat& src, ImGui::ImMat& dst)
     cmd->reset();
 }
 
-void ALM_vulkan::filter(const ImGui::ImMat& src, ImGui::VkMat& dst)
+void ALM_vulkan::filter(const ImMat& src, VkMat& dst)
 {
     if (!vkdev || !pipe  || !cmd)
     {
@@ -102,7 +102,7 @@ void ALM_vulkan::filter(const ImGui::ImMat& src, ImGui::VkMat& dst)
 
     dst.create_type(src.w, src.h, 4, dst.type, opt.blob_vkallocator);
 
-    ImGui::VkMat in_gpu;
+    VkMat in_gpu;
     cmd->record_clone(src, in_gpu, opt);
 
     upload_param(in_gpu, dst);
@@ -111,7 +111,7 @@ void ALM_vulkan::filter(const ImGui::ImMat& src, ImGui::VkMat& dst)
     cmd->reset();
 }
 
-void ALM_vulkan::filter(const ImGui::VkMat& src, ImGui::ImMat& dst)
+void ALM_vulkan::filter(const VkMat& src, ImMat& dst)
 {
     if (!vkdev || !pipe || !cmd)
     {
@@ -119,7 +119,7 @@ void ALM_vulkan::filter(const ImGui::VkMat& src, ImGui::ImMat& dst)
     }
     dst.create_type(src.w, src.h, 4, dst.type);
 
-    ImGui::VkMat out_gpu;
+    VkMat out_gpu;
     out_gpu.create_like(dst, opt.blob_vkallocator);
 
     upload_param(src, out_gpu);
@@ -130,7 +130,7 @@ void ALM_vulkan::filter(const ImGui::VkMat& src, ImGui::ImMat& dst)
     cmd->reset();
 }
 
-void ALM_vulkan::filter(const ImGui::VkMat& src, ImGui::VkMat& dst)
+void ALM_vulkan::filter(const VkMat& src, VkMat& dst)
 {
     if (!vkdev || !pipe || !cmd)
     {

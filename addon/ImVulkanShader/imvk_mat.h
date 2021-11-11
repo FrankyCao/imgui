@@ -4,7 +4,7 @@
 #include "imvk_platform.h"
 #include <vulkan/vulkan.h>
 #include <string.h>
-#include <imgui_mat.h>
+#include <im_mat.h>
 
 namespace ImGui 
 {
@@ -13,7 +13,7 @@ namespace ImGui
 // VkMat Class define
 //////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////
-class IMGUI_API VkMat final : public ImMat
+class VKSHADER_API VkMat final : public ImMat
 {
 public:
     // empty

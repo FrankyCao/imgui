@@ -36,7 +36,7 @@ ColorBalance_vulkan::~ColorBalance_vulkan()
     }
 }
 
-void ColorBalance_vulkan::upload_param(const VkMat& src, VkMat& dst, ImVec4& shadows, ImVec4& midtones, ImVec4& highlights, bool preserve_lightness) const
+void ColorBalance_vulkan::upload_param(const VkMat& src, VkMat& dst, std::vector<float>& shadows, std::vector<float>& midtones, std::vector<float>& highlights, bool preserve_lightness) const
 {
     std::vector<VkMat> bindings(8);
     if      (dst.type == IM_DT_INT8)     bindings[0] = dst;
@@ -59,20 +59,20 @@ void ColorBalance_vulkan::upload_param(const VkMat& src, VkMat& dst, ImVec4& sha
     constants[7].i = dst.c;
     constants[8].i = dst.color_format;
     constants[9].i = dst.type;
-    constants[10].f = shadows.x;
-    constants[11].f = shadows.y;
-    constants[12].f = shadows.z;
-    constants[13].f = midtones.x;
-    constants[14].f = midtones.y;
-    constants[15].f = midtones.z;
-    constants[16].f = highlights.x;
-    constants[17].f = highlights.y;
-    constants[18].f = highlights.z;
+    constants[10].f = shadows[0];
+    constants[11].f = shadows[1];
+    constants[12].f = shadows[2];
+    constants[13].f = midtones[0];
+    constants[14].f = midtones[1];
+    constants[15].f = midtones[2];
+    constants[16].f = highlights[0];
+    constants[17].f = highlights[1];
+    constants[18].f = highlights[2];
     constants[19].i = preserve_lightness ? 1 : 0;
     cmd->record_pipeline(pipe, bindings, constants, dst);
 }
 
-void ColorBalance_vulkan::filter(const ImMat& src, ImMat& dst, ImVec4& shadows, ImVec4& midtones, ImVec4& highlights, bool preserve_lightness) const
+void ColorBalance_vulkan::filter(const ImMat& src, ImMat& dst, std::vector<float>& shadows, std::vector<float>& midtones, std::vector<float>& highlights, bool preserve_lightness) const
 {
     if (!vkdev || !pipe || !cmd)
     {
@@ -93,7 +93,7 @@ void ColorBalance_vulkan::filter(const ImMat& src, ImMat& dst, ImVec4& shadows, 
     cmd->reset();
 }
 
-void ColorBalance_vulkan::filter(const ImMat& src, VkMat& dst, ImVec4& shadows, ImVec4& midtones, ImVec4& highlights, bool preserve_lightness) const
+void ColorBalance_vulkan::filter(const ImMat& src, VkMat& dst, std::vector<float>& shadows, std::vector<float>& midtones, std::vector<float>& highlights, bool preserve_lightness) const
 {
     if (!vkdev || !pipe || !cmd)
     {
@@ -110,7 +110,7 @@ void ColorBalance_vulkan::filter(const ImMat& src, VkMat& dst, ImVec4& shadows, 
     cmd->reset();
 }
 
-void ColorBalance_vulkan::filter(const VkMat& src, ImMat& dst, ImVec4& shadows, ImVec4& midtones, ImVec4& highlights, bool preserve_lightness) const
+void ColorBalance_vulkan::filter(const VkMat& src, ImMat& dst, std::vector<float>& shadows, std::vector<float>& midtones, std::vector<float>& highlights, bool preserve_lightness) const
 {
     if (!vkdev || !pipe || !cmd)
     {
@@ -129,7 +129,7 @@ void ColorBalance_vulkan::filter(const VkMat& src, ImMat& dst, ImVec4& shadows, 
     cmd->reset();
 }
 
-void ColorBalance_vulkan::filter(const VkMat& src, VkMat& dst, ImVec4& shadows, ImVec4& midtones, ImVec4& highlights, bool preserve_lightness) const
+void ColorBalance_vulkan::filter(const VkMat& src, VkMat& dst, std::vector<float>& shadows, std::vector<float>& midtones, std::vector<float>& highlights, bool preserve_lightness) const
 {
     if (!vkdev || !pipe || !cmd)
     {

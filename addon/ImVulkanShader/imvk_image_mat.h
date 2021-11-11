@@ -2,9 +2,10 @@
 #include "imvk_allocator.h"
 #include "imvk_option.h"
 #include "imvk_platform.h"
+#include "im_mat.h"
 #include <vulkan/vulkan.h>
 #include <string.h>
-#include <imgui_mat.h>
+
 
 namespace ImGui 
 {
@@ -13,7 +14,7 @@ namespace ImGui
 // VkImageMat Class define
 //////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////
-class IMGUI_API VkImageMat final : public ImMat
+class VKSHADER_API VkImageMat final : public ImMat
 {
 public:
     // empty

@@ -1,30 +1,29 @@
 #pragma once
-#include <imgui.h>
-#include <imgui_mat.h>
-#include <imvk_gpu.h>
-#include <imvk_pipeline.h>
+#include "imvk_gpu.h"
+#include "imvk_pipeline.h"
+#include "im_mat.h"
 
 namespace ImGui 
 {
-class IMGUI_API DeInterlace_vulkan
+class VKSHADER_API DeInterlace_vulkan
 {
 public:
     DeInterlace_vulkan(int gpu = 0);
     ~DeInterlace_vulkan();
-    void filter(const ImGui::ImMat& src, ImGui::ImMat& dst);
-    void filter(const ImGui::ImMat& src, ImGui::VkMat& dst);
-    void filter(const ImGui::VkMat& src, ImGui::ImMat& dst);
-    void filter(const ImGui::VkMat& src, ImGui::VkMat& dst);
+    void filter(const ImMat& src, ImMat& dst);
+    void filter(const ImMat& src, VkMat& dst);
+    void filter(const VkMat& src, ImMat& dst);
+    void filter(const VkMat& src, VkMat& dst);
 
 private:
-    ImGui::VulkanDevice* vkdev {nullptr};
-    ImGui::Option opt;
-    ImGui::Pipeline* pipe {nullptr};
-    ImGui::VkCompute * cmd {nullptr};
+    VulkanDevice* vkdev {nullptr};
+    Option opt;
+    Pipeline* pipe {nullptr};
+    VkCompute * cmd {nullptr};
 
 private:
-    ImGui::ImMat fCropTbl;
-    ImGui::VkMat vfCropTbl;
-    void upload_param(const ImGui::VkMat& src, ImGui::VkMat& dst);
+    ImMat fCropTbl;
+    VkMat vfCropTbl;
+    void upload_param(const VkMat& src, VkMat& dst);
 };
 } // namespace ImGui 

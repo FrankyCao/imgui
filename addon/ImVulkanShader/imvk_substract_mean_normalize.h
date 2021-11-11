@@ -1,17 +1,18 @@
 #pragma once
 #include "imvk_gpu.h"
 #include "imvk_pipeline.h"
+#include <vector>
 
 namespace ImGui 
 {
-class IMGUI_API Substract_Mean_Normalize_vulkan
+class VKSHADER_API Substract_Mean_Normalize_vulkan
 {
 public:
     Substract_Mean_Normalize_vulkan(int gpu = -1);
     ~Substract_Mean_Normalize_vulkan();
 
-    void forward(const ImMat& bottom_blob, ImMat& top_blob, ImVec4 mean_vals, ImVec4 norm_vals);
-    void forward(const VkMat& bottom_blob, VkMat& top_blob, ImVec4 mean_vals, ImVec4 norm_vals);
+    void forward(const ImMat& bottom_blob, ImMat& top_blob, std::vector<float> mean_vals, std::vector<float> norm_vals);
+    void forward(const VkMat& bottom_blob, VkMat& top_blob, std::vector<float> mean_vals, std::vector<float> norm_vals);
 
 public:
     const VulkanDevice* vkdev   {nullptr};
@@ -20,6 +21,6 @@ public:
     Option opt;
 
 private:
-    void upload_param(const VkMat& src, VkMat& dst, ImVec4 mean_vals, ImVec4 norm_vals);
+    void upload_param(const VkMat& src, VkMat& dst, std::vector<float> mean_vals, std::vector<float> norm_vals);
 };
 } // namespace ImGui

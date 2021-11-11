@@ -1,14 +1,13 @@
 #pragma once
-#include <imgui.h>
 #include "imvk_gpu.h"
 #include "imvk_pipeline.h"
-#include <imgui_mat.h>
+#include "im_mat.h"
 
 #define FILTER_2DS_BLUR 0
 
 namespace ImGui 
 {
-class IMGUI_API ChromaKey_vulkan
+class VKSHADER_API ChromaKey_vulkan
 {
 public:
     ChromaKey_vulkan(int gpu = -1);
@@ -26,22 +25,22 @@ public:
 
     // input CPU Buffer and output to RGBA CPU buffer
     void filter(const ImMat& src, ImMat& dst,
-                float lumaMask, ImVec4 chromaColor,
+                float lumaMask, std::vector<float> chromaColor,
                 float alphaCutoffMin, float alphaScale, float alphaExponent,
                 bool alpha_only);
     // input CPU Buffer and output to RGBA GPU buffer
     void filter(const ImMat& src, VkMat& dst,
-                float lumaMask, ImVec4 chromaColor,
+                float lumaMask, std::vector<float> chromaColor,
                 float alphaCutoffMin, float alphaScale, float alphaExponent,
                 bool alpha_only);
     // input GPU Buffer and output to RGBA CPU buffer
     void filter(const VkMat& src, ImMat& dst,
-                float lumaMask, ImVec4 chromaColor,
+                float lumaMask, std::vector<float> chromaColor,
                 float alphaCutoffMin, float alphaScale, float alphaExponent,
                 bool alpha_only);
     // input GPU Buffer and output to RGBA GPU buffer
     void filter(const VkMat& src, VkMat& dst,
-                float lumaMask, ImVec4 chromaColor,
+                float lumaMask, std::vector<float> chromaColor,
                 float alphaCutoffMin, float alphaScale, float alphaExponent,
                 bool alpha_only);
 
@@ -70,7 +69,7 @@ private:
 private:
     
     void upload_param(const VkMat& src, VkMat& dst,
-                    float lumaMask, ImVec4 chromaColor, 
+                    float lumaMask, std::vector<float> chromaColor, 
                     float alphaCutoffMin, float alphaScale, float alphaExponent,
                     bool alpha_only);
 };

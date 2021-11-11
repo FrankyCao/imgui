@@ -36,7 +36,7 @@ Substract_Mean_Normalize_vulkan::~Substract_Mean_Normalize_vulkan()
     }
 }
 
-void Substract_Mean_Normalize_vulkan::upload_param(const VkMat& src, VkMat& dst, ImVec4 mean_vals, ImVec4 norm_vals)
+void Substract_Mean_Normalize_vulkan::upload_param(const VkMat& src, VkMat& dst, std::vector<float> mean_vals, std::vector<float> norm_vals)
 {
     std::vector<VkMat> bindings(6);
     if      (src.type == IM_DT_INT8)     bindings[0] = src;
@@ -58,18 +58,18 @@ void Substract_Mean_Normalize_vulkan::upload_param(const VkMat& src, VkMat& dst,
     constants[7].i = dst.cstep;
     constants[8].i = dst.color_format;
     constants[9].i = dst.type;
-    constants[10].f = mean_vals.x;
-    constants[11].f = mean_vals.y;
-    constants[12].f = mean_vals.z;
-    constants[13].f = mean_vals.w;
-    constants[14].f = norm_vals.x;
-    constants[15].f = norm_vals.y;
-    constants[16].f = norm_vals.z;
-    constants[17].f = norm_vals.w;
+    constants[10].f = mean_vals[0];
+    constants[11].f = mean_vals[1];
+    constants[12].f = mean_vals[2];
+    constants[13].f = mean_vals[3];
+    constants[14].f = norm_vals[0];
+    constants[15].f = norm_vals[1];
+    constants[16].f = norm_vals[2];
+    constants[17].f = norm_vals[3];
     cmd->record_pipeline(pipe, bindings, constants, dst);
 }
 
-void Substract_Mean_Normalize_vulkan::forward(const ImMat& bottom_blob, ImMat& top_blob, ImVec4 mean_vals, ImVec4 norm_vals)
+void Substract_Mean_Normalize_vulkan::forward(const ImMat& bottom_blob, ImMat& top_blob, std::vector<float> mean_vals, std::vector<float> norm_vals)
 {
     if (!vkdev || !pipe || !cmd)
     {
@@ -93,7 +93,7 @@ void Substract_Mean_Normalize_vulkan::forward(const ImMat& bottom_blob, ImMat& t
     cmd->reset();
 }
 
-void Substract_Mean_Normalize_vulkan::forward(const VkMat& bottom_blob, VkMat& top_blob, ImVec4 mean_vals, ImVec4 norm_vals)
+void Substract_Mean_Normalize_vulkan::forward(const VkMat& bottom_blob, VkMat& top_blob, std::vector<float> mean_vals, std::vector<float> norm_vals)
 {
     if (!vkdev || !pipe || !cmd)
     {

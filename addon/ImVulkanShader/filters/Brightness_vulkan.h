@@ -1,12 +1,11 @@
 #pragma once
-#include <imgui.h>
 #include "imvk_gpu.h"
 #include "imvk_pipeline.h"
-#include <imgui_mat.h>
+#include "im_mat.h"
 
 namespace ImGui 
 {
-class IMGUI_API Brightness_vulkan
+class VKSHADER_API Brightness_vulkan
 {
 public:
     Brightness_vulkan(int gpu = -1);

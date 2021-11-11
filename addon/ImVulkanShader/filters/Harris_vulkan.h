@@ -1,11 +1,11 @@
 #pragma once
-#include <imgui.h>
 #include "imvk_gpu.h"
 #include "imvk_pipeline.h"
+#include "im_mat.h"
 
 namespace ImGui
 {
-class IMGUI_API Harris_vulkan
+class VKSHADER_API Harris_vulkan
 {
 public:
     Harris_vulkan(int gpu = 0);

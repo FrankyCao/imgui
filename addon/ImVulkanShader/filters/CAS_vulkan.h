@@ -1,28 +1,27 @@
 #pragma once
-#include <imgui.h>
-#include <imgui_mat.h>
-#include <imvk_gpu.h>
-#include <imvk_pipeline.h>
+#include "imvk_gpu.h"
+#include "imvk_pipeline.h"
+#include "im_mat.h"
 
 namespace ImGui 
 {
-class IMGUI_API CAS_vulkan
+class VKSHADER_API CAS_vulkan
 {
 public:
     CAS_vulkan(int gpu = 0);
     ~CAS_vulkan();
-    void filter(const ImGui::ImMat& src, ImGui::ImMat& dst, float strength);
-    void filter(const ImGui::ImMat& src, ImGui::VkMat& dst, float strength);
-    void filter(const ImGui::VkMat& src, ImGui::ImMat& dst, float strength);
-    void filter(const ImGui::VkMat& src, ImGui::VkMat& dst, float strength);
+    void filter(const ImMat& src, ImMat& dst, float strength);
+    void filter(const ImMat& src, VkMat& dst, float strength);
+    void filter(const VkMat& src, ImMat& dst, float strength);
+    void filter(const VkMat& src, VkMat& dst, float strength);
 
 private:
-    ImGui::VulkanDevice* vkdev {nullptr};
-    ImGui::Option opt;
-    ImGui::Pipeline* pipe {nullptr};
-    ImGui::VkCompute * cmd {nullptr};
+    VulkanDevice* vkdev {nullptr};
+    Option opt;
+    Pipeline* pipe {nullptr};
+    VkCompute * cmd {nullptr};
 
 private:
-    void upload_param(const ImGui::VkMat& src, ImGui::VkMat& dst, float strength);
+    void upload_param(const VkMat& src, VkMat& dst, float strength);
 };
 } // namespace ImGui

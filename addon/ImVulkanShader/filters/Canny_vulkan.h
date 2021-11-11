@@ -1,11 +1,11 @@
 #pragma once
-#include <imgui.h>
 #include "imvk_gpu.h"
 #include "imvk_pipeline.h"
+#include "im_mat.h"
 
 namespace ImGui
 {
-class IMGUI_API Canny_vulkan
+class VKSHADER_API Canny_vulkan
 {
 public:
     Canny_vulkan(int gpu = 0);

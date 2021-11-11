@@ -6,11 +6,40 @@
 #include <process.h>
 #else
 #include <pthread.h>
+#include <sys/time.h>
 #endif
 
 #if __ANDROID_API__ >= 26
 #define VK_USE_PLATFORM_ANDROID_KHR
 #endif // __ANDROID_API__ >= 26
+
+#ifdef _WIN32
+#ifdef VKSHADER_SHARED_LIBRARY
+#define VKSHADER_API __declspec( dllexport )
+#else
+#define VKSHADER_API
+#endif
+#else
+#define VKSHADER_API
+#endif
+
+#ifdef _WIN32
+inline double get_current_time()
+{
+    LARGE_INTEGER freq;
+    LARGE_INTEGER pc;
+    QueryPerformanceFrequency(&freq);
+    QueryPerformanceCounter(&pc);
+    return (double)pc.QuadPart / ((double)freq.QuadPart + 1e-10);
+}
+#else  // _WIN32
+inline double get_current_time()
+{
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return tv.tv_sec + tv.tv_usec / 1000000.0;
+}
+#endif // _WIN32
 
 namespace ImGui 
 {

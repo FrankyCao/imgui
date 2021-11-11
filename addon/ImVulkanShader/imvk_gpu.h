@@ -1,6 +1,5 @@
 #pragma once
-#include "imgui.h"
-#include "imgui_mat.h"
+#include "im_mat.h"
 #include "imvk_platform.h"
 #include <vulkan/vulkan.h>
 #include "imvk_allocator.h"
@@ -25,8 +24,8 @@ union vk_constant_type
 };
 
 // instance
-IMGUI_API int create_gpu_instance();
-IMGUI_API void destroy_gpu_instance();
+VKSHADER_API int create_gpu_instance();
+VKSHADER_API void destroy_gpu_instance();
 
 // instance extension capability
 extern int support_VK_KHR_external_memory_capabilities;
@@ -59,11 +58,11 @@ extern PFN_vkGetPhysicalDeviceSurfaceFormatsKHR vkGetPhysicalDeviceSurfaceFormat
 extern PFN_vkGetPhysicalDeviceSurfacePresentModesKHR vkGetPhysicalDeviceSurfacePresentModesKHR;
 
 // get info
-IMGUI_API int get_gpu_count();
-IMGUI_API int get_default_gpu_index();
+VKSHADER_API int get_gpu_count();
+VKSHADER_API int get_default_gpu_index();
 
 class GpuInfoPrivate;
-class IMGUI_API GpuInfo
+class VKSHADER_API GpuInfo
 {
 public:
     explicit GpuInfo();
@@ -177,14 +176,14 @@ private:
     GpuInfoPrivate* const d;
 };
 
-IMGUI_API const GpuInfo& get_gpu_info(int device_index = get_default_gpu_index());
+VKSHADER_API const GpuInfo& get_gpu_info(int device_index = get_default_gpu_index());
 
 class VkAllocator;
 class VkCompute;
 class Option;
 class PipelineCache;
 class VulkanDevicePrivate;
-class IMGUI_API VulkanDevice
+class VKSHADER_API VulkanDevice
 {
 public:
     VulkanDevice(int device_index = get_default_gpu_index());
@@ -299,12 +298,12 @@ private:
     int device_number {-1};
 };
 
-IMGUI_API VulkanDevice* get_gpu_device(int device_index = get_default_gpu_index());
+VKSHADER_API VulkanDevice* get_gpu_device(int device_index = get_default_gpu_index());
 
 // online spirv compilation
-IMGUI_API int compile_spirv_module(const char* comp_string, const Option& opt, std::vector<uint32_t>& spirv);
-IMGUI_API int compile_spirv_module(const char* comp_string, const Option& opt, std::vector<uint32_t>& spirv, std::string& log);
-IMGUI_API int compile_spirv_module(const char* comp_data, int comp_data_size, const Option& opt, std::vector<uint32_t>& spirv, std::string& log);
+VKSHADER_API int compile_spirv_module(const char* comp_string, const Option& opt, std::vector<uint32_t>& spirv);
+VKSHADER_API int compile_spirv_module(const char* comp_string, const Option& opt, std::vector<uint32_t>& spirv, std::string& log);
+VKSHADER_API int compile_spirv_module(const char* comp_data, int comp_data_size, const Option& opt, std::vector<uint32_t>& spirv, std::string& log);
 
 // info from spirv
 class ShaderInfo
@@ -326,13 +325,13 @@ public:
     int reserved_3;
 };
 
-IMGUI_API int resolve_shader_info(const uint32_t* spv_data, size_t spv_data_size, ShaderInfo& shader_info);
+VKSHADER_API int resolve_shader_info(const uint32_t* spv_data, size_t spv_data_size, ShaderInfo& shader_info);
 
-IMGUI_API void cast_float32_to_float16(const ImMat& src, ImMat& dst, const Option& opt = Option());
-IMGUI_API void cast_float16_to_float32(const ImMat& src, ImMat& dst, const Option& opt = Option());
-IMGUI_API void cast_int8_to_float32(const ImMat& src, ImMat& dst, const Option& opt = Option());
-IMGUI_API void cast_int8_to_float16(const ImMat& src, ImMat& dst, const Option& opt = Option());
-IMGUI_API void cast_float32_to_bfloat16(const ImMat& src, ImMat& dst, const Option& opt = Option());
-IMGUI_API void cast_bfloat16_to_float32(const ImMat& src, ImMat& dst, const Option& opt = Option());
+VKSHADER_API void cast_float32_to_float16(const ImMat& src, ImMat& dst, const Option& opt = Option());
+VKSHADER_API void cast_float16_to_float32(const ImMat& src, ImMat& dst, const Option& opt = Option());
+VKSHADER_API void cast_int8_to_float32(const ImMat& src, ImMat& dst, const Option& opt = Option());
+VKSHADER_API void cast_int8_to_float16(const ImMat& src, ImMat& dst, const Option& opt = Option());
+VKSHADER_API void cast_float32_to_bfloat16(const ImMat& src, ImMat& dst, const Option& opt = Option());
+VKSHADER_API void cast_bfloat16_to_float32(const ImMat& src, ImMat& dst, const Option& opt = Option());
 
 } // namespace ImGui

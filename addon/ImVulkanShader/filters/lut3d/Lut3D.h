@@ -1,8 +1,8 @@
 #pragma once
-#include <imgui.h>
-#include <imgui_mat.h>
-#include <imvk_gpu.h>
-#include <imvk_pipeline.h>
+#include "imvk_gpu.h"
+#include "imvk_pipeline.h"
+#include "im_mat.h"
+
 typedef struct _tag_rgbvec 
 {
     float r, g, b, a;
@@ -20,26 +20,26 @@ enum default_lut : int {
 
 namespace ImGui 
 {
-class IMGUI_API LUT3D_vulkan
+class VKSHADER_API LUT3D_vulkan
 {
 public:
     LUT3D_vulkan(int default_model = SDR709_HDRHLG, int interpolation = IM_INTERPOLATE_TRILINEAR, int gpu = 0);
     LUT3D_vulkan(std::string lut_path, int interpolation = IM_INTERPOLATE_TRILINEAR, int gpu = 0);
     ~LUT3D_vulkan();
 
-    void filter(const ImGui::ImMat& src, ImGui::ImMat& dst);
-    void filter(const ImGui::ImMat& src, ImGui::VkMat& dst);
-    void filter(const ImGui::VkMat& src, ImGui::ImMat& dst);
-    void filter(const ImGui::VkMat& src, ImGui::VkMat& dst);
+    void filter(const ImMat& src, ImMat& dst);
+    void filter(const ImMat& src, VkMat& dst);
+    void filter(const VkMat& src, ImMat& dst);
+    void filter(const VkMat& src, VkMat& dst);
 
     void write_header_file(std::string filename);
     
 public:
-    const ImGui::VulkanDevice* vkdev;
-    ImGui::Pipeline * pipeline_lut3d = nullptr;
-    ImGui::VkCompute * cmd = nullptr;
-    ImGui::Option opt;
-    ImGui::VkMat lut_gpu;
+    const VulkanDevice* vkdev;
+    Pipeline * pipeline_lut3d = nullptr;
+    VkCompute * cmd = nullptr;
+    Option opt;
+    VkMat lut_gpu;
 
 private:
     void *lut {nullptr};
@@ -53,6 +53,6 @@ private:
     int init(int interpolation, int gpu);
     int allocate_3dlut(int size);
     int parse_cube(std::string lut_file);
-    void upload_param(const ImGui::VkMat& src, ImGui::VkMat& dst);
+    void upload_param(const VkMat& src, VkMat& dst);
 };
 } // namespace ImGui 

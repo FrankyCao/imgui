@@ -1,12 +1,11 @@
 #pragma once
-#include <imgui.h>
+#include "im_mat.h"
 #include "imvk_gpu.h"
 #include "imvk_pipeline.h"
-#include <imgui_mat.h>
 
 namespace ImGui 
 {
-class IMGUI_API Filter2DS_vulkan
+class VKSHADER_API Filter2DS_vulkan
 {
 public:
     Filter2DS_vulkan(int gpu = -1);

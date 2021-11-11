@@ -7,7 +7,7 @@ namespace ImGui
 {
 class VulkanDevice;
 class PipelineCachePrivate;
-class IMGUI_API PipelineCache
+class VKSHADER_API PipelineCache
 {
 public:
     explicit PipelineCache(const VulkanDevice* _vkdev);

@@ -165,9 +165,9 @@ LUT3D_vulkan::LUT3D_vulkan(int default_model, int interpolation, int gpu)
             break;
     }
 
-    ImGui::ImMat lut_cpu;
+    ImMat lut_cpu;
     lut_cpu.create_type(lutsize, lutsize * 4, lutsize, (void *)lut, IM_DT_FLOAT32);
-    ImGui::VkTransfer tran(vkdev);
+    VkTransfer tran(vkdev);
     tran.record_upload(lut_cpu, lut_gpu, opt, false);
     tran.submit_and_wait();
     from_file = false;
@@ -191,9 +191,9 @@ LUT3D_vulkan::LUT3D_vulkan(std::string lut_path, int interpolation, int gpu)
         return;
     }
 
-    ImGui::ImMat lut_cpu;
+    ImMat lut_cpu;
     lut_cpu.create_type(lutsize, lutsize * 4, lutsize, (void *)lut, IM_DT_FLOAT32);
-    ImGui::VkTransfer tran(vkdev);
+    VkTransfer tran(vkdev);
     tran.record_upload(lut_cpu, lut_gpu, opt, false);
     tran.submit_and_wait();
     from_file = true;
@@ -212,18 +212,18 @@ LUT3D_vulkan::~LUT3D_vulkan()
 
 int LUT3D_vulkan::init(int interpolation, int gpu)
 {
-    vkdev = ImGui::get_gpu_device(gpu);
+    vkdev = get_gpu_device(gpu);
     if (vkdev == NULL) return -1;
     opt.blob_vkallocator = vkdev->acquire_blob_allocator();
     opt.staging_vkallocator = vkdev->acquire_staging_allocator();
     opt.use_image_storage = false;
     opt.use_fp16_arithmetic = true;
     opt.use_fp16_storage = true;
-    cmd = new ImGui::VkCompute(vkdev);
-    std::vector<ImGui::vk_specialization_type> specializations(0);
+    cmd = new VkCompute(vkdev);
+    std::vector<vk_specialization_type> specializations(0);
     std::vector<uint32_t> spirv_data;
-    ImGui::compile_spirv_module(LUT3D_data, opt, spirv_data);
-    pipeline_lut3d = new ImGui::Pipeline(vkdev);
+    compile_spirv_module(LUT3D_data, opt, spirv_data);
+    pipeline_lut3d = new Pipeline(vkdev);
     pipeline_lut3d->set_optimal_local_size_xyz(16, 16, 1);
     pipeline_lut3d->create(spirv_data.data(), spirv_data.size() * 4, specializations);
     cmd->reset();
@@ -365,9 +365,9 @@ void LUT3D_vulkan::write_header_file(std::string filename)
     fclose(fp);
 }
 
-void LUT3D_vulkan::upload_param(const ImGui::VkMat& src, ImGui::VkMat& dst)
+void LUT3D_vulkan::upload_param(const VkMat& src, VkMat& dst)
 {
-    std::vector<ImGui::VkMat> bindings(9);
+    std::vector<VkMat> bindings(9);
     if      (dst.type == IM_DT_INT8)     bindings[0] = dst;
     else if (dst.type == IM_DT_INT16)    bindings[1] = dst;
     else if (dst.type == IM_DT_FLOAT16)  bindings[2] = dst;
@@ -378,7 +378,7 @@ void LUT3D_vulkan::upload_param(const ImGui::VkMat& src, ImGui::VkMat& dst)
     else if (src.type == IM_DT_FLOAT16)  bindings[6] = src;
     else if (src.type == IM_DT_FLOAT32)  bindings[7] = src;
     bindings[8] = lut_gpu;
-    std::vector<ImGui::vk_constant_type> constants(12);
+    std::vector<vk_constant_type> constants(12);
     constants[0].i = src.w;
     constants[1].i = src.h;
     constants[2].i = src.c;
@@ -394,7 +394,7 @@ void LUT3D_vulkan::upload_param(const ImGui::VkMat& src, ImGui::VkMat& dst)
     cmd->record_pipeline(pipeline_lut3d, bindings, constants, dst);
 }
 
-void LUT3D_vulkan::filter(const ImGui::ImMat& src, ImGui::ImMat& dst)
+void LUT3D_vulkan::filter(const ImMat& src, ImMat& dst)
 {
     if (!vkdev || !pipeline_lut3d || lut_gpu.empty() || !cmd)
     {
@@ -402,9 +402,9 @@ void LUT3D_vulkan::filter(const ImGui::ImMat& src, ImGui::ImMat& dst)
     }
     dst.create_type(src.w, src.h, 4, dst.type);
 
-    ImGui::VkMat out_gpu;
+    VkMat out_gpu;
     out_gpu.create_like(dst, opt.blob_vkallocator);
-    ImGui::VkMat in_gpu;
+    VkMat in_gpu;
     cmd->record_clone(src, in_gpu, opt);
 
     upload_param(in_gpu, out_gpu);
@@ -415,7 +415,7 @@ void LUT3D_vulkan::filter(const ImGui::ImMat& src, ImGui::ImMat& dst)
     cmd->reset();
 }
 
-void LUT3D_vulkan::filter(const ImGui::ImMat& src, ImGui::VkMat& dst)
+void LUT3D_vulkan::filter(const ImMat& src, VkMat& dst)
 {
     if (!vkdev || !pipeline_lut3d || lut_gpu.empty() || !cmd)
     {
@@ -424,7 +424,7 @@ void LUT3D_vulkan::filter(const ImGui::ImMat& src, ImGui::VkMat& dst)
 
     dst.create_type(src.w, src.h, 4, dst.type, opt.blob_vkallocator);
 
-    ImGui::VkMat in_gpu;
+    VkMat in_gpu;
     cmd->record_clone(src, in_gpu, opt);
 
     upload_param(in_gpu, dst);
@@ -433,7 +433,7 @@ void LUT3D_vulkan::filter(const ImGui::ImMat& src, ImGui::VkMat& dst)
     cmd->reset();
 }
 
-void LUT3D_vulkan::filter(const ImGui::VkMat& src, ImGui::ImMat& dst)
+void LUT3D_vulkan::filter(const VkMat& src, ImMat& dst)
 {
     if (!vkdev || !pipeline_lut3d || lut_gpu.empty() || !cmd)
     {
@@ -441,7 +441,7 @@ void LUT3D_vulkan::filter(const ImGui::VkMat& src, ImGui::ImMat& dst)
     }
     dst.create_type(src.w, src.h, 4, dst.type);
 
-    ImGui::VkMat out_gpu;
+    VkMat out_gpu;
     out_gpu.create_like(dst, opt.blob_vkallocator);
 
     upload_param(src, out_gpu);
@@ -452,7 +452,7 @@ void LUT3D_vulkan::filter(const ImGui::VkMat& src, ImGui::ImMat& dst)
     cmd->reset();
 }
 
-void LUT3D_vulkan::filter(const ImGui::VkMat& src, ImGui::VkMat& dst)
+void LUT3D_vulkan::filter(const VkMat& src, VkMat& dst)
 {
     if (!vkdev || !pipeline_lut3d || lut_gpu.empty() || !cmd)
     {

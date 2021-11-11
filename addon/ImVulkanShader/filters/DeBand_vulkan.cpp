@@ -13,18 +13,18 @@ namespace ImGui
 {
 DeBand_vulkan::DeBand_vulkan(int width, int height, int channels, int gpu)
 {
-    vkdev = ImGui::get_gpu_device(gpu);
+    vkdev = get_gpu_device(gpu);
     opt.blob_vkallocator = vkdev->acquire_blob_allocator();
     opt.staging_vkallocator = vkdev->acquire_staging_allocator();
     opt.use_image_storage = false;
     opt.use_fp16_arithmetic = true;
     opt.use_fp16_storage = true;
-    cmd = new ImGui::VkCompute(vkdev);
-    std::vector<ImGui::vk_specialization_type> specializations(0);
+    cmd = new VkCompute(vkdev);
+    std::vector<vk_specialization_type> specializations(0);
     std::vector<uint32_t> spirv_data;
 
-    ImGui::compile_spirv_module(DeBand_data, opt, spirv_data);
-    pipe = new ImGui::Pipeline(vkdev);
+    compile_spirv_module(DeBand_data, opt, spirv_data);
+    pipe = new Pipeline(vkdev);
     pipe->set_optimal_local_size_xyz(16, 16, 1);
     pipe->create(spirv_data.data(), spirv_data.size() * 4, specializations);
 
@@ -51,7 +51,7 @@ DeBand_vulkan::~DeBand_vulkan()
 
 void DeBand_vulkan::precalc_pos(void)
 {
-    ImGui::MutexLockGuard lock(param_lock);
+    MutexLockGuard lock(param_lock);
     int * xpos_data = (int * )xpos_cpu.data;
     int * ypos_data = (int * )ypos_cpu.data;
     for (int y = 0; y < in_height; y++) 
@@ -68,13 +68,13 @@ void DeBand_vulkan::precalc_pos(void)
     }
     if (xpos.empty())
     {
-        ImGui::VkTransfer tran_xpos(vkdev);
+        VkTransfer tran_xpos(vkdev);
         tran_xpos.record_upload(xpos_cpu, xpos, opt);
         tran_xpos.submit_and_wait();
     }
     if (ypos.empty())
     {
-        ImGui::VkTransfer tran_ypos(vkdev);
+        VkTransfer tran_ypos(vkdev);
         tran_ypos.record_upload(ypos_cpu, ypos, opt);
         tran_ypos.submit_and_wait();
     }
@@ -91,9 +91,9 @@ void DeBand_vulkan::SetParam(int _range, float _direction)
     }
 }
 
-void DeBand_vulkan::upload_param(const ImGui::VkMat& src, ImGui::VkMat& dst, float threshold, bool blur)
+void DeBand_vulkan::upload_param(const VkMat& src, VkMat& dst, float threshold, bool blur)
 {
-    std::vector<ImGui::VkMat> bindings(10);
+    std::vector<VkMat> bindings(10);
     if      (dst.type == IM_DT_INT8)     bindings[0] = dst;
     else if (dst.type == IM_DT_INT16)    bindings[1] = dst;
     else if (dst.type == IM_DT_FLOAT16)  bindings[2] = dst;
@@ -103,10 +103,10 @@ void DeBand_vulkan::upload_param(const ImGui::VkMat& src, ImGui::VkMat& dst, flo
     else if (src.type == IM_DT_INT16)    bindings[5] = src;
     else if (src.type == IM_DT_FLOAT16)  bindings[6] = src;
     else if (src.type == IM_DT_FLOAT32)  bindings[7] = src;
-    ImGui::MutexLockGuard lock(param_lock);
+    MutexLockGuard lock(param_lock);
     bindings[8] = xpos;
     bindings[9] = ypos;
-    std::vector<ImGui::vk_constant_type> constants(12);
+    std::vector<vk_constant_type> constants(12);
     constants[0].i = src.w;
     constants[1].i = src.h;
     constants[2].i = src.c;
@@ -122,7 +122,7 @@ void DeBand_vulkan::upload_param(const ImGui::VkMat& src, ImGui::VkMat& dst, flo
     cmd->record_pipeline(pipe, bindings, constants, dst);
 }
 
-void DeBand_vulkan::filter(const ImGui::ImMat& src, ImGui::ImMat& dst, float threshold, bool blur)
+void DeBand_vulkan::filter(const ImMat& src, ImMat& dst, float threshold, bool blur)
 {
     if (!vkdev || !pipe || !cmd)
     {
@@ -130,9 +130,9 @@ void DeBand_vulkan::filter(const ImGui::ImMat& src, ImGui::ImMat& dst, float thr
     }
     dst.create_type(src.w, src.h, 4, dst.type);
 
-    ImGui::VkMat out_gpu;
+    VkMat out_gpu;
     out_gpu.create_like(dst, opt.blob_vkallocator);
-    ImGui::VkMat in_gpu;
+    VkMat in_gpu;
     cmd->record_clone(src, in_gpu, opt);
 
     upload_param(in_gpu, out_gpu, threshold, blur);
@@ -143,7 +143,7 @@ void DeBand_vulkan::filter(const ImGui::ImMat& src, ImGui::ImMat& dst, float thr
     cmd->reset();
 }
 
-void DeBand_vulkan::filter(const ImGui::ImMat& src, ImGui::VkMat& dst, float threshold, bool blur)
+void DeBand_vulkan::filter(const ImMat& src, VkMat& dst, float threshold, bool blur)
 {
     if (!vkdev || !pipe  || !cmd)
     {
@@ -152,7 +152,7 @@ void DeBand_vulkan::filter(const ImGui::ImMat& src, ImGui::VkMat& dst, float thr
 
     dst.create_type(src.w, src.h, 4, dst.type, opt.blob_vkallocator);
 
-    ImGui::VkMat in_gpu;
+    VkMat in_gpu;
     cmd->record_clone(src, in_gpu, opt);
 
     upload_param(in_gpu, dst, threshold, blur);
@@ -161,7 +161,7 @@ void DeBand_vulkan::filter(const ImGui::ImMat& src, ImGui::VkMat& dst, float thr
     cmd->reset();
 }
 
-void DeBand_vulkan::filter(const ImGui::VkMat& src, ImGui::ImMat& dst, float threshold, bool blur)
+void DeBand_vulkan::filter(const VkMat& src, ImMat& dst, float threshold, bool blur)
 {
     if (!vkdev || !pipe || !cmd)
     {
@@ -169,7 +169,7 @@ void DeBand_vulkan::filter(const ImGui::VkMat& src, ImGui::ImMat& dst, float thr
     }
     dst.create_type(src.w, src.h, 4, dst.type);
 
-    ImGui::VkMat out_gpu;
+    VkMat out_gpu;
     out_gpu.create_like(dst, opt.blob_vkallocator);
 
     upload_param(src, out_gpu, threshold, blur);
@@ -180,7 +180,7 @@ void DeBand_vulkan::filter(const ImGui::VkMat& src, ImGui::ImMat& dst, float thr
     cmd->reset();
 }
 
-void DeBand_vulkan::filter(const ImGui::VkMat& src, ImGui::VkMat& dst, float threshold, bool blur)
+void DeBand_vulkan::filter(const VkMat& src, VkMat& dst, float threshold, bool blur)
 {
     if (!vkdev || !pipe || !cmd)
     {

@@ -1,15 +1,14 @@
 #pragma once
-#include <imgui.h>
 #include "imvk_gpu.h"
 #include "imvk_pipeline.h"
-#include <imgui_mat.h>
+#include "im_mat.h"
 
 #define CONCAT_HORIZONTAL   0
 #define CONCAT_VERTICAL     1
 
 namespace ImGui 
 {
-class IMGUI_API Concat_vulkan
+class VKSHADER_API Concat_vulkan
 {
 public:
     Concat_vulkan(int gpu = -1);

@@ -1,12 +1,11 @@
 #pragma once
-#include <imgui.h>
 #include "imvk_gpu.h"
 #include "imvk_pipeline.h"
-#include <imgui_mat.h>
+#include "im_mat.h"
 
 namespace ImGui 
 {
-class IMGUI_API WhiteBalance_vulkan
+class VKSHADER_API WhiteBalance_vulkan
 {
 public:
     WhiteBalance_vulkan(int gpu = -1);

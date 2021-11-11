@@ -1,12 +1,11 @@
 #pragma once
-#include <imgui.h>
-#include <imgui_mat.h>
+#include "im_mat.h"
+#include "Filter2D_vulkan.h"
 #include <string>
-#include <Filter2D_vulkan.h>
 
 namespace ImGui
 {
-class IMGUI_API  Laplacian_vulkan : public Filter2D_vulkan
+class VKSHADER_API  Laplacian_vulkan : public Filter2D_vulkan
 {
 public:
     Laplacian_vulkan(int gpu = 0);

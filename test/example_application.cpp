@@ -2,7 +2,7 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
 #include <imgui_helper.h>
-#include <imgui_mat.h>
+#include <im_mat.h>
 #include <application.h>
 #include <fstream>
 #include <sstream>
@@ -14,6 +14,9 @@
 #include "imgui_knob.h"
 #include "HotKey.h"
 #include "TextEditor.h"
+#if IMGUI_VULKAN_SHADER
+#include <ImVulkanShader.h>
+#endif
 #include "Config.h"
 
 // Init HotKey
@@ -62,6 +65,89 @@ static inline void gray_bar(ImGui::ImMat& image, int x1,int y1,int x2,int y2,int
         box(image, x1 + len * i / step, y1, x1 + len * (i + 1) / step - 1, y2, 255 * i / step, 255 * i / step, 255 * i / step);
     }
 }
+
+#if IMGUI_VULKAN_SHADER
+// VulkanShader Demo
+static std::string print_result(float gflops)
+{
+    if (gflops == -1)
+            return "  error";
+
+    if (gflops == -233)
+        return "  not supported";
+
+    if (gflops == 0)
+        return "  not tested";
+
+    if (gflops > 1000)
+        return "  " + std::to_string(gflops / 1000.0) + " TFLOPS";
+    return "  " + std::to_string(gflops) + " GFLOPS";
+}
+
+static void ImVulkanTestWindow(const char* name, bool* p_open, ImGuiWindowFlags flags)
+{
+    ImGui::Begin(name, p_open, flags);
+    static int loop_count = 200;
+    static int block_count = 20;
+    static int cmd_count = 1;
+    static float fp32[8] = {0.f};
+    static float fp32v4[8] = {0.f};
+    static float fp32v8[8] = {0.f};
+    static float fp16pv4[8] = {0.f};
+    static float fp16pv8[8] = {0.f};
+    static float fp16s[8] = {0.f};
+    static float fp16sv4[8] = {0.f};
+    static float fp16sv8[8] = {0.f};
+    int device_count = ImGui::get_gpu_count();
+    for (int i = 0; i < device_count; i++)
+    {
+        ImGui::VulkanDevice* vkdev = ImGui::get_gpu_device(i);
+        uint32_t driver_version = vkdev->info.driver_version();
+        uint32_t api_version = vkdev->info.api_version();
+        int device_type = vkdev->info.type();
+        std::string driver_ver = std::to_string(VK_VERSION_MAJOR(driver_version)) + "." + 
+                                std::to_string(VK_VERSION_MINOR(driver_version)) + "." +
+                                std::to_string(VK_VERSION_PATCH(driver_version));
+        std::string api_ver =   std::to_string(VK_VERSION_MAJOR(api_version)) + "." + 
+                                std::to_string(VK_VERSION_MINOR(api_version)) + "." +
+                                std::to_string(VK_VERSION_PATCH(api_version));
+        std::string device_name = vkdev->info.device_name();
+        uint32_t gpu_memory_budget = vkdev->get_heap_budget();
+        ImGui::Text("%uMB", gpu_memory_budget);
+        ImGui::Text("Device[%d]", i);
+        ImGui::Text("Driver:%s", driver_ver.c_str());
+        ImGui::Text("   API:%s", api_ver.c_str());
+        ImGui::Text("  Name:%s", device_name.c_str());
+        ImGui::Text("Memory:%uMB", gpu_memory_budget);
+        ImGui::Text("Device Type:%s", device_type == 0 ? "Discrete" : device_type == 1 ? "Integrated" : device_type == 2 ? "Virtual" : "CPU");
+        std::string buffon_label = "Perf Test##" + std::to_string(i);
+        if (ImGui::Button(buffon_label.c_str(), ImVec2(120, 20)))
+        {
+            int _loop_count = device_type == 0 ? loop_count : loop_count / 5;
+            fp32[i]     = ImGui::ImVulkanPeak(vkdev, _loop_count, block_count, cmd_count, 0, 0, 0);
+            fp32v4[i]   = ImGui::ImVulkanPeak(vkdev, _loop_count, block_count, cmd_count, 0, 0, 1);
+            fp32v8[i]   = ImGui::ImVulkanPeak(vkdev, _loop_count, block_count, cmd_count, 0, 0, 2);
+            fp16pv4[i]  = ImGui::ImVulkanPeak(vkdev, _loop_count, block_count, cmd_count, 1, 1, 1);
+            fp16pv8[i]  = ImGui::ImVulkanPeak(vkdev, _loop_count, block_count, cmd_count, 1, 1, 2);
+            fp16s[i]    = ImGui::ImVulkanPeak(vkdev, _loop_count, block_count, cmd_count, 2, 1, 0);
+            fp16sv4[i]  = ImGui::ImVulkanPeak(vkdev, _loop_count, block_count, cmd_count, 2, 1, 1);
+            fp16sv8[i]  = ImGui::ImVulkanPeak(vkdev, _loop_count, block_count, cmd_count, 2, 1, 2);
+        }
+        ImGui::Text(" FP32 Scalar :%s", print_result(fp32[i]).c_str());
+        ImGui::Text("   FP32 Vec4 :%s", print_result(fp32v4[i]).c_str());
+        ImGui::Text("   FP32 Vec8 :%s", print_result(fp32v8[i]).c_str());
+        ImGui::Text("  FP16p Vec4 :%s", print_result(fp16pv4[i]).c_str());
+        ImGui::Text("  FP16p Vec8 :%s", print_result(fp16pv8[i]).c_str());
+        ImGui::Text("FP16s Scalar :%s", print_result(fp16s[i]).c_str());
+        ImGui::Text("  FP16s Vec4 :%s", print_result(fp16sv4[i]).c_str());
+        ImGui::Text("  FP16s Vec8 :%s", print_result(fp16sv8[i]).c_str());
+        
+        ImGui::Separator();
+    }
+    ImGui::End();
+}
+#endif
+
 class Example
 {
 public:
@@ -255,7 +341,9 @@ bool Application_Frame(void* handle)
         ImGui::Checkbox("Show Markdown Window", &example->show_markdown_window);
         ImGui::Checkbox("Show KNob Window", &example->show_knob_window);
         ImGui::Checkbox("Show Text Edit Window", &example->show_text_editor_window);
-
+#if IMGUI_VULKAN_SHADER
+        ImGui::Checkbox("Show Vulkan Shader Test Window", &example->show_shader_window);
+#endif
         // show hotkey window
         if (ImGui::Button("Edit Hotkeys"))
         {
@@ -346,5 +434,12 @@ bool Application_Frame(void* handle)
         example->editor.text_edit_demo(&example->show_text_editor_window);
     }
 
+#if IMGUI_VULKAN_SHADER
+    // Show Vulkan Shader Test Window
+    if (example->show_shader_window)
+    {
+        ImVulkanTestWindow("ImGui Vulkan test", &example->show_shader_window, 0);
+    }
+#endif
     return done;
 }

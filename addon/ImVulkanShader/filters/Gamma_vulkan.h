@@ -1,12 +1,11 @@
 #pragma once
-#include <imgui.h>
 #include "imvk_gpu.h"
 #include "imvk_pipeline.h"
-#include <imgui_mat.h>
+#include "im_mat.h"
 
 namespace ImGui 
 {
-class IMGUI_API Gamma_vulkan
+class VKSHADER_API Gamma_vulkan
 {
 public:
     Gamma_vulkan(int gpu = -1);
