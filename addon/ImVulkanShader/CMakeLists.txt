@@ -102,10 +102,6 @@ if (VKSHADER_SYSTEM_GLSLANG)
                 OGLCompiler
                 OSDependent
                 SPIRV
-                #SPIRV-Tools
-                SPIRV-Tools-opt
-                MachineIndependent
-                GenericCodeGen
             )
             set(LINK_LIBS
                 ${LINK_LIBS}
