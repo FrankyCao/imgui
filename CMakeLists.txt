@@ -726,6 +726,33 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/addon/HotKey
 )
 
+# Node Editor
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/node_editor/imgui_json.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/node_editor/imgui_logger.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/node_editor/imgui_canvas.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/node_editor/imgui_node_editor_api.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/node_editor/imgui_node_editor.cpp
+)
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/node_editor/imgui_json.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/node_editor/imgui_logger.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/node_editor/imgui_bezier_math.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/node_editor/imgui_bezier_math.inl
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/node_editor/imgui_canvas.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/node_editor/imgui_extra_math.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/node_editor/imgui_extra_math.inl
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/node_editor/imgui_node_editor_internal.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/node_editor/imgui_node_editor_internal.inl
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/node_editor/imgui_node_editor.h
+)
+set(IMGUI_INC_DIRS
+    ${IMGUI_INC_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/node_editor
+)
+
 if(ZLIB_FOUND)
     set(LINK_LIBS
         ${LINK_LIBS}
