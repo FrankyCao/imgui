@@ -2,7 +2,6 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
 #include <imgui_helper.h>
-#include <im_mat.h>
 #include <application.h>
 #include <fstream>
 #include <sstream>
@@ -16,6 +15,7 @@
 #include "TextEditor.h"
 #if IMGUI_VULKAN_SHADER
 #include <ImVulkanShader.h>
+#include <im_mat.h>
 #endif
 #include "Config.h"
 
@@ -29,6 +29,7 @@ static std::vector<ImHotKey::HotKey> hotkeys =
     {"SetKey", "Make a new animation key with the current parameters values at the current time", 0xFFFFFF1F}
 };
 
+#if IMGUI_VULKAN_SHADER
 static inline void box(ImGui::ImMat& image, int x1, int y1, int x2, int y2, int R, int G, int B)
 {
     for (int j = y1; j <= y2; j++)
@@ -66,7 +67,6 @@ static inline void gray_bar(ImGui::ImMat& image, int x1,int y1,int x2,int y2,int
     }
 }
 
-#if IMGUI_VULKAN_SHADER
 // VulkanShader Demo
 static std::string print_result(float gflops)
 {
@@ -162,11 +162,12 @@ public:
         mem_edit.OptShowDataPreview = true;
         mem_edit.OptAddrDigitsCount = 8;
         data = malloc(0x400);
-
+#if IMGUI_VULKAN_SHADER
         // init color inspact
         color_bar(image, 0, 0, 255, 191);
         gray_bar(image, 0, 192, 255, 255, 13);
         ImageTexture = ImGui::ImCreateTexture(image.data, image.w, image.h);
+#endif
     };
     ~Example() 
     {
@@ -214,7 +215,9 @@ public:
     bool show_shader_window = false;
 #endif
 public:
+#if IMGUI_VULKAN_SHADER
     ImGui::ImMat image {ImGui::ImMat(256, 256, 4, 1u, 4)};
+#endif
     ImTextureID ImageTexture = 0;
 };
 
@@ -358,6 +361,7 @@ bool Application_Frame(void* handle)
             // handle the hotkey index!
         }
 
+#if IMGUI_VULKAN_SHADER
         ImVec2 displayedTextureSize(256,256);
         ImGui::Image((ImTextureID)(uint64_t)example->ImageTexture, displayedTextureSize);
         {
@@ -370,6 +374,7 @@ bool Application_Frame(void* handle)
                                         displayedTextureSize);
             }
         }
+#endif
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", ImGui::GetIO().DeltaTime * 1000.f, ImGui::GetIO().Framerate);
         ImGui::Text("Frames since last input: %d", ImGui::GetIO().FrameCountSinceLastInput);
         ImGui::End();
