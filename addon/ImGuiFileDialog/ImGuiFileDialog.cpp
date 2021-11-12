@@ -1523,7 +1523,7 @@ namespace IGFD
 #else // dirent
 			struct dirent** files = nullptr;
 			size_t n = scandir(path.c_str(), &files, nullptr, inAlphaSort);
-			if (n)
+			if (files && n)
 			{
 				size_t i;
 
@@ -2831,7 +2831,10 @@ namespace IGFD
 				{
 					// if bad format we jump this bookmark
 					bookmark.path = arr[i + 1];
-					prBookmarks.push_back(bookmark);
+                    // Modify by Dicky, remove not exist path from bookmark
+                    if (Utils::IsDirectoryExist(bookmark.path))
+					    prBookmarks.push_back(bookmark);
+                    // Modify by Dicky end
 				}
 			}
 		}
