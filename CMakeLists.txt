@@ -728,6 +728,26 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/addon/HotKey
 )
 
+# Tab Window
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiTabWindow/ImGuiTabWindow.cpp
+)
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiTabWindow/ImGuiTabWindow.h
+)
+set(IMGUI_INC_DIRS
+    ${IMGUI_INC_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiTabWindow
+)
+if(IMGUI_BUILD_EXAMPLE)
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
+        ${CMAKE_CURRENT_SOURCE_DIR}/addon/ImGuiTabWindow/ImGuiTabWindow_demo.cpp
+    )
+endif(IMGUI_BUILD_EXAMPLE)
+
 # Node Editor
 set(IMGUI_SRC
     ${IMGUI_SRC}

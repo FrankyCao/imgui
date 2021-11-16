@@ -13,6 +13,7 @@
 #include "imgui_knob.h"
 #include "HotKey.h"
 #include "TextEditor.h"
+#include "ImGuiTabWindow.h"
 #if IMGUI_VULKAN_SHADER
 #include <ImVulkanShader.h>
 #endif
@@ -200,6 +201,7 @@ public:
     bool show_markdown_window = false;
     bool show_knob_window = false;
     bool show_text_editor_window = false;
+    bool show_tab_window = false;
 
 public:
 
@@ -340,6 +342,7 @@ bool Application_Frame(void* handle)
         ImGui::Checkbox("Show Markdown Window", &example->show_markdown_window);
         ImGui::Checkbox("Show KNob Window", &example->show_knob_window);
         ImGui::Checkbox("Show Text Edit Window", &example->show_text_editor_window);
+        ImGui::Checkbox("Show Tab Window", &example->show_tab_window);
 #if IMGUI_VULKAN_SHADER
         ImGui::Checkbox("Show Vulkan Shader Test Window", &example->show_shader_window);
 #endif
@@ -432,6 +435,17 @@ bool Application_Frame(void* handle)
     if (example->show_text_editor_window)
     {
         example->editor.text_edit_demo(&example->show_text_editor_window);
+    }
+
+    // Show Tab Window
+    if (example->show_tab_window)
+    {
+        ImGui::SetNextWindowSize(ImVec2(700,600), ImGuiCond_FirstUseEver);
+        if (ImGui::Begin("Example: TabWindow", &example->show_tab_window, ImGuiWindowFlags_NoScrollbar))
+        {
+            ImGui::ShowAddonsTabWindow();   // see its code for further info         
+        }
+        ImGui::End();
     }
 
 #if IMGUI_VULKAN_SHADER
