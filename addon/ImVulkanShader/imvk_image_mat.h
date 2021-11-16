@@ -2,7 +2,7 @@
 #include "imvk_allocator.h"
 #include "imvk_option.h"
 #include "imvk_platform.h"
-#include "im_mat.h"
+#include "immat.h"
 #include <vulkan/vulkan.h>
 #include <string.h>
 

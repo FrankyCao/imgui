@@ -1089,7 +1089,10 @@ ImGuiStyle::ImGuiStyle()
     AntiAliasedFill         = true;             // Enable anti-aliased filled shapes (rounded rectangles, circles, etc.).
     CurveTessellationTol    = 1.25f;            // Tessellation tolerance when using PathBezierCurveTo() without a specific number of segments. Decrease for highly tessellated curves (higher quality, more polygons), increase to reduce quality.
     CircleTessellationMaxError = 0.30f;         // Maximum error (in pixels) allowed when using AddCircle()/AddCircleFilled() or drawing rounded corner rectangles with no explicit segment count specified. Decrease for higher quality but more geometry.
-
+    // add by Dicky
+    TexGlyphShadowOffset    = ImVec2(0, 0);     // Default no Shadow
+    TexGlyphOutlineWidth    = 0.0f;             // Default no outline
+    // add by Dicky end
     // Default theme
     ImGui::StyleColorsDark(this);
 }
@@ -12600,7 +12603,7 @@ void ImGui::WindowSyncOwnedViewport(ImGuiWindow* window, ImGuiWindow* parent_win
 
     // Update parent viewport ID
     // (the !IsFallbackWindow test mimic the one done in WindowSelectViewport())
-    if (window->WindowClass.ParentViewportId)
+    if (window->WindowClass.ParentViewportId != (ImGuiID)-1)
         window->Viewport->ParentViewportId = window->WindowClass.ParentViewportId;
     else if ((window_flags & (ImGuiWindowFlags_Popup | ImGuiWindowFlags_Tooltip)) && parent_window_in_stack && (!parent_window_in_stack->IsFallbackWindow || parent_window_in_stack->WasActive))
         window->Viewport->ParentViewportId = parent_window_in_stack->Viewport->ID;

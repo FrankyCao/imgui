@@ -4,7 +4,7 @@
 #include "imvk_platform.h"
 #include <vulkan/vulkan.h>
 #include <string.h>
-#include <im_mat.h>
+#include <immat.h>
 
 namespace ImGui 
 {

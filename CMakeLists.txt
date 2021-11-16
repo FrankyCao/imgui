@@ -240,6 +240,7 @@ set(IMGUI_INCS
     imstb_rectpack.h
     imstb_textedit.h
     imstb_truetype.h
+    immat.h
     imgui_user.h
     misc/cpp/imgui_stdlib.h
     misc/cpp/dir_iterate.h
@@ -631,6 +632,7 @@ set(IMGUI_INC_DIRS
 
 # ImVulkanShader
 if(IMGUI_VULKAN_SHADER)
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR})
     add_subdirectory(addon/ImVulkanShader)
     set(IMGUI_INC_DIRS
         ${IMGUI_INC_DIRS}

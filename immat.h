@@ -1,5 +1,5 @@
-#ifndef __IM_MAT_H__
-#define __IM_MAT_H__
+#ifndef __IMMAT_H__
+#define __IMMAT_H__
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
@@ -1690,4 +1690,4 @@ inline ImMat ImMat::transpose(Allocator* _allocator) const
 
 } // namespace ImGui 
 
-#endif /* __IM_MAT_H__ */
+#endif /* __IMMAT_H__ */

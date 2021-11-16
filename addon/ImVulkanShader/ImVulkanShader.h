@@ -2,7 +2,7 @@
 #include "imvk_gpu.h"
 #include "imvk_pipeline.h"
 #include "imvk_command.h"
-#include "im_mat.h"
+#include "immat.h"
 #include "imvk_substract_mean_normalize.h"
 #include "filters/ColorConvert_vulkan.h"
 #include "filters/Resize_vulkan.h"

@@ -4,7 +4,7 @@
 #include <windows.h>
 #endif
 #include "imvk_platform.h"
-#include "im_mat.h"
+#include "immat.h"
 #include <stdlib.h>
 #include <vulkan/vulkan.h>
 

@@ -166,7 +166,6 @@ set(VKSHADER_INCS
     imvk_allocator.h
     imvk_gpu.h
     imvk_command.h
-    im_mat.h
     imvk_mat.h
     imvk_mat_shader.h
     imvk_image_mat.h

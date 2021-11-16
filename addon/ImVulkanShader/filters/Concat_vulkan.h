@@ -1,7 +1,7 @@
 #pragma once
 #include "imvk_gpu.h"
 #include "imvk_pipeline.h"
-#include "im_mat.h"
+#include "immat.h"
 
 #define CONCAT_HORIZONTAL   0
 #define CONCAT_VERTICAL     1
