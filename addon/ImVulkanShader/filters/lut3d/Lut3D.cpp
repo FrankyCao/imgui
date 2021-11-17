@@ -222,10 +222,14 @@ int LUT3D_vulkan::init(int interpolation, int gpu)
     cmd = new VkCompute(vkdev);
     std::vector<vk_specialization_type> specializations(0);
     std::vector<uint32_t> spirv_data;
-    compile_spirv_module(LUT3D_data, opt, spirv_data);
-    pipeline_lut3d = new Pipeline(vkdev);
-    pipeline_lut3d->set_optimal_local_size_xyz(16, 16, 1);
-    pipeline_lut3d->create(spirv_data.data(), spirv_data.size() * 4, specializations);
+
+    if (compile_spirv_module(LUT3D_data, opt, spirv_data) == 0)
+    {
+        pipeline_lut3d = new Pipeline(vkdev);
+        pipeline_lut3d->set_optimal_local_size_xyz(16, 16, 1);
+        pipeline_lut3d->create(spirv_data.data(), spirv_data.size() * 4, specializations);
+    }
+
     cmd->reset();
     interpolation_mode = interpolation;
     return 0;

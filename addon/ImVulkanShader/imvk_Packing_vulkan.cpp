@@ -116,30 +116,30 @@ int Packing_vulkan::create_pipeline(const Option& _opt)
 
         if (cast_type_from == cast_type_to)
         {
-            compile_spirv_module(packing_pack8, opt, spirv_packing_pack8);
-            compile_spirv_module(packing_pack1to8, opt, spirv_packing_pack1to8);
-            compile_spirv_module(packing_pack4to8, opt, spirv_packing_pack4to8);
-            pipeline_packing_pack8->create(spirv_packing_pack8, specializations);
-            pipeline_packing_pack1to8->create(spirv_packing_pack1to8, specializations);
-            pipeline_packing_pack4to8->create(spirv_packing_pack4to8, specializations);
+            if (compile_spirv_module(packing_pack8, opt, spirv_packing_pack8) == 0)
+                pipeline_packing_pack8->create(spirv_packing_pack8, specializations);
+            if (compile_spirv_module(packing_pack1to8, opt, spirv_packing_pack1to8) == 0)
+                pipeline_packing_pack1to8->create(spirv_packing_pack1to8, specializations);
+            if (compile_spirv_module(packing_pack4to8, opt, spirv_packing_pack4to8) == 0)
+                pipeline_packing_pack4to8->create(spirv_packing_pack4to8, specializations);
         }
         else if (cast_type_from == 1)
         {
-            compile_spirv_module(packing_pack8_fp32_to_fp16, opt, spirv_packing_pack8_fp32_to_fp16);
-            compile_spirv_module(packing_pack1to8_fp32_to_fp16, opt, spirv_packing_pack8_fp32_to_fp16);
-            compile_spirv_module(packing_pack4to8_fp32_to_fp16, opt, spirv_packing_pack8_fp32_to_fp16);
-            pipeline_packing_pack8->create(spirv_packing_pack8_fp32_to_fp16, specializations);
-            pipeline_packing_pack1to8->create(spirv_packing_pack1to8_fp32_to_fp16, specializations);
-            pipeline_packing_pack4to8->create(spirv_packing_pack4to8_fp32_to_fp16, specializations);
+            if (compile_spirv_module(packing_pack8_fp32_to_fp16, opt, spirv_packing_pack8_fp32_to_fp16) == 0)
+                pipeline_packing_pack8->create(spirv_packing_pack8_fp32_to_fp16, specializations);
+            if (compile_spirv_module(packing_pack1to8_fp32_to_fp16, opt, spirv_packing_pack8_fp32_to_fp16) == 0)
+                pipeline_packing_pack1to8->create(spirv_packing_pack1to8_fp32_to_fp16, specializations);
+            if (compile_spirv_module(packing_pack4to8_fp32_to_fp16, opt, spirv_packing_pack8_fp32_to_fp16) == 0)
+                pipeline_packing_pack4to8->create(spirv_packing_pack4to8_fp32_to_fp16, specializations);
         }
         else if (cast_type_to == 1)
         {
-            compile_spirv_module(packing_pack8_fp16_to_fp32, opt, spirv_packing_pack8_fp16_to_fp32);
-            compile_spirv_module(packing_pack1to8_fp16_to_fp32, opt, spirv_packing_pack1to8_fp16_to_fp32);
-            compile_spirv_module(packing_pack4to8_fp16_to_fp32, opt, spirv_packing_pack4to8_fp16_to_fp32);
-            pipeline_packing_pack8->create(spirv_packing_pack8_fp16_to_fp32, specializations);
-            pipeline_packing_pack1to8->create(spirv_packing_pack1to8_fp16_to_fp32, specializations);
-            pipeline_packing_pack4to8->create(spirv_packing_pack4to8_fp16_to_fp32, specializations);
+            if (compile_spirv_module(packing_pack8_fp16_to_fp32, opt, spirv_packing_pack8_fp16_to_fp32) == 0)
+                pipeline_packing_pack8->create(spirv_packing_pack8_fp16_to_fp32, specializations);
+            if (compile_spirv_module(packing_pack1to8_fp16_to_fp32, opt, spirv_packing_pack1to8_fp16_to_fp32) == 0)
+                pipeline_packing_pack1to8->create(spirv_packing_pack1to8_fp16_to_fp32, specializations);
+            if (compile_spirv_module(packing_pack4to8_fp16_to_fp32, opt, spirv_packing_pack4to8_fp16_to_fp32) == 0)
+                pipeline_packing_pack4to8->create(spirv_packing_pack4to8_fp16_to_fp32, specializations);
         }
     }
 
@@ -156,30 +156,30 @@ int Packing_vulkan::create_pipeline(const Option& _opt)
 
         if (cast_type_from == cast_type_to)
         {
-            compile_spirv_module(packing_pack4, opt, spirv_packing_pack4);
-            compile_spirv_module(packing_pack1to4, opt, spirv_packing_pack1to4);
-            compile_spirv_module(packing_pack8to4, opt, spirv_packing_pack8to4);
-            pipeline_packing_pack4->create(spirv_packing_pack4, specializations);
-            pipeline_packing_pack1to4->create(spirv_packing_pack1to4, specializations);
-            pipeline_packing_pack8to4->create(spirv_packing_pack8to4, specializations);
+            if (compile_spirv_module(packing_pack4, opt, spirv_packing_pack4) == 0)
+                pipeline_packing_pack4->create(spirv_packing_pack4, specializations);
+            if (compile_spirv_module(packing_pack1to4, opt, spirv_packing_pack1to4) == 0)
+                pipeline_packing_pack1to4->create(spirv_packing_pack1to4, specializations);
+            if (compile_spirv_module(packing_pack8to4, opt, spirv_packing_pack8to4) == 0)
+                pipeline_packing_pack8to4->create(spirv_packing_pack8to4, specializations);
         }
         else if (cast_type_from == 1)
         {
-            compile_spirv_module(packing_pack4_fp32_to_fp16, opt, spirv_packing_pack4_fp32_to_fp16);
-            compile_spirv_module(packing_pack1to4_fp32_to_fp16, opt, spirv_packing_pack1to4_fp32_to_fp16);
-            compile_spirv_module(packing_pack8to4_fp32_to_fp16, opt, spirv_packing_pack8to4_fp32_to_fp16);
-            pipeline_packing_pack4->create(spirv_packing_pack4_fp32_to_fp16, specializations);
-            pipeline_packing_pack1to4->create(spirv_packing_pack1to4_fp32_to_fp16, specializations);
-            pipeline_packing_pack8to4->create(spirv_packing_pack8to4_fp32_to_fp16, specializations);
+            if (compile_spirv_module(packing_pack4_fp32_to_fp16, opt, spirv_packing_pack4_fp32_to_fp16) == 0)
+                pipeline_packing_pack4->create(spirv_packing_pack4_fp32_to_fp16, specializations);
+            if (compile_spirv_module(packing_pack1to4_fp32_to_fp16, opt, spirv_packing_pack1to4_fp32_to_fp16) == 0)
+                pipeline_packing_pack1to4->create(spirv_packing_pack1to4_fp32_to_fp16, specializations);
+            if (compile_spirv_module(packing_pack8to4_fp32_to_fp16, opt, spirv_packing_pack8to4_fp32_to_fp16) == 0)
+                pipeline_packing_pack8to4->create(spirv_packing_pack8to4_fp32_to_fp16, specializations);
         }
         else if (cast_type_to == 1)
         {
-            compile_spirv_module(packing_pack4_fp16_to_fp32, opt, spirv_packing_pack4_fp16_to_fp32);
-            compile_spirv_module(packing_pack1to4_fp16_to_fp32, opt, spirv_packing_pack1to4_fp16_to_fp32);
-            compile_spirv_module(packing_pack8to4_fp16_to_fp32, opt, spirv_packing_pack8to4_fp16_to_fp32);
-            pipeline_packing_pack4->create(spirv_packing_pack4_fp16_to_fp32, specializations);
-            pipeline_packing_pack1to4->create(spirv_packing_pack1to4_fp16_to_fp32, specializations);
-            pipeline_packing_pack8to4->create(spirv_packing_pack8to4_fp16_to_fp32, specializations);
+            if (compile_spirv_module(packing_pack4_fp16_to_fp32, opt, spirv_packing_pack4_fp16_to_fp32) == 0)
+                pipeline_packing_pack4->create(spirv_packing_pack4_fp16_to_fp32, specializations);
+            if (compile_spirv_module(packing_pack1to4_fp16_to_fp32, opt, spirv_packing_pack1to4_fp16_to_fp32) == 0)
+                pipeline_packing_pack1to4->create(spirv_packing_pack1to4_fp16_to_fp32, specializations);
+            if (compile_spirv_module(packing_pack8to4_fp16_to_fp32, opt, spirv_packing_pack8to4_fp16_to_fp32) == 0)
+                pipeline_packing_pack8to4->create(spirv_packing_pack8to4_fp16_to_fp32, specializations);
         }
     }
 
@@ -196,30 +196,30 @@ int Packing_vulkan::create_pipeline(const Option& _opt)
 
         if (cast_type_from == cast_type_to)
         {
-            compile_spirv_module(packing, opt, spirv_packing);
-            compile_spirv_module(packing_pack4to1, opt, spirv_packing_pack4to1);
-            compile_spirv_module(packing_pack8to1, opt, spirv_packing_pack8to1);
-            pipeline_packing->create(spirv_packing, specializations);
-            pipeline_packing_pack4to1->create(spirv_packing_pack4to1, specializations);
-            pipeline_packing_pack8to1->create(spirv_packing_pack8to1, specializations);
+            if (compile_spirv_module(packing, opt, spirv_packing) == 0)
+                pipeline_packing->create(spirv_packing, specializations);
+            if (compile_spirv_module(packing_pack4to1, opt, spirv_packing_pack4to1) == 0)
+                pipeline_packing_pack4to1->create(spirv_packing_pack4to1, specializations);
+            if (compile_spirv_module(packing_pack8to1, opt, spirv_packing_pack8to1) == 0)
+                pipeline_packing_pack8to1->create(spirv_packing_pack8to1, specializations);
         }
         else if (cast_type_from == 1)
         {
-            compile_spirv_module(packing_fp32_to_fp16, opt, spirv_packing_fp32_to_fp16);
-            compile_spirv_module(packing_pack4to1_fp32_to_fp16, opt, spirv_packing_pack4to1_fp32_to_fp16);
-            compile_spirv_module(packing_pack8to1_fp32_to_fp16, opt, spirv_packing_pack8to1_fp32_to_fp16);
-            pipeline_packing->create(spirv_packing_fp32_to_fp16, specializations);
-            pipeline_packing_pack4to1->create(spirv_packing_pack4to1_fp32_to_fp16, specializations);
-            pipeline_packing_pack8to1->create(spirv_packing_pack8to1_fp32_to_fp16, specializations);
+            if (compile_spirv_module(packing_fp32_to_fp16, opt, spirv_packing_fp32_to_fp16) == 0)
+                pipeline_packing->create(spirv_packing_fp32_to_fp16, specializations);
+            if (compile_spirv_module(packing_pack4to1_fp32_to_fp16, opt, spirv_packing_pack4to1_fp32_to_fp16) == 0)
+                pipeline_packing_pack4to1->create(spirv_packing_pack4to1_fp32_to_fp16, specializations);
+            if (compile_spirv_module(packing_pack8to1_fp32_to_fp16, opt, spirv_packing_pack8to1_fp32_to_fp16) == 0)
+                pipeline_packing_pack8to1->create(spirv_packing_pack8to1_fp32_to_fp16, specializations);
         }
         else if (cast_type_to == 1)
         {
-            compile_spirv_module(packing_fp16_to_fp32, opt, spirv_packing_fp16_to_fp32);
-            compile_spirv_module(packing_pack4to1_fp16_to_fp32, opt, spirv_packing_pack4to1_fp16_to_fp32);
-            compile_spirv_module(packing_pack8to1_fp16_to_fp32, opt, spirv_packing_pack8to1_fp16_to_fp32);
-            pipeline_packing->create(spirv_packing_fp16_to_fp32, specializations);
-            pipeline_packing_pack4to1->create(spirv_packing_pack4to1_fp16_to_fp32, specializations);
-            pipeline_packing_pack8to1->create(spirv_packing_pack8to1_fp16_to_fp32, specializations);
+            if (compile_spirv_module(packing_fp16_to_fp32, opt, spirv_packing_fp16_to_fp32) == 0)
+                pipeline_packing->create(spirv_packing_fp16_to_fp32, specializations);
+            if (compile_spirv_module(packing_pack4to1_fp16_to_fp32, opt, spirv_packing_pack4to1_fp16_to_fp32) == 0)
+                pipeline_packing_pack4to1->create(spirv_packing_pack4to1_fp16_to_fp32, specializations);
+            if (compile_spirv_module(packing_pack8to1_fp16_to_fp32, opt, spirv_packing_pack8to1_fp16_to_fp32) == 0)
+                pipeline_packing_pack8to1->create(spirv_packing_pack8to1_fp16_to_fp32, specializations);
         }
     }
 

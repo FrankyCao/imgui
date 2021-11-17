@@ -18,43 +18,55 @@ ChromaKey_vulkan::ChromaKey_vulkan(int gpu)
     std::vector<vk_specialization_type> specializations(0);
     std::vector<uint32_t> spirv_data;
 
-    compile_spirv_module(Filter_data, opt, spirv_data);
-    pipe = new Pipeline(vkdev);
-    pipe->set_optimal_local_size_xyz(16, 16, 1);
-    pipe->create(spirv_data.data(), spirv_data.size() * 4, specializations);
-    spirv_data.clear();
+    if (compile_spirv_module(Filter_data, opt, spirv_data) == 0)
+    {
+        pipe = new Pipeline(vkdev);
+        pipe->set_optimal_local_size_xyz(16, 16, 1);
+        pipe->create(spirv_data.data(), spirv_data.size() * 4, specializations);
+        spirv_data.clear();
+    }
 
 #if FILTER_2DS_BLUR
-    compile_spirv_module(FilterColumnMono_data, opt, spirv_data);
-    pipe_blur_column = new Pipeline(vkdev);
-    pipe_blur_column->set_optimal_local_size_xyz(16, 16, 1);
-    pipe_blur_column->create(spirv_data.data(), spirv_data.size() * 4, specializations);
-    spirv_data.clear();
+    if (compile_spirv_module(FilterColumnMono_data, opt, spirv_data) == 0)
+    {
+        pipe_blur_column = new Pipeline(vkdev);
+        pipe_blur_column->set_optimal_local_size_xyz(16, 16, 1);
+        pipe_blur_column->create(spirv_data.data(), spirv_data.size() * 4, specializations);
+        spirv_data.clear();
+    }
 
-    compile_spirv_module(FilterRowMono_data, opt, spirv_data);
-    pipe_blur_row = new Pipeline(vkdev);
-    pipe_blur_row->set_optimal_local_size_xyz(16, 16, 1);
-    pipe_blur_row->create(spirv_data.data(), spirv_data.size() * 4, specializations);
-    spirv_data.clear();
+    if (compile_spirv_module(FilterRowMono_data, opt, spirv_data) == 0)
+    {
+        pipe_blur_row = new Pipeline(vkdev);
+        pipe_blur_row->set_optimal_local_size_xyz(16, 16, 1);
+        pipe_blur_row->create(spirv_data.data(), spirv_data.size() * 4, specializations);
+        spirv_data.clear();
+    }
 #else
-    compile_spirv_module(Blur_data, opt, spirv_data);
-    pipe_blur = new Pipeline(vkdev);
-    pipe_blur->set_optimal_local_size_xyz(16, 16, 1);
-    pipe_blur->create(spirv_data.data(), spirv_data.size() * 4, specializations);
-    spirv_data.clear();
+    if (compile_spirv_module(Blur_data, opt, spirv_data) == 0)
+    {
+        pipe_blur = new Pipeline(vkdev);
+        pipe_blur->set_optimal_local_size_xyz(16, 16, 1);
+        pipe_blur->create(spirv_data.data(), spirv_data.size() * 4, specializations);
+        spirv_data.clear();
+    }
 #endif
 
-    compile_spirv_module(Sharpen_data, opt, spirv_data);
-    pipe_sharpen = new Pipeline(vkdev);
-    pipe_sharpen->set_optimal_local_size_xyz(16, 16, 1);
-    pipe_sharpen->create(spirv_data.data(), spirv_data.size() * 4, specializations);
-    spirv_data.clear();
+    if (compile_spirv_module(Sharpen_data, opt, spirv_data) == 0)
+    {
+        pipe_sharpen = new Pipeline(vkdev);
+        pipe_sharpen->set_optimal_local_size_xyz(16, 16, 1);
+        pipe_sharpen->create(spirv_data.data(), spirv_data.size() * 4, specializations);
+        spirv_data.clear();
+    }
 
-    compile_spirv_module(Despill_data, opt, spirv_data);
-    pipe_despill = new Pipeline(vkdev);
-    pipe_despill->set_optimal_local_size_xyz(16, 16, 1);
-    pipe_despill->create(spirv_data.data(), spirv_data.size() * 4, specializations);
-    spirv_data.clear();
+    if (compile_spirv_module(Despill_data, opt, spirv_data) == 0)
+    {
+        pipe_despill = new Pipeline(vkdev);
+        pipe_despill->set_optimal_local_size_xyz(16, 16, 1);
+        pipe_despill->create(spirv_data.data(), spirv_data.size() * 4, specializations);
+        spirv_data.clear();
+    }
 
     prepare_kernel();
     cmd->reset();

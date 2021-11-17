@@ -20,7 +20,7 @@ endif()
 
 option(VKSHADER_SYSTEM_GLSLANG        "Try to using system glslang library" ON)
 option(VKSHADER_VULKAN_BENCHMARK      "Enable Vulkan Shader Benchmark" OFF)
-option(VKSHADER_STATIC                "Build Vulkan Shader as static library" ON)
+option(VKSHADER_STATIC                "Build Vulkan Shader as static library" OFF)
 
 find_package(PkgConfig)
 find_package(Vulkan)
@@ -320,7 +320,10 @@ add_library(
     ${VKSHADER_SRCS}
     ${VKSHADER_INCS}
 )
+
+if(NOT VKSHADER_STATIC)
 set_property(TARGET VkShader PROPERTY POSITION_INDEPENDENT_CODE ON)
+endif()
 target_link_libraries(VkShader PRIVATE ${LINK_LIBS} SPIRV)
 
 get_directory_property(hasParent PARENT_DIRECTORY)

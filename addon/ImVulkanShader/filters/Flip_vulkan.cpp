@@ -17,10 +17,12 @@ Flip_vulkan::Flip_vulkan(int gpu)
     std::vector<vk_specialization_type> specializations(0);
     std::vector<uint32_t> spirv_data;
 
-    compile_spirv_module(Shader_data, opt, spirv_data);
-    pipe = new Pipeline(vkdev);
-    pipe->set_optimal_local_size_xyz(16, 16, 1);
-    pipe->create(spirv_data.data(), spirv_data.size() * 4, specializations);
+    if (compile_spirv_module(Shader_data, opt, spirv_data) == 0)
+    {
+        pipe = new Pipeline(vkdev);
+        pipe->set_optimal_local_size_xyz(16, 16, 1);
+        pipe->create(spirv_data.data(), spirv_data.size() * 4, specializations);
+    }
     
     cmd->reset();
 }

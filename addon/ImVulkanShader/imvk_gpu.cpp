@@ -3608,10 +3608,11 @@ int compile_spirv_module(const char* comp_data, int comp_data_size, const Option
 
         TBuiltInResource resources = get_default_TBuiltInResource();
         EShMessages messages = (EShMessages)(EShMsgSpvRules | EShMsgVulkanRules | EShMsgSuppressWarnings | EShMsgDebugInfo | EShMsgCascadingErrors);
+
         bool pr = s.parse(&resources, 100, false, messages);
         if (!pr)
         {
-            fprintf(stderr, "compile spir-v module failed");
+            fprintf(stderr, "vkshader compile spir-v module failed\n");
             fprintf(stderr, "%s", s.getInfoLog());
             fprintf(stderr, "%s", s.getInfoDebugLog());
             log = std::string(s.getInfoLog());
@@ -3620,9 +3621,11 @@ int compile_spirv_module(const char* comp_data, int comp_data_size, const Option
         else
         {
             glslang::SpvOptions options;
+            spv::SpvBuildLogger logger;
             options.disableOptimizer = false;
             glslang::TIntermediate* ir = s.getIntermediate();
-            glslang::GlslangToSpv(*ir, spirv, &options);
+            glslang::GlslangToSpv(*ir, spirv, &logger, &options);
+            fprintf(stderr, "%s", logger.getAllMessages().c_str());
         }
     }
 

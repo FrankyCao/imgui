@@ -57,9 +57,9 @@ void ImVulkanVkMatToVkImageMat(const VkMat &src, VkImageMat &dst)
 
 void ImVulkanShaderInit()
 {
-#ifndef VKSHADER_SYSTEM_GLSLANG
+//#ifndef VKSHADER_SYSTEM_GLSLANG
     create_gpu_instance();
-#endif
+//#endif
 }
 
 void ImVulkanShaderClear()
@@ -97,20 +97,21 @@ float ImVulkanPeak(VulkanDevice* vkdev, int loop, int count_mb, int cmd_loop, in
         // glsl to spirv
         // -1 for omit the tail '\0'
         std::vector<uint32_t> spirv;
+        int ret = 0;
         if (packing_type == 0)
         {
-            compile_spirv_module(glsl_p1_data, opt, spirv);
+            ret = compile_spirv_module(glsl_p1_data, opt, spirv);
         }
         if (packing_type == 1)
         {
-            compile_spirv_module(glsl_p4_data, opt, spirv);
+            ret = compile_spirv_module(glsl_p4_data, opt, spirv);
         }
         if (packing_type == 2)
         {
-            compile_spirv_module(glsl_p8_data, opt, spirv);
+            ret = compile_spirv_module(glsl_p8_data, opt, spirv);
         }
-
-        pipeline.create(spirv.data(), spirv.size() * 4, specializations);
+        if (ret == 0)
+            pipeline.create(spirv.data(), spirv.size() * 4, specializations);
     }
 
     VkAllocator* allocator = vkdev->acquire_blob_allocator();

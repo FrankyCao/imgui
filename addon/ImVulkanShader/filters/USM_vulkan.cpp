@@ -17,23 +17,29 @@ USM_vulkan::USM_vulkan(int gpu)
     std::vector<vk_specialization_type> specializations(0);
     std::vector<uint32_t> spirv_data;
 
-    compile_spirv_module(USMFilter_data, opt, spirv_data);
-    pipe = new Pipeline(vkdev);
-    pipe->set_optimal_local_size_xyz(16, 16, 1);
-    pipe->create(spirv_data.data(), spirv_data.size() * 4, specializations);
-    spirv_data.clear();
+    if (compile_spirv_module(USMFilter_data, opt, spirv_data) == 0)
+    {
+        pipe = new Pipeline(vkdev);
+        pipe->set_optimal_local_size_xyz(16, 16, 1);
+        pipe->create(spirv_data.data(), spirv_data.size() * 4, specializations);
+        spirv_data.clear();
+    }
 
-    compile_spirv_module(FilterColumn_data, opt, spirv_data);
-    pipe_column = new Pipeline(vkdev);
-    pipe_column->set_optimal_local_size_xyz(16, 16, 1);
-    pipe_column->create(spirv_data.data(), spirv_data.size() * 4, specializations);
-    spirv_data.clear();
+    if (compile_spirv_module(FilterColumn_data, opt, spirv_data) == 0)
+    {
+        pipe_column = new Pipeline(vkdev);
+        pipe_column->set_optimal_local_size_xyz(16, 16, 1);
+        pipe_column->create(spirv_data.data(), spirv_data.size() * 4, specializations);
+        spirv_data.clear();
+    }
 
-    compile_spirv_module(FilterRow_data, opt, spirv_data);
-    pipe_row = new Pipeline(vkdev);
-    pipe_row->set_optimal_local_size_xyz(16, 16, 1);
-    pipe_row->create(spirv_data.data(), spirv_data.size() * 4, specializations);
-    spirv_data.clear();
+    if (compile_spirv_module(FilterRow_data, opt, spirv_data) == 0)
+    {
+        pipe_row = new Pipeline(vkdev);
+        pipe_row->set_optimal_local_size_xyz(16, 16, 1);
+        pipe_row->create(spirv_data.data(), spirv_data.size() * 4, specializations);
+        spirv_data.clear();
+    }
 
     cmd->reset();
 

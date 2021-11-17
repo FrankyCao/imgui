@@ -222,28 +222,34 @@ int Cast_vulkan::create_pipeline(const Option& opt)
         // pack1
         if (shape.dims == 0 || elempack == 1)
         {
-            compile_spirv_module(cast_fp32_to_fp16, opt, spirv_cast_fp32_to_fp16);
-            pipeline_cast_fp32_to_fp16 = new Pipeline(vkdev);
-            pipeline_cast_fp32_to_fp16->set_optimal_local_size_xyz(local_size_xyz);
-            pipeline_cast_fp32_to_fp16->create(spirv_cast_fp32_to_fp16, specializations);
+            if (compile_spirv_module(cast_fp32_to_fp16, opt, spirv_cast_fp32_to_fp16) == 0)
+            {
+                pipeline_cast_fp32_to_fp16 = new Pipeline(vkdev);
+                pipeline_cast_fp32_to_fp16->set_optimal_local_size_xyz(local_size_xyz);
+                pipeline_cast_fp32_to_fp16->create(spirv_cast_fp32_to_fp16, specializations);
+            }
         }
 
         // pack4
         if (shape.dims == 0 || elempack == 4)
         {
-            compile_spirv_module(cast_fp32_to_fp16_pack4, opt, spirv_cast_fp32_to_fp16_pack4);
-            pipeline_cast_fp32_to_fp16_pack4 = new Pipeline(vkdev);
-            pipeline_cast_fp32_to_fp16_pack4->set_optimal_local_size_xyz(local_size_xyz);
-            pipeline_cast_fp32_to_fp16_pack4->create(spirv_cast_fp32_to_fp16_pack4, specializations);
+            if (compile_spirv_module(cast_fp32_to_fp16_pack4, opt, spirv_cast_fp32_to_fp16_pack4) == 0)
+            {
+                pipeline_cast_fp32_to_fp16_pack4 = new Pipeline(vkdev);
+                pipeline_cast_fp32_to_fp16_pack4->set_optimal_local_size_xyz(local_size_xyz);
+                pipeline_cast_fp32_to_fp16_pack4->create(spirv_cast_fp32_to_fp16_pack4, specializations);
+            }
         }
 
         // pack8
         if ((opt.use_shader_pack8 && shape.dims == 0) || elempack == 8)
         {
-            compile_spirv_module(cast_fp32_to_fp16_pack8, opt, spirv_cast_fp32_to_fp16_pack8);
-            pipeline_cast_fp32_to_fp16_pack8 = new Pipeline(vkdev);
-            pipeline_cast_fp32_to_fp16_pack8->set_optimal_local_size_xyz(local_size_xyz);
-            pipeline_cast_fp32_to_fp16_pack8->create(spirv_cast_fp32_to_fp16_pack8, specializations);
+            if (compile_spirv_module(cast_fp32_to_fp16_pack8, opt, spirv_cast_fp32_to_fp16_pack8) == 0)
+            {
+                pipeline_cast_fp32_to_fp16_pack8 = new Pipeline(vkdev);
+                pipeline_cast_fp32_to_fp16_pack8->set_optimal_local_size_xyz(local_size_xyz);
+                pipeline_cast_fp32_to_fp16_pack8->create(spirv_cast_fp32_to_fp16_pack8, specializations);
+            }
         }
     }
 
@@ -252,28 +258,34 @@ int Cast_vulkan::create_pipeline(const Option& opt)
         // pack1
         if (shape.dims == 0 || elempack == 1)
         {
-            compile_spirv_module(cast_fp16_to_fp32, opt, spirv_cast_fp16_to_fp32);
-            pipeline_cast_fp16_to_fp32 = new Pipeline(vkdev);
-            pipeline_cast_fp16_to_fp32->set_optimal_local_size_xyz(local_size_xyz);
-            pipeline_cast_fp16_to_fp32->create(spirv_cast_fp16_to_fp32, specializations);
+            if (compile_spirv_module(cast_fp16_to_fp32, opt, spirv_cast_fp16_to_fp32) == 0)
+            {
+                pipeline_cast_fp16_to_fp32 = new Pipeline(vkdev);
+                pipeline_cast_fp16_to_fp32->set_optimal_local_size_xyz(local_size_xyz);
+                pipeline_cast_fp16_to_fp32->create(spirv_cast_fp16_to_fp32, specializations);
+            }
         }
 
         // pack4
         if (shape.dims == 0 || elempack == 4)
         {
-            compile_spirv_module(cast_fp16_to_fp32_pack4, opt, spirv_cast_fp16_to_fp32_pack4);
-            pipeline_cast_fp16_to_fp32_pack4 = new Pipeline(vkdev);
-            pipeline_cast_fp16_to_fp32_pack4->set_optimal_local_size_xyz(local_size_xyz);
-            pipeline_cast_fp16_to_fp32_pack4->create(spirv_cast_fp16_to_fp32_pack4, specializations);
+            if (compile_spirv_module(cast_fp16_to_fp32_pack4, opt, spirv_cast_fp16_to_fp32_pack4) == 0)
+            {
+                pipeline_cast_fp16_to_fp32_pack4 = new Pipeline(vkdev);
+                pipeline_cast_fp16_to_fp32_pack4->set_optimal_local_size_xyz(local_size_xyz);
+                pipeline_cast_fp16_to_fp32_pack4->create(spirv_cast_fp16_to_fp32_pack4, specializations);
+            }
         }
 
         // pack8
         if ((opt.use_shader_pack8 && shape.dims == 0) || elempack == 8)
         {
-            compile_spirv_module(cast_fp16_to_fp32_pack8, opt, spirv_cast_fp16_to_fp32_pack8);
-            pipeline_cast_fp16_to_fp32_pack8 = new Pipeline(vkdev);
-            pipeline_cast_fp16_to_fp32_pack8->set_optimal_local_size_xyz(local_size_xyz);
-            pipeline_cast_fp16_to_fp32_pack8->create(spirv_cast_fp16_to_fp32_pack8, specializations);
+            if (compile_spirv_module(cast_fp16_to_fp32_pack8, opt, spirv_cast_fp16_to_fp32_pack8) == 0)
+            {
+                pipeline_cast_fp16_to_fp32_pack8 = new Pipeline(vkdev);
+                pipeline_cast_fp16_to_fp32_pack8->set_optimal_local_size_xyz(local_size_xyz);
+                pipeline_cast_fp16_to_fp32_pack8->create(spirv_cast_fp16_to_fp32_pack8, specializations);
+            }
         }
     }
 
