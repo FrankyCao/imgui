@@ -78,8 +78,13 @@ bool ImGuiEx::Canvas::Begin(ImGuiID id, const ImVec2& size)
 
     UpdateViewTransformPosition();
 
+# if IMGUI_VERSION_NUM > 18415
     if (ImGui::IsClippedEx(m_WidgetRect, id))
         return false;
+# else
+    if (ImGui::IsClippedEx(m_WidgetRect, id, false))
+        return false;
+# endif
 
     // Save current channel, so we can assert when user
     // call canvas API with different one.
@@ -384,7 +389,7 @@ void ImGuiEx::Canvas::EnterLocalSpace()
     //
     //     More investigation is needed. To get to the bottom of this.
     if ((!m_DrawList->CmdBuffer.empty() && m_DrawList->CmdBuffer.back().ElemCount > 0) || m_DrawList->_Splitter._Count > 1)
-        m_DrawList->AddDrawCmd();
+        ;m_DrawList->AddDrawCmd();
 
 # if IMGUI_EX_CANVAS_DEFERED()
     m_Ranges.resize(m_Ranges.Size + 1);
@@ -499,6 +504,7 @@ void ImGuiEx::Canvas::LeaveLocalSpace()
     auto& fringeScale = ImFringeScaleRef(m_DrawList);
     fringeScale = m_LastFringeScale;
 
+    m_DrawList->AddDrawCmd();
     // And pop \o/
     ImGui::PopClipRect();
 
