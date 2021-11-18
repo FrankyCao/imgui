@@ -83,5 +83,10 @@ void ShowKnobDemoWindow()
     static int count = 0;
     ImGui::UvMeter("##vuvr", ImVec2(10, 80), &idb, 0, 80, 20); ImGui::ShowTooltipOnHover("Vertical Uv meters.");
     ImGui::UvMeter("##huvr", ImVec2(80, 10), &idb, 0, 80, 20, &stack, &count); ImGui::ShowTooltipOnHover("Horizon Uv meters width stack effect.");
+
+    //ProgressBar
+    static float progress = 0.f;
+    progress += 0.1; if (progress > 100.f) progress = 0.f;
+    ImGui::RoundProgressBar(knob_size, &progress, 0.f, 100.f, circle_color, wiper_color, tick_color);
 }
 } // namespace ImGui

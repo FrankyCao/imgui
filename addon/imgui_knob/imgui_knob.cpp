@@ -711,3 +711,40 @@ bool ImGui::Knob(char const *label, float *p_value, float v_min, float v_max, fl
     ImGui::EndChild();
     return value_changed;
 }
+
+void ImGui::RoundProgressBar(float radius, float *p_value, float v_min, float v_max, ColorSet bar_color, ColorSet progress_color, ColorSet text_color)
+{
+    char label[20] = {0};
+    ImVec4 base_color = ImVec4(0.f, 0.f, 0.f, 1.f);
+    ColorSet back_color = {base_color, base_color, base_color};
+    float percentage = (*p_value - v_min) / (v_max - v_min) * 100.f;
+    sprintf(label, "%02.1f%%", percentage);
+    ImVec2 pos = ImGui::GetCursorScreenPos();
+    ImVec2 center = ImVec2(pos.x + radius, pos.y + radius);
+    ImGui::InvisibleButton("##round_progress_bar", ImVec2(radius * 2, radius * 2));
+    float angle_min = IM_PI * 0.75;
+    float angle_max = IM_PI * 2.25;
+    float t = percentage / 100.0;
+    angle_min = -IM_PI * 0.5;
+    angle_max = IM_PI * 1.5;
+    t = percentage / 100.f;
+    float angle = angle_min + (angle_max - angle_min) * t;
+    draw_circle(center, 0.95, true, 32, radius, bar_color);
+    draw_circle(center, 0.80, true, 32, radius, back_color);
+    for (float s = angle_min; s < angle; s += IM_PI / 72)
+        draw_dot(center, 0.87, 0.1, radius, s, true, 12, progress_color);
+    draw_dot(center, 0.87, 0.1, radius, angle, true, 12, progress_color);
+
+    
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    const char* text_end = label + strlen(label);
+    auto draw_size = ImGui::CalcTextSize(label);
+    float font_scale = radius / draw_size.x;
+    draw_size *= font_scale;
+    ImGui::PushStyleVar(ImGuiStyleVar_TexGlyphOutlineWidth, 1.f);
+    ImGui::PushStyleVar(ImGuiStyleVar_TexGlyphShadowOffset, ImVec2(3.0f, 3.0f));
+    ImGui::PushStyleColor(ImGuiCol_TexGlyphShadow, bar_color.base);
+    draw_list->AddText(ImGui::GetFont(), ImGui::GetFontSize() * font_scale, center - draw_size * ImVec2(0.5, 0.6), ImGui::GetColorU32(text_color.base), label, text_end);
+    ImGui::PopStyleVar(2);
+    ImGui::PopStyleColor();
+}
