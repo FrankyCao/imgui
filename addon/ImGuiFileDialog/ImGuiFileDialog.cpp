@@ -988,8 +988,23 @@ namespace IGFD
 		std::string _criteria;
 		if (vCriteria)
 			_criteria = std::string(vCriteria);
-		prFilesStyle[vFlags][_criteria] = std::make_shared<FileStyle>(vColor, vIcon, vFont);
-		prFilesStyle[vFlags][_criteria]->flags = vFlags;
+        
+        // Modify By Dicky
+        if (vFlags & IGFD_FileStyleByExtention)
+        {
+            std::transform(_criteria.begin(), _criteria.end(), _criteria.begin(), [](unsigned char c){ return std::tolower(c); });
+            prFilesStyle[vFlags][_criteria] = std::make_shared<FileStyle>(vColor, vIcon, vFont);
+		    prFilesStyle[vFlags][_criteria]->flags = vFlags;
+            std::transform(_criteria.begin(), _criteria.end(), _criteria.begin(), [](unsigned char c){ return std::toupper(c); });
+            prFilesStyle[vFlags][_criteria] = std::make_shared<FileStyle>(vColor, vIcon, vFont);
+		    prFilesStyle[vFlags][_criteria]->flags = vFlags;
+        }
+        else
+        {
+		    prFilesStyle[vFlags][_criteria] = std::make_shared<FileStyle>(vColor, vIcon, vFont);
+		    prFilesStyle[vFlags][_criteria]->flags = vFlags;
+        }
+        // Modify By Dicky end
 	}
 
 	// todo : to refactor this fucking function
@@ -3294,21 +3309,16 @@ namespace IGFD
         SetFileStyle(IGFD_FileStyleByExtention, ".h", ImVec4(0.0f, 0.15f, 0.15f, 0.9f), ICON_FA5_FILE_CODE);
         SetFileStyle(IGFD_FileStyleByExtention, ".hpp", ImVec4(0.0f, 0.0f, 0.5f, 0.9f), ICON_FA5_FILE_CODE);
         SetFileStyle(IGFD_FileStyleByExtention, ".md", ImVec4(0.15f, 0.0f, 0.15f, 0.9f), ICON_FK_MARKDOWN);
-        SetFileStyle(IGFD_FileStyleByExtention, ".png", ImVec4(0.0f, 0.5f, 0.5f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
-        SetFileStyle(IGFD_FileStyleByExtention, ".bmp", ImVec4(0.0f, 0.5f, 0.5f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
-        SetFileStyle(IGFD_FileStyleByExtention, ".jpg", ImVec4(0.0f, 0.5f, 0.5f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
-        SetFileStyle(IGFD_FileStyleByExtention, ".jpeg", ImVec4(0.0f, 0.5f, 0.5f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
+        SetFileStyle(IGFD_FileStyleByExtention, ".png", ImVec4(0.0f, 0.5f, 0.5f, 0.9f), ICON_IGFD_FILE_PIC);
+        SetFileStyle(IGFD_FileStyleByExtention, ".bmp", ImVec4(0.0f, 0.5f, 0.5f, 0.9f), ICON_IGFD_FILE_PIC);
+        SetFileStyle(IGFD_FileStyleByExtention, ".jpg", ImVec4(0.0f, 0.5f, 0.5f, 0.9f), ICON_IGFD_FILE_PIC);
+        SetFileStyle(IGFD_FileStyleByExtention, ".jpeg", ImVec4(0.0f, 0.5f, 0.5f, 0.9f), ICON_IGFD_FILE_PIC);
         SetFileStyle(IGFD_FileStyleByExtention, ".mp4", ImVec4(0.15f, 0.15f, 0.75f, 0.9f), ICON_FA4_FILE_VIDEO_O);
-        SetFileStyle(IGFD_FileStyleByExtention, ".MP4", ImVec4(0.15f, 0.15f, 0.75f, 0.9f), ICON_FA4_FILE_VIDEO_O);
         SetFileStyle(IGFD_FileStyleByExtention, ".ts", ImVec4(0.15f, 0.15f, 0.75f, 0.9f), ICON_FA4_FILE_VIDEO_O);
-        SetFileStyle(IGFD_FileStyleByExtention, ".TS", ImVec4(0.15f, 0.15f, 0.75f, 0.9f), ICON_FA4_FILE_VIDEO_O);
         SetFileStyle(IGFD_FileStyleByExtention, ".mkv", ImVec4(0.15f, 0.15f, 0.75f, 0.9f), ICON_FA4_FILE_VIDEO_O);
-        SetFileStyle(IGFD_FileStyleByExtention, ".MKV", ImVec4(0.15f, 0.15f, 0.75f, 0.9f), ICON_FA4_FILE_VIDEO_O);
         SetFileStyle(IGFD_FileStyleByExtention, ".mov", ImVec4(0.15f, 0.15f, 0.75f, 0.9f), ICON_FA4_FILE_VIDEO_O);
-        SetFileStyle(IGFD_FileStyleByExtention, ".MOV", ImVec4(0.15f, 0.15f, 0.75f, 0.9f), ICON_FA4_FILE_VIDEO_O);
         SetFileStyle(IGFD_FileStyleByExtention, ".webm", ImVec4(0.15f, 0.15f, 0.75f, 0.9f), ICON_FA4_FILE_VIDEO_O);
         SetFileStyle(IGFD_FileStyleByExtention, ".ttf", ImVec4(0.15f, 0.75f, 0.15f, 0.9f), ICON_FK_FONT);
-        SetFileStyle(IGFD_FileStyleByExtention, ".TTF", ImVec4(0.15f, 0.75f, 0.15f, 0.9f), ICON_FK_FONT);
         SetFileStyle(IGFD_FileStyleByExtention, ".doc", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA5_FILE_WORD);
         SetFileStyle(IGFD_FileStyleByExtention, ".docx", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA5_FILE_WORD);
         SetFileStyle(IGFD_FileStyleByExtention, ".ppt",  ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA5_FILE_POWERPOINT);
@@ -3333,21 +3343,16 @@ namespace IGFD
         SetFileStyle(IGFD_FileStyleByExtention, ".h", ImVec4(0.0f, 1.0f, 0.0f, 0.9f), ICON_FA5_FILE_CODE);
         SetFileStyle(IGFD_FileStyleByExtention, ".hpp", ImVec4(0.0f, 0.0f, 1.0f, 0.9f), ICON_FA5_FILE_CODE);
         SetFileStyle(IGFD_FileStyleByExtention, ".md", ImVec4(1.0f, 0.0f, 1.0f, 0.9f), ICON_FK_MARKDOWN);
-        SetFileStyle(IGFD_FileStyleByExtention, ".png", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
-        SetFileStyle(IGFD_FileStyleByExtention, ".bmp", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
-        SetFileStyle(IGFD_FileStyleByExtention, ".jpg", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
-        SetFileStyle(IGFD_FileStyleByExtention, ".jpeg", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC); // add an icon for the filter type
+        SetFileStyle(IGFD_FileStyleByExtention, ".png", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC);
+        SetFileStyle(IGFD_FileStyleByExtention, ".bmp", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC);
+        SetFileStyle(IGFD_FileStyleByExtention, ".jpg", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC);
+        SetFileStyle(IGFD_FileStyleByExtention, ".jpeg", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC);
         SetFileStyle(IGFD_FileStyleByExtention, ".mp4", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
-        SetFileStyle(IGFD_FileStyleByExtention, ".MP4", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
         SetFileStyle(IGFD_FileStyleByExtention, ".ts", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
-        SetFileStyle(IGFD_FileStyleByExtention, ".TS", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
         SetFileStyle(IGFD_FileStyleByExtention, ".mkv", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
-        SetFileStyle(IGFD_FileStyleByExtention, ".MKV", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
         SetFileStyle(IGFD_FileStyleByExtention, ".mov", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
-        SetFileStyle(IGFD_FileStyleByExtention, ".MOV", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
         SetFileStyle(IGFD_FileStyleByExtention, ".webm", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
         SetFileStyle(IGFD_FileStyleByExtention, ".ttf", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FK_FONT);
-        SetFileStyle(IGFD_FileStyleByExtention, ".TTF", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FK_FONT);
         SetFileStyle(IGFD_FileStyleByExtention, ".doc", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_WORD);
         SetFileStyle(IGFD_FileStyleByExtention, ".docx", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_WORD);
         SetFileStyle(IGFD_FileStyleByExtention, ".ppt", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_POWERPOINT);
