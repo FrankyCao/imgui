@@ -2996,8 +2996,8 @@ bool TabLabels(int numTabs, const char** tabLabels, int& selectedIndex, const ch
     const TabLabelStyle& tabStyle = TabLabelStyle::GetMergedWithWindowAlpha();
 
     const ImVec2 itemSpacing =  style.ItemSpacing;
-    style.ItemSpacing.x =       1;
-    style.ItemSpacing.y =       1;
+    style.ItemSpacing.x =       3;
+    style.ItemSpacing.y =       3;
 
     if (numTabs>0 && (selectedIndex<0 || selectedIndex>=numTabs)) {
         if (!pOptionalItemOrdering)  selectedIndex = 0;
