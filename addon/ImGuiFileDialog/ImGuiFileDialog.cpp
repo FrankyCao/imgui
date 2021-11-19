@@ -4472,6 +4472,20 @@ namespace IGFD
 		return prFileDialogInternal.puFileManager.GetResultingFileName(prFileDialogInternal);
 	}
 
+    // add by Dicky
+    std::string IGFD::FileDialog::GetCurrentFileSurfix()
+    {
+        std::string result;
+        std::string vFile = prFileDialogInternal.puFileManager.GetResultingFileName(prFileDialogInternal);
+        size_t lastPoint = vFile.find_last_of('.');
+		if (lastPoint != std::string::npos)
+		{
+			result = vFile.substr(lastPoint);
+		}
+        return result;
+    }
+    // add by Dicky end
+
 	std::string IGFD::FileDialog::GetCurrentFilter()
 	{
 		return prFileDialogInternal.puFilterManager.GetSelectedFilter().filter;
