@@ -3,13 +3,8 @@
 #include <string.h>
 #include <vulkan/vulkan.h>
 
-#ifdef VKSHADER_SYSTEM_GLSLANG
 #include "SPIRV/GlslangToSpv.h"
 #include "glslang/Public/ShaderLang.h"
-#else
-#include "libglslang/SPIRV/GlslangToSpv.h"
-#include "glslang/Public/ShaderLang.h"
-#endif
 
 #include "imvk_command.h"
 #include "imvk_pipelinecache.h"

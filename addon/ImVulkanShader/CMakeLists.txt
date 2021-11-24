@@ -17,8 +17,8 @@ if(POLICY CMP0025)
     # reference from https://cmake.org/cmake/help/latest/policy/CMP0025.html
     cmake_policy(SET CMP0025 NEW)
 endif()
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-option(VKSHADER_SYSTEM_GLSLANG        "Try to using system glslang library" ON)
 option(VKSHADER_VULKAN_BENCHMARK      "Enable Vulkan Shader Benchmark" OFF)
 option(VKSHADER_STATIC                "Build Vulkan Shader as static library" OFF)
 
@@ -46,101 +46,31 @@ set(LINK_LIBS
     ${Vulkan_LIBRARY}
 )
 
-if (VKSHADER_SYSTEM_GLSLANG)
-    set(GLSLANG_TARGET_DIR "GLSLANG-NOTFOUND" CACHE PATH "Absolute path to glslangTargets.cmake directory")
-    set(GLSLANG_INCLUDE_DIR "GLSLANG-NOTFOUND" CACHE PATH "Absolute path to glslang header files directory")
-    set(SPIRV_TARGET_DIR "SPIRV-NOTFOUND" CACHE PATH "Absolute path to SPIRVTargets.cmake directory")
-    set(SPIRV_TOOLS_TARGET_DIR "SPIRV-TOOLS-NOTFOUND" CACHE PATH "Absolute path to SPIRV-ToolsTarget.cmake directory")
-    set(SPIRV_TOOLS_OPT_TARGET_DIR "SPIRV-TOOLS-OPT-NOTFOUND" CACHE PATH "Absolute path to SPIRV-Tools-optTargets.cmake directory")
-    if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-        set(GLSLANG_TARGET_DIR "/usr/lib/x86_64-linux-gnu/cmake/glslang")
-        set(GLSLANG_INCLUDE_DIR "/usr/include/glslang")
-        set(SPIRV_TARGET_DIR "/usr/lib/x86_64-linux-gnu/cmake/glslang")
-        set(SPIRV_TOOLS_TARGET_DIR "/usr/lib/x86_64-linux-gnu/cmake/SPIRV-Tools")
-        set(SPIRV_TOOLS_OPT_TARGET_DIR "/usr/lib/x86_64-linux-gnu/cmake/SPIRV-Tools-opt")
-    elseif(APPLE)
-        set(GLSLANG_TARGET_DIR "/usr/local/lib/cmake")
-        set(GLSLANG_INCLUDE_DIR "/usr/local/include/glslang")
-        set(SPIRV_TARGET_DIR "/usr/local/lib/cmake")
-        set(SPIRV_TOOLS_TARGET_DIR "/usr/local/lib/cmake/SPIRV-Tools")
-        set(SPIRV_TOOLS_OPT_TARGET_DIR "/usr/local/lib/cmake/SPIRV-Tools-opt")
-    elseif(WIN32)
-        set(MINGW_PATH ${CMAKE_ROOT}/../..)
-        set(GLSLANG_TARGET_DIR "${MINGW_PATH}/lib/cmake")
-        set(GLSLANG_INCLUDE_DIR "${MINGW_PATH}/include/glslang")
-        set(SPIRV_TARGET_DIR "${MINGW_PATH}/lib/cmake")
-        set(SPIRV_TOOLS_TARGET_DIR "${MINGW_PATH}/lib/cmake/SPIRV-Tools")
-        set(SPIRV_TOOLS_OPT_TARGET_DIR "${MINGW_PATH}/lib/cmake/SPIRV-Tools-opt")
-    endif()
-    if(NOT GLSLANG_TARGET_DIR AND NOT DEFINED ENV{GLSLANG_TARGET_DIR})
-        message(WARNING "GLSLANG_TARGET_DIR must be defined! VKSHADER_SYSTEM_GLSLANG will be turned off.")
-        set(VKSHADER_SYSTEM_GLSLANG OFF)
-    else()
-        message(STATUS "Using glslang install located at ${GLSLANG_TARGET_DIR}")
-        find_package(Threads)
-        include("${GLSLANG_TARGET_DIR}/OSDependentTargets.cmake")
-        include("${GLSLANG_TARGET_DIR}/OGLCompilerTargets.cmake")
-        if(EXISTS "${GLSLANG_TARGET_DIR}/HLSLTargets.cmake")
-            # hlsl support can be optional
-            include("${GLSLANG_TARGET_DIR}/HLSLTargets.cmake")
-        endif()
-        include("${GLSLANG_TARGET_DIR}/glslangTargets.cmake")
-        include("${SPIRV_TOOLS_TARGET_DIR}/SPIRV-ToolsTarget.cmake")
-        include("${SPIRV_TOOLS_OPT_TARGET_DIR}/SPIRV-Tools-optTargets.cmake")
-        include("${SPIRV_TARGET_DIR}/SPIRVTargets.cmake")
-        if (NOT TARGET glslang OR NOT TARGET SPIRV)
-            message(WARNING "glslang or SPIRV target not found! VKSHADER_SYSTEM_GLSLANG will be turned off.")
-            set(VKSHADER_SYSTEM_GLSLANG OFF)
-        else()
-            add_definitions(-DVKSHADER_SYSTEM_GLSLANG)
-            set(VKSHADER_INC_DIRS
-                ${VKSHADER_INC_DIRS}
-                ${GLSLANG_INCLUDE_DIR}
-            )
-            set(GLSLANG_LIBRARY
-                glslang
-                OGLCompiler
-                OSDependent
-                SPIRV
-            )
-            set(LINK_LIBS
-                ${LINK_LIBS}
-                ${GLSLANG_LIBRARY}
-            )
-        endif()
-    endif()
-endif (VKSHADER_SYSTEM_GLSLANG)
 
-# Vulkan Shader/Glslang
-if(NOT VKSHADER_SYSTEM_GLSLANG)
-    option(BUILD_EXTERNAL "" OFF)
-    option(ENABLE_SPVREMAPPER "" OFF)
-    option(ENABLE_GLSLANG_BINARIES "" OFF)
-    option(ENABLE_HLSL "" OFF)
-    option(ENABLE_RTTI "" OFF)
-    option(ENABLE_EXCEPTIONS "" OFF)
-    option(ENABLE_OPT "" ON)
-    option(ENABLE_PCH "" OFF)
-    option(ENABLE_CTEST "" OFF)
-    option(SKIP_GLSLANG_INSTALL "" ON)
-    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/libglslang)
-    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_SIMULATE_ID MATCHES "MSVC"))
-        target_compile_options(glslang PRIVATE -fvisibility=hidden -fvisibility-inlines-hidden)
-        target_compile_options(OGLCompiler PRIVATE -fvisibility=hidden -fvisibility-inlines-hidden)
-        target_compile_options(OSDependent PRIVATE -fvisibility=hidden -fvisibility-inlines-hidden)
-        target_compile_options(SPIRV PRIVATE -fvisibility=hidden -fvisibility-inlines-hidden)
-    endif()
+find_package(Glslang COMPONENTS Glslang SPIRV)
+find_package(SpirvTools)
+if(TARGET Glslang::Glslang)
+    message(STATUS "VkShader Found system glslang library")
     set(GLSLANG_LIBRARY
-        glslang
-        OGLCompiler
-        OSDependent
-        SPIRV
-    )
-    set(LINK_LIBS
-        ${LINK_LIBS}
         ${GLSLANG_LIBRARY}
+        Glslang::Glslang
     )
-endif(NOT VKSHADER_SYSTEM_GLSLANG)
+endif()
+if(TARGET Glslang::SPIRV)
+    message(STATUS "VkShader Found system SPIRV library")
+    set(GLSLANG_LIBRARY
+        ${GLSLANG_LIBRARY}
+        Glslang::SPIRV
+    )
+endif()
+if (TARGET SpirvTools::SpirvTools)
+    message(STATUS "VkShader Found system SPRIV-Tools library")
+    set(GLSLANG_LIBRARY
+        ${GLSLANG_LIBRARY}
+        SpirvTools::SpirvTools
+        SpirvTools::Opt
+    )
+endif()
 
 if(VKSHADER_VULKAN_BENCHMARK)
     add_definitions(-DVULKAN_SHADER_BENCHMARK)
@@ -324,7 +254,7 @@ add_library(
 if(NOT VKSHADER_STATIC)
 set_property(TARGET VkShader PROPERTY POSITION_INDEPENDENT_CODE ON)
 endif()
-target_link_libraries(VkShader PRIVATE ${LINK_LIBS} SPIRV)
+target_link_libraries(VkShader PRIVATE ${LINK_LIBS} ${GLSLANG_LIBRARY})
 
 get_directory_property(hasParent PARENT_DIRECTORY)
 if(hasParent)

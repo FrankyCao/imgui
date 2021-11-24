@@ -57,9 +57,7 @@ void ImVulkanVkMatToVkImageMat(const VkMat &src, VkImageMat &dst)
 
 void ImVulkanShaderInit()
 {
-//#ifndef VKSHADER_SYSTEM_GLSLANG
     create_gpu_instance();
-//#endif
 }
 
 void ImVulkanShaderClear()
