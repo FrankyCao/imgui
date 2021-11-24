@@ -254,7 +254,7 @@ add_library(
 if(NOT VKSHADER_STATIC)
 set_property(TARGET VkShader PROPERTY POSITION_INDEPENDENT_CODE ON)
 endif()
-target_link_libraries(VkShader PRIVATE ${LINK_LIBS} ${GLSLANG_LIBRARY})
+target_link_libraries(VkShader ${LINK_LIBS} ${GLSLANG_LIBRARY})
 
 get_directory_property(hasParent PARENT_DIRECTORY)
 if(hasParent)
