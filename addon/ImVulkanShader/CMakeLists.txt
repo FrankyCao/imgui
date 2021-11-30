@@ -86,6 +86,7 @@ set(VKSHADER_SRCS
     imvk_Cast_vulkan.cpp
     imvk_Packing_vulkan.cpp
     imvk_substract_mean_normalize.cpp
+    imvk_copy_make_border.cpp
     ImVulkanShader.cpp
 )
 set(VKSHADER_INCS
@@ -107,6 +108,8 @@ set(VKSHADER_INCS
     imvk_Packing_vulkan.h
     imvk_substract_mean_normalize_shader.h
     imvk_substract_mean_normalize.h
+    imvk_copy_make_border_shader.h
+    imvk_copy_make_border.h
     ImVulkanShader.h
 )
 set(VKSHADER_SRCS
