@@ -49,7 +49,7 @@ public:
     // assign from VkMat
     VkMat& operator=(const VkMat& m);
     // assign from ImMat
-    VkMat& clone_from(const ImMat& m);
+    VkMat& operator=(const ImMat& m);
     // allocate vec
     void create(int w, size_t elemsize, VkAllocator* allocator);
     // allocate image
@@ -179,73 +179,16 @@ inline VkMat::VkMat(int _w, int _h, int _c, VkBufferMemory* _data, size_t _elems
 
 inline VkMat& VkMat::operator=(const VkMat& m)
 {
-    if (this == &m)
-        return *this;
-
-    if (m.refcount) IM_XADD(m.refcount, 1);
-
-    release();
-
-    data = m.data;
-    refcount = m.refcount;
-    elemsize = m.elemsize;
-    elempack = m.elempack;
-    allocator = m.allocator;
-
-    dims = m.dims;
-    w = m.w;
-    h = m.h;
-    c = m.c;
-
-    cstep = m.cstep;
-
-    type = m.type;
-    color_space = m.color_space;
-    color_format = m.color_format;
-    color_range = m.color_range;
-
-    device = m.device;
-    device_number = m.device_number;
-    time_stamp = m.time_stamp;
-    duration = m.duration;
-    depth = m.depth;
-
+    ImMat& dstMat = static_cast<ImMat&>(*this);
+    const ImMat& srcMat = static_cast<const ImMat&>(m);
+    dstMat = srcMat;
     return *this;
 }
 
-inline VkMat& VkMat::clone_from(const ImMat& m)
+inline VkMat& VkMat::operator=(const ImMat& m)
 {
-    if (this == &m)
-        return *this;
-
-    if (m.refcount) IM_XADD(m.refcount, 1);
-
-    release();
-
-    data = m.data;
-    refcount = m.refcount;
-    elemsize = m.elemsize;
-    elempack = m.elempack;
-    allocator = m.allocator;
-
-    dims = m.dims;
-    w = m.w;
-    h = m.h;
-    c = m.c;
-
-    cstep = m.cstep;
-
-    type = m.type;
-    color_space = m.color_space;
-    color_format = m.color_format;
-    color_range = m.color_range;
-
-    device = m.device;
-    device_number = m.device_number;
-    time_stamp = m.time_stamp;
-    duration = m.duration;
-    depth = m.depth;
-
+    ImMat& dstMat = static_cast<ImMat&>(*this);
+    dstMat = m;
     return *this;
 }
 

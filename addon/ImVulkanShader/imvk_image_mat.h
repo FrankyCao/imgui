@@ -47,8 +47,10 @@ public:
     VkImageMat(int w, int h, int c, VkImageMemory* data, size_t elemsize, int elempack, VkAllocator* allocator);
     // release
     ~VkImageMat() {};
-    // assign
+    // assign from VkImageMat
     VkImageMat& operator=(const VkImageMat& m);
+    // assign from ImMat
+    VkImageMat& operator=(const ImMat& m);
     // allocate vec
     void create(int w, size_t elemsize, VkAllocator* allocator);
     // allocate image
@@ -171,37 +173,16 @@ inline VkImageMat::VkImageMat(int _w, int _h, int _c, VkImageMemory* _data, size
 
 inline VkImageMat& VkImageMat::operator=(const VkImageMat& m)
 {
-    if (this == &m)
-        return *this;
+    ImMat& dstMat = static_cast<ImMat&>(*this);
+    const ImMat& srcMat = static_cast<const ImMat&>(m);
+    dstMat = srcMat;
+    return *this;
+}
 
-    if (m.refcount) IM_XADD(m.refcount, 1);
-
-    release();
-
-    data = m.data;
-    refcount = m.refcount;
-    elemsize = m.elemsize;
-    elempack = m.elempack;
-    allocator = m.allocator;
-
-    dims = m.dims;
-    w = m.w;
-    h = m.h;
-    c = m.c;
-
-    cstep = m.cstep;
-
-    type = m.type;
-    color_space = m.color_space;
-    color_format = m.color_format;
-    color_range = m.color_range;
-
-    device = m.device;
-    device_number = m.device_number;
-    time_stamp = m.time_stamp;
-    duration = m.duration;
-    depth = m.depth;
-
+inline VkImageMat& VkImageMat::operator=(const ImMat& m)
+{
+    ImMat& dstMat = static_cast<ImMat&>(*this);
+    dstMat = m;
     return *this;
 }
 

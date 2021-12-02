@@ -307,11 +307,9 @@ public:
     template<typename T> void operator/ (T v);
     template<typename T> ImMat& operator/= (T v);
     // deep copy
-    ImMat copy(Allocator* allocator = 0) const;
+    ImMat clone(Allocator* allocator = 0) const;
     // deep copy from other buffer, inplace
-    void copy_from(const ImMat& mat, Allocator* allocator = 0);
-    // create mat and add ref for buffer
-    ImMat clone() const;
+    void clone_from(const ImMat& mat, Allocator* allocator = 0);
     // reshape vec
     ImMat reshape(int w, Allocator* allocator = 0) const;
     // reshape image
@@ -555,8 +553,6 @@ inline ImMat::ImMat(int _w, int _h, int _c, size_t _elemsize, int _elempack, All
 inline ImMat::ImMat(const ImMat& m)
     : data(m.data), device(m.device), device_number(m.device_number), refcount(m.refcount), elemsize(m.elemsize), elempack(m.elempack), allocator(m.allocator), dims(m.dims), w(m.w), h(m.h), c(m.c), cstep(m.cstep), time_stamp(m.time_stamp), duration(m.duration)
 {
-    if (refcount) IM_XADD(refcount, 1);
-
     cstep = m.cstep;
     type = m.type;
     color_format = m.color_format;
@@ -565,6 +561,13 @@ inline ImMat::ImMat(const ImMat& m)
     flags = m.flags;
     rate = m.rate;
     depth = m.depth;
+
+    if (refcount && IM_XADD(refcount, 1) == 0)
+    {
+        // if argument 'm' is already released, then create an empty ImMat.
+        data = refcount = 0;
+        *this = ImMat();
+    }
 }
 
 inline ImMat::ImMat(int _w, void* _data, size_t _elemsize, Allocator* _allocator)
@@ -655,7 +658,9 @@ inline ImMat& ImMat::operator=(const ImMat& m)
     if (this == &m)
         return *this;
 
-    if (m.refcount) IM_XADD(m.refcount, 1);
+    if (m.refcount && IM_XADD(m.refcount, 1) == 0)
+        // if argument 'm' is already released, then do nothing
+        return *this;
 
     release();
 
@@ -1172,11 +1177,6 @@ inline void ImMat::create_like(const ImMat& m, Allocator* _allocator)
     duration = m.duration;
 }
 
-inline void ImMat::addref()
-{
-    if (refcount) IM_XADD(refcount, 1);
-}
-
 inline void ImMat::release()
 {
     if (refcount && IM_XADD(refcount, -1) == 1)
@@ -1417,7 +1417,7 @@ inline ImMat& ImMat::operator/=(T v)
     return *this;
 }
 
-inline ImMat ImMat::copy(Allocator* _allocator) const
+inline ImMat ImMat::clone(Allocator* _allocator) const
 {
     if (empty())
         return ImMat();
@@ -1456,41 +1456,9 @@ inline ImMat ImMat::copy(Allocator* _allocator) const
     return m;
 }
 
-inline void ImMat::copy_from(const ImMat& mat, Allocator* allocator)
+inline void ImMat::clone_from(const ImMat& mat, Allocator* allocator)
 {
-    *this = mat.copy(allocator);
-}
-
-inline ImMat ImMat::clone() const
-{
-    if (empty())
-        return ImMat();
-
-    if (refcount) IM_XADD(refcount, 1);
-
-    ImMat m;
-    if (dims == 1)
-        m.create_type(w, data, type, allocator);
-    else if (dims == 2)
-        m.create_type(w, h, data, type, allocator);
-    else if (dims == 3)
-        m.create_type(w, h, c, data, type, allocator);
-
-    m.elemsize = elemsize;
-    m.elempack = elempack;
-    m.color_format = color_format;
-    m.color_range = color_range;
-    m.color_space = color_space;
-    m.type = type;
-    m.time_stamp = time_stamp;
-    m.duration = duration;
-    m.duration = duration;
-    m.device = device;
-    m.device_number = device_number;
-    m.flags = flags;
-    m.rate = rate;
-    m.depth = depth;
-    return m;
+    *this = mat.clone(allocator);
 }
 
 inline ImMat ImMat::reshape(int _w, Allocator* _allocator) const
