@@ -1537,7 +1537,6 @@ struct IMGUI_API ImGuiDockNode
     bool                    WantMouseMove           :1; // After a node extraction we need to transition toward moving the newly created host window
     bool                    WantHiddenTabBarUpdate  :1;
     bool                    WantHiddenTabBarToggle  :1;
-    bool                    MarkedForPosSizeWrite   :1; // Update by DockNodeTreeUpdatePosSize() write-filtering
 
     ImGuiDockNode(ImGuiID id);
     ~ImGuiDockNode();
@@ -2930,6 +2929,7 @@ namespace ImGui
     IMGUI_API bool          DockNodeBeginAmendTabBar(ImGuiDockNode* node);
     IMGUI_API void          DockNodeEndAmendTabBar();
     inline ImGuiDockNode*   DockNodeGetRootNode(ImGuiDockNode* node)                 { while (node->ParentNode) node = node->ParentNode; return node; }
+    inline bool             DockNodeIsInHierarchyOf(ImGuiDockNode* node, ImGuiDockNode* parent) { while (node) { if (node == parent) return true; node = node->ParentNode; } return false; }
     inline int              DockNodeGetDepth(const ImGuiDockNode* node)              { int depth = 0; while (node->ParentNode) { node = node->ParentNode; depth++; } return depth; }
     inline ImGuiID          DockNodeGetWindowMenuButtonId(const ImGuiDockNode* node) { return ImHashStr("#COLLAPSE", 0, node->ID); }
     inline ImGuiDockNode*   GetWindowDockNode()                                      { ImGuiContext& g = *GImGui; return g.CurrentWindow->DockNode; }
@@ -3069,6 +3069,7 @@ namespace ImGui
     IMGUI_API void          RenderArrowDockMenu(ImDrawList* draw_list, ImVec2 p_min, float sz, ImU32 col);
     IMGUI_API void          RenderRectFilledRangeH(ImDrawList* draw_list, const ImRect& rect, ImU32 col, float x_start_norm, float x_end_norm, float rounding);
     IMGUI_API void          RenderRectFilledWithHole(ImDrawList* draw_list, ImRect outer, ImRect inner, ImU32 col, float rounding);
+    IMGUI_API ImDrawFlags   CalcRoundingFlagsForRectInRect(const ImRect& r_in, const ImRect& r_outer, float threshold);
 
 #ifndef IMGUI_DISABLE_OBSOLETE_FUNCTIONS
     // [1.71: 2019/06/07: Updating prototypes of some of the internal functions. Leaving those for reference for a short while]
