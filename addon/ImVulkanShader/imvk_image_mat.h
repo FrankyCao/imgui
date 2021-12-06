@@ -31,8 +31,10 @@ public:
     VkImageMat(int w, int h, size_t elemsize, int elempack, VkAllocator* allocator);
     // packed dim
     VkImageMat(int w, int h, int c, size_t elemsize, int elempack, VkAllocator* allocator);
-    // copy
+    // copy from VkImageMat
     VkImageMat(const VkImageMat& m);
+    // copy from ImMat
+    VkImageMat(const ImMat& m);
     // external vec
     VkImageMat(int w, VkImageMemory* data, size_t elemsize, VkAllocator* allocator);
     // external image
@@ -128,6 +130,11 @@ inline VkImageMat::VkImageMat(int _w, int _h, int _c, size_t _elemsize, int _ele
 }
 
 inline VkImageMat::VkImageMat(const VkImageMat& m)
+    : ImMat(m)
+{
+}
+
+inline VkImageMat::VkImageMat(const ImMat& m)
     : ImMat(m)
 {
 }
