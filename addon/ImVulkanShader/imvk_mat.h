@@ -81,6 +81,9 @@ public:
     VkBuffer buffer() const;
     size_t buffer_offset() const;
     size_t buffer_capacity() const;
+
+protected:
+    void allocate_buffer() override;
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -192,6 +195,17 @@ inline VkMat& VkMat::operator=(const ImMat& m)
     return *this;
 }
 
+inline void VkMat::allocate_buffer()
+{
+    size_t totalsize = Im_AlignSize(total() * elemsize, 4);
+
+    data = ((VkAllocator*)allocator)->fastMalloc(totalsize);
+    if (!data)
+        return;
+
+    refcount = std::make_shared<RefCount>();
+}
+
 inline void VkMat::create(int _w, size_t _elemsize, VkAllocator* _allocator)
 {
     if (dims == 1 && w == _w && elemsize == _elemsize && elempack == 1 && allocator == _allocator)
@@ -216,16 +230,7 @@ inline void VkMat::create(int _w, size_t _elemsize, VkAllocator* _allocator)
     cstep = w;
 
     if (total() > 0)
-    {
-        size_t totalsize = Im_AlignSize(total() * elemsize, 4);
-
-        data = (VkBufferMemory *)_allocator->fastMalloc(totalsize);
-        if (!data)
-            return;
-
-        refcount = (int*)((unsigned char*)data + offsetof(VkBufferMemory, refcount));
-        *refcount = 1;
-    }
+        allocate_buffer();
     device = IM_DD_VULKAN;
     device_number = _allocator ? _allocator->getDeviceIndex() : -1;
 }
@@ -254,16 +259,7 @@ inline void VkMat::create(int _w, int _h, size_t _elemsize, VkAllocator* _alloca
     cstep = (size_t)w * h;
 
     if (total() > 0)
-    {
-        size_t totalsize = Im_AlignSize(total() * elemsize, 4);
-
-        data = (VkBufferMemory *)_allocator->fastMalloc(totalsize);
-        if (!data)
-            return;
-
-        refcount = (int*)((unsigned char*)data + offsetof(VkBufferMemory, refcount));
-        *refcount = 1;
-    }
+        allocate_buffer();
     device = IM_DD_VULKAN;
     device_number = _allocator ? _allocator->getDeviceIndex() : -1;
 }
@@ -292,16 +288,7 @@ inline void VkMat::create(int _w, int _h, int _c, size_t _elemsize, VkAllocator*
     cstep = Im_AlignSize((size_t)w * h * elemsize, 16) / elemsize;
 
     if (total() > 0)
-    {
-        size_t totalsize = Im_AlignSize(total() * elemsize, 4);
-
-        data = (VkBufferMemory *)_allocator->fastMalloc(totalsize);
-        if (!data)
-            return;
-
-        refcount = (int*)((unsigned char*)data + offsetof(VkBufferMemory, refcount));
-        *refcount = 1;
-    }
+        allocate_buffer();
     device = IM_DD_VULKAN;
     device_number = _allocator ? _allocator->getDeviceIndex() : -1;
 }
@@ -330,16 +317,7 @@ inline void VkMat::create(int _w, size_t _elemsize, int _elempack, VkAllocator* 
     cstep = w;
 
     if (total() > 0)
-    {
-        size_t totalsize = Im_AlignSize(total() * elemsize, 4);
-
-        data = (VkBufferMemory *)_allocator->fastMalloc(totalsize);
-        if (!data)
-            return;
-
-        refcount = (int*)((unsigned char*)data + offsetof(VkBufferMemory, refcount));
-        *refcount = 1;
-    }
+        allocate_buffer();
     device = IM_DD_VULKAN;
     device_number = _allocator ? _allocator->getDeviceIndex() : -1;
 }
@@ -368,16 +346,7 @@ inline void VkMat::create(int _w, int _h, size_t _elemsize, int _elempack, VkAll
     cstep = (size_t)w * h;
 
     if (total() > 0)
-    {
-        size_t totalsize = Im_AlignSize(total() * elemsize, 4);
-
-        data = (VkBufferMemory *)_allocator->fastMalloc(totalsize);
-        if (!data)
-            return;
-
-        refcount = (int*)((unsigned char*)data + offsetof(VkBufferMemory, refcount));
-        *refcount = 1;
-    }
+        allocate_buffer();
     device = IM_DD_VULKAN;
     device_number = _allocator ? _allocator->getDeviceIndex() : -1;
 }
@@ -406,16 +375,7 @@ inline void VkMat::create(int _w, int _h, int _c, size_t _elemsize, int _elempac
     cstep = Im_AlignSize((size_t)w * h * elemsize, 16) / elemsize;
 
     if (total() > 0)
-    {
-        size_t totalsize = Im_AlignSize(total() * elemsize, 4);
-
-        data = (VkBufferMemory *)_allocator->fastMalloc(totalsize);
-        if (!data)
-            return;
-
-        refcount = (int*)((unsigned char*)data + offsetof(VkBufferMemory, refcount));
-        *refcount = 1;
-    }
+        allocate_buffer();
     device = IM_DD_VULKAN;
     device_number = _allocator ? _allocator->getDeviceIndex() : -1;
 }
@@ -444,16 +404,7 @@ inline void VkMat::create_type(int _w, ImDataType _t, VkAllocator* _allocator)
     depth = IM_DEPTH(_t);
 
     if (total() > 0)
-    {
-        size_t totalsize = Im_AlignSize(total() * elemsize, 4);
-
-        data = (VkBufferMemory *)_allocator->fastMalloc(totalsize);
-        if (!data)
-            return;
-
-        refcount = (int*)((unsigned char*)data + offsetof(VkBufferMemory, refcount));
-        *refcount = 1;
-    }
+        allocate_buffer();
     device = IM_DD_VULKAN;
     device_number = _allocator ? _allocator->getDeviceIndex() : -1;
 }
@@ -482,16 +433,7 @@ inline void VkMat::create_type(int _w, int _h, ImDataType _t, VkAllocator* _allo
     depth = IM_DEPTH(_t);
 
     if (total() > 0)
-    {
-        size_t totalsize = Im_AlignSize(total() * elemsize, 4);
-
-        data = (VkBufferMemory *)_allocator->fastMalloc(totalsize);
-        if (!data)
-            return;
-
-        refcount = (int*)((unsigned char*)data + offsetof(VkBufferMemory, refcount));
-        *refcount = 1;
-    }
+        allocate_buffer();
     device = IM_DD_VULKAN;
     device_number = _allocator ? _allocator->getDeviceIndex() : -1;
 }
@@ -520,16 +462,7 @@ inline void VkMat::create_type(int _w, int _h, int _c, ImDataType _t, VkAllocato
     depth = IM_DEPTH(_t);
 
     if (total() > 0)
-    {
-        size_t totalsize = Im_AlignSize(total() * elemsize, 4);
-
-        data = (VkBufferMemory *)_allocator->fastMalloc(totalsize);
-        if (!data)
-            return;
-
-        refcount = (int*)((unsigned char*)data + offsetof(VkBufferMemory, refcount));
-        *refcount = 1;
-    }
+        allocate_buffer();
     device = IM_DD_VULKAN;
     device_number = _allocator ? _allocator->getDeviceIndex() : -1;
 }

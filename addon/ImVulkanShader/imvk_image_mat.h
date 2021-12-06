@@ -75,6 +75,9 @@ public:
     // low-level reference
     VkImage image() const;
     VkImageView imageview() const;
+
+protected:
+    void allocate_buffer() override;
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -186,6 +189,17 @@ inline VkImageMat& VkImageMat::operator=(const ImMat& m)
     return *this;
 }
 
+inline void VkImageMat::allocate_buffer()
+{
+    size_t totalsize = Im_AlignSize(total() * elemsize, 4);
+
+    data = ((VkAllocator*)allocator)->fastMalloc(w, h, c, elemsize, elempack);
+    if (!data)
+        return;
+
+    refcount = std::make_shared<RefCount>();
+}
+
 inline void VkImageMat::create(int _w, size_t _elemsize, VkAllocator* _allocator)
 {
     if (dims == 1 && w == _w && elemsize == _elemsize && elempack == 1 && allocator == _allocator)
@@ -210,14 +224,7 @@ inline void VkImageMat::create(int _w, size_t _elemsize, VkAllocator* _allocator
     cstep = w;
 
     if (total() > 0)
-    {
-        data = (VkImageMemory *)_allocator->fastMalloc(w, h, c, elemsize, elempack);
-        if (!data)
-            return;
-
-        refcount = (int*)((unsigned char*)data + offsetof(VkImageMemory, refcount));
-        *refcount = 1;
-    }
+        allocate_buffer();
 
     device = IM_DD_VULKAN_IMAGE;
     device_number = _allocator ? _allocator->getDeviceIndex() : -1;
@@ -247,14 +254,7 @@ inline void VkImageMat::create(int _w, int _h, size_t _elemsize, VkAllocator* _a
     cstep = (size_t)w * h;
 
     if (total() > 0)
-    {
-        data = (VkImageMemory *)_allocator->fastMalloc(w, h, c, elemsize, elempack);
-        if (!data)
-            return;
-
-        refcount = (int*)((unsigned char*)data + offsetof(VkImageMemory, refcount));
-        *refcount = 1;
-    }
+        allocate_buffer();
 
     device = IM_DD_VULKAN_IMAGE;
     device_number = _allocator ? _allocator->getDeviceIndex() : -1;
@@ -284,14 +284,7 @@ inline void VkImageMat::create(int _w, int _h, int _c, size_t _elemsize, VkAlloc
     cstep = Im_AlignSize((size_t)w * h * elemsize, 16) / elemsize;
 
     if (total() > 0)
-    {
-        data = (VkImageMemory *)_allocator->fastMalloc(w, h, c, elemsize, elempack);
-        if (!data)
-            return;
-
-        refcount = (int*)((unsigned char*)data + offsetof(VkImageMemory, refcount));
-        *refcount = 1;
-    }
+        allocate_buffer();
 
     device = IM_DD_VULKAN_IMAGE;
     device_number = _allocator ? _allocator->getDeviceIndex() : -1;
@@ -321,14 +314,7 @@ inline void VkImageMat::create(int _w, size_t _elemsize, int _elempack, VkAlloca
     cstep = w;
 
     if (total() > 0)
-    {
-        data = (VkImageMemory *)_allocator->fastMalloc(w, h, c, elemsize, elempack);
-        if (!data)
-            return;
-
-        refcount = (int*)((unsigned char*)data + offsetof(VkImageMemory, refcount));
-        *refcount = 1;
-    }
+        allocate_buffer();
 
     device = IM_DD_VULKAN_IMAGE;
     device_number = _allocator ? _allocator->getDeviceIndex() : -1;
@@ -358,14 +344,7 @@ inline void VkImageMat::create(int _w, int _h, size_t _elemsize, int _elempack, 
     cstep = (size_t)w * h;
 
     if (total() > 0)
-    {
-        data = (VkImageMemory *)_allocator->fastMalloc(w, h, c, elemsize, elempack);
-        if (!data)
-            return;
-
-        refcount = (int*)((unsigned char*)data + offsetof(VkImageMemory, refcount));
-        *refcount = 1;
-    }
+        allocate_buffer();
 
     device = IM_DD_VULKAN_IMAGE;
     device_number = _allocator ? _allocator->getDeviceIndex() : -1;
@@ -395,14 +374,7 @@ inline void VkImageMat::create(int _w, int _h, int _c, size_t _elemsize, int _el
     cstep = Im_AlignSize((size_t)w * h * elemsize, 16) / elemsize;
 
     if (total() > 0)
-    {
-        data = (VkImageMemory *)_allocator->fastMalloc(w, h, c, elemsize, elempack);
-        if (!data)
-            return;
-
-        refcount = (int*)((unsigned char*)data + offsetof(VkImageMemory, refcount));
-        *refcount = 1;
-    }
+        allocate_buffer();
 
     device = IM_DD_VULKAN_IMAGE;
     device_number = _allocator ? _allocator->getDeviceIndex() : -1;
