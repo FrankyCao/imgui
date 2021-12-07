@@ -1126,9 +1126,8 @@ inline void ImMat::release()
         else if (data)
             Im_FastFree(data);
     }
-    refcount = nullptr;
-
     data = 0;
+    refcount = nullptr;
 
     elemsize = 0;
     elempack = 0;
