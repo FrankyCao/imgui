@@ -58,7 +58,8 @@ sfpvec3 load_src_yuv(int x, int y) \n\
     int uv_scale_h = p.in_format == CF_YUV420 || p.in_format == CF_NV12 || p.in_format == CF_P010LE ? 2 : 1; \n\
     int y_offset = y * p.w + x; \n\
     int u_offset = p.w * p.h + (y / uv_scale_h) * p.w / uv_scale_w + x / uv_scale_w; \n\
-    int v_offset = p.w * p.h * 2 + (y / uv_scale_h) * p.w / uv_scale_w + x / uv_scale_w; \n\
+    int v_offset = (p.in_format == CF_YUV444 ? p.w * p.h * 2 : p.w * p.h + (p.w / uv_scale_w) * (p.h / uv_scale_h)) \n\
+                 + (y / uv_scale_h) * p.w / uv_scale_w + x / uv_scale_w; \n\
     ivec2 uv_offset = p.w * p.h + ((y / 2) * p.w / 2 + x / 2) * 2 + ivec2(0, 1); \n\
     if (p.in_type == DT_INT8) \n\
     { \n\
