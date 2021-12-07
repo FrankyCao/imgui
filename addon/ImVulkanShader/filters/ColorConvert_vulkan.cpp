@@ -88,7 +88,7 @@ void ColorConvert_vulkan::upload_param(const VkMat& Im_YUV, VkMat& dst, ImColorF
     std::vector<vk_constant_type> constants(10);
     constants[0].i = Im_YUV.w;
     constants[1].i = Im_YUV.h;
-    constants[2].i = Im_YUV.c;
+    constants[2].i = dst.c;
     constants[3].i = color_format;
     constants[4].i = Im_YUV.type;
     constants[5].i = color_space;
