@@ -220,7 +220,7 @@ public:
 	void SetCursorPosition(const Coordinates& aPosition);
 
 	inline void SetHandleMouseInputs    (bool aValue){ mHandleMouseInputs    = aValue;}
-	inline bool IsHandleMouseInputsEnabled() const { return mHandleKeyboardInputs; }
+	inline bool IsHandleMouseInputsEnabled() const { return mHandleMouseInputs; }
 
 	inline void SetHandleKeyboardInputs (bool aValue){ mHandleKeyboardInputs = aValue;}
 	inline bool IsHandleKeyboardInputsEnabled() const { return mHandleKeyboardInputs; }
@@ -230,6 +230,9 @@ public:
 
 	inline void SetShowWhitespaces(bool aValue) { mShowWhitespaces = aValue; }
 	inline bool IsShowingWhitespaces() const { return mShowWhitespaces; }
+
+	inline void SetShowShortTabGlyphs(bool aValue) { mShowShortTabGlyphs = aValue; }
+	inline bool IsShowingShortTabGlyphs() const { return mShowShortTabGlyphs; }
 
 	void SetTabSize(int aValue);
 	inline int GetTabSize() const { return mTabSize; }
@@ -326,7 +329,7 @@ private:
 	void DeleteRange(const Coordinates& aStart, const Coordinates& aEnd);
 	int InsertTextAt(Coordinates& aWhere, const char* aValue);
 	void AddUndo(UndoRecord& aValue);
-	Coordinates ScreenPosToCoordinates(const ImVec2& aPosition) const;
+	Coordinates ScreenPosToCoordinates(const ImVec2& aPosition, bool aInsertionMode = false) const;
 	Coordinates FindWordStart(const Coordinates& aFrom) const;
 	Coordinates FindWordEnd(const Coordinates& aFrom) const;
 	Coordinates FindNextWord(const Coordinates& aFrom) const;
@@ -372,6 +375,7 @@ private:
 	bool mHandleMouseInputs;
 	bool mIgnoreImGuiChild;
 	bool mShowWhitespaces;
+	bool mShowShortTabGlyphs;
 
 	Palette mPaletteBase;
 	Palette mPalette;
@@ -387,6 +391,7 @@ private:
 	uint64_t mStartTime;
 
 	float mLastClick;
+    bool mSelecting;
 #if IMGUI_BUILD_EXAMPLE 
 public:
 	void text_edit_demo(bool * open);
