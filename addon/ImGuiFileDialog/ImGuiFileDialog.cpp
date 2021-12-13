@@ -62,7 +62,9 @@ SOFTWARE.
 		#define PATH_MAX 260
 	#endif // PATH_MAX
 #elif defined(__linux__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__APPLE__) || defined (__EMSCRIPTEN__)
+    #ifndef UNIX // add by Dicky for OSX build
 	#define UNIX
+    #endif
 	#define stricmp strcasecmp
 	#include <sys/types.h>
 	// this option need c++17
