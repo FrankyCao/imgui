@@ -408,7 +408,7 @@ bool Application_Frame(void* handle)
     {
         ImGui::SetNextWindowSize(ImVec2(1024, 768), ImGuiCond_FirstUseEver);
         ImGui::Begin("iMarkdown window",&example->show_markdown_window, ImGuiWindowFlags_NoScrollbar);
-        std::string help_doc =                   example->get_file_contents("imgui.md");
+        std::string help_doc =                   example->get_file_contents("README.md");
         example->mdConfig.linkCallback =         example->LinkCallback;
         example->mdConfig.tooltipCallback =      NULL;
         example->mdConfig.imageCallback =        example->ImageCallback;
