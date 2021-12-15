@@ -3328,6 +3328,9 @@ namespace IGFD
         SetFileStyle(IGFD_FileStyleByExtention, ".xls",  ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA5_FILE_EXCEL);
         SetFileStyle(IGFD_FileStyleByExtention, ".xlsx", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA5_FILE_EXCEL);
         SetFileStyle(IGFD_FileStyleByExtention, ".pdf",  ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA5_FILE_PDF);
+        SetFileStyle(IGFD_FileStyleByTypeDir,   nullptr, ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_IGFD_FOLDER);
+        SetFileStyle(IGFD_FileStyleByTypeDir | IGFD_FileStyleByContainedInFullName, ".git", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_IGFD_BOOKMARK);
+	    SetFileStyle(IGFD_FileStyleByTypeFile | IGFD_FileStyleByContainedInFullName, ".git", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_IGFD_SAVE);
 #endif
         SetFileStyle(IGFD_FileStyleByExtention, ".gif", ImVec4(0.0f, 0.5f, 0.5f, 0.9f), "[GIF]"); // add an text for a filter type
 	}
@@ -3362,6 +3365,9 @@ namespace IGFD
         SetFileStyle(IGFD_FileStyleByExtention, ".xls", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_EXCEL);
         SetFileStyle(IGFD_FileStyleByExtention, ".xlsx", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_EXCEL);
         SetFileStyle(IGFD_FileStyleByExtention, ".pdf", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_PDF);
+        SetFileStyle(IGFD_FileStyleByTypeDir,   nullptr, ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FOLDER);
+        SetFileStyle(IGFD_FileStyleByTypeDir | IGFD_FileStyleByContainedInFullName, ".git", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_BOOKMARK);
+	    SetFileStyle(IGFD_FileStyleByTypeFile | IGFD_FileStyleByContainedInFullName, ".git", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_SAVE);
 #endif
         SetFileStyle(IGFD_FileStyleByExtention, ".gif", ImVec4(0.0f, 1.0f, 0.5f, 0.9f), "[GIF]"); // add an text for a filter type
 	}
@@ -4022,7 +4028,7 @@ namespace IGFD
 					}
 				}
 
-				return true; // needToBreakTheloop
+				//return true; // needToBreakTheloop
 			}
 			else
 			{
