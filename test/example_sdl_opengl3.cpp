@@ -311,7 +311,7 @@ int main(int, char**)
         // Show Markdown Window
         if (show_markdown_window)
         {
-            std::string help_doc = get_file_contents("imgui.md");
+            std::string help_doc = get_file_contents("README.md");
             mdConfig.linkCallback =         LinkCallback;
             mdConfig.tooltipCallback =      NULL;
             mdConfig.imageCallback =        ImageCallback;
