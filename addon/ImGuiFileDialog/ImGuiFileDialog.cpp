@@ -1540,7 +1540,7 @@ namespace IGFD
 #else // dirent
 			struct dirent** files = nullptr;
 			size_t n = scandir(path.c_str(), &files, nullptr, inAlphaSort);
-			if (files && n)
+			if (files && n) // modify by Dicky
 			{
 				size_t i;
 
@@ -2848,10 +2848,10 @@ namespace IGFD
 				{
 					// if bad format we jump this bookmark
 					bookmark.path = arr[i + 1];
-                    // Modify by Dicky, remove not exist path from bookmark
-                    if (Utils::IsDirectoryExist(bookmark.path))
+					// Modify by Dicky, remove not exist path from bookmark
+					if (Utils::IsDirectoryExist(bookmark.path))
 					    prBookmarks.push_back(bookmark);
-                    // Modify by Dicky end
+					// Modify by Dicky end
 				}
 			}
 		}
@@ -2966,7 +2966,7 @@ namespace IGFD
 
 			if (g.NavId && g.NavId == vListViewID)
 			{
-				if (ImGui::IsKeyPressedMap(IGFD_KEY_ENTER) ||
+				if (ImGui::IsKeyPressedMap(ImGuiKey_Enter) ||
 					ImGui::IsKeyPressedMap(ImGuiKey_KeyPadEnter) ||
 					ImGui::IsKeyPressedMap(ImGuiKey_Space))
 				{
@@ -3775,7 +3775,7 @@ namespace IGFD
 
 				// draw dialog parts
 				prDrawHeader(); // bookmark, directory, path
-				prDrawContent(); // bookmark, files view, side pane
+				prDrawContent(); // bookmark, files view, side pane 
 				// Modify By Dicky for double clock select file
 				if (prFileDialogInternal.puIsOk && prFileDialogInternal.puNeedToExitDialog)
 				{
@@ -4002,8 +4002,8 @@ namespace IGFD
 			if (vInfos->fileType == 'd')
 			{
 				// nav system, selectebale cause open directory or select directory
-                // we try to do double click for select directory modify by Dicky
-                /*
+				// we try to do double click for select directory modify by Dicky
+				/*
 				if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_NavEnableKeyboard)
 				{
 					if (fdi.puDLGDirectoryMode) // directory chooser
@@ -4016,7 +4016,7 @@ namespace IGFD
 					}
 				}
 				else // no nav system => classic behavior
-                */
+				*/
 				{
 					if (ImGui::IsMouseDoubleClicked(0)) // 0 -> left mouse button double click
 					{
@@ -4480,19 +4480,19 @@ namespace IGFD
 		return prFileDialogInternal.puFileManager.GetResultingFileName(prFileDialogInternal);
 	}
 
-    // add by Dicky
-    std::string IGFD::FileDialog::GetCurrentFileSurfix()
-    {
-        std::string result;
-        std::string vFile = prFileDialogInternal.puFileManager.GetResultingFileName(prFileDialogInternal);
-        size_t lastPoint = vFile.find_last_of('.');
+	// add by Dicky
+	std::string IGFD::FileDialog::GetCurrentFileSurfix()
+	{
+		std::string result;
+		std::string vFile = prFileDialogInternal.puFileManager.GetResultingFileName(prFileDialogInternal);
+		size_t lastPoint = vFile.find_last_of('.');
 		if (lastPoint != std::string::npos)
 		{
 			result = vFile.substr(lastPoint);
 		}
-        return result;
-    }
-    // add by Dicky end
+		return result;
+	}
+	// add by Dicky end
 
 	std::string IGFD::FileDialog::GetCurrentFilter()
 	{
