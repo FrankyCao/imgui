@@ -153,6 +153,7 @@ struct ImGui_ImplVulkanH_Window
     }
 };
 
+// add By Dicky
 typedef struct ImTextureVK
 {
     VkDescriptorSet textureDescriptor = VK_NULL_HANDLE;
@@ -187,4 +188,4 @@ IMGUI_IMPL_API void         ImGui_ImplVulkan_SaveTexture(ImTextureVk texture, in
 IMGUI_IMPL_API void         ImGui_ImplVulkan_DestroyTexture(ImTextureVk * texture);
 IMGUI_IMPL_API VkDescriptorSet ImGui_ImplVulkan_AddTexture(VkSampler sampler, VkImageView image_view, VkImageLayout image_layout);
 IMGUI_IMPL_API ImGui_ImplVulkan_InitInfo* ImGui_ImplVulkan_GetInitInfo();
-
+// add By Dicky end
