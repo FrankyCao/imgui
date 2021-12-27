@@ -169,6 +169,7 @@ void ImGui_ImplGlfw_ScrollCallback(GLFWwindow* window, double xoffset, double yo
 void ImGui_ImplGlfw_CursorPosCallback(GLFWwindow* window, double xpos, double ypos)
 {
     ImGui_ImplGlfw_Data* bd = ImGui_ImplGlfw_GetBackendData();
+    if (!bd) return;
     if (bd->PrevUserCallbackCursorPos != NULL)
         bd->PrevUserCallbackCursorPos(window, xpos, ypos);
 
