@@ -2002,6 +2002,8 @@ int VkCompute::submit_and_wait()
         }
     }
 
+    vkdev->reclaim_queue(vkdev->info.compute_queue_family_index(), compute_queue);
+
     // wait
     {
         VkResult ret = vkWaitForFences(vkdev->vkdevice(), 1, &d->compute_command_fence, VK_TRUE, (uint64_t)-1);
@@ -2011,8 +2013,6 @@ int VkCompute::submit_and_wait()
             return -1;
         }
     }
-
-    vkdev->reclaim_queue(vkdev->info.compute_queue_family_index(), compute_queue);
 
     // handle delayed post records
     for (size_t i = 0; i < d->delayed_records.size(); i++)
