@@ -1190,6 +1190,17 @@ if (IMGUI_BUILD_EXAMPLE AND ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
     )
 endif()
 
+if (IMGUI_BUILD_EXAMPLE AND IMGUI_VULKAN_SHADER)
+add_executable(
+    vulkan_shader_test
+    test/vulkan_shader_test.cpp
+)
+target_link_libraries(
+    vulkan_shader_test
+    VkShader
+)
+endif(IMGUI_BUILD_EXAMPLE AND IMGUI_VULKAN_SHADER)
+
 get_directory_property(hasParent PARENT_DIRECTORY)
 if(hasParent)
     set(IMGUI_LIBRARYS imgui ${LINK_LIBS} PARENT_SCOPE )
