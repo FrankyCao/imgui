@@ -6609,8 +6609,12 @@ int ImGui::PlotEx(ImGuiPlotType plot_type, const char* label, float (*values_get
         for (int n = 0; n < res_w; n++)
         {
             const float t1 = t0 + t_step;
-            const int v1_idx = (int)(t0 * item_count + 0.5f);
-            IM_ASSERT(v1_idx >= 0 && v1_idx < values_count);
+            // Modify By Dicky
+            int v1_idx = (int)(t0 * item_count + 0.5f);
+            //IM_ASSERT(v1_idx >= 0 && v1_idx < values_count);
+            if (v1_idx < 0) v1_idx = 0;
+            if (v1_idx > values_count) v1_idx = values_count;
+            // Modify By Dicky end
             const float v1 = values_getter(data, (v1_idx + values_offset + 1) % values_count);
             const ImVec2 tp1 = ImVec2( t1, 1.0f - ImSaturate((v1 - scale_min) * inv_scale) );
 
