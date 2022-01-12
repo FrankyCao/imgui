@@ -58,10 +58,11 @@ void imgui_logger::OverlayLogger::Log(LogLevel level, const char* format, ...)
     OutputDebugStringA(entry.m_Text.c_str());
     OutputDebugStringA("\n");
 # endif
-
+    m_EntriesLock.lock();
     if (m_Entries.size() >= m_EntrySize)
         m_Entries.erase(m_Entries.begin());
     m_Entries.push_back(std::move(entry));
+    m_EntriesLock.unlock();
 }
 
 void imgui_logger::OverlayLogger::Update(float dt)
@@ -83,8 +84,9 @@ void imgui_logger::OverlayLogger::Update(float dt)
     {
         return entry.m_Timer >= m_MessageLifeDuration;
     });
-
+    m_EntriesLock.lock();
     m_Entries.erase(lastIt, m_Entries.end());
+    m_EntriesLock.unlock();
 }
 
 void imgui_logger::OverlayLogger::Draw(const ImVec2& a, const ImVec2& b)

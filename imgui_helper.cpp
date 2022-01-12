@@ -632,6 +632,23 @@ bool ImTextureToFile(ImTextureID texture, std::string path)
     return false;
 }
 
+void ImMatToTexture(ImGui::ImMat mat, ImTextureID& texture)
+{
+    if (mat.empty())
+        return;
+    if (mat.device == ImDataDevice::IM_DD_CPU)
+    {
+        ImGui::ImGenerateOrUpdateTexture(texture, mat.w, mat.h, mat.c, (const unsigned char *)mat.data);
+    }
+#if IMGUI_VULKAN_SHADER
+    if (mat.device == ImDataDevice::IM_DD_VULKAN)
+    {
+        ImGui::VkMat vkmat = mat;
+        ImGui::ImGenerateOrUpdateTexture(texture, vkmat.w, vkmat.h, vkmat.c, vkmat.buffer_offset(), (const unsigned char *)vkmat.buffer());
+    }
+#endif
+}
+
 bool OpenWithDefaultApplication(const char* url,bool exploreModeForWindowsOS)	
 {
 #       ifdef _WIN32

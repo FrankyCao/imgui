@@ -2,6 +2,7 @@
 # include <imgui.h>
 # include <vector>
 # include <string>
+# include <mutex>
 # include <time.h>
 # include <stdint.h>
 
@@ -113,6 +114,7 @@ private:
     float           m_MessageLifeDuration         = m_MessagePresentationDuration + m_MessageFadeOutDuration;
     bool            m_HoldTimer                   = false;
     int32_t         m_EntrySize                   = 1024;
+    std::mutex      m_EntriesLock;
     vector<Entry>   m_Entries;
     vector<string>  m_Keywords;
     ImColor         m_Colors[LogColor_Count];
