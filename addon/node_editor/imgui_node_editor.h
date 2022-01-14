@@ -86,7 +86,11 @@ enum class SaveReasonFlags: uint32_t
     Position   = 0x00000002,
     Size       = 0x00000004,
     Selection  = 0x00000008,
-    User       = 0x00000010
+    Node       = 0x00000010,
+    Pin        = 0x00000020,
+    Link       = 0x00000040,
+    // Others
+    User       = 0x10000000
 };
 
 inline SaveReasonFlags operator |(SaveReasonFlags lhs, SaveReasonFlags rhs) { return static_cast<SaveReasonFlags>(static_cast<uint32_t>(lhs) | static_cast<uint32_t>(rhs)); }

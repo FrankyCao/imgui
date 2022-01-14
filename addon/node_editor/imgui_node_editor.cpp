@@ -1598,7 +1598,7 @@ void ed::EditorContext::SetNodeChanged(NodeId nodeId)
     auto node = FindNode(nodeId);
     if (node)
     {
-        MakeDirty(NodeEditor::SaveReasonFlags::User, node);
+        MakeDirty(NodeEditor::SaveReasonFlags::Node, node);
     }
 }
 
@@ -1607,7 +1607,7 @@ void ed::EditorContext::SetPinChanged(PinId pinId)
     auto pin = FindPin(pinId);
     if (pin)
     {
-        MakeDirty(NodeEditor::SaveReasonFlags::User);
+        MakeDirty(NodeEditor::SaveReasonFlags::Pin);
     }
 }
 
@@ -1616,7 +1616,7 @@ void ed::EditorContext::SetLinkChanged(LinkId linkId)
     auto link = FindLink(linkId);
     if (link)
     {
-        MakeDirty(NodeEditor::SaveReasonFlags::User);
+        MakeDirty(NodeEditor::SaveReasonFlags::Link);
     }
 }
 
