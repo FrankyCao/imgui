@@ -1327,6 +1327,8 @@ void ImGuiIO::AddKeyEvent(ImGuiKey key, bool down)
 // If you are writing a backend in 2022 or don't use IsKeyXXX() with native values that are not ImGuiKey values, you can avoid calling this.
 void ImGuiIO::SetKeyEventNativeData(ImGuiKey key, int native_keycode, int native_scancode, int native_legacy_index)
 {
+    if (key == ImGuiKey_None)
+        return;
     IM_ASSERT(ImGui::IsNamedKey(key)); // >= 512
     IM_ASSERT(native_legacy_index == -1 || ImGui::IsLegacyKey(native_legacy_index)); // >= 0 && <= 511
     IM_UNUSED(native_keycode);  // Yet unused
@@ -8100,6 +8102,8 @@ const char* ImGui::GetKeyName(ImGuiKey key)
 #endif
     if (key == ImGuiKey_None)
         return "None";
+    if (!IsNamedKey(key))
+        return "Unknown";
 
     return GKeyNames[key - ImGuiKey_NamedKey_BEGIN];
 }
@@ -8248,6 +8252,7 @@ bool ImGui::IsMousePosValid(const ImVec2* mouse_pos)
     return p.x >= MOUSE_INVALID && p.y >= MOUSE_INVALID;
 }
 
+// [WILL OBSOLETE] This was designed for backends, but prefer having backend maintain a mask of held mouse buttons, because upcoming input queue system will make this invalid.
 bool ImGui::IsAnyMouseDown()
 {
     ImGuiContext& g = *GImGui;
@@ -8303,6 +8308,13 @@ void ImGui::CaptureMouseFromApp(bool capture)
 {
     ImGuiContext& g = *GImGui;
     g.WantCaptureMouseNextFrame = capture ? 1 : 0;
+}
+
+static const char* GetInputSourceName(ImGuiInputSource source)
+{
+    const char* input_source_names[] = { "None", "Mouse", "Keyboard", "Gamepad", "Nav", "Clipboard" };
+    IM_ASSERT(IM_ARRAYSIZE(input_source_names) == ImGuiInputSource_COUNT && source >= 0 && source < ImGuiInputSource_COUNT);
+    return input_source_names[source];
 }
 
 
@@ -10496,6 +10508,18 @@ static ImVec2 ImGui::NavCalcPreferredRefPos()
         ImGuiViewport* viewport = window->Viewport;
         return ImFloor(ImClamp(pos, viewport->Pos, viewport->Pos + viewport->Size)); // ImFloor() is important because non-integer mouse position application in backend might be lossy and result in undesirable non-zero delta.
     }
+}
+
+const char* ImGui::GetNavInputName(ImGuiNavInput n)
+{
+    static const char* names[] =
+    {
+        "Activate", "Cancel", "Input", "Menu", "DpadLeft", "DpadRight", "DpadUp", "DpadDown", "LStickLeft", "LStickRight", "LStickUp", "LStickDown",
+        "FocusPrev", "FocusNext", "TweakSlow", "TweakFast", "KeyLeft", "KeyRight", "KeyUp", "KeyDown"
+    };
+    IM_ASSERT(IM_ARRAYSIZE(names) == ImGuiNavInput_COUNT);
+    IM_ASSERT(n >= 0 && n < ImGuiNavInput_COUNT);
+    return names[n];
 }
 
 float ImGui::GetNavInputAmount(ImGuiNavInput n, ImGuiInputReadMode mode)
@@ -18430,8 +18454,6 @@ void ImGui::ShowMetricsWindow(bool* p_open)
     // Misc Details
     if (TreeNode("Internal state"))
     {
-        const char* input_source_names[] = { "None", "Mouse", "Keyboard", "Gamepad", "Nav", "Clipboard" }; IM_ASSERT(IM_ARRAYSIZE(input_source_names) == ImGuiInputSource_COUNT);
-
         Text("WINDOWING");
         Indent();
         Text("HoveredWindow: '%s'", g.HoveredWindow ? g.HoveredWindow->Name : "NULL");
@@ -18444,7 +18466,7 @@ void ImGui::ShowMetricsWindow(bool* p_open)
 
         Text("ITEMS");
         Indent();
-        Text("ActiveId: 0x%08X/0x%08X (%.2f sec), AllowOverlap: %d, Source: %s", g.ActiveId, g.ActiveIdPreviousFrame, g.ActiveIdTimer, g.ActiveIdAllowOverlap, input_source_names[g.ActiveIdSource]);
+        Text("ActiveId: 0x%08X/0x%08X (%.2f sec), AllowOverlap: %d, Source: %s", g.ActiveId, g.ActiveIdPreviousFrame, g.ActiveIdTimer, g.ActiveIdAllowOverlap, GetInputSourceName(g.ActiveIdSource));
         Text("ActiveIdWindow: '%s'", g.ActiveIdWindow ? g.ActiveIdWindow->Name : "NULL");
 
         int active_id_using_key_input_count = 0;
@@ -18459,7 +18481,7 @@ void ImGui::ShowMetricsWindow(bool* p_open)
         Indent();
         Text("NavWindow: '%s'", g.NavWindow ? g.NavWindow->Name : "NULL");
         Text("NavId: 0x%08X, NavLayer: %d", g.NavId, g.NavLayer);
-        Text("NavInputSource: %s", input_source_names[g.NavInputSource]);
+        Text("NavInputSource: %s", GetInputSourceName(g.NavInputSource));
         Text("NavActive: %d, NavVisible: %d", g.IO.NavActive, g.IO.NavVisible);
         Text("NavActivateId/DownId/PressedId/InputId: %08X/%08X/%08X/%08X", g.NavActivateId, g.NavActivateDownId, g.NavActivatePressedId, g.NavActivateInputId);
         Text("NavActivateFlags: %04X", g.NavActivateFlags);
