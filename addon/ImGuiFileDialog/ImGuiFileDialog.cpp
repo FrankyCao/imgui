@@ -2281,10 +2281,16 @@ namespace IGFD
 
 	std::string IGFD::FileManager::GetResultingFileName(FileDialogInternal& vFileDialogInternal)
 	{
+		// Modify By Dicky
 		if (!puDLGDirectoryMode) // if not directory mode
+		{
+			return std::string(puFileNameBuffer);
+		}
+		else
 		{
 			return vFileDialogInternal.puFilterManager.ReplaceExtentionWithCurrentFilter(std::string(puFileNameBuffer));
 		}
+		// Modify By Dicky end
 
 		return ""; // directory mode
 	}
