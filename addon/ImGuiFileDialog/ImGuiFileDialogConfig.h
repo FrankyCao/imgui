@@ -108,6 +108,21 @@
 //#define tableHeaderFileTypeString " Type"
 //#define tableHeaderFileSizeString " Size"
 //#define tableHeaderFileDateTimeString " Date"
+//#define fileSizeBytes "B"
+//#define fileSizeKiloBytes "KB"
+//#define fileSizeMegaBytes "MB"
+//#define fileSizeGigaBytes "GB"
+//#define fileSizeTeraBytes "TB"
+
+// default table sort field (must be FIELD_FILENAME, FIELD_TYPE, FIELD_SIZE, FIELD_DATE or FIELD_THUMBNAILS)
+//#define defaultSortField FIELD_FILENAME
+
+// default table sort order for each field (true => Descending, false => Ascending)
+//#define defaultSortOrderFilename true
+//#define defaultSortOrderType true
+//#define defaultSortOrderSize true
+//#define defaultSortOrderDate true
+//#define defaultSortOrderThumbnails true
 
 #define USE_BOOKMARK
 #if IMGUI_ICONS

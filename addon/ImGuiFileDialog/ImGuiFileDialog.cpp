@@ -61,7 +61,7 @@ SOFTWARE.
 	#ifndef PATH_MAX
 		#define PATH_MAX 260
 	#endif // PATH_MAX
-#elif defined(__linux__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__APPLE__) || defined (__EMSCRIPTEN__)
+#elif defined(__linux__) || defined(__FreeBSD__) || defined(__DragonFly__) || defined(__NetBSD__) || defined(__APPLE__) || defined (__EMSCRIPTEN__)
     #ifndef UNIX // add by Dicky for OSX build
 	#define UNIX
     #endif
@@ -72,7 +72,7 @@ SOFTWARE.
 		#include <dirent.h> 
 	#endif // USE_STD_FILESYSTEM
 	#define PATH_SEP '/'
-#endif // defined(__linux__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__APPLE__)
+#endif // defined(__linux__) || defined(__FreeBSD__) || defined(__DragonFly__) || defined(__NetBSD__) || defined(__APPLE__) || defined (__EMSCRIPTEN__)
 
 #include "imgui.h"
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
@@ -194,6 +194,21 @@ namespace IGFD
 #ifndef tableHeaderFileDateString
 #define tableHeaderFileDateString "Date"
 #endif // tableHeaderFileDateString
+#ifndef fileSizeBytes
+#define fileSizeBytes "B" // Modify By Dicky
+#endif // fileSizeBytes
+#ifndef fileSizeKiloBytes
+#define fileSizeKiloBytes "KB" // Modify By Dicky
+#endif // fileSizeKiloBytes
+#ifndef fileSizeMegaBytes
+#define fileSizeMegaBytes "MB" // Modify By Dicky
+#endif // fileSizeMegaBytes
+#ifndef fileSizeGigaBytes
+#define fileSizeGigaBytes "GB" // Modify By Dicky
+#endif // fileSizeGigaBytes
+#ifndef fileSizeTeraBytes
+#define fileSizeTeraBytes "TB" // Modify By Dicky
+#endif // fileSizeTeraBytes
 #ifndef OverWriteDialogTitleString
 #define OverWriteDialogTitleString "The file Already Exist !"
 #endif // OverWriteDialogTitleString
@@ -569,8 +584,13 @@ namespace IGFD
 
 		auto fsPath = fs::path(vPathFileName);
 
-		if (fs::is_regular_file(fsPath)) {
-			res.name = fsPath.string();
+		if (fs::is_directory(fsPath)) {
+			res.name = "";
+			res.path = fsPath.string();
+			res.isOk = true;
+
+		} else if (fs::is_regular_file(fsPath)) {
+			res.name = fsPath.filename().string();
 			res.path = fsPath.parent_path().string();
 			res.isOk = true;
 		}
@@ -990,23 +1010,23 @@ namespace IGFD
 		std::string _criteria;
 		if (vCriteria)
 			_criteria = std::string(vCriteria);
-        
-        // Modify By Dicky
-        if (vFlags & IGFD_FileStyleByExtention)
-        {
-            std::transform(_criteria.begin(), _criteria.end(), _criteria.begin(), [](unsigned char c){ return std::tolower(c); });
-            prFilesStyle[vFlags][_criteria] = std::make_shared<FileStyle>(vColor, vIcon, vFont);
-		    prFilesStyle[vFlags][_criteria]->flags = vFlags;
-            std::transform(_criteria.begin(), _criteria.end(), _criteria.begin(), [](unsigned char c){ return std::toupper(c); });
-            prFilesStyle[vFlags][_criteria] = std::make_shared<FileStyle>(vColor, vIcon, vFont);
-		    prFilesStyle[vFlags][_criteria]->flags = vFlags;
-        }
-        else
-        {
-		    prFilesStyle[vFlags][_criteria] = std::make_shared<FileStyle>(vColor, vIcon, vFont);
-		    prFilesStyle[vFlags][_criteria]->flags = vFlags;
-        }
-        // Modify By Dicky end
+
+		// Modify By Dicky for ignore case
+		if (vFlags & IGFD_FileStyleByExtention)
+		{
+			std::transform(_criteria.begin(), _criteria.end(), _criteria.begin(), [](unsigned char c){ return std::tolower(c); });
+			prFilesStyle[vFlags][_criteria] = std::make_shared<FileStyle>(vColor, vIcon, vFont);
+			prFilesStyle[vFlags][_criteria]->flags = vFlags;
+			std::transform(_criteria.begin(), _criteria.end(), _criteria.begin(), [](unsigned char c){ return std::toupper(c); });
+			prFilesStyle[vFlags][_criteria] = std::make_shared<FileStyle>(vColor, vIcon, vFont);
+			prFilesStyle[vFlags][_criteria]->flags = vFlags;
+		}
+		else
+		{
+			prFilesStyle[vFlags][_criteria] = std::make_shared<FileStyle>(vColor, vIcon, vFont);
+			prFilesStyle[vFlags][_criteria]->flags = vFlags;
+		}
+		// Modify By Dicky end
 	}
 
 	// todo : to refactor this fucking function
@@ -1284,6 +1304,7 @@ namespace IGFD
 							return (stricmp(a->fileNameExt.c_str(), b->fileNameExt.c_str()) > 0); // sort in insensitive case
 						}
 						*/
+						if (a->fileType != b->fileType) return (a->fileType != 'd'); // directories last
 						return (stricmp(a->fileNameExt.c_str(), b->fileNameExt.c_str()) > 0); // sort in insensitive case
 					});
 			}
@@ -1705,15 +1726,15 @@ namespace IGFD
 			auto v = (double)vByteSize;
 
 			if (v < lo)
-				return prRoundNumber(v, 0) + " B"; // octet
+				return prRoundNumber(v, 0) + " " + fileSizeBytes; // B
 			else if (v < ko)
-				return prRoundNumber(v / lo, 2) + " KB"; // ko
+				return prRoundNumber(v / lo, 2) + " " + fileSizeKiloBytes; // kB
 			else  if (v < mo)
-				return prRoundNumber(v / ko, 2) + " MB"; // Mo 
+				return prRoundNumber(v / ko, 2) + " " + fileSizeMegaBytes; // MB
 			else if (v < go)
-				return prRoundNumber(v / mo, 2) + " GB"; // Go 
+				return prRoundNumber(v / mo, 2) + " " + fileSizeGigaBytes; // GB 
 			else
-				return prRoundNumber(v / go, 2) + " TB"; // To
+				return prRoundNumber(v / go, 2) + " " + fileSizeTeraBytes; // TB
 			// Modify By Dicky end
 		}
 
@@ -2260,16 +2281,11 @@ namespace IGFD
 
 	std::string IGFD::FileManager::GetResultingFileName(FileDialogInternal& vFileDialogInternal)
 	{
-		// Modify By Dicky
 		if (!puDLGDirectoryMode) // if not directory mode
-		{
-			return std::string(puFileNameBuffer);
-		}
-		else
 		{
 			return vFileDialogInternal.puFilterManager.ReplaceExtentionWithCurrentFilter(std::string(puFileNameBuffer));
 		}
-		// Modify By Dicky end
+
 		return ""; // directory mode
 	}
 
@@ -3056,6 +3072,11 @@ namespace IGFD
 						else
 						{
 							fdi.SelectFileName(vFileDialogInternal, infos);
+
+							if (enterInDirectory)
+							{
+								vFileDialogInternal.puIsOk = true;
+							}
 						}
 
 						if (exitDirectory)
@@ -3447,7 +3468,7 @@ namespace IGFD
 		if (ps.isOk)
 		{
 			prFileDialogInternal.puFileManager.puDLGpath = ps.path;
-			prFileDialogInternal.puFileManager.SetDefaultFileName(vFilePathName);
+			prFileDialogInternal.puFileManager.SetDefaultFileName(ps.name);
 			prFileDialogInternal.puFilterManager.puDLGdefaultExt = "." + ps.ext;
 		}
 		else
@@ -3776,14 +3797,7 @@ namespace IGFD
 				// draw dialog parts
 				prDrawHeader(); // bookmark, directory, path
 				prDrawContent(); // bookmark, files view, side pane 
-				// Modify By Dicky for double clock select file
-				if (prFileDialogInternal.puIsOk && prFileDialogInternal.puNeedToExitDialog)
-				{
-					res = true;
-				}
-				else
-					res = prDrawFooter(); // file field, filter combobox, ok/cancel buttons
-				// Modify By Dicky end
+				res = prDrawFooter(); // file field, filter combobox, ok/cancel buttons
 
 				EndFrame();
 
@@ -3931,7 +3945,19 @@ namespace IGFD
 		if (!fdFile.puDLGDirectoryMode)
 			width -= FILTER_COMBO_WIDTH + 16;  // Modify By Dicky
 		ImGui::PushItemWidth(width);
-		ImGui::InputText("##FileName", fdFile.puFileNameBuffer, MAX_FILE_DIALOG_NAME_BUFFER);
+		
+		ImGuiInputTextFlags flags = ImGuiInputTextFlags_EnterReturnsTrue;
+		
+		if (prFileDialogInternal.puDLGflags & ImGuiFileDialogFlags_ReadOnlyFileNameField)
+		{
+			flags |= ImGuiInputTextFlags_ReadOnly;
+		}
+
+		if (ImGui::InputText("##FileName", fdFile.puFileNameBuffer, MAX_FILE_DIALOG_NAME_BUFFER, flags))
+		{
+			prFileDialogInternal.puIsOk = true;
+		}
+
 		if (ImGui::GetItemID() == ImGui::GetActiveID())
 			prFileDialogInternal.puFileInputIsActive = true;
 		ImGui::PopItemWidth();
@@ -3944,7 +3970,7 @@ namespace IGFD
 		// OK Button
 		if (prFileDialogInternal.puCanWeContinue && strlen(fdFile.puFileNameBuffer))
 		{
-			if (IMGUI_BUTTON(okButtonString "##validationdialog"))
+			if (IMGUI_BUTTON(okButtonString "##validationdialog") || prFileDialogInternal.puIsOk)
 			{
 				prFileDialogInternal.puIsOk = true;
 				res = true;
@@ -4001,9 +4027,7 @@ namespace IGFD
 		{
 			if (vInfos->fileType == 'd')
 			{
-				// nav system, selectebale cause open directory or select directory
-				// we try to do double click for select directory modify by Dicky
-				/*
+				// nav system, selectable cause open directory or select directory
 				if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_NavEnableKeyboard)
 				{
 					if (fdi.puDLGDirectoryMode) // directory chooser
@@ -4016,7 +4040,6 @@ namespace IGFD
 					}
 				}
 				else // no nav system => classic behavior
-				*/
 				{
 					if (ImGui::IsMouseDoubleClicked(0)) // 0 -> left mouse button double click
 					{
@@ -4033,14 +4056,11 @@ namespace IGFD
 			else
 			{
 				fdi.SelectFileName(prFileDialogInternal, vInfos);
-				// Add By Dicky for Double click selected
+
 				if (ImGui::IsMouseDoubleClicked(0))
 				{
 					prFileDialogInternal.puIsOk = true;
-					prFileDialogInternal.puNeedToExitDialog = true;
-					return true; // needToBreakTheloop
 				}
-				// Add By Dicky end
 			}
 		}
 
