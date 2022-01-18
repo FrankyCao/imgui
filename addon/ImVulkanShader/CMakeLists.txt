@@ -17,6 +17,9 @@ if(POLICY CMP0025)
     # reference from https://cmake.org/cmake/help/latest/policy/CMP0025.html
     cmake_policy(SET CMP0025 NEW)
 endif()
+if (POLICY CMP0111)
+    cmake_policy(SET CMP0111 NEW)
+endif()
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 option(VKSHADER_VULKAN_BENCHMARK      "Enable Vulkan Shader Benchmark" OFF)

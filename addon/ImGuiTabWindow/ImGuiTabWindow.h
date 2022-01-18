@@ -176,7 +176,7 @@ enum ImGuiTabLabelStyleEnum {
 
     ImGuiTabLabelStyle_Count
 };
-struct TabLabelStyle {
+struct IMGUI_API TabLabelStyle {
 enum Colors {
     Col_TabLabel = 0,
     Col_TabLabelHovered,
