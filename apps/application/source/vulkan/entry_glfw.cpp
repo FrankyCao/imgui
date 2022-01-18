@@ -77,7 +77,8 @@ int main(int, char**)
 
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
+    auto ctx = ImGui::CreateContext();
+    Application_SetupContext(ctx);
 
     // Create Framebuffers
     int w, h;

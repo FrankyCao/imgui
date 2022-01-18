@@ -98,7 +98,8 @@ int main(int, char**)
     }
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
+    auto ctx = ImGui::CreateContext();
+    Application_SetupContext(ctx);
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.FontGlobalScale = property.scale;
     io.DisplayFramebufferScale = display_scale;

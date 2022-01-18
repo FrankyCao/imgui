@@ -297,6 +297,10 @@ void Application_GetWindowProperties(ApplicationWindowProperty& property)
     property.name = "Application_Example";
 }
 
+void Application_SetupContext(ImGuiContext* ctx)
+{
+}
+
 void Application_Initialize(void** handle)
 {
     srand((unsigned int)time(0));

@@ -137,7 +137,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
+    auto ctx = ImGui::CreateContext();
+    Application_SetupContext(ctx);
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.FontGlobalScale = property.scale;
     if (property.power_save) io.ConfigFlags |= ImGuiConfigFlags_EnableLowRefreshMode;
