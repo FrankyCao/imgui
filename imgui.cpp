@@ -1415,6 +1415,19 @@ void ImGuiIO::AddMouseButtonEvent(int mouse_button, bool down)
     g.InputEventsQueue.push_back(e);
 }
 
+void ImGuiIO::AddMouseViewportEvent(ImGuiID viewport_id)
+{
+    ImGuiContext& g = *GImGui;
+    IM_ASSERT(&g.IO == this && "Can only add events to current context.");
+    IM_ASSERT(g.IO.BackendFlags & ImGuiBackendFlags_HasMouseHoveredViewport);
+
+    ImGuiInputEvent e;
+    e.Type = ImGuiInputEventType_MouseViewport;
+    e.Source = ImGuiInputSource_Mouse;
+    e.MouseViewport.HoveredViewportID = viewport_id;
+    g.InputEventsQueue.push_back(e);
+}
+
 void ImGuiIO::AddFocusEvent(bool focused)
 {
     ImGuiContext& g = *GImGui;
@@ -8434,6 +8447,10 @@ void ImGui::UpdateInputEvents(bool trickle_fast_inputs)
                 mouse_wheeled = true;
             }
         }
+        else if (e->Type == ImGuiInputEventType_MouseViewport)
+        {
+            io.MouseHoveredViewport = e->MouseViewport.HoveredViewportID;
+        }
         else if (e->Type == ImGuiInputEventType_Key)
         {
             IM_ASSERT(e->Key.Key != ImGuiKey_None);
@@ -12842,17 +12859,14 @@ static void ImGui::UpdateViewportsNewFrame()
     {
         viewport_hovered = g.IO.MouseHoveredViewport ? (ImGuiViewportP*)FindViewportByID(g.IO.MouseHoveredViewport) : NULL;
         if (viewport_hovered && (viewport_hovered->Flags & ImGuiViewportFlags_NoInputs))
-        {
-            // Backend failed at honoring its contract if it returned a viewport with the _NoInputs flag.
-            IM_ASSERT(0);
-            viewport_hovered = FindHoveredViewportFromPlatformWindowStack(g.IO.MousePos);
-        }
+            viewport_hovered = FindHoveredViewportFromPlatformWindowStack(g.IO.MousePos); // Backend failed to handle _NoInputs viewport: revert to our fallback.
     }
     else
     {
         // If the backend doesn't know how to honor ImGuiViewportFlags_NoInputs, we do a search ourselves. Note that this search:
         // A) won't take account of the possibility that non-imgui windows may be in-between our dragged window and our target window.
-        // B) uses LastFrameAsRefViewport as a flawed replacement for the last time a window was focused (we could/should fix that by introducing Focus functions in PlatformIO)
+        // B) won't take account of how the backend apply parent<>child relationship to secondary viewports, which affects their Z order.
+        // C) uses LastFrameAsRefViewport as a flawed replacement for the last time a window was focused (we could/should fix that by introducing Focus functions in PlatformIO)
         viewport_hovered = FindHoveredViewportFromPlatformWindowStack(g.IO.MousePos);
     }
     if (viewport_hovered != NULL)
@@ -13066,7 +13080,8 @@ static void ImGui::WindowSelectViewport(ImGuiWindow* window)
     {
         // Merge into host viewport?
         // We cannot test window->ViewportOwned as it set lower in the function.
-        bool try_to_merge_into_host_viewport = (window->Viewport && window == window->Viewport->Window && g.ActiveId == 0);
+        // Testing (g.ActiveId == 0 || g.ActiveIdAllowOverlap) to avoid merging during a short-term widget interaction. Main intent was to avoid during resize (see #4212)
+        bool try_to_merge_into_host_viewport = (window->Viewport && window == window->Viewport->Window && (g.ActiveId == 0 || g.ActiveIdAllowOverlap));
         if (try_to_merge_into_host_viewport)
             UpdateTryMergeWindowIntoHostViewports(window);
     }
@@ -18490,7 +18505,8 @@ void ImGui::ShowMetricsWindow(bool* p_open)
             TreePop();
         }
 
-        if (TreeNode("Inferred order (front-to-back)"))
+        BulletText("MouseViewport: 0x%08X (UserHovered 0x%08X, LastHovered 0x%08X)", g.MouseViewport ? g.MouseViewport->ID : 0, g.IO.MouseHoveredViewport, g.MouseLastHoveredViewport ? g.MouseLastHoveredViewport->ID : 0);
+        if (TreeNode("Inferred Z order (front-to-back)"))
         {
             static ImVector<ImGuiViewportP*> viewports;
             viewports.resize(g.Viewports.Size);

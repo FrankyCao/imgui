@@ -96,6 +96,7 @@ struct ImGui_ImplSDL2_Data
 {
     SDL_Window* Window;
     Uint64      Time;
+    Uint32      MouseWindowID;
     int         MouseButtonsDown;
     SDL_Cursor* MouseCursors[ImGuiMouseCursor_COUNT];
     char*       ClipboardTextData;
@@ -320,9 +321,16 @@ bool ImGui_ImplSDL2_ProcessEvent(const SDL_Event* event)
         }
         case SDL_WINDOWEVENT:
         {
+            // When capturing mouse, SDL will send a bunch of conflicting LEAVE/ENTER event on every mouse move, but the final ENTER tends to be right.
+            // However we won't get a correct LEAVE event for a captured window.
             Uint8 window_event = event->window.event;
+            if (window_event == SDL_WINDOWEVENT_ENTER)
+                bd->MouseWindowID = event->window.windowID;
             if (window_event == SDL_WINDOWEVENT_LEAVE)
+            {
+                bd->MouseWindowID = 0;
                 io.AddMousePosEvent(-FLT_MAX, -FLT_MAX);
+            }
             if (window_event == SDL_WINDOWEVENT_FOCUS_GAINED)
                 io.AddFocusEvent(true);
             else if (window_event == SDL_WINDOWEVENT_FOCUS_LOST)
@@ -367,7 +375,10 @@ static bool ImGui_ImplSDL2_Init(SDL_Window* window, void* sdl_gl_context)
     io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;           // We can honor GetMouseCursor() values (optional)
     io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;            // We can honor io.WantSetMousePos requests (optional, rarely used)
     if (mouse_can_use_global_state)
+    {
         io.BackendFlags |= ImGuiBackendFlags_PlatformHasViewports;  // We can create multi-viewports on the Platform side (optional)
+        io.BackendFlags |= ImGuiBackendFlags_HasMouseHoveredViewport;// We can call io.AddMouseViewportEvent() with correct data (optional)
+    }
 
     bd->Window = window;
     bd->MouseCanUseGlobalState = mouse_can_use_global_state;
@@ -518,8 +529,18 @@ static void ImGui_ImplSDL2_UpdateMouseData()
         }
     }
 
-    // We don't support ImGuiBackendFlags_HasMouseHoveredViewport
-    io.MouseHoveredViewport = 0;
+    // (Optional) When using multiple viewports: call io.AddMouseViewportEvent() with the viewport the OS mouse cursor is hovering.
+    // If ImGuiBackendFlags_HasMouseHoveredViewport is not set by the backend, Dear imGui will ignore this field and infer the information using its flawed heuristic.
+    // - [!] SDL backend does NOT correctly ignore viewports with the _NoInputs flag.
+    //       Some backend are not able to handle that correctly. If a backend report an hovered viewport that has the _NoInputs flag (e.g. when dragging a window
+    //       for docking, the viewport has the _NoInputs flag in order to allow us to find the viewport under), then Dear ImGui is forced to ignore the value reported
+    //       by the backend, and use its flawed heuristic to guess the viewport behind.
+    // - [X] SDL backend correctly reports this regardless of another viewport behind focused and dragged from (we need this to find a useful drag and drop target).
+    ImGuiID mouse_viewport_id = 0;
+    if (SDL_Window* sdl_mouse_window = SDL_GetWindowFromID(bd->MouseWindowID))
+        if (ImGuiViewport* mouse_viewport = ImGui::FindViewportByPlatformHandle((void*)sdl_mouse_window))
+            mouse_viewport_id = mouse_viewport->ID;
+    io.AddMouseViewportEvent(mouse_viewport_id);
 }
 
 static void ImGui_ImplSDL2_UpdateMouseCursor()
