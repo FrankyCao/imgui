@@ -117,7 +117,7 @@ int main(int, char**)
     bool done = false;
     bool app_done = false;
     bool show = true;
-    while (!done && !app_done)
+    while (!app_done)
     {
         ImGui_ImplSDL2_WaitForEvent();
         SDL_Event event;
@@ -171,7 +171,7 @@ int main(int, char**)
         if (io.ConfigFlags & ImGuiConfigFlags_EnableLowRefreshMode)
             ImGui::SetMaxWaitBeforeNextFrame(1.0 / property.fps);
 
-        app_done = Application_Frame(property.handle);
+        app_done = Application_Frame(property.handle, done);
 
         ImGui::EndFrame();
         // Rendering

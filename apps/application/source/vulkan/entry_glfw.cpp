@@ -133,10 +133,13 @@ int main(int, char**)
 
     // Main loop
     bool done = false;
-    while (!glfwWindowShouldClose(window) && !done)
+    bool app_done = false;
+    while (!app_done)
     {
         ImGui_ImplGlfw_WaitForEvent();
         glfwPollEvents();
+        if (glfwWindowShouldClose(window))
+            done = true;
         // Resize swap chain?
         if (g_SwapChainRebuild)
         {
@@ -159,7 +162,7 @@ int main(int, char**)
         if (io.ConfigFlags & ImGuiConfigFlags_EnableLowRefreshMode)
             ImGui::SetMaxWaitBeforeNextFrame(1.0 / property.fps);
 
-        done = Application_Frame(property.handle);
+        app_done = Application_Frame(property.handle, done);
 
         ImGui::EndFrame();
         // Rendering

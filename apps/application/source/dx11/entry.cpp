@@ -213,7 +213,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
     Application_Initialize(&property.handle);
     bool done = false;
-
+    bool app_done = false;
     auto frame = [&]()
     {
         ImGui_ImplDX11_NewFrame();
@@ -223,8 +223,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
         if (io.ConfigFlags & ImGuiConfigFlags_EnableLowRefreshMode)
             ImGui::SetMaxWaitBeforeNextFrame(1.0 / property.fps);
 
-        done = Application_Frame(property.handle);
-        if (done)
+        app_done = Application_Frame(property.handle, done);
+        if (app_done)
             PostQuitMessage(0);
 
         ImGui::EndFrame();
@@ -249,7 +249,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     frame();
 
     // Main loop
-    while (!done)
+    while (!app_done)
     {
         ImGui_ImplWin32_WaitForEvent();
         MSG msg;
@@ -262,7 +262,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
             if (msg.message == WM_QUIT)
                 done = true;
         }
-        if (done)
+        if (app_done)
             break;
 
         if (!IsIconic(hwnd))

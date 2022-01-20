@@ -184,7 +184,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
     // Main loop
     bool done = false;
-    while (!done)
+    bool app_done = false;
+    while (!app_done)
     {
         ImGui_ImplWin32_WaitForEvent();
         MSG msg;
@@ -195,7 +196,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
             if (msg.message == WM_QUIT)
                 done = true;
         }
-        if (done)
+        if (app_done)
             break;
 
         // Start the Dear ImGui frame
@@ -206,8 +207,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
         if (io.ConfigFlags & ImGuiConfigFlags_EnableLowRefreshMode)
             ImGui::SetMaxWaitBeforeNextFrame(1.0 / property.fps);
 
-        done = Application_Frame(property.handle);
-        if (done)
+        app_done = Application_Frame(property.handle, done);
+        if (app_done)
             ::PostQuitMessage(0);
 
         // Rendering

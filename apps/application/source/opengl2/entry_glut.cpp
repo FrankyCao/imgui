@@ -20,6 +20,7 @@
 static ApplicationWindowProperty property;
 static ImVec4 clear_color = ImVec4(0.f, 0.f, 0.f, 1.f);
 static bool done = false;
+static bool app_done = false;
 
 void glut_display_func()
 {
@@ -31,7 +32,7 @@ void glut_display_func()
     if (io.ConfigFlags & ImGuiConfigFlags_EnableLowRefreshMode)
         ImGui::SetMaxWaitBeforeNextFrame(1.0 / property.fps);
 
-    done = Application_Frame(property.handle);
+    app_done = Application_Frame(property.handle, done);
 
     ImGui::EndFrame();
     // Rendering

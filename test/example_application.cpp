@@ -320,9 +320,9 @@ void Application_Finalize(void** handle)
     }
 }
 
-bool Application_Frame(void* handle)
+bool Application_Frame(void* handle, bool app_will_quit)
 {
-    bool done = false;
+    bool app_done = false;
     auto& io = ImGui::GetIO();
     Example * example = (Example *)handle;
     if (!example)
@@ -459,5 +459,7 @@ bool Application_Frame(void* handle)
         ImVulkanTestWindow("ImGui Vulkan test", &example->show_shader_window, 0);
     }
 #endif
-    return done;
+    if (app_will_quit)
+        app_done = true;
+    return app_done;
 }
