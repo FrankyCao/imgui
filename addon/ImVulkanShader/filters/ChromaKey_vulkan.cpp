@@ -131,7 +131,7 @@ void ChromaKey_vulkan::prepare_kernel()
 void ChromaKey_vulkan::upload_param(const VkMat& src, VkMat& dst,
                                     float lumaMask, std::vector<float> chromaColor,
                                     float alphaCutoffMin, float alphaScale, float alphaExponent,
-                                    bool alpha_only)
+                                    int output_type)
 {
     
     VkMat alpha_mat;
@@ -293,7 +293,7 @@ void ChromaKey_vulkan::upload_param(const VkMat& src, VkMat& dst,
     despill_constants[15].f = chromaColor[0];
     despill_constants[16].f = chromaColor[1];
     despill_constants[17].f = chromaColor[2];
-    despill_constants[18].i = alpha_only ? 1 : 0;
+    despill_constants[18].i = output_type;
 
     cmd->record_pipeline(pipe_despill, despill_bindings, despill_constants, dst);
 }
@@ -301,7 +301,7 @@ void ChromaKey_vulkan::upload_param(const VkMat& src, VkMat& dst,
 void ChromaKey_vulkan::filter(const ImMat& src, ImMat& dst,
                             float lumaMask, std::vector<float> chromaColor,
                             float alphaCutoffMin, float alphaScale, float alphaExponent,
-                            bool alpha_only)
+                            int output_type)
 {
 #if FILTER_2DS_BLUR
     if (!vkdev || !pipe || !pipe_blur_column || !pipe_blur_row || !cmd)
@@ -311,14 +311,15 @@ void ChromaKey_vulkan::filter(const ImMat& src, ImMat& dst,
     {
         return;
     }
-    dst.create_type(src.w, src.h, alpha_only ? 1 : 4, dst.type);
+    
+    dst.create_type(src.w, src.h, output_type == CHROMAKEY_OUTPUT_ALPHA_ONLY ? 1 : 4, dst.type);
 
     VkMat out_gpu;
     out_gpu.create_like(dst, opt.blob_vkallocator);
     VkMat in_gpu;
     cmd->record_clone(src, in_gpu, opt);
 
-    upload_param(in_gpu, out_gpu, lumaMask, chromaColor, alphaCutoffMin, alphaScale, alphaExponent, alpha_only);
+    upload_param(in_gpu, out_gpu, lumaMask, chromaColor, alphaCutoffMin, alphaScale, alphaExponent, output_type);
 
     // download
     cmd->record_clone(out_gpu, dst, opt);
@@ -329,7 +330,7 @@ void ChromaKey_vulkan::filter(const ImMat& src, ImMat& dst,
 void ChromaKey_vulkan::filter(const ImMat& src, VkMat& dst,
                             float lumaMask, std::vector<float> chromaColor,
                             float alphaCutoffMin, float alphaScale, float alphaExponent,
-                            bool alpha_only)
+                            int output_type)
 {
 #if FILTER_2DS_BLUR
     if (!vkdev || !pipe || !pipe_blur_column || !pipe_blur_row || !cmd)
@@ -339,12 +340,12 @@ void ChromaKey_vulkan::filter(const ImMat& src, VkMat& dst,
     {
         return;
     }
-    dst.create_type(src.w, src.h, alpha_only ? 1 : 4, dst.type, opt.blob_vkallocator);
+    dst.create_type(src.w, src.h, output_type == CHROMAKEY_OUTPUT_ALPHA_ONLY ? 1 : 4, dst.type, opt.blob_vkallocator);
 
     VkMat in_gpu;
     cmd->record_clone(src, in_gpu, opt);
 
-    upload_param(in_gpu, dst, lumaMask, chromaColor, alphaCutoffMin, alphaScale, alphaExponent, alpha_only);
+    upload_param(in_gpu, dst, lumaMask, chromaColor, alphaCutoffMin, alphaScale, alphaExponent, output_type);
 
     cmd->submit_and_wait();
     cmd->reset();
@@ -353,7 +354,7 @@ void ChromaKey_vulkan::filter(const ImMat& src, VkMat& dst,
 void ChromaKey_vulkan::filter(const VkMat& src, ImMat& dst,
                             float lumaMask, std::vector<float> chromaColor,
                             float alphaCutoffMin, float alphaScale, float alphaExponent,
-                            bool alpha_only)
+                            int output_type)
 {
 #if FILTER_2DS_BLUR
     if (!vkdev || !pipe || !pipe_blur_column || !pipe_blur_row || !cmd)
@@ -363,12 +364,12 @@ void ChromaKey_vulkan::filter(const VkMat& src, ImMat& dst,
     {
         return;
     }
-    dst.create_type(src.w, src.h, alpha_only ? 1 : 4, dst.type);
+    dst.create_type(src.w, src.h, output_type == CHROMAKEY_OUTPUT_ALPHA_ONLY ? 1 : 4, dst.type);
 
     VkMat out_gpu;
     out_gpu.create_like(dst, opt.blob_vkallocator);
 
-    upload_param(src, out_gpu, lumaMask, chromaColor, alphaCutoffMin, alphaScale, alphaExponent, alpha_only);
+    upload_param(src, out_gpu, lumaMask, chromaColor, alphaCutoffMin, alphaScale, alphaExponent, output_type);
 
     // download
     cmd->record_clone(out_gpu, dst, opt);
@@ -379,7 +380,7 @@ void ChromaKey_vulkan::filter(const VkMat& src, ImMat& dst,
 void ChromaKey_vulkan::filter(const VkMat& src, VkMat& dst,
                             float lumaMask, std::vector<float> chromaColor,
                             float alphaCutoffMin, float alphaScale, float alphaExponent,
-                            bool alpha_only)
+                            int output_type)
 {
 #if FILTER_2DS_BLUR
     if (!vkdev || !pipe || !pipe_blur_column || !pipe_blur_row || !cmd)
@@ -390,9 +391,9 @@ void ChromaKey_vulkan::filter(const VkMat& src, VkMat& dst,
         return;
     }
 
-    dst.create_type(src.w, src.h, alpha_only ? 1 : 4, dst.type, opt.blob_vkallocator);
+    dst.create_type(src.w, src.h, output_type == CHROMAKEY_OUTPUT_ALPHA_ONLY ? 1 : 4, dst.type, opt.blob_vkallocator);
     
-    upload_param(src, dst, lumaMask, chromaColor, alphaCutoffMin, alphaScale, alphaExponent, alpha_only);
+    upload_param(src, dst, lumaMask, chromaColor, alphaCutoffMin, alphaScale, alphaExponent, output_type);
 
     cmd->submit_and_wait();
     cmd->reset();

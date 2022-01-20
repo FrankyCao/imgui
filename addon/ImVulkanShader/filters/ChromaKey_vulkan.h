@@ -4,6 +4,9 @@
 #include "immat.h"
 
 #define FILTER_2DS_BLUR 0
+#define CHROMAKEY_OUTPUT_NORMAL      0  // normal RGBA with masked alpha channel
+#define CHROMAKEY_OUTPUT_ALPHA_ONLY  1  // Mono Channel with alpha only
+#define CHROMAKEY_OUTPUT_ALPHA_RGBA  2  // RGBA output with all channels is alpha mask
 
 namespace ImGui 
 {
@@ -27,22 +30,22 @@ public:
     void filter(const ImMat& src, ImMat& dst,
                 float lumaMask, std::vector<float> chromaColor,
                 float alphaCutoffMin, float alphaScale, float alphaExponent,
-                bool alpha_only);
+                int output_type);
     // input CPU Buffer and output to RGBA GPU buffer
     void filter(const ImMat& src, VkMat& dst,
                 float lumaMask, std::vector<float> chromaColor,
                 float alphaCutoffMin, float alphaScale, float alphaExponent,
-                bool alpha_only);
+                int output_type);
     // input GPU Buffer and output to RGBA CPU buffer
     void filter(const VkMat& src, ImMat& dst,
                 float lumaMask, std::vector<float> chromaColor,
                 float alphaCutoffMin, float alphaScale, float alphaExponent,
-                bool alpha_only);
+                int output_type);
     // input GPU Buffer and output to RGBA GPU buffer
     void filter(const VkMat& src, VkMat& dst,
                 float lumaMask, std::vector<float> chromaColor,
                 float alphaCutoffMin, float alphaScale, float alphaExponent,
-                bool alpha_only);
+                int output_type);
 
 public:
     const VulkanDevice* vkdev   {nullptr};
@@ -71,6 +74,6 @@ private:
     void upload_param(const VkMat& src, VkMat& dst,
                     float lumaMask, std::vector<float> chromaColor, 
                     float alphaCutoffMin, float alphaScale, float alphaExponent,
-                    bool alpha_only);
+                    int output_type);
 };
 } // namespace ImGui 

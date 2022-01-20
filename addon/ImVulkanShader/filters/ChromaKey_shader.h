@@ -207,6 +207,9 @@ SHADER_SHARPEN_MAIN
 
 #define SHADER_DESPILL_PARAM \
 " \n\
+#define CHROMAKEY_OUTPUT_NORMAL      0  \n\
+#define CHROMAKEY_OUTPUT_ALPHA_ONLY  1  \n\
+#define CHROMAKEY_OUTPUT_ALPHA_RGBA  2  \n\
 layout (push_constant) uniform parameter \n\
 { \n\
     int w; \n\
@@ -230,7 +233,7 @@ layout (push_constant) uniform parameter \n\
     float chromaColorX; \n\
     float chromaColorY; \n\
     float chromaColorZ; \n\
-    int alpha_only; \n\
+    int output_type; \n\
 } p; \
 "
 
@@ -243,8 +246,12 @@ void main() \n\
     if (gx >= p.out_w || gy >= p.out_h) \n\
         return; \n\
     sfp val = load_float16_gray_alpha(gx, gy, p.alpha_w, p.alpha_cstep, p.alpha_format); \n\
-    if (p.alpha_only == 1) \n\
+    if (p.output_type == CHROMAKEY_OUTPUT_ALPHA_ONLY) \n\
         store_gray(val, gx, gy, p.out_w, p.out_cstep, p.out_format, p.out_type); \n\
+    else if (p.output_type == CHROMAKEY_OUTPUT_ALPHA_RGBA) \n\
+    { \n\
+        store_rgba(sfpvec4(val, val, val, sfp(1.0f)), gx, gy, p.out_w, p.out_cstep, p.out_format, p.out_type); \n\
+    } \n\
     else \n\
     { \n\
         sfpvec4 rgba = load_rgba(gx, gy, p.w, p.cstep, p.in_format, p.in_type); \n\
