@@ -250,6 +250,7 @@ void ImGenerateOrUpdateTexture(ImTextureID& imtexid,int width,int height,int cha
 #if IMGUI_RENDERING_VULKAN
     if (imtexid == 0)
     {
+        // TODO::Dicky Need deal with 3 channels Image(link RGB / BGR)
         g_tex_mutex.lock();
         g_Textures.resize(g_Textures.size() + 1);
         ImTexture& texture = g_Textures.back();
