@@ -536,11 +536,13 @@ static void ImGui_ImplSDL2_UpdateMouseData()
     //       for docking, the viewport has the _NoInputs flag in order to allow us to find the viewport under), then Dear ImGui is forced to ignore the value reported
     //       by the backend, and use its flawed heuristic to guess the viewport behind.
     // - [X] SDL backend correctly reports this regardless of another viewport behind focused and dragged from (we need this to find a useful drag and drop target).
+#if SDL_HAS_CAPTURE_AND_GLOBAL_MOUSE  // wyvern: only enable when global mouse capture is enabled
     ImGuiID mouse_viewport_id = 0;
     if (SDL_Window* sdl_mouse_window = SDL_GetWindowFromID(bd->MouseWindowID))
         if (ImGuiViewport* mouse_viewport = ImGui::FindViewportByPlatformHandle((void*)sdl_mouse_window))
             mouse_viewport_id = mouse_viewport->ID;
     io.AddMouseViewportEvent(mouse_viewport_id);
+#endif
 }
 
 static void ImGui_ImplSDL2_UpdateMouseCursor()
