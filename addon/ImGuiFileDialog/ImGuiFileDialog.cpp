@@ -3782,7 +3782,7 @@ namespace IGFD
 				puAnyWindowsHovered |= ImGui::IsWindowHovered();
 
 				if (fdFile.puDLGpath.empty())
-					fdFile.puDLGpath = "./"; // defaut path is './' Modify By Dicky
+					fdFile.puDLGpath = "."; // defaut path is '.'
 
 				fdFilter.SetDefaultFilterIfNotDefined();
 
@@ -4036,14 +4036,30 @@ namespace IGFD
 				// nav system, selectable cause open directory or select directory
 				if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_NavEnableKeyboard)
 				{
-					if (fdi.puDLGDirectoryMode) // directory chooser
+                    // Modify By Dicky aways using double click to chooser
+                    if (fdi.puDLGDirectoryMode) // directory chooser
 					{
-						fdi.SelectFileName(prFileDialogInternal, vInfos);
+                        if (ImGui::IsMouseDoubleClicked(0))
+                        {
+                            fdi.puPathClicked = fdi.SelectDirectory(vInfos);
+                        }
+                        else
+                        {
+						    fdi.SelectFileName(prFileDialogInternal, vInfos);
+                        }
 					}
 					else
 					{
-						fdi.puPathClicked = fdi.SelectDirectory(vInfos);
+                        if (ImGui::IsMouseDoubleClicked(0))
+                        {
+						    fdi.puPathClicked = fdi.SelectDirectory(vInfos);
+                        }
+                        else
+                        {
+                            fdi.SelectFileName(prFileDialogInternal, vInfos);
+                        }
 					}
+                    // Modify By Dicky end
 				}
 				else // no nav system => classic behavior
 				{
