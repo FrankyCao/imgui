@@ -550,10 +550,10 @@ typedef TabWindow::TabLabel TabWindowLabel;
  * pOptionalClosedTabIndex (requires allowTabClosing): out variable (int pointer) that returns the index of the closed tab in last call or -1.
  * pOptionalClosedTabIndexInsideItemOrdering (requires allowTabClosing): same as above, but index inside the pOptionalItemOrdering array. Users can use this value to prevent single tabs from closing when their close button is clicked (since we can't mix closable and non-closable tabs here).
 */
-IMGUI_API bool TabLabels(int numTabs, const char** tabLabels, int& selectedIndex, const char** tabLabelTooltips=NULL , bool wrapMode=true, int* pOptionalHoveredIndex=NULL, int* pOptionalItemOrdering=NULL, bool allowTabReorder=true, bool allowTabClosing=false, int* pOptionalClosedTabIndex=NULL,int * pOptionalClosedTabIndexInsideItemOrdering=NULL);
+IMGUI_API bool TabLabels(int numTabs, const char** tabLabels, int& selectedIndex, const char** tabLabelTooltips=NULL, bool wrapMode=true, bool breathing_select = false, int* pOptionalHoveredIndex=NULL, int* pOptionalItemOrdering=NULL, bool allowTabReorder=true, bool allowTabClosing=false, int* pOptionalClosedTabIndex=NULL,int * pOptionalClosedTabIndexInsideItemOrdering=NULL);
 
 // ImGui::TabLabelsVertical() are similiar to ImGui::TabLabels(), but they do not support WrapMode.
-IMGUI_API bool TabLabelsVertical(bool textIsRotatedCCW,int numTabs, const char** tabLabels, int& selectedIndex, const char** tabLabelTooltips=NULL, int* pOptionalHoveredIndex=NULL, int* pOptionalItemOrdering=NULL, bool allowTabReorder=false, bool allowTabClosing=false, int* pOptionalClosedTabIndex=NULL,int * pOptionalClosedTabIndexInsideItemOrdering=NULL,bool invertRounding=false);
+IMGUI_API bool TabLabelsVertical(bool textIsRotatedCCW,int numTabs, const char** tabLabels, int& selectedIndex, const char** tabLabelTooltips=NULL, bool breathing_select = false, int* pOptionalHoveredIndex=NULL, int* pOptionalItemOrdering=NULL, bool allowTabReorder=false, bool allowTabClosing=false, int* pOptionalClosedTabIndex=NULL,int * pOptionalClosedTabIndexInsideItemOrdering=NULL,bool invertRounding=false);
 IMGUI_API float CalcVerticalTabLabelsWidth();
 
 
