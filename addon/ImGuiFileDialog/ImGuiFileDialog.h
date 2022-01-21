@@ -581,6 +581,7 @@ ImGuiFontStudio is using also ImGuiFileDialog.
 #ifndef IMGUIFILEDIALOG_H
 #define IMGUIFILEDIALOG_H
 
+// compatible with 1.87 WIP
 #define IMGUIFILEDIALOG_VERSION "v0.6.4"
 
 #ifndef CUSTOM_IMGUIFILEDIALOG_CONFIG
@@ -594,9 +595,9 @@ typedef int IGFD_FileStyleFlags; // -> enum IGFD_FileStyleFlags_
 enum IGFD_FileStyleFlags_ // by evaluation / priority order
 {
 	IGFD_FileStyle_None = 0,						// define none style
-	IGFD_FileStyleByTypeFile = (1 << 0),				// define style for all files
-	IGFD_FileStyleByTypeDir = (1 << 1),					// define style for all dir
-	IGFD_FileStyleByTypeLink = (1 << 2),				// define style for all link
+	IGFD_FileStyleByTypeFile = (1 << 0),			// define style for all files
+	IGFD_FileStyleByTypeDir = (1 << 1),				// define style for all dir
+	IGFD_FileStyleByTypeLink = (1 << 2),			// define style for all link
 	IGFD_FileStyleByExtention = (1 << 3),			// define style by extention, for files or links
 	IGFD_FileStyleByFullName = (1 << 4),			// define style for particular file/dir/link full name (filename + extention)
 	IGFD_FileStyleByContainedInFullName = (1 << 5),	// define style for file/dir/link when criteria is contained in full name
@@ -886,14 +887,14 @@ namespace IGFD
 		std::string puHeaderFileDate;										// detail view name of column date + time
 #ifdef USE_THUMBNAILS
 		std::string puHeaderFileThumbnails;									// detail view name of column thumbnails
-		bool puSortingDirection[5] = {										// detail view // true => Descending, false => Ascending
+		bool puSortingDirection[5] = {										// true => Ascending, false => Descending
 			defaultSortOrderFilename,
 			defaultSortOrderType,
 			defaultSortOrderSize,
 			defaultSortOrderDate,
 			defaultSortOrderThumbnails };
 #else
-		bool puSortingDirection[4] = {										// detail view // true => Descending, false => Ascending
+		bool puSortingDirection[4] = {										// true => Ascending, false => Descending
 			defaultSortOrderFilename,
 			defaultSortOrderType,
 			defaultSortOrderSize,
@@ -936,8 +937,7 @@ namespace IGFD
 		void ClearAll();
 		void ApplyFilteringOnFileList(const FileDialogInternal& vFileDialogInternal);
 		void OpenCurrentPath(const FileDialogInternal& vFileDialogInternal);							// set the path of the dialog, will launch the directory scan for populate the file listview
-		void SortFields(const FileDialogInternal& vFileDialogInternal, 
-			const SortingFieldEnum& vSortingField, const bool& vCanChangeOrder);						// will sort a column
+		void SortFields(const FileDialogInternal& vFileDialogInternal);									// will sort a column
 		bool GetDrives();																				// list drives on windows platform
 		bool CreateDir(const std::string& vPath);														// create a directory on the file system
 		void ComposeNewPath(std::vector<std::string>::iterator vIter);									// compose a path from the compose path widget
