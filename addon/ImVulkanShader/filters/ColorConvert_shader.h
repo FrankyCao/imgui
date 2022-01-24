@@ -293,7 +293,8 @@ void store_dst_yuv(sfpvec3 v, int x, int y) \n\
     int uv_scale_h = p.out_format == CF_YUV420 || p.out_format == CF_NV12 ? 2 : 1; \n\
     int y_offset = y * p.w + x; \n\
     int u_offset = p.out_cstep + (y / uv_scale_h) * p.w / uv_scale_w + x / uv_scale_w; \n\
-    int v_offset = p.out_cstep * 2 + (y / uv_scale_h) * p.w / uv_scale_w + x / uv_scale_w; \n\
+    int v_offset = (p.out_format == CF_YUV444 ? p.out_cstep * 2 : p.out_cstep + (p.w / uv_scale_w) * (p.h / uv_scale_h)) \n\
+                + (y / uv_scale_h) * p.w / uv_scale_w + x / uv_scale_w; \n\
     ivec2 uv_offset = p.out_cstep + ((y / 2) * p.w / 2 + x / 2) * 2 + ivec2(0, 1); \n\
     if (p.out_type == DT_INT8) \n\
         store_yuv_int8(v, y_offset, u_offset, v_offset, uv_offset); \n\
