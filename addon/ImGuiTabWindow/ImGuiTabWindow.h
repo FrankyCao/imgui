@@ -271,6 +271,7 @@ static const char* FontStyleNames[FONT_STYLE_COUNT];
 static const char* TabStateNames[TAB_STATE_COUNT];
 static const ImFont* ImGuiFonts[FONT_STYLE_COUNT];
 };
+IMGUI_API void SetTableLabelBreathingSpeed(float speed, float min = 0.0, float max = 1.0);
 IMGUI_API bool ResetTabLabelStyle(int tabLabelStyleEnum, TabLabelStyle& style);
 IMGUI_API bool SelectTabLabelStyleCombo(const char* label, int* selectedIndex, int maxNumItemsToDisplay=ImGuiTabLabelStyle_Count, TabLabelStyle* styleToChange=NULL);
 IMGUI_API const char** GetDefaultTabLabelStyleNames();   // ImGuiTabLabelStyle_Count names re returned

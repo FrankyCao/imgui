@@ -1144,6 +1144,13 @@ static float breathing = 1.0f;
 static float breathing_step = 0.01;
 static float breathing_min = 0.5;
 static float breathing_max = 1.0;
+
+void SetTableLabelBreathingSpeed(float speed, float min, float max)
+{
+    breathing_step = speed;
+    breathing_min = fmin(fmax(min, 0.0), 1.0);
+    breathing_max = fmax(fmin(max, 1.0), 0.0);
+}
 //=======================================================================================
 // Main method to draw the tab label
 // The TabLabelStyle used by this method won't be merged with the Window Alpha (please provide a pOptionalStyleToUseIn using TabLabelStyle::GetMergedWithWindowAlpha() if needed).
