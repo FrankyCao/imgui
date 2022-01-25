@@ -211,6 +211,43 @@ typedef struct Rational{
 
 namespace ImGui
 {
+
+static inline int GetColorFormatCategory(ImColorFormat fmt)
+{
+    if (fmt == IM_CF_GRAY)
+        return 0;
+    else if (fmt >= IM_CF_BGR && fmt <= IM_CF_RGBA)
+        return 1;
+    else if (fmt >= IM_CF_YUV420 && fmt <= IM_CF_P010LE)
+        return 2;
+    return -1;
+}
+
+static inline int GetChannelCountByColorFormat(ImColorFormat fmt)
+{
+    switch (fmt)
+    {
+        case IM_CF_GRAY:
+            return 1;
+        case IM_CF_YUV420:
+        case IM_CF_YUV422:
+        case IM_CF_NV12:
+        case IM_CF_P010LE:
+            return 2;
+        case IM_CF_BGR:
+        case IM_CF_RGB:
+        case IM_CF_YUV444:
+            return 3;
+        case IM_CF_ABGR:
+        case IM_CF_BGRA:
+        case IM_CF_ARGB:
+        case IM_CF_RGBA:
+        case IM_CF_YUVA:
+            return 4;
+    }
+    return 0;
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////
 // Allocator Class define

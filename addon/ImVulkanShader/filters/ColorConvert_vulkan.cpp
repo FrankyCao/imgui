@@ -1,3 +1,4 @@
+#include <sstream>
 #include "ColorConvert_vulkan.h"
 #include "ColorConvert_shader.h"
 #include "ImVulkanShader.h"
@@ -64,6 +65,236 @@ ColorConvert_vulkan::~ColorConvert_vulkan()
         if (opt.blob_vkallocator) { vkdev->reclaim_blob_allocator(opt.blob_vkallocator); opt.blob_vkallocator = nullptr; }
         if (opt.staging_vkallocator) { vkdev->reclaim_staging_allocator(opt.staging_vkallocator); opt.staging_vkallocator = nullptr; }
     }
+}
+
+bool ColorConvert_vulkan::ConvertColorFormat(const ImMat& srcMat, ImMat& dstMat)
+{
+    if (dstMat.color_format < IM_CF_BGR)
+    {
+        std::ostringstream oss;
+        oss << "Argument 'dstMat' has UNSUPPORTED color format " << srcMat.color_format << "!";
+        mErrMsg = oss.str();
+        return false;
+    }
+
+    int srcClrCatg = GetColorFormatCategory(srcMat.color_format);
+    int dstClrCatg = GetColorFormatCategory(dstMat.color_format);
+    // source is RGB
+    if (srcClrCatg == 1)
+    {
+        // TODO: add other rgb format support
+        // only support input format ABGR/ARGB.
+        if (srcMat.color_format != IM_CF_ABGR && srcMat.color_format != IM_CF_ARGB)
+        {
+            mErrMsg = "Only support rgb input format ABGR/ARGB!";
+            return false;
+        }
+    }
+    // destination is RGB
+    if (dstClrCatg == 1)
+    {
+        // only support output format ABGR/ARGB.
+        if (dstMat.color_format != IM_CF_ABGR && dstMat.color_format != IM_CF_ARGB)
+        {
+            mErrMsg = "Only support rgb output format ABGR/ARGB!";
+            return false;
+        }
+        dstMat.color_range = IM_CR_FULL_RANGE;
+    }
+
+    // prepare source vulkan mat
+    VkMat srcVkMat;
+    if (srcMat.device == IM_DD_VULKAN)
+        srcVkMat = srcMat;
+    else
+        cmd->record_clone(srcMat, srcVkMat, opt);
+
+    // prepare destination vulkan mat
+    VkMat dstVkMat;
+    if (dstMat.device == IM_DD_VULKAN)
+    {
+        dstVkMat.create_type(srcMat.w, srcMat.h, GetChannelCountByColorFormat(dstMat.color_format), dstMat.type, opt.blob_vkallocator);
+        dstVkMat.color_format = dstMat.color_format;
+        dstVkMat.color_range = dstMat.color_range;
+        dstVkMat.color_space = srcMat.color_space;
+        dstMat = dstVkMat;
+    }
+    else
+    {
+        ImMat tmp;
+        tmp.create_type(srcMat.w, srcMat.h, GetChannelCountByColorFormat(dstMat.color_format), dstMat.type);
+        tmp.color_format = dstMat.color_format;
+        tmp.color_range = dstMat.color_range;
+        tmp.color_space = srcMat.color_space;
+        dstMat = tmp;
+        dstVkMat.create_like(dstMat, opt.blob_vkallocator);
+    }
+
+    if (!UploadParam(srcVkMat, dstVkMat))
+        return false;
+
+    if (dstMat.device == IM_DD_CPU)
+        cmd->record_clone(dstVkMat, dstMat, opt);
+    else if (dstMat.device == IM_DD_VULKAN_IMAGE)
+    {
+        VkImageMat* pVkiMat = dynamic_cast<VkImageMat*>(&dstMat);
+        cmd->record_buffer_to_image(dstVkMat, *pVkiMat, opt);
+    }
+
+    cmd->submit_and_wait();
+    cmd->reset();
+
+    return true;
+}
+
+bool ColorConvert_vulkan::UploadParam(const VkMat& src, VkMat& dst)
+{
+    int srcClrCatg = GetColorFormatCategory(src.color_format);
+    int dstClrCatg = GetColorFormatCategory(dst.color_format);
+    if (srcClrCatg < 0 || dstClrCatg < 0)
+    {
+        std::ostringstream oss;
+        oss << "Unknown color format category! 'src.color_format' is " << src.color_format
+            << ", 'dst.color_format' is " << dst.color_format << ".";
+        mErrMsg = oss.str();
+        return false;
+    }
+
+    // GRAY -> RGB
+    if (srcClrCatg == 0 && dstClrCatg == 1)
+    {
+        int bitDepth = src.depth != 0 ? src.depth : src.type == IM_DT_INT8 ? 8 : src.type == IM_DT_INT16 ? 16 : 8;
+
+        std::vector<VkMat> bindings(8);
+        if      (dst.type == IM_DT_INT8)    bindings[0] = dst;
+        else if (dst.type == IM_DT_INT16)   bindings[1] = dst;
+        else if (dst.type == IM_DT_FLOAT16) bindings[2] = dst;
+        else if (dst.type == IM_DT_FLOAT32) bindings[3] = dst;
+        if      (src.type == IM_DT_INT8)    bindings[4] = src;
+        else if (src.type == IM_DT_INT16)   bindings[5] = src;
+        else if (src.type == IM_DT_FLOAT16) bindings[6] = src;
+        else if (src.type == IM_DT_FLOAT32) bindings[7] = src;
+
+        std::vector<vk_constant_type> constants(11);
+        constants[ 0].i = src.w;
+        constants[ 1].i = src.h;
+        constants[ 2].i = src.c;
+        constants[ 3].i = src.color_format;
+        constants[ 4].i = src.type;
+        constants[ 5].i = dst.w;
+        constants[ 6].i = dst.h;
+        constants[ 7].i = dst.c;
+        constants[ 8].i = dst.color_format;
+        constants[ 9].i = dst.type;
+        constants[10].f = (float)((1 << bitDepth) - 1);
+
+        cmd->record_pipeline(pipeline_gray_rgb, bindings, constants, dst);
+    }
+    // YUV -> RGB
+    else if (srcClrCatg == 2 && dstClrCatg == 1)
+    {
+        VkMat vkCscCoefs;
+        const ImMat cscCoefs = *color_table[0][src.color_range][src.color_space];
+        cmd->record_clone(cscCoefs, vkCscCoefs, opt);
+        int bitDepth = src.depth != 0 ? src.depth : src.type == IM_DT_INT8 ? 8 : src.type == IM_DT_INT16 ? 16 : 8;
+
+        std::vector<VkMat> bindings(9);
+        if      (dst.type == IM_DT_INT8)    bindings[0] = dst;
+        else if (dst.type == IM_DT_INT16)   bindings[1] = dst;
+        else if (dst.type == IM_DT_FLOAT16) bindings[2] = dst;
+        else if (dst.type == IM_DT_FLOAT32) bindings[3] = dst;
+        if      (src.type == IM_DT_INT8)    bindings[4] = src;
+        else if (src.type == IM_DT_INT16)   bindings[5] = src;
+        else if (src.type == IM_DT_FLOAT16) bindings[6] = src;
+        else if (src.type == IM_DT_FLOAT32) bindings[7] = src;
+        bindings[8] = vkCscCoefs;
+
+        std::vector<vk_constant_type> constants(10);
+        constants[0].i = src.w;
+        constants[1].i = src.h;
+        constants[2].i = dst.c;
+        constants[3].i = src.color_format;
+        constants[4].i = src.type;
+        constants[5].i = src.color_space;
+        constants[6].i = src.color_range;
+        constants[7].f = (float)((1 << bitDepth) - 1);
+        constants[8].i = dst.color_format;
+        constants[9].i = dst.type;
+
+        cmd->record_pipeline(pipeline_yuv_rgb, bindings, constants, dst);
+    }
+    // RGB -> YUV
+    else if (srcClrCatg == 1 && dstClrCatg == 2)
+    {
+        VkMat vkCscCoefs;
+        const ImMat cscCoefs = *color_table[1][src.color_range][src.color_space];
+        cmd->record_clone(cscCoefs, vkCscCoefs, opt);
+        int bitDepth = src.depth != 0 ? src.depth : src.type == IM_DT_INT8 ? 8 : src.type == IM_DT_INT16 ? 16 : 8;
+
+        std::vector<VkMat> bindings(9);
+        if      (dst.type == IM_DT_INT8)    bindings[0] = dst;
+        else if (dst.type == IM_DT_INT16)   bindings[1] = dst;
+        else if (dst.type == IM_DT_FLOAT16) bindings[2] = dst;
+        else if (dst.type == IM_DT_FLOAT32) bindings[3] = dst;
+        if      (src.type == IM_DT_INT8)    bindings[4] = src;
+        else if (src.type == IM_DT_INT16)   bindings[5] = src;
+        else if (src.type == IM_DT_FLOAT16) bindings[6] = src;
+        else if (src.type == IM_DT_FLOAT32) bindings[7] = src;
+        bindings[8] = vkCscCoefs;
+
+        std::vector<vk_constant_type> constants(13);
+        constants[ 0].i = src.w;
+        constants[ 1].i = src.h;
+        constants[ 2].i = src.c;
+        constants[ 3].i = src.color_format;
+        constants[ 4].i = src.type;
+        constants[ 5].i = src.color_space;
+        constants[ 6].i = src.color_range;
+        constants[ 7].i = dst.cstep;
+        constants[ 8].i = dst.color_format;
+        constants[ 9].i = dst.type;
+        constants[10].i = dst.color_space;
+        constants[11].i = dst.color_range;
+        constants[12].f = (float)((1 << bitDepth) - 1);
+
+        cmd->record_pipeline(pipeline_rgb_yuv, bindings, constants, dst);
+    }
+    // conversion in same color format category
+    else if (srcClrCatg == dstClrCatg)
+    {
+        std::vector<VkMat> bindings(8);
+        if      (dst.type == IM_DT_INT8)    bindings[0] = dst;
+        else if (dst.type == IM_DT_INT16)   bindings[1] = dst;
+        else if (dst.type == IM_DT_FLOAT16) bindings[2] = dst;
+        else if (dst.type == IM_DT_FLOAT32) bindings[3] = dst;
+        if      (src.type == IM_DT_INT8)    bindings[4] = src;
+        else if (src.type == IM_DT_INT16)   bindings[5] = src;
+        else if (src.type == IM_DT_FLOAT16) bindings[6] = src;
+        else if (src.type == IM_DT_FLOAT32) bindings[7] = src;
+
+        std::vector<vk_constant_type> constants(10);
+        constants[0].i = src.w;
+        constants[1].i = src.h;
+        constants[2].i = src.c;
+        constants[3].i = src.color_format;
+        constants[4].i = src.type;
+        constants[5].i = dst.w;
+        constants[6].i = dst.h;
+        constants[7].i = dst.c;
+        constants[8].i = dst.color_format;
+        constants[9].i = dst.type;
+
+        cmd->record_pipeline(pipeline_conv, bindings, constants, dst);
+    }
+    else
+    {
+        std::ostringstream oss;
+        oss << "UNSUPPORTED color format conversion! From " << src.color_format << " to " << dst.color_format << ".";
+        mErrMsg = oss.str();
+        return false;
+    }
+
+    return true;
 }
 
 // YUV to RGBA functions
