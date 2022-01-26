@@ -24,8 +24,10 @@ void TestColorConvertProc(uint32_t threadIdx, uint32_t loopCount)
 
         ImGui::VkMat rgbMat;
         rgbMat.type = IM_DT_INT8;
-
-        pClrCvt->YUV2RGBA(m, rgbMat, m.color_format, m.color_space, m.color_range, 8, 8);
+        rgbMat.color_format = IM_CF_RGBA;
+        rgbMat.color_range = IM_CR_FULL_RANGE;
+        rgbMat.color_space = IM_CS_SRGB;
+        pClrCvt->ConvertColorFormat(m, rgbMat);
 
         if (i%logInterval == logInterval-1)
             cout << "[Thread#" << threadIdx << "] " << i+1 << endl;

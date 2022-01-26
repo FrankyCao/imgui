@@ -227,9 +227,9 @@ bool ColorConvert_vulkan::UploadParam(const VkMat& src, VkMat& dst)
     else if (srcClrCatg == 1 && dstClrCatg == 2)
     {
         VkMat vkCscCoefs;
-        const ImMat cscCoefs = *color_table[1][src.color_range][src.color_space];
+        const ImMat cscCoefs = *color_table[1][dst.color_range][dst.color_space];
         cmd->record_clone(cscCoefs, vkCscCoefs, opt);
-        int bitDepth = src.depth != 0 ? src.depth : src.type == IM_DT_INT8 ? 8 : src.type == IM_DT_INT16 ? 16 : 8;
+        int bitDepth = dst.depth != 0 ? dst.depth : dst.type == IM_DT_INT8 ? 8 : dst.type == IM_DT_INT16 ? 16 : 8;
 
         std::vector<VkMat> bindings(9);
         if      (dst.type == IM_DT_INT8)    bindings[0] = dst;
