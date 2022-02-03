@@ -378,7 +378,7 @@ static bool ImGui_ImplSDL2_Init(SDL_Window* window, void* sdl_gl_context)
         io.BackendFlags |= ImGuiBackendFlags_PlatformHasViewports;  // We can create multi-viewports on the Platform side (optional)
 
     // SDL on Linux/OSX doesn't report events for unfocused windows (see https://github.com/ocornut/imgui/issues/4960)
-#ifdef _WIN32
+#ifndef __APPLE__
     if (mouse_can_use_global_state)
         io.BackendFlags |= ImGuiBackendFlags_HasMouseHoveredViewport;// We can call io.AddMouseViewportEvent() with correct data (optional)
 #endif
@@ -656,7 +656,6 @@ void ImGui_ImplSDL2_NewFrame()
     SDL_GetWindowSize(bd->Window, &w, &h);
     if (SDL_GetWindowFlags(bd->Window) & SDL_WINDOW_MINIMIZED)
         w = h = 0;
-    
     // Modify By Dicky
     //SDL_GL_GetDrawableSize(bd->Window, &display_w, &display_h);
     if (SDL_GetWindowFlags(bd->Window) & SDL_WINDOW_VULKAN)
@@ -664,7 +663,6 @@ void ImGui_ImplSDL2_NewFrame()
     else
         SDL_GL_GetDrawableSize(bd->Window, &display_w, &display_h);
     // Modify By Dicky end
-
     io.DisplaySize = ImVec2((float)w, (float)h);
     if (w > 0 && h > 0)
         io.DisplayFramebufferScale = ImVec2((float)display_w / w, (float)display_h / h);

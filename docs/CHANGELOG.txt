@@ -216,6 +216,7 @@ Other Changes:
 - Backends: OSX: Submit gamepad data using io.AddKeyEvent/AddKeyAnalogEvent() functions, stopped writing to io.NavInputs[]. (#4858)
 - Backends: OSX: Added basic Platform IME support. (#3108, #2598) [@liuliu]
 - Backends: OSX: Fix Game Controller nav mapping to use shoulder for both focusing and tweak speed. (#4759)
+- Backends: OSX: Fix building with old Xcode versions that are missing gamepad features. [@rokups]
 - Backends: Android, GLUT: Submit keys using io.AddKeyEvent(). Submit keymods using io.AddKeyModsEvent() at the same time. (#2625)
 - Backends: Android, GLUT: Submit mouse data using io.AddMousePosEvent(), AddMouseButtonEvent(), AddMouseWheelEvent() functions. (#4858)
 - Backends: OpenGL3: Fixed a buffer overflow in imgui_impl_opengl3_loader.h init (added in 1.86). (#4468, #4830) [@dymk]
@@ -230,6 +231,11 @@ Other Changes:
 
 Docking+Viewports Branch:
 
+- Docking: Fixed a CTRL+TAB crash when aiming at an empty docked window. (#4792)
+- Docking: Tabs use their own identifier instead of the Window identifier.
+  (This will invalidate some stored .ini data such as last selected tab, sorry!)
+- Docking: Fixed size constraints not working on single window holding on a dock id (still doesn't work on docked windows).
+- Docking: Fixed CTRL+TAB back into a docked window not selecting menu layer when no item are on main layer.
 - Viewports, IO: Added io.AddMouseViewportEvent() function to queue hovered viewport change (when known by backend).
 - Viewports: Relaxed specs for backend supporting ImGuiBackendFlags_HasMouseHoveredViewport: it is now _optional_
   for the backend to have to ignore viewports with the _NoInputs flag when call io.AddMouseViewportEvent(). It is
@@ -239,7 +245,6 @@ Docking+Viewports Branch:
   io.AddMouseViewportEvent() function, then Dear ImGui will revert to its flawed heuristic to find the viewport under.
   By lowering those specs, we allow the SDL and more backend to support this, only relying on the heuristic in a few
   drag and drop situations rather that relying on it everywhere.
-- Docking: Fixed a CTRL+TAB crash when aiming at an empty docked window. (#4792)
 - Viewports: Fixed a CTRL+TAB crash with viewports enabled when the window list needs to appears in
   its own viewport (regression from 1.86). (#4023, #787)
 - Viewports: Fixed active InputText() from preventing viewports to merge. (#4212)
