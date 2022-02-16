@@ -34,17 +34,17 @@
 // this mapping by default is for GLFW but you can use another
 //#include <GLFW/glfw3.h> 
 // Up key for explore to the top
-//#define IGFD_KEY_UP GLFW_KEY_UP
+//#define IGFD_KEY_UP ImGuiKey_UpArrow
 // Down key for explore to the bottom
-//#define IGFD_KEY_DOWN GLFW_KEY_DOWN
+//#define IGFD_KEY_DOWN ImGuiKey_DownArrow
 // Enter key for open directory
-//#define IGFD_KEY_ENTER GLFW_KEY_ENTER
+//#define IGFD_KEY_ENTER ImGuiKey_Enter
 // BackSpace for comming back to the last directory
-//#define IGFD_KEY_BACKSPACE GLFW_KEY_BACKSPACE
+//#define IGFD_KEY_BACKSPACE ImGuiKey_Backspace
 
 // by ex you can quit the dialog by pressing the key excape
 //#define USE_DIALOG_EXIT_WITH_KEY
-//#define IGFD_EXIT_KEY GLFW_KEY_ESCAPE
+//#define IGFD_EXIT_KEY ImGuiKey_Escape
 
 // widget
 // filter combobox width
@@ -61,23 +61,14 @@
 #define cancelButtonString ICON_IGFD_CANCEL " Cancel"
 #define resetButtonString ICON_IGFD_RESET
 #define drivesButtonString ICON_IGFD_DRIVES
+#define editPathButtonString ICON_IGFD_EDIT
+#define searchString ICON_IGFD_SEARCH
 #define dirEntryString ICON_IGFD_FOLDER
 #define linkEntryString ICON_IGFD_LINK
 #define fileEntryString ICON_IGFD_FILE
-#define editPathButtonString ICON_IGFD_EDIT
 #define OverWriteDialogConfirmButtonString ICON_IGFD_OK " Confirm"
 #define OverWriteDialogCancelButtonString ICON_IGFD_CANCEL " Cancel"
 #endif
-//#define createDirButtonString "+"
-//#define okButtonString " OK"
-//#define cancelButtonString " Cancel"
-//#define resetButtonString "R"
-//#define drivesButtonString "Drives"
-//#define editPathButtonString "E"
-//#define searchString "Search"
-//#define dirEntryString "[DIR] "
-//#define linkEntryString "[LINK] "
-//#define fileEntryString "[FILE] "
 //#define fileNameString "File Name : "
 //#define dirNameString "Directory Path :"
 //#define buttonResetSearchString "Reset search"
@@ -97,6 +88,7 @@
 //#define DateTimeFormat "%Y/%m/%d %i:%M%p"
 
 // theses icons will appear in table headers
+//#define USE_CUSTOM_SORTING_ICON
 #define USE_CUSTOM_SORTING_ICON
 #if IMGUI_ICONS
 #define tableHeaderAscendingIcon ICON_IGFD_CHEVRON_UP

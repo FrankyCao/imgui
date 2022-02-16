@@ -28,7 +28,7 @@ SOFTWARE.
 #include "ImGuiFileDialog.h"
 
 #ifdef __cplusplus
-#include "imgui.h"
+#include "imgui.h" // add by Dicky
 
 #include <cfloat>
 #include <cstring> // stricmp / strcasecmp
@@ -2377,13 +2377,13 @@ namespace IGFD
 		if (puFileManager.puInputPathActivated)
 		{
 			auto gio = ImGui::GetIO();
-			if (ImGui::IsKeyReleased(gio.KeyMap[ImGuiKey_Enter]))
+			if (ImGui::IsKeyReleased(ImGuiKey_Enter))
 			{
 				puFileManager.SetCurrentPath(std::string(puFileManager.puInputPathBuffer));
 				puFileManager.OpenCurrentPath(*this);
 				puFileManager.puInputPathActivated = false;
 			}
-			if (ImGui::IsKeyReleased(gio.KeyMap[ImGuiKey_Escape]))
+			if (ImGui::IsKeyReleased(ImGuiKey_Escape))
 			{
 				puFileManager.puInputPathActivated = false;
 			}
@@ -2976,9 +2976,9 @@ namespace IGFD
 
 			if (g.NavId && g.NavId == vListViewID)
 			{
-				if (ImGui::IsKeyPressedMap(ImGuiKey_Enter) ||
-					ImGui::IsKeyPressedMap(ImGuiKey_KeypadEnter) ||
-					ImGui::IsKeyPressedMap(ImGuiKey_Space))
+				if (ImGui::IsKeyPressed(ImGuiKey_Enter) ||
+					ImGui::IsKeyPressed(ImGuiKey_KeypadEnter) ||
+					ImGui::IsKeyPressed(ImGuiKey_Space))
 				{
 					ImGui::ActivateItem(vListViewID);
 					ImGui::SetActiveID(vListViewID, g.CurrentWindow);
@@ -2990,7 +2990,7 @@ namespace IGFD
 
 			if (canWeExplore)
 			{
-				if (ImGui::IsKeyPressedMap(ImGuiKey_Escape))
+				if (ImGui::IsKeyPressed(ImGuiKey_Escape))
 				{
 					ImGui::ClearActiveID();
 					g.LastActiveId = 0;
@@ -3003,7 +3003,7 @@ namespace IGFD
 				bool enterInDirectory = false;
 				bool exitDirectory = false;
 
-				if ((hasNav && ImGui::IsKeyPressedMap(ImGuiKey_UpArrow)) || (!hasNav && ImGui::IsKeyPressed(IGFD_KEY_UP)))
+				if ((hasNav && ImGui::IsKeyPressed(ImGuiKey_UpArrow)) || (!hasNav && ImGui::IsKeyPressed(IGFD_KEY_UP)))
 				{
 					exploreByKey = true;
 					if (prLocateFileByInputChar_lastFileIdx > 0)
@@ -3011,7 +3011,7 @@ namespace IGFD
 					else
 						prLocateFileByInputChar_lastFileIdx = countFiles - 1U;
 				}
-				else if ((hasNav && ImGui::IsKeyPressedMap(ImGuiKey_DownArrow)) || (!hasNav && ImGui::IsKeyPressed(IGFD_KEY_DOWN)))
+				else if ((hasNav && ImGui::IsKeyPressed(ImGuiKey_DownArrow)) || (!hasNav && ImGui::IsKeyPressed(IGFD_KEY_DOWN)))
 				{
 					exploreByKey = true;
 					if (prLocateFileByInputChar_lastFileIdx < countFiles - 1U)
@@ -3737,16 +3737,23 @@ namespace IGFD
 			ImGui::SetNextWindowSizeConstraints(vMinSize, vMaxSize);
 
 			bool beg = false;
-			if (prFileDialogInternal.puDLGmodal &&
-				!prFileDialogInternal.puOkResultToConfirm) // disable modal because the confirm dialog for overwrite is a new modal
+			if (prFileDialogInternal.puDLGflags & ImGuiFileDialogFlags_NoDialog) // disable our own dialog system (standard or modal)
 			{
-				ImGui::OpenPopup(name.c_str());
-				beg = ImGui::BeginPopupModal(name.c_str(), (bool*)nullptr,
-					flags | ImGuiWindowFlags_NoScrollbar);
+				beg = true;
 			}
 			else
 			{
-				beg = ImGui::Begin(name.c_str(), (bool*)nullptr, flags | ImGuiWindowFlags_NoScrollbar);
+				if (prFileDialogInternal.puDLGmodal &&
+					!prFileDialogInternal.puOkResultToConfirm) // disable modal because the confirm dialog for overwrite is a new modal
+				{
+					ImGui::OpenPopup(name.c_str());
+					beg = ImGui::BeginPopupModal(name.c_str(), (bool*)nullptr,
+						flags | ImGuiWindowFlags_NoScrollbar);
+				}
+				else
+				{
+					beg = ImGui::Begin(name.c_str(), (bool*)nullptr, flags | ImGuiWindowFlags_NoScrollbar);
+				}
 			}
 			if (beg)
 			{
@@ -3806,10 +3813,16 @@ namespace IGFD
 					ImGui::EndPopup();
 			}
 
-			// same things here regarding prOkResultToConfirm
-			if (!prFileDialogInternal.puDLGmodal || prFileDialogInternal.puOkResultToConfirm)
-				ImGui::End();
+			if (prFileDialogInternal.puDLGflags & ImGuiFileDialogFlags_NoDialog) // disable our own dialog system (standard or modal)
+			{
 
+			}
+			else
+			{
+				// same things here regarding prOkResultToConfirm
+				if (!prFileDialogInternal.puDLGmodal || prFileDialogInternal.puOkResultToConfirm)
+					ImGui::End();
+			}
 			// confirm the result and show the confirm to overwrite dialog if needed
 			res =  prConfirm_Or_OpenOverWriteFileDialog_IfNeeded(res, vFlags);
 			
@@ -3840,8 +3853,11 @@ namespace IGFD
 	void IGFD::FileDialog::prDrawHeader()
 	{
 #ifdef USE_BOOKMARK
-		prDrawBookmarkButton();
-		ImGui::SameLine();
+		if (!(prFileDialogInternal.puDLGflags & ImGuiFileDialogFlags_DisableBookmarkMode))
+		{
+			prDrawBookmarkButton();
+			ImGui::SameLine();
+		}
 
 #endif // USE_BOOKMARK
 
@@ -3869,18 +3885,21 @@ namespace IGFD
 		ImVec2 size = ImGui::GetContentRegionAvail() - ImVec2(0.0f, prFileDialogInternal.puFooterHeight);
 
 #ifdef USE_BOOKMARK
-		if (prBookmarkPaneShown)
+		if (!(prFileDialogInternal.puDLGflags & ImGuiFileDialogFlags_DisableBookmarkMode))
 		{
-			//size.x -= prBookmarkWidth;
-			float otherWidth = size.x - prBookmarkWidth;
-			ImGui::PushID("##splitterbookmark");
-			IGFD::Utils::Splitter(true, 4.0f,
-				&prBookmarkWidth, &otherWidth, 10.0f,
-				10.0f + prFileDialogInternal.puDLGoptionsPaneWidth, size.y);
-			ImGui::PopID();
-			size.x -= otherWidth;
-			prDrawBookmarkPane(prFileDialogInternal, size);
-			ImGui::SameLine();
+			if (prBookmarkPaneShown)
+			{
+				//size.x -= prBookmarkWidth;
+				float otherWidth = size.x - prBookmarkWidth;
+				ImGui::PushID("##splitterbookmark");
+				IGFD::Utils::Splitter(true, 4.0f,
+					&prBookmarkWidth, &otherWidth, 10.0f,
+					10.0f + prFileDialogInternal.puDLGoptionsPaneWidth, size.y);
+				ImGui::PopID();
+				size.x -= otherWidth;
+				prDrawBookmarkPane(prFileDialogInternal, size);
+				ImGui::SameLine();
+			}
 		}
 #endif // USE_BOOKMARK
 
@@ -3912,9 +3931,9 @@ namespace IGFD
 				prDrawThumbnailsGridView(size);
 			}
 		}
-#else
+#else	// USE_THUMBNAILS
 		prDrawFileListView(size);
-#endif // USE_THUMBNAILS
+#endif	// USE_THUMBNAILS
 
 		if (prFileDialogInternal.puDLGoptionsPane)
 		{
