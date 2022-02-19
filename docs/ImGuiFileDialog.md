@@ -72,8 +72,11 @@ included in the Lib_Only branch for your convenience.
 - Directory bookmarks
 - Directory manual entry (right click on any path element)
 - Optional 'Confirm to Overwrite" dialog if file exists
-- Thumbnails Display (agnostic way for compatibility with any backend, sucessfully tested with OpenGl and Vulkan)
 - C Api (succesfully tested with CimGui)
+- Thumbnails Display (agnostic way for compatibility with any backend, sucessfully tested with OpenGl and Vulkan)
+- The dialog can be embedded in another user frame than the standard or modal dialog
+- Can tune validation buttons (placements, widths, inversion) 
+- Can quick select a parrallel directory of a path, in the path composer (when you clikc on a / you have a popup)
 
 ## Singleton Pattern vs. Multiple Instances
 
@@ -469,7 +472,7 @@ std::string GetCurrentFilter();                    // The file extension
 
 ## Thumbnails Display
 
-You can now, display thumbnails of pictures.
+You can now, display thumbnails of pictures. 
 
 ![thumbnails.gif](https://github.com/aiekick/ImGuiFileDialog/blob/master/doc/thumbnails.gif)
 
@@ -492,6 +495,17 @@ Corresponding to your backend (ex : OpenGl) you need to define two callbacks :
 After that you need to call the function who is responsible to create / destroy the textures.
 this function must be called in your GPU Rendering zone for avoid destroying of used texture.
 if you do that at the same place of your imgui code, some backend can crash your app, by ex with vulkan.
+
+To Clarify :
+
+This feature is spliited in two zones : 
+ - CPU Zone : for load/destroy picture file
+ - GPU Zone : for load/destroy gpu textures.
+This modern behavior for avoid destroying of used texture, 
+was needed for vulkan. 
+
+This feature was Successfully tested on my side with Opengl and Vulkan.
+But im sure is perfectly compatible with other modern apis like DirectX and Metal
 
 ex, for opengl :
 
@@ -545,6 +559,7 @@ ImGuiFileDialog::Instance()->SetDestroyThumbnailCallback([](IGFD_Thumbnail_Info*
 ImGuiFileDialog::Instance()->ManageGPUThumbnails();
 ```
 
+
 ## How to Integrate ImGuiFileDialog in your project
 
 ### Customize ImGuiFileDialog :
@@ -563,6 +578,73 @@ The custom icon font used in the example code ([CustomFont.cpp](CustomFont.cpp) 
 with [ImGuiFontStudio](https://github.com/aiekick/ImGuiFontStudio), which I wrote. :)
 
 ImGuiFontStudio uses ImGuiFileDialog! Check it out.
+
+## Tune the validations button group
+
+You can specify :
+- the width of "ok" and "cancel" buttons, by the set the defines "okButtonWidth" and "cancelButtonWidth"
+- the alignement of the button group (left, right, middle, etc..) by set the define "okCancelButtonAlignement"
+- if you want to have the ok button on the left and cancel button on the right or inverted by set the define "invertOkAndCancelButtons"
+
+just see theses defines in the config file
+```cpp
+//Validation buttons
+//#define okButtonString " OK"
+//#define okButtonWidth 0.0f
+//#define cancelButtonString " Cancel"
+//#define cancelButtonWidth 0.0f
+//alignement [0:1], 0.0 is left, 0.5 middle, 1.0 right, and other ratios
+//#define okCancelButtonAlignement 0.0f
+//#define invertOkAndCancelButtons false
+```
+with Alignement 0.0 => left
+
+![alignement_0.0.gif](https://github.com/aiekick/ImGuiFileDialog/blob/master/doc/alignement_0.0.png)
+
+with Alignement 1.0 => right
+
+![alignement_1.0.gif](https://github.com/aiekick/ImGuiFileDialog/blob/master/doc/alignement_1.0.png)
+
+with Alignement 0.5 => middle
+
+![alignement_0.5.gif](https://github.com/aiekick/ImGuiFileDialog/blob/master/doc/alignement_0.5.png)
+
+ok and cancel buttons inverted (cancel on the left and ok on the right)
+
+![validation_buttons_inverted.gif](https://github.com/aiekick/ImGuiFileDialog/blob/master/doc/validation_buttons_inverted.png)
+
+## Embedded in other frames :
+
+The dialog can be embedded in another user frame than the standard or modal dialog
+
+You have to create a variable of type ImGuiFileDialog. (if you are suing the singleton, you will not have the possibility to open other dialog)
+
+ex :
+
+```cpp
+ImGuiFileDialog fileDialog;
+
+// open dialog; in this case, Bookmark, directory creation are disabled with, and also the file input field is readonly.
+// btw you can od what you want
+fileDialog.OpenDialog("embedded", "Select File", ".*", "", -1, nullptr, 
+	ImGuiFileDialogFlags_NoDialog | 
+	ImGuiFileDialogFlags_DisableBookmarkMode | 
+	ImGuiFileDialogFlags_DisableCreateDirectoryButton | 
+	ImGuiFileDialogFlags_ReadOnlyFileNameField);
+// then display, here 
+// to note, when embedded the ImVec2(0,0) (MinSize) do nothing, only the ImVec2(0,350) (MaxSize) can size the dialog frame 
+fileDialog.Display("embedded", ImGuiWindowFlags_NoCollapse, ImVec2(0,0), ImVec2(0,350)))
+```
+the result :
+
+![Embedded.gif](https://github.com/aiekick/ImGuiFileDialog/blob/master/doc/Embedded.gif)
+
+## Quick Parallel Path Selection in Path Composer
+
+you have a separator between two directories in the path composer
+when you click on it you can explore a list of parrallels directories of this point
+
+![quick_composer_path_select.gif](https://github.com/aiekick/ImGuiFileDialog/blob/master/doc/quick_composer_path_select.gif)
 
 ## Api's C/C++ :
 

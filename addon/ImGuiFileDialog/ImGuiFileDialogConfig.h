@@ -9,10 +9,6 @@
 //#define MAX_PATH_BUFFER_SIZE 1024
 
 //#define USE_THUMBNAILS
-//#if IMGUI_ICONS
-//#define DisplayMode_FilesList_ButtonString ICON_IGFD_FILE_LIST
-//#define DisplayMode_ThumbailsList_ButtonString ICON_IGFD_FILE_LIST_THUMBNAILS
-//#endif
 //the thumbnail generation use the stb_image and stb_resize lib who need to define the implementation
 //btw if you already use them in your app, you can have compiler error due to "implemntation found in double"
 //so uncomment these line for prevent the creation of implementation of these libs again
@@ -80,6 +76,15 @@
 //#define OverWriteDialogMessageString "Would you like to OverWrite it ?"
 //#define OverWriteDialogConfirmButtonString "Confirm"
 //#define OverWriteDialogCancelButtonString "Cancel"
+
+//Validation buttons
+//#define okButtonString " OK"
+//#define okButtonWidth 0.0f
+//#define cancelButtonString " Cancel"
+//#define cancelButtonWidth 0.0f
+//alignement [0:1], 0.0 is left, 0.5 middle, 1.0 right, and other ratios
+//#define okCancelButtonAlignement 0.0f
+//#define invertOkAndCancelButtons 0
 
 // DateTimeFormat
 // see strftime functionin <ctime> for customize
