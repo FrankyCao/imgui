@@ -87,6 +87,7 @@ int main(int, char**)
     SetupVulkanWindow(wd, surface, w, h);
 
     ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.Fonts->AddFontDefault();
     io.FontGlobalScale = property.scale;
     io.DisplayFramebufferScale = display_scale;
     if (property.power_save) io.ConfigFlags |= ImGuiConfigFlags_EnableLowRefreshMode;
