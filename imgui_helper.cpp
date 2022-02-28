@@ -313,6 +313,13 @@ void ImGenerateOrUpdateTexture(ImTextureID& imtexid,int width,int height,int cha
     }
     texid->UnlockRect(0);
 #elif IMGUI_OPENGL
+#if IMGUI_VULKAN_SHADER
+    if (is_vulkan)
+    {
+        // TODO::Dicky need transfer data from vulkan to GL
+        return;
+    }
+#endif
     glEnable(GL_TEXTURE_2D);
     GLint last_texture = 0;
     glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture);
@@ -645,7 +652,13 @@ void ImMatToTexture(ImGui::ImMat mat, ImTextureID& texture)
     if (mat.device == ImDataDevice::IM_DD_VULKAN)
     {
         ImGui::VkMat vkmat = mat;
+#if !IMGUI_RENDERING_VULKAN
+        ImGui::ImMat cpu_mat;
+        ImGui::ImVulkanVkMatToImMat(vkmat, cpu_mat);
+        ImGui::ImGenerateOrUpdateTexture(texture, cpu_mat.w, cpu_mat.h, cpu_mat.c, (const unsigned char *)cpu_mat.data);
+#else
         ImGui::ImGenerateOrUpdateTexture(texture, vkmat.w, vkmat.h, vkmat.c, vkmat.buffer_offset(), (const unsigned char *)vkmat.buffer());
+#endif
     }
 #endif
 }
