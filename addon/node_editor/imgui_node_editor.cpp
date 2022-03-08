@@ -4703,7 +4703,7 @@ ed::EditorAction::AcceptResult ed::CreateItemAction::Accept(const Control& contr
     if (m_IsActive)
         return EditorAction::False;
 
-    if (control.ActivePin && ImGui::IsMouseDragging(Editor->GetConfig().DragButtonIndex))
+    if (control.ActivePin && (ImGui::IsMouseDown(Editor->GetConfig().DragButtonIndex) || ImGui::IsMouseDragging(Editor->GetConfig().DragButtonIndex)))
     {
         m_DraggedPin = control.ActivePin;
         DragStart(m_DraggedPin);

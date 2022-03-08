@@ -427,6 +427,83 @@ sfpvec4 load_rgba(int x, int y, int w, int cstep, int format, int type) \n\
 } \n\
 " // 58 lines
 
+#define SHADER_LOAD_RGBA_NAME_INT8(src) \
+" \n\
+sfpvec4 load_rgba_int8_"#src"(int x, int y, int w, int cstep, int format) \n\
+{ \n\
+    sfpvec4 rgb_in = sfpvec4(0.f); \n\
+    ivec4 i_offset = (y * w + x) * cstep + (format == CF_ABGR ? ivec4(0, 1, 2, 3) : ivec4(2, 1, 0, 3)); \n\
+    rgb_in.r = sfp(uint("#src"_data_int8[i_offset.r])) / sfp(255.f); \n\
+    rgb_in.g = sfp(uint("#src"_data_int8[i_offset.g])) / sfp(255.f); \n\
+    rgb_in.b = sfp(uint("#src"_data_int8[i_offset.b])) / sfp(255.f); \n\
+    rgb_in.a = sfp(uint("#src"_data_int8[i_offset.a])) / sfp(255.f); \n\
+    return rgb_in; \n\
+} \n\
+"
+
+#define SHADER_LOAD_RGBA_NAME_INT16(src) \
+" \n\
+sfpvec4 load_rgba_int16_"#src"(int x, int y, int w, int cstep, int format) \n\
+{ \n\
+    sfpvec4 rgb_in = sfpvec4(0.f); \n\
+    ivec4 i_offset = (y * w + x) * cstep + (format == CF_ABGR ? ivec4(0, 1, 2, 3) : ivec4(2, 1, 0, 3)); \n\
+    rgb_in.r = sfp(uint("#src"_data_int16[i_offset.r])) / sfp(65535.f); \n\
+    rgb_in.g = sfp(uint("#src"_data_int16[i_offset.g])) / sfp(65535.f); \n\
+    rgb_in.b = sfp(uint("#src"_data_int16[i_offset.b])) / sfp(65535.f); \n\
+    rgb_in.a = sfp(uint("#src"_data_int16[i_offset.a])) / sfp(65535.f); \n\
+    return rgb_in; \n\
+} \n\
+"
+
+#define SHADER_LOAD_RGBA_NAME_FLOAT16(src) \
+" \n\
+sfpvec4 load_rgba_float16_"#src"(int x, int y, int w, int cstep, int format) \n\
+{ \n\
+    sfpvec4 rgb_in = sfpvec4(0.f); \n\
+    ivec4 i_offset = (y * w + x) * cstep + (format == CF_ABGR ? ivec4(0, 1, 2, 3) : ivec4(2, 1, 0, 3)); \n\
+    rgb_in.r = sfp("#src"_data_float16[i_offset.r]); \n\
+    rgb_in.g = sfp("#src"_data_float16[i_offset.g]); \n\
+    rgb_in.b = sfp("#src"_data_float16[i_offset.b]); \n\
+    rgb_in.a = sfp("#src"_data_float16[i_offset.a]); \n\
+    return rgb_in; \n\
+} \n\
+"
+
+#define SHADER_LOAD_RGBA_NAME_FLOAT32(src) \
+" \n\
+sfpvec4 load_rgba_float32_"#src"(int x, int y, int w, int cstep, int format) \n\
+{ \n\
+    sfpvec4 rgb_in = sfpvec4(0.f); \n\
+    ivec4 i_offset = (y * w + x) * cstep + (format == CF_ABGR ? ivec4(0, 1, 2, 3) : ivec4(2, 1, 0, 3)); \n\
+    rgb_in.r = sfp("#src"_data_float32[i_offset.r]); \n\
+    rgb_in.g = sfp("#src"_data_float32[i_offset.g]); \n\
+    rgb_in.b = sfp("#src"_data_float32[i_offset.b]); \n\
+    rgb_in.a = sfp("#src"_data_float32[i_offset.a]); \n\
+    return rgb_in; \n\
+} \n\
+"
+
+#define SHADER_LOAD_RGBA_NAME(src) \
+SHADER_LOAD_RGBA_NAME_INT8(src) \
+SHADER_LOAD_RGBA_NAME_INT16(src) \
+SHADER_LOAD_RGBA_NAME_FLOAT16(src) \
+SHADER_LOAD_RGBA_NAME_FLOAT32(src) \
+" \n\
+sfpvec4 load_rgba_"#src"(int x, int y, int w, int cstep, int format, int type) \n\
+{ \n\
+    if (type == DT_INT8) \n\
+        return load_rgba_int8_"#src"(x, y, w, cstep, format); \n\
+    else if (type == DT_INT16) \n\
+        return load_rgba_int16_"#src"(x, y, w, cstep, format); \n\
+    else if (type == DT_FLOAT16) \n\
+        return load_rgba_float16_"#src"(x, y, w, cstep, format); \n\
+    else if (type == DT_FLOAT32) \n\
+        return load_rgba_float32_"#src"(x, y, w, cstep, format); \n\
+    else \n\
+        return sfpvec4(0.f); \n\
+} \n\
+"
+
 // Load data from dst as rgba
 #define SHADER_LOAD_DST_RGBA_INT8 \
 " \n\

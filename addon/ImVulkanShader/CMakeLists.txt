@@ -116,6 +116,7 @@ set(VKSHADER_INCS
 )
 set(VKSHADER_SRCS
     ${VKSHADER_SRCS}
+    filters/AlphaBlending_vulkan.cpp
     filters/colorspace_table.cpp
     filters/ColorConvert_vulkan.cpp
     filters/Resize_vulkan.cpp
@@ -153,6 +154,8 @@ set(VKSHADER_SRCS
 )
 set(VKSHADER_INCS
     ${VKSHADER_INCS}
+    filters/AlphaBlending_shader.h
+    filters/AlphaBlending_vulkan.h
     filters/ColorConvert_shader.h
     filters/ColorConvert_vulkan.h
     filters/Resize_shader.h
@@ -258,7 +261,7 @@ add_library(
 
 set(VKSHADER_VERSION_MAJOR 1)
 set(VKSHADER_VERSION_MINOR 0)
-set(VKSHADER_VERSION_PATCH 4)
+set(VKSHADER_VERSION_PATCH 5)
 set(VKSHADER_VERSION_STRING ${VKSHADER_VERSION_MAJOR}.${VKSHADER_VERSION_MINOR}.${VKSHADER_VERSION_PATCH})
 
 if(NOT VKSHADER_STATIC)
