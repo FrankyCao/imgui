@@ -312,89 +312,26 @@ void ChromaKey_vulkan::filter(const ImMat& src, ImMat& dst,
         return;
     }
     
-    dst.create_type(src.w, src.h, output_type == CHROMAKEY_OUTPUT_ALPHA_ONLY ? 1 : 4, dst.type);
+    VkMat dst_gpu;
+    dst_gpu.create_type(src.w, src.h, output_type == CHROMAKEY_OUTPUT_ALPHA_ONLY ? 1 : 4, dst.type, opt.blob_vkallocator);
 
-    VkMat out_gpu;
-    out_gpu.create_like(dst, opt.blob_vkallocator);
-    VkMat in_gpu;
-    cmd->record_clone(src, in_gpu, opt);
+    VkMat src_gpu;
+    if (src.device == IM_DD_VULKAN)
+    {
+        src_gpu = src;
+    }
+    else if (src.device == IM_DD_CPU)
+    {
+        cmd->record_clone(src, src_gpu, opt);
+    }
 
-    upload_param(in_gpu, out_gpu, lumaMask, chromaColor, alphaCutoffMin, alphaScale, alphaExponent, output_type);
+    upload_param(src_gpu, dst_gpu, lumaMask, chromaColor, alphaCutoffMin, alphaScale, alphaExponent, output_type);
 
     // download
-    cmd->record_clone(out_gpu, dst, opt);
-    cmd->submit_and_wait();
-    cmd->reset();
-}
-
-void ChromaKey_vulkan::filter(const ImMat& src, VkMat& dst,
-                            float lumaMask, std::vector<float> chromaColor,
-                            float alphaCutoffMin, float alphaScale, float alphaExponent,
-                            int output_type)
-{
-#if FILTER_2DS_BLUR
-    if (!vkdev || !pipe || !pipe_blur_column || !pipe_blur_row || !cmd)
-#else
-    if (!vkdev || !pipe || !pipe_blur || !cmd)
-#endif
-    {
-        return;
-    }
-    dst.create_type(src.w, src.h, output_type == CHROMAKEY_OUTPUT_ALPHA_ONLY ? 1 : 4, dst.type, opt.blob_vkallocator);
-
-    VkMat in_gpu;
-    cmd->record_clone(src, in_gpu, opt);
-
-    upload_param(in_gpu, dst, lumaMask, chromaColor, alphaCutoffMin, alphaScale, alphaExponent, output_type);
-
-    cmd->submit_and_wait();
-    cmd->reset();
-}
-
-void ChromaKey_vulkan::filter(const VkMat& src, ImMat& dst,
-                            float lumaMask, std::vector<float> chromaColor,
-                            float alphaCutoffMin, float alphaScale, float alphaExponent,
-                            int output_type)
-{
-#if FILTER_2DS_BLUR
-    if (!vkdev || !pipe || !pipe_blur_column || !pipe_blur_row || !cmd)
-#else
-    if (!vkdev || !pipe || !pipe_blur || !cmd)
-#endif
-    {
-        return;
-    }
-    dst.create_type(src.w, src.h, output_type == CHROMAKEY_OUTPUT_ALPHA_ONLY ? 1 : 4, dst.type);
-
-    VkMat out_gpu;
-    out_gpu.create_like(dst, opt.blob_vkallocator);
-
-    upload_param(src, out_gpu, lumaMask, chromaColor, alphaCutoffMin, alphaScale, alphaExponent, output_type);
-
-    // download
-    cmd->record_clone(out_gpu, dst, opt);
-    cmd->submit_and_wait();
-    cmd->reset();
-}
-
-void ChromaKey_vulkan::filter(const VkMat& src, VkMat& dst,
-                            float lumaMask, std::vector<float> chromaColor,
-                            float alphaCutoffMin, float alphaScale, float alphaExponent,
-                            int output_type)
-{
-#if FILTER_2DS_BLUR
-    if (!vkdev || !pipe || !pipe_blur_column || !pipe_blur_row || !cmd)
-#else
-    if (!vkdev || !pipe || !pipe_blur || !cmd)
-#endif
-    {
-        return;
-    }
-
-    dst.create_type(src.w, src.h, output_type == CHROMAKEY_OUTPUT_ALPHA_ONLY ? 1 : 4, dst.type, opt.blob_vkallocator);
-    
-    upload_param(src, dst, lumaMask, chromaColor, alphaCutoffMin, alphaScale, alphaExponent, output_type);
-
+    if (dst.device == IM_DD_CPU)
+        cmd->record_clone(dst_gpu, dst, opt);
+    else if (dst.device == IM_DD_VULKAN)
+        dst = dst_gpu;
     cmd->submit_and_wait();
     cmd->reset();
 }

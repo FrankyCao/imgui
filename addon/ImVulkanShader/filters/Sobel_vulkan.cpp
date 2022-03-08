@@ -71,68 +71,27 @@ void Sobel_vulkan::filter(const ImMat& src, ImMat& dst, float edgeStrength)
     {
         return;
     }
-    dst.create_type(src.w, src.h, 4, dst.type);
 
-    VkMat out_gpu;
-    out_gpu.create_like(dst, opt.blob_vkallocator);
-    VkMat in_gpu;
-    cmd->record_clone(src, in_gpu, opt);
+    VkMat dst_gpu;
+    dst_gpu.create_type(src.w, src.h, 4, dst.type, opt.blob_vkallocator);
 
-    upload_param(in_gpu, out_gpu, edgeStrength);
+    VkMat src_gpu;
+    if (src.device == IM_DD_VULKAN)
+    {
+        src_gpu = src;
+    }
+    else if (src.device == IM_DD_CPU)
+    {
+        cmd->record_clone(src, src_gpu, opt);
+    }
+
+    upload_param(src_gpu, dst_gpu, edgeStrength);
 
     // download
-    cmd->record_clone(out_gpu, dst, opt);
-    cmd->submit_and_wait();
-    cmd->reset();
-}
-
-void Sobel_vulkan::filter(const ImMat& src, VkMat& dst, float edgeStrength)
-{
-    if (!vkdev || !pipe || !cmd)
-    {
-        return;
-    }
-    dst.create_type(src.w, src.h, 4, dst.type, opt.blob_vkallocator);
-
-    VkMat in_gpu;
-    cmd->record_clone(src, in_gpu, opt);
-
-    upload_param(in_gpu, dst, edgeStrength);
-
-    cmd->submit_and_wait();
-    cmd->reset();
-}
-
-void Sobel_vulkan::filter(const VkMat& src, ImMat& dst, float edgeStrength)
-{
-    if (!vkdev || !pipe || !cmd)
-    {
-        return;
-    }
-    dst.create_type(src.w, src.h, 4, dst.type);
-
-    VkMat out_gpu;
-    out_gpu.create_like(dst, opt.blob_vkallocator);
-
-    upload_param(src, out_gpu, edgeStrength);
-
-    // download
-    cmd->record_clone(out_gpu, dst, opt);
-    cmd->submit_and_wait();
-    cmd->reset();
-}
-
-void Sobel_vulkan::filter(const VkMat& src, VkMat& dst, float edgeStrength)
-{
-    if (!vkdev || !pipe || !cmd)
-    {
-        return;
-    }
-
-    dst.create_type(src.w, src.h, 4, dst.type, opt.blob_vkallocator);
-    
-    upload_param(src, dst, edgeStrength);
-
+    if (dst.device == IM_DD_CPU)
+        cmd->record_clone(dst_gpu, dst, opt);
+    else if (dst.device == IM_DD_VULKAN)
+        dst = dst_gpu;
     cmd->submit_and_wait();
     cmd->reset();
 }

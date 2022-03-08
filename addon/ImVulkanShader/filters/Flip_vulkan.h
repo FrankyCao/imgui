@@ -11,14 +11,7 @@ public:
     Flip_vulkan(int gpu = -1);
     ~Flip_vulkan();
 
-    // input CPU Buffer and output to RGBA CPU buffer
     virtual void flip(const ImMat& src, ImMat& dst, bool bFlipX, bool bFlipY) const;
-    // input CPU Buffer and output to RGBA GPU buffer
-    virtual void flip(const ImMat& src, VkMat& dst, bool bFlipX, bool bFlipY) const;
-    // input GPU Buffer and output to RGBA CPU buffer
-    virtual void flip(const VkMat& src, ImMat& dst, bool bFlipX, bool bFlipY) const;
-    // input GPU Buffer and output to RGBA GPU buffer
-    virtual void flip(const VkMat& src, VkMat& dst, bool bFlipX, bool bFlipY) const;
 
 public:
     const VulkanDevice* vkdev {nullptr};

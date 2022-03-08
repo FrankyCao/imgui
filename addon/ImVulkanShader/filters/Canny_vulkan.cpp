@@ -262,68 +262,27 @@ void Canny_vulkan::filter(const ImMat& src, ImMat& dst, int _blurRadius, float m
     {
         return;
     }
-    dst.create_type(src.w, src.h, 4, dst.type);
 
-    VkMat out_gpu;
-    out_gpu.create_like(dst, opt.blob_vkallocator);
-    VkMat in_gpu;
-    cmd->record_clone(src, in_gpu, opt);
+    VkMat dst_gpu;
+    dst_gpu.create_type(src.w, src.h, 4, dst.type, opt.blob_vkallocator);
 
-    upload_param(in_gpu, out_gpu, _blurRadius, minThreshold, maxThreshold);
+    VkMat src_gpu;
+    if (src.device == IM_DD_VULKAN)
+    {
+        src_gpu = src;
+    }
+    else if (src.device == IM_DD_CPU)
+    {
+        cmd->record_clone(src, src_gpu, opt);
+    }
+
+    upload_param(src_gpu, dst_gpu, _blurRadius, minThreshold, maxThreshold);
 
     // download
-    cmd->record_clone(out_gpu, dst, opt);
-    cmd->submit_and_wait();
-    cmd->reset();
-}
-
-void Canny_vulkan::filter(const ImMat& src, VkMat& dst, int _blurRadius, float minThreshold, float maxThreshold)
-{
-    if (!vkdev || !pipe || !pipe_dsobel || !pipe_nms || !pipe_column || !pipe_row || !cmd)
-    {
-        return;
-    }
-
-    dst.create_type(src.w, src.h, 4, dst.type, opt.blob_vkallocator);
-
-    VkMat in_gpu;
-    cmd->record_clone(src, in_gpu, opt);
-
-    upload_param(in_gpu, dst, _blurRadius, minThreshold, maxThreshold);
-
-    cmd->submit_and_wait();
-    cmd->reset();
-}
-
-void Canny_vulkan::filter(const VkMat& src, ImMat& dst, int _blurRadius, float minThreshold, float maxThreshold)
-{
-    if (!vkdev || !pipe || !pipe_dsobel || !pipe_nms || !pipe_column || !pipe_row || !cmd)
-    {
-        return;
-    }
-    dst.create_type(src.w, src.h, 4, dst.type);
-
-    VkMat out_gpu;
-    out_gpu.create_like(dst, opt.blob_vkallocator);
-
-    upload_param(src, out_gpu, _blurRadius, minThreshold, maxThreshold);
-
-    // download
-    cmd->record_clone(out_gpu, dst, opt);
-    cmd->submit_and_wait();
-    cmd->reset();
-}
-
-void Canny_vulkan::filter(const VkMat& src, VkMat& dst, int _blurRadius, float minThreshold, float maxThreshold)
-{
-    if (!vkdev || !pipe || !pipe_dsobel || !pipe_nms || !pipe_column || !pipe_row || !cmd)
-    {
-        return;
-    }
-    dst.create_type(src.w, src.h, 4, dst.type, opt.blob_vkallocator);
-
-    upload_param(src, dst, _blurRadius, minThreshold, maxThreshold);
-
+    if (dst.device == IM_DD_CPU)
+        cmd->record_clone(dst_gpu, dst, opt);
+    else if (dst.device == IM_DD_VULKAN)
+        dst = dst_gpu;
     cmd->submit_and_wait();
     cmd->reset();
 }

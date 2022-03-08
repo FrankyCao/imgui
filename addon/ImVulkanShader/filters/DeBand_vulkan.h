@@ -11,10 +11,9 @@ public:
     DeBand_vulkan(int width, int height, int channels, int gpu = 0);
     ~DeBand_vulkan();
     void SetParam(int _range, float _direction);
+    
     void filter(const ImMat& src, ImMat& dst, float threshold, bool blur);
-    void filter(const ImMat& src, VkMat& dst, float threshold, bool blur);
-    void filter(const VkMat& src, ImMat& dst, float threshold, bool blur);
-    void filter(const VkMat& src, VkMat& dst, float threshold, bool blur);
+
 private:
     VulkanDevice* vkdev {nullptr};
     Option opt;

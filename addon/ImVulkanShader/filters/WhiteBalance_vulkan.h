@@ -11,14 +11,7 @@ public:
     WhiteBalance_vulkan(int gpu = -1);
     ~WhiteBalance_vulkan();
 
-    // input CPU Buffer and output to RGBA CPU buffer
     virtual void filter(const ImMat& src, ImMat& dst, float temperature) const;
-    // input CPU Buffer and output to RGBA GPU buffer
-    virtual void filter(const ImMat& src, VkMat& dst, float temperature) const;
-    // input GPU Buffer and output to RGBA CPU buffer
-    virtual void filter(const VkMat& src, ImMat& dst, float temperature) const;
-    // input GPU Buffer and output to RGBA GPU buffer
-    virtual void filter(const VkMat& src, VkMat& dst, float temperature) const;
 
 public:
     const VulkanDevice* vkdev {nullptr};

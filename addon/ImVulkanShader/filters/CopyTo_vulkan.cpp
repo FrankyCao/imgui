@@ -75,108 +75,44 @@ void CopyTo_vulkan::copyTo(const ImMat& src, ImMat& dst, int x, int y, float alp
         return;
     }
 
+    if (src.dims != dst.dims || src.color_space != dst.color_space || src.color_range != dst.color_range)
+        return;
+
+    if (x >= dst.w || y >= dst.h || x <= -src.w || y <= -src.h)
+        return;
+
+    VkMat dst_gpu;
     if (dst.empty())
+        dst_gpu.create_type(src.w, src.h, 4, dst.type, opt.blob_vkallocator);
+    else
     {
-        dst.create_type(src.w, src.h, 4, dst.type);
+        if (dst.device == IM_DD_VULKAN)
+        {
+            dst_gpu = dst;
+        }
+        else if (dst.device == IM_DD_CPU)
+        {
+            cmd->record_clone(dst, dst_gpu, opt);
+        }
     }
 
-    if (src.dims != dst.dims || src.c != dst.c || dst.device != IM_DD_VULKAN ||
-        src.color_space != dst.color_space || src.color_range != dst.color_range)
-        return;
-    
-    if (x >= dst.w || y >= dst.h)
-        return;
+    VkMat src_gpu;
+    if (src.device == IM_DD_VULKAN)
+    {
+        src_gpu = src;
+    }
+    else if (src.device == IM_DD_CPU)
+    {
+        cmd->record_clone(src, src_gpu, opt);
+    }
 
-    VkMat out_gpu;
-    cmd->record_clone(dst, out_gpu, opt);
-    VkMat in_gpu;
-    cmd->record_clone(src, in_gpu, opt);
-
-    upload_param(in_gpu, out_gpu, x, y, alpha);
+    upload_param(src_gpu, dst_gpu, x, y, alpha);
 
     // download
-    cmd->record_clone(out_gpu, dst, opt);
-    cmd->submit_and_wait();
-    cmd->reset();
-}
-
-void CopyTo_vulkan::copyTo(const ImMat& src, VkMat& dst, int x, int y, float alpha) const
-{
-    if (!vkdev || !pipe || !cmd)
-    {
-        return;
-    }
-
-    if (dst.empty())
-    {
-        dst.create_type(src.w, src.h, 4, dst.type, opt.blob_vkallocator);
-    }
-    if (src.dims != dst.dims || src.c != dst.c || dst.device != IM_DD_VULKAN ||
-        src.color_space != dst.color_space || src.color_range != dst.color_range)
-        return;
-    
-    if (x >= dst.w || y >= dst.h)
-        return;
-
-    VkMat in_gpu;
-    cmd->record_clone(src, in_gpu, opt);
-
-    upload_param(in_gpu, dst, x, y, alpha);
-
-    cmd->submit_and_wait();
-    cmd->reset();
-}
-
-void CopyTo_vulkan::copyTo(const VkMat& src, ImMat& dst, int x, int y, float alpha) const
-{
-    if (!vkdev || !pipe || !cmd)
-    {
-        return;
-    }
-
-    if (dst.empty())
-    {
-        dst.create_type(src.w, src.h, 4, dst.type);
-    }
-
-    if (src.dims != dst.dims || src.c != dst.c || src.device != IM_DD_VULKAN ||
-        src.color_space != dst.color_space || src.color_range != dst.color_range)
-        return;
-    
-    if (x >= dst.w || y >= dst.h)
-        return;
-
-    VkMat out_gpu;
-    cmd->record_clone(dst, out_gpu, opt);
-
-    upload_param(src, out_gpu, x, y, alpha);
-
-    // download
-    cmd->record_clone(out_gpu, dst, opt);
-    cmd->submit_and_wait();
-    cmd->reset();
-}
-
-void CopyTo_vulkan::copyTo(const VkMat& src, VkMat& dst, int x, int y, float alpha) const
-{
-    if (!vkdev || !pipe || !cmd)
-    {
-        return;
-    }
-
-    if (dst.empty())
-    {
-        dst.create_type(src.w, src.h, 4, dst.type, opt.blob_vkallocator);
-    }
-    if (src.dims != dst.dims || src.c != dst.c || src.device != dst.device || src.device_number != dst.device_number || 
-        src.color_space != dst.color_space || src.color_range != dst.color_range)
-        return;
-    
-    if (x >= dst.w || y >= dst.h)
-        return;
-    
-    upload_param(src, dst, x, y, alpha);
-
+    if (dst.device == IM_DD_CPU)
+        cmd->record_clone(dst_gpu, dst, opt);
+    else if (dst.device == IM_DD_VULKAN)
+        dst = dst_gpu;
     cmd->submit_and_wait();
     cmd->reset();
 }

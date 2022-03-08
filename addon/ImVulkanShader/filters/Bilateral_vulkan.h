@@ -11,14 +11,7 @@ public:
     Bilateral_vulkan(int gpu = -1);
     ~Bilateral_vulkan();
 
-    // input CPU Buffer and output to RGBA CPU buffer
     void filter(const ImMat& src, ImMat& dst, int ksz, float sigma_spatial, float sigma_color);
-    // input CPU Buffer and output to RGBA GPU buffer
-    void filter(const ImMat& src, VkMat& dst, int ksz, float sigma_spatial, float sigma_color);
-    // input GPU Buffer and output to RGBA CPU buffer
-    void filter(const VkMat& src, ImMat& dst, int ksz, float sigma_spatial, float sigma_color);
-    // input GPU Buffer and output to RGBA GPU buffer
-    void filter(const VkMat& src, VkMat& dst, int ksz, float sigma_spatial, float sigma_color);
 
 public:
     const VulkanDevice* vkdev {nullptr};

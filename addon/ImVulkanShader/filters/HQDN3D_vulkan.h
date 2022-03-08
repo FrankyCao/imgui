@@ -11,10 +11,9 @@ public:
     HQDN3D_vulkan(int width, int height, int channels, int gpu = 0);
     ~HQDN3D_vulkan();
     void SetParam(float lum_spac, float chrom_spac, float lum_tmp, float chrom_tmp);
+    
     void filter(const ImMat& src, ImMat& dst);
-    void filter(const ImMat& src, VkMat& dst);
-    void filter(const VkMat& src, ImMat& dst);
-    void filter(const VkMat& src, VkMat& dst);
+
 private:
     VulkanDevice* vkdev {nullptr};
     Option opt;

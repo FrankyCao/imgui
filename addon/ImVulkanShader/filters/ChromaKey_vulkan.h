@@ -26,23 +26,7 @@ public:
     // 比较后的alpha指数增亮
     // alphaExponent {0.1f}
 
-    // input CPU Buffer and output to RGBA CPU buffer
     void filter(const ImMat& src, ImMat& dst,
-                float lumaMask, std::vector<float> chromaColor,
-                float alphaCutoffMin, float alphaScale, float alphaExponent,
-                int output_type);
-    // input CPU Buffer and output to RGBA GPU buffer
-    void filter(const ImMat& src, VkMat& dst,
-                float lumaMask, std::vector<float> chromaColor,
-                float alphaCutoffMin, float alphaScale, float alphaExponent,
-                int output_type);
-    // input GPU Buffer and output to RGBA CPU buffer
-    void filter(const VkMat& src, ImMat& dst,
-                float lumaMask, std::vector<float> chromaColor,
-                float alphaCutoffMin, float alphaScale, float alphaExponent,
-                int output_type);
-    // input GPU Buffer and output to RGBA GPU buffer
-    void filter(const VkMat& src, VkMat& dst,
                 float lumaMask, std::vector<float> chromaColor,
                 float alphaCutoffMin, float alphaScale, float alphaExponent,
                 int output_type);

@@ -11,10 +11,8 @@ public:
     ALM_vulkan(int gpu = 0);
     ~ALM_vulkan();
     void SetParam(float _strength, float _bias = 0.7, float _gamma = 2.2);
+    
     void filter(const ImMat& src, ImMat& dst);
-    void filter(const ImMat& src, VkMat& dst);
-    void filter(const VkMat& src, ImMat& dst);
-    void filter(const VkMat& src, VkMat& dst);
 
 private:
     VulkanDevice* vkdev {nullptr};

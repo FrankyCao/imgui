@@ -11,14 +11,7 @@ public:
     Crop_vulkan(int gpu = -1);
     ~Crop_vulkan();
 
-    // input CPU Buffer and output to RGBA CPU buffer
     virtual void crop(const ImMat& src, ImMat& dst, int _x, int _y, int _w, int _h) const;
-    // input CPU Buffer and output to RGBA GPU buffer
-    virtual void crop(const ImMat& src, VkMat& dst, int _x, int _y, int _w, int _h) const;
-    // input GPU Buffer and output to RGBA CPU buffer
-    virtual void crop(const VkMat& src, ImMat& dst, int _x, int _y, int _w, int _h) const;
-    // input GPU Buffer and output to RGBA GPU buffer
-    virtual void crop(const VkMat& src, VkMat& dst, int _x, int _y, int _w, int _h) const;
 
 public:
     const VulkanDevice* vkdev {nullptr};

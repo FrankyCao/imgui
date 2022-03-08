@@ -30,12 +30,19 @@ void main() \n\
     ivec2 uv = ivec2(gl_GlobalInvocationID.xy); \n\
     if (uv.x >= p.w || uv.y >= p.h) \n\
         return; \n\
-    if (uv.x + p.x_offset >= p.out_w || uv.y + p.y_offset >= p.out_h) \n\
-        return; \n\
-    sfpvec4 rgba = load_rgba(uv.x, uv.y, p.w, p.cstep, p.in_format, p.in_type); \n\
-    sfpvec4 rgba_dst = load_dst_rgba(uv.x + p.x_offset, uv.y + p.y_offset, p.out_w, p.out_cstep, p.out_format, p.out_type); \n\
-    sfpvec4 result = sfpvec4(mix(rgba_dst.rgb, rgba.rgb, rgba.a * sfp(p.alpha)), sfp(1.0f)); \n\
-    store_rgba(result, uv.x + p.x_offset, uv.y + p.y_offset, p.out_w, p.out_cstep, p.out_format, p.out_type); \n\
+    sfpvec4 result; \n\
+    sfpvec4 rgba_dst = load_dst_rgba(uv.x, uv.y, p.out_w, p.out_cstep, p.out_format, p.out_type); \n\
+    if (uv.x - p.x_offset >= 0 && uv.y - p.y_offset >= 0 && \n\
+        uv.x - p.x_offset < p.w && uv.y - p.y_offset < p.h) \n\
+    { \n\
+        sfpvec4 rgba_src = load_rgba(uv.x - p.x_offset, uv.y - p.y_offset, p.w, p.cstep, p.in_format, p.in_type); \n\
+        result = sfpvec4(mix(rgba_dst.rgb, rgba_src.rgb, rgba_src.a * sfp(p.alpha)), rgba_dst.a); \n\
+    } \n\
+    else \n\
+    { \n\
+        result = rgba_dst; \n\
+    } \n\
+    store_rgba(result, uv.x, uv.y, p.out_w, p.out_cstep, p.out_format, p.out_type); \n\
 } \
 "
 

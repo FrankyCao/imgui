@@ -28,9 +28,6 @@ public:
     ~LUT3D_vulkan();
 
     void filter(const ImMat& src, ImMat& dst);
-    void filter(const ImMat& src, VkMat& dst);
-    void filter(const VkMat& src, ImMat& dst);
-    void filter(const VkMat& src, VkMat& dst);
 
     void write_header_file(std::string filename);
     

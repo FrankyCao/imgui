@@ -72,68 +72,26 @@ void Crop_vulkan::crop(const ImMat& src, ImMat& dst, int _x, int _y, int _w, int
     {
         return;
     }
-    dst.create_type(_w, _h, 4, dst.type);
+    VkMat dst_gpu;
+    dst_gpu.create_type(_w, _h, 4, dst.type, opt.blob_vkallocator);
 
-    VkMat out_gpu;
-    out_gpu.create_like(dst, opt.blob_vkallocator);
-    VkMat in_gpu;
-    cmd->record_clone(src, in_gpu, opt);
+    VkMat src_gpu;
+    if (src.device == IM_DD_VULKAN)
+    {
+        src_gpu = src;
+    }
+    else if (src.device == IM_DD_CPU)
+    {
+        cmd->record_clone(src, src_gpu, opt);
+    }
 
-    upload_param(in_gpu, out_gpu, _x, _y, _w, _h);
+    upload_param(src_gpu, dst_gpu, _x, _y, _w, _h);
 
     // download
-    cmd->record_clone(out_gpu, dst, opt);
-    cmd->submit_and_wait();
-    cmd->reset();
-}
-
-void Crop_vulkan::crop(const ImMat& src, VkMat& dst, int _x, int _y, int _w, int _h) const
-{
-    if (!vkdev || !pipe || !cmd)
-    {
-        return;
-    }
-    dst.create_type(_w, _h, 4, dst.type, opt.blob_vkallocator);
-
-    VkMat in_gpu;
-    cmd->record_clone(src, in_gpu, opt);
-
-    upload_param(in_gpu, dst, _x, _y, _w, _h);
-
-    cmd->submit_and_wait();
-    cmd->reset();
-}
-
-void Crop_vulkan::crop(const VkMat& src, ImMat& dst, int _x, int _y, int _w, int _h) const
-{
-    if (!vkdev || !pipe || !cmd)
-    {
-        return;
-    }
-    dst.create_type(_w, _h, 4, dst.type);
-
-    VkMat out_gpu;
-    out_gpu.create_like(dst, opt.blob_vkallocator);
-
-    upload_param(src, out_gpu, _x, _y, _w, _h);
-
-    // download
-    cmd->record_clone(out_gpu, dst, opt);
-    cmd->submit_and_wait();
-    cmd->reset();
-}
-
-void Crop_vulkan::crop(const VkMat& src, VkMat& dst, int _x, int _y, int _w, int _h) const
-{
-    if (!vkdev || !pipe || !cmd)
-    {
-        return;
-    }
-
-    dst.create_type(_w, _h, 4, dst.type, opt.blob_vkallocator);
-    
-    upload_param(src, dst, _x, _y, _w, _h);
-
+    if (dst.device == IM_DD_CPU)
+        cmd->record_clone(dst_gpu, dst, opt);
+    else if (dst.device == IM_DD_VULKAN)
+        dst = dst_gpu;
     cmd->submit_and_wait();
     cmd->reset();
 }

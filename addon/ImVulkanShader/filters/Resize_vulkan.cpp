@@ -65,74 +65,38 @@ void Resize_vulkan::upload_param(const VkMat& src, VkMat& dst, ImInterpolateMode
     cmd->record_pipeline(pipe, bindings, constants, dst);
 }
 
-// input CPU Buffer and output to RGBA8888 CPU buffer
 void Resize_vulkan::Resize(const ImMat& src, ImMat& dst, float fx, float fy, ImInterpolateMode type) const
 {
-    VkMat dst_buffer;
-    VkMat vk_src;
-    cmd->record_clone(src, vk_src, opt);
+    if (!vkdev || !pipe || !cmd)
+    {
+        return;
+    }
+
     int dst_width = Im_AlignSize((fx == 0.f ? src.w : src.w * fx), 4);
-    int dst_height = Im_AlignSize((fx == 0.f ? src.h : fy == 0.f ? src.h * fx : src.h * fy), 4);
+    int dst_height = Im_AlignSize((fx == 0.f ? src.h : fy == 0.f ? src.h * fx : src.h * fy), 4);\
     auto color_format = dst.color_format;
     int channels = IM_ISALPHA(color_format) ? 4 : IM_ISRGB(color_format) ? 3 : IM_ISMONO(color_format) ? 1 : 4;
-    dst_buffer.create_type(dst_width, dst_height, channels, dst.type, opt.blob_vkallocator);
-    dst_buffer.color_format = color_format;
+    VkMat dst_gpu;
+    dst_gpu.create_type(dst_width, dst_height, channels, dst.type, opt.blob_vkallocator);
+    dst_gpu.color_format = color_format;
 
-    upload_param(vk_src, dst_buffer, type);
+    VkMat src_gpu;
+    if (src.device == IM_DD_VULKAN)
+    {
+        src_gpu = src;
+    }
+    else if (src.device == IM_DD_CPU)
+    {
+        cmd->record_clone(src, src_gpu, opt);
+    }
 
-    cmd->record_clone(dst_buffer, dst, opt);
-    cmd->submit_and_wait();
-    cmd->reset();
-}
+    upload_param(src_gpu, dst_gpu, type);
 
-// input CPU Buffer and output to RGBA GPU buffer
-void Resize_vulkan::Resize(const ImMat& src, VkMat& dst, float fx, float fy, ImInterpolateMode type) const
-{
-    VkMat vk_src;
-    cmd->record_clone(src, vk_src, opt);
-    int dst_width = Im_AlignSize((fx == 0.f ? src.w : src.w * fx), 4);
-    int dst_height = Im_AlignSize((fx == 0.f ? src.h : fy == 0.f ? src.h * fx : src.h * fy), 4);
-    auto color_format = dst.color_format;
-    int channels = IM_ISALPHA(color_format) ? 4 : IM_ISRGB(color_format) ? 3 : IM_ISMONO(color_format) ? 1 : 4;
-    dst.create_type(dst_width, dst_height, channels, dst.type, opt.blob_vkallocator);
-    dst.color_format = color_format;
-
-    upload_param(vk_src, dst, type);
-
-    cmd->submit_and_wait();
-    cmd->reset();
-}
-
-// input GPU Buffer and output to RGBA CPU buffer
-void Resize_vulkan::Resize(const VkMat& src, ImMat& dst, float fx, float fy, ImInterpolateMode type) const
-{
-    VkMat dst_buffer;
-    int dst_width = Im_AlignSize((fx == 0.f ? src.w : src.w * fx), 4);
-    int dst_height = Im_AlignSize((fx == 0.f ? src.h : fy == 0.f ? src.h * fx : src.h * fy), 4);
-    auto color_format = dst.color_format;
-    int channels = IM_ISALPHA(color_format) ? 4 : IM_ISRGB(color_format) ? 3 : IM_ISMONO(color_format) ? 1 : 4;
-    dst_buffer.create_type(dst_width, dst_height, channels, dst.type, opt.blob_vkallocator);
-    dst_buffer.color_format = color_format;
-
-    upload_param(src, dst_buffer, type);
-
-    cmd->record_clone(dst_buffer, dst, opt);
-    cmd->submit_and_wait();
-    cmd->reset();
-}
-
-// input GPU Buffer and output to RGBA GPU buffer
-void Resize_vulkan::Resize(const VkMat& src, VkMat& dst, float fx, float fy, ImInterpolateMode type) const
-{
-    int dst_width = Im_AlignSize((fx == 0.f ? src.w : src.w * fx), 4);
-    int dst_height = Im_AlignSize((fx == 0.f ? src.h : fy == 0.f ? src.h * fx : src.h * fy), 4);
-    auto color_format = dst.color_format;
-    int channels = IM_ISALPHA(color_format) ? 4 : IM_ISRGB(color_format) ? 3 : IM_ISMONO(color_format) ? 1 : 4;
-    dst.create_type(dst_width, dst_height, channels, dst.type, opt.blob_vkallocator);
-    dst.color_format = color_format;
-
-    upload_param(src, dst, type);
-
+    // download
+    if (dst.device == IM_DD_CPU)
+        cmd->record_clone(dst_gpu, dst, opt);
+    else if (dst.device == IM_DD_VULKAN)
+        dst = dst_gpu;
     cmd->submit_and_wait();
     cmd->reset();
 }

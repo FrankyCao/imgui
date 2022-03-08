@@ -99,119 +99,35 @@ void Concat_vulkan::concat(const ImMat& src0, const ImMat& src1, ImMat& dst, int
         dst_height = src0.h + src1.h;
     }
 
-    dst.create_type(dst_width, dst_height, 4, dst.type);
+    VkMat dst_gpu;
+    dst_gpu.create_type(dst_width, dst_height, 4, dst.type, opt.blob_vkallocator);
 
-    VkMat out_gpu;
-    out_gpu.create_like(dst, opt.blob_vkallocator);
-    VkMat in_gpu0, in_gpu1;
-    cmd->record_clone(src0, in_gpu0, opt);
-    cmd->record_clone(src1, in_gpu1, opt);
+    VkMat src0_gpu;
+    if (src0.device == IM_DD_VULKAN)
+    {
+        src0_gpu = src0;
+    }
+    else if (src0.device == IM_DD_CPU)
+    {
+        cmd->record_clone(src0, src0_gpu, opt);
+    }
+    VkMat src1_gpu;
+    if (src1.device == IM_DD_VULKAN)
+    {
+        src1_gpu = src1;
+    }
+    else if (src1.device == IM_DD_CPU)
+    {
+        cmd->record_clone(src1, src1_gpu, opt);
+    }
 
-    upload_param(in_gpu0, in_gpu1, out_gpu, direction);
+    upload_param(src0_gpu, src1_gpu, dst_gpu, direction);
 
     // download
-    cmd->record_clone(out_gpu, dst, opt);
-    cmd->submit_and_wait();
-    cmd->reset();
-}
-
-void Concat_vulkan::concat(const ImMat& src0, const ImMat& src1, VkMat& dst, int direction) const
-{
-    if (!vkdev || !pipe || !cmd)
-    {
-        return;
-    }
-
-    int dst_width, dst_height;
-    if (direction == CONCAT_HORIZONTAL)
-    {
-        if (src0.h != src1.h)
-            return;
-        dst_width = src0.w + src1.w;
-        dst_height = src0.h;
-    }
-    else
-    {
-        if (src0.w != src1.w)
-            return;
-        dst_width = src0.w;
-        dst_height = src0.h + src1.h;
-    }
-
-    dst.create_type(dst_width, dst_height, 4, dst.type, opt.blob_vkallocator);
-
-    VkMat in_gpu0, in_gpu1;
-    cmd->record_clone(src0, in_gpu0, opt);
-    cmd->record_clone(src1, in_gpu1, opt);
-
-    upload_param(in_gpu0, in_gpu1, dst, direction);
-
-    cmd->submit_and_wait();
-    cmd->reset();
-}
-
-void Concat_vulkan::concat(const VkMat& src0, const VkMat& src1, ImMat& dst, int direction) const
-{
-    if (!vkdev || !pipe || !cmd)
-    {
-        return;
-    }
-
-    int dst_width, dst_height;
-    if (direction == CONCAT_HORIZONTAL)
-    {
-        if (src0.h != src1.h)
-            return;
-        dst_width = src0.w + src1.w;
-        dst_height = src0.h;
-    }
-    else
-    {
-        if (src0.w != src1.w)
-            return;
-        dst_width = src0.w;
-        dst_height = src0.h + src1.h;
-    }
-
-    dst.create_type(dst_width, dst_height, 4, dst.type);
-
-    VkMat out_gpu;
-    out_gpu.create_like(dst, opt.blob_vkallocator);
-
-    upload_param(src0, src1, out_gpu, direction);
-
-    // download
-    cmd->record_clone(out_gpu, dst, opt);
-    cmd->submit_and_wait();
-    cmd->reset();
-}
-
-void Concat_vulkan::concat(const VkMat& src0, const VkMat& src1, VkMat& dst, int direction) const
-{
-    if (!vkdev || !pipe || !cmd)
-    {
-        return;
-    }
-    int dst_width, dst_height;
-    if (direction == CONCAT_HORIZONTAL)
-    {
-        if (src0.h != src1.h)
-            return;
-        dst_width = src0.w + src1.w;
-        dst_height = src0.h;
-    }
-    else
-    {
-        if (src0.w != src1.w)
-            return;
-        dst_width = src0.w;
-        dst_height = src0.h + src1.h;
-    }
-    
-    dst.create_type(dst_width, dst_height, 4, dst.type, opt.blob_vkallocator);
-    
-    upload_param(src0, src1, dst, direction);
-
+    if (dst.device == IM_DD_CPU)
+        cmd->record_clone(dst_gpu, dst, opt);
+    else if (dst.device == IM_DD_VULKAN)
+        dst = dst_gpu;
     cmd->submit_and_wait();
     cmd->reset();
 }

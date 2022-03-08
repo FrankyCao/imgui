@@ -10,10 +10,8 @@ class VKSHADER_API Harris_vulkan
 public:
     Harris_vulkan(int gpu = 0);
     ~Harris_vulkan();
+    
     void filter(const ImMat& src, ImMat& dst, int _blurRadius, float edgeStrength, float threshold, float harris, float sensitivity);
-    void filter(const ImMat& src, VkMat& dst, int _blurRadius, float edgeStrength, float threshold, float harris, float sensitivity);
-    void filter(const VkMat& src, ImMat& dst, int _blurRadius, float edgeStrength, float threshold, float harris, float sensitivity);
-    void filter(const VkMat& src, VkMat& dst, int _blurRadius, float edgeStrength, float threshold, float harris, float sensitivity);
 
 private:
     VulkanDevice* vkdev      {nullptr};
