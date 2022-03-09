@@ -92,8 +92,9 @@ void AlphaBlending_vulkan::blend(const ImMat& src1, const ImMat& src2, ImMat& ds
         return;
     }
 
-    if (src1.dims != src2.dims || src1.color_space != src2.color_space || src1.color_range != src2.color_range)
-        return;
+    // TODO::Dicky need check dims?
+    //if (src1.dims != src2.dims || src1.color_space != src2.color_space || src1.color_range != src2.color_range)
+    //    return;
 
     if (x >= src2.w || y >= src2.h || x <= -src1.w || y <= -src1.h)
         return;
