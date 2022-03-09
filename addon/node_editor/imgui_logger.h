@@ -41,11 +41,17 @@ enum LogColor
     LogColor_Count,
 };
 
-# define LOGV(...)      ::imgui_logger::OverlayLogger::GetCurrent()->Log(::imgui_logger::LogLevel::Verbose,  __VA_ARGS__)
-# define LOGI(...)      ::imgui_logger::OverlayLogger::GetCurrent()->Log(::imgui_logger::LogLevel::Info,     __VA_ARGS__)
-# define LOGW(...)      ::imgui_logger::OverlayLogger::GetCurrent()->Log(::imgui_logger::LogLevel::Warning,  __VA_ARGS__)
-# define LOGE(...)      ::imgui_logger::OverlayLogger::GetCurrent()->Log(::imgui_logger::LogLevel::Error,    __VA_ARGS__)
-
+#if 0
+# define LOGV(...)      {if (imgui_logger::OverlayLogger::GetCurrent()) ::imgui_logger::OverlayLogger::GetCurrent()->Log(::imgui_logger::LogLevel::Verbose,  __VA_ARGS__); }
+# define LOGI(...)      {if (imgui_logger::OverlayLogger::GetCurrent()) ::imgui_logger::OverlayLogger::GetCurrent()->Log(::imgui_logger::LogLevel::Info,     __VA_ARGS__); }
+# define LOGW(...)      {if (imgui_logger::OverlayLogger::GetCurrent()) ::imgui_logger::OverlayLogger::GetCurrent()->Log(::imgui_logger::LogLevel::Warning,  __VA_ARGS__); }
+# define LOGE(...)      {if (imgui_logger::OverlayLogger::GetCurrent()) ::imgui_logger::OverlayLogger::GetCurrent()->Log(::imgui_logger::LogLevel::Error,    __VA_ARGS__); }
+#else
+# define LOGV(...)
+# define LOGI(...)
+# define LOGW(...)
+# define LOGE(...)
+#endif
 
 struct IMGUI_API OverlayLogger
 {
