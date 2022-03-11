@@ -59,6 +59,20 @@ IMGUI_API void ToggleButton(const char* str_id, bool* v);
 IMGUI_API bool ToggleButton(const char *str_id, bool *v, const ImVec2 &size);
 IMGUI_API bool BulletToggleButton(const char* label,bool* v, ImVec2 &pos, ImVec2 &size);
 
+// CheckButton
+IMGUI_API bool CheckButton(const char* label, bool* pvalue, bool useSmallButton = false, float checkedStateAlphaMult = 0.5f);
+
+// ColoredButtonV1: code posted by @ocornut here: https://github.com/ocornut/imgui/issues/4722
+// [Button rounding depends on the FrameRounding Style property (but can be overridden with the last argument)]
+IMGUI_API bool ColoredButton(const char* label, const ImVec2& size, ImU32 text_color, ImU32 bg_color_1, ImU32 bg_color_2, float frame_rounding_override=-1.f);
+
+// new ProgressBar
+// Please note that you can tweak the "format" argument if you want to add a prefix (or a suffix) piece of text to the text that appears at the right of the bar.
+// returns the value "fraction" in 0.f-1.f.
+// It does not need any ID.
+IMGUI_API float ProgressBar(const char* optionalPrefixText,float value,const float minValue=0.f,const float maxValue=1.f,const char* format="%1.0f%%",const ImVec2& sizeOfBarWithoutTextInPixels=ImVec2(-1,-1),
+                const ImVec4& colorLeft=ImVec4(0,1,0,0.8),const ImVec4& colorRight=ImVec4(0,0.4,0,0.8),const ImVec4& colorBorder=ImVec4(0.25,0.25,1.0,1));
+
 // Handy if we want to use ImGui::Image(...) or ImGui::ImageButton(...) with a glyph
 IMGUI_API bool GetTexCoordsFromGlyph(unsigned short glyph,ImVec2& uv0,ImVec2& uv1);
 // Returns the height of the main menu based on the current font and style
@@ -357,6 +371,11 @@ private:
     float m_ColumnAlignment = 0.0f;
     float m_MaximumColumnWidthAcc = -1.0f;
 };
+
+// Demo Window
+#if IMGUI_BUILD_EXAMPLE
+IMGUI_API void ShowHelpDemoWindow();
+#endif
 }   // ImGui
 
 

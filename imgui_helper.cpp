@@ -830,6 +830,140 @@ bool BulletToggleButton(const char* label, bool* v, ImVec2 &pos, ImVec2 &size)
     return valueChange;
 }
 
+// CheckButton
+bool CheckButton(const char* label, bool* pvalue, bool useSmallButton, float checkedStateAlphaMult) {
+    bool rv = false;
+    const bool tmp = pvalue ? *pvalue : false;
+    if (tmp) {
+        ImVec4 CheckButtonColor = ImVec4(1.0, 1.0, 1.0, checkedStateAlphaMult);
+        ImVec4 CheckButtonHoveredColor = ImVec4(1.0, 1.0, 1.0, checkedStateAlphaMult);
+        ImVec4 CheckButtonActiveColor = ImVec4(1.0, 1.0, 1.0, checkedStateAlphaMult);
+        ImGui::PushStyleColor(ImGuiCol_Button,CheckButtonColor);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered,CheckButtonHoveredColor);
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive,CheckButtonActiveColor);
+    }
+    if (useSmallButton) {if (ImGui::SmallButton(label)) {if (pvalue) *pvalue=!(*pvalue);rv=true;}}
+    else if (ImGui::Button(label)) {if (pvalue) *pvalue=!(*pvalue);rv=true;}
+    if (tmp) ImGui::PopStyleColor(3);
+    return rv;
+}
+
+// ColoredButtonV1: code posted by @ocornut here: https://github.com/ocornut/imgui/issues/4722
+// [Button rounding depends on the FrameRounding Style property (but can be overridden with the last argument)]
+bool ColoredButton(const char* label, const ImVec2& size_arg, ImU32 text_color, ImU32 bg_color_1, ImU32 bg_color_2,float frame_rounding_override)    {
+    ImGuiWindow* window = GetCurrentWindow();
+    if (window->SkipItems)
+        return false;
+
+    ImGuiContext& g = *GImGui;
+    const ImGuiStyle& style = g.Style;
+    const ImGuiID id = window->GetID(label);
+    const ImVec2 label_size = CalcTextSize(label, NULL, true);
+
+    ImVec2 pos = window->DC.CursorPos;
+    ImVec2 size = CalcItemSize(size_arg, label_size.x + style.FramePadding.x * 2.0f, label_size.y + style.FramePadding.y * 2.0f);
+
+    const ImRect bb(pos, pos + size);
+    ItemSize(size, style.FramePadding.y);
+    if (!ItemAdd(bb, id))
+        return false;
+
+    ImGuiButtonFlags flags = ImGuiButtonFlags_None;
+    if (g.LastItemData.InFlags & ImGuiItemFlags_ButtonRepeat)
+        flags |= ImGuiButtonFlags_Repeat;
+
+    bool hovered, held;
+    bool pressed = ButtonBehavior(bb, id, &hovered, &held, flags);
+
+    // Render
+    const bool is_gradient = bg_color_1 != bg_color_2;
+    if (held || hovered)
+    {
+        // Modify colors (ultimately this can be prebaked in the style)
+        float h_increase = (held && hovered) ? 0.02f : 0.02f;
+        float v_increase = (held && hovered) ? 0.20f : 0.07f;
+
+        ImVec4 bg1f = ColorConvertU32ToFloat4(bg_color_1);
+        ColorConvertRGBtoHSV(bg1f.x, bg1f.y, bg1f.z, bg1f.x, bg1f.y, bg1f.z);
+        bg1f.x = ImMin(bg1f.x + h_increase, 1.0f);
+        bg1f.z = ImMin(bg1f.z + v_increase, 1.0f);
+        ColorConvertHSVtoRGB(bg1f.x, bg1f.y, bg1f.z, bg1f.x, bg1f.y, bg1f.z);
+        bg_color_1 = GetColorU32(bg1f);
+        if (is_gradient)
+        {
+            ImVec4 bg2f = ColorConvertU32ToFloat4(bg_color_2);
+            ColorConvertRGBtoHSV(bg2f.x, bg2f.y, bg2f.z, bg2f.x, bg2f.y, bg2f.z);
+            bg2f.z = ImMin(bg2f.z + h_increase, 1.0f);
+            bg2f.z = ImMin(bg2f.z + v_increase, 1.0f);
+            ColorConvertHSVtoRGB(bg2f.x, bg2f.y, bg2f.z, bg2f.x, bg2f.y, bg2f.z);
+            bg_color_2 = GetColorU32(bg2f);
+        }
+        else
+        {
+            bg_color_2 = bg_color_1;
+        }
+    }
+    RenderNavHighlight(bb, id);
+
+#if 0
+    // V1 : faster but prevents rounding
+    window->DrawList->AddRectFilledMultiColor(bb.Min, bb.Max, bg_color_1, bg_color_1, bg_color_2, bg_color_2);
+    if (g.Style.FrameBorderSize > 0.0f)
+        window->DrawList->AddRect(bb.Min, bb.Max, GetColorU32(ImGuiCol_Border), 0.0f, 0, g.Style.FrameBorderSize);
+#endif
+
+    // V2
+    const float frameRounding = frame_rounding_override>=0.f ? frame_rounding_override : g.Style.FrameRounding;
+    int vert_start_idx = window->DrawList->VtxBuffer.Size;
+    window->DrawList->AddRectFilled(bb.Min, bb.Max, bg_color_1, frameRounding);
+    int vert_end_idx = window->DrawList->VtxBuffer.Size;
+    if (is_gradient)
+        ShadeVertsLinearColorGradientKeepAlpha(window->DrawList, vert_start_idx, vert_end_idx, bb.Min, bb.GetBL(), bg_color_1, bg_color_2);
+    if (g.Style.FrameBorderSize > 0.0f)
+        window->DrawList->AddRect(bb.Min, bb.Max, GetColorU32(ImGuiCol_Border), frameRounding, 0, g.Style.FrameBorderSize);
+
+    if (g.LogEnabled)
+        LogSetNextTextDecoration("[", "]");
+    PushStyleColor(ImGuiCol_Text, text_color);
+    RenderTextClipped(bb.Min + style.FramePadding, bb.Max - style.FramePadding, label, NULL, &label_size, style.ButtonTextAlign, &bb);
+    PopStyleColor();
+
+    IMGUI_TEST_ENGINE_ITEM_INFO(id, label, g.LastItemData.StatusFlags);
+    return pressed;
+}
+
+// ProgressBar
+float ProgressBar(const char *optionalPrefixText, float value, const float minValue, const float maxValue, const char *format, const ImVec2 &sizeOfBarWithoutTextInPixels, const ImVec4 &colorLeft, const ImVec4 &colorRight, const ImVec4 &colorBorder)    {
+    if (value<minValue) value=minValue;
+    else if (value>maxValue) value = maxValue;
+    const float valueFraction = (maxValue==minValue) ? 1.0f : ((value-minValue)/(maxValue-minValue));
+    const bool needsPercConversion = strstr(format,"%%")!=NULL;
+
+    ImVec2 size = sizeOfBarWithoutTextInPixels;
+    if (size.x<=0) size.x = ImGui::GetWindowWidth()*0.25f;
+    if (size.y<=0) size.y = ImGui::GetTextLineHeightWithSpacing(); // or without
+
+    const ImFontAtlas* fontAtlas = ImGui::GetIO().Fonts;
+
+    if (optionalPrefixText && strlen(optionalPrefixText)>0) {
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("%s",optionalPrefixText);
+        ImGui::SameLine();
+    }
+
+    if (valueFraction>0)   {
+        ImGui::Image(fontAtlas->TexID,ImVec2(size.x*valueFraction,size.y), fontAtlas->TexUvWhitePixel,fontAtlas->TexUvWhitePixel,colorLeft,colorBorder);
+    }
+    if (valueFraction<1)   {
+        if (valueFraction>0) ImGui::SameLine(0,0);
+        ImGui::Image(fontAtlas->TexID,ImVec2(size.x*(1.f-valueFraction),size.y), fontAtlas->TexUvWhitePixel,fontAtlas->TexUvWhitePixel,colorRight,colorBorder);
+    }
+    ImGui::SameLine();
+
+    ImGui::Text(format,needsPercConversion ? (valueFraction*100.f+0.0001f) : value);
+    return valueFraction;
+}
+
 #ifndef NO_IMGUIHELPER_FONT_METHODS
 const ImFont *GetFont(int fntIndex) {return (fntIndex>=0 && fntIndex<ImGui::GetIO().Fonts->Fonts.size()) ? ImGui::GetIO().Fonts->Fonts[fntIndex] : NULL;}
 void PushFont(int fntIndex)    {
@@ -1714,7 +1848,75 @@ void Grid::End()
 
     ImGui::PopID();
 }
+#if IMGUI_BUILD_EXAMPLE
+void ShowHelpDemoWindow()
+{
+    if (ImGui::TreeNode("Extended Buttons"))
+    {
+        // Check Buttons
+        ImGui::Spacing();
+        ImGui::AlignTextToFramePadding();ImGui::Text("Check Buttons:");
+        ImGui::SameLine();
+        static bool checkButtonState1=false;
+        if (ImGui::CheckButton("CheckButton",&checkButtonState1)) {/*checkButtonState1 changed*/}
+        ImGui::SameLine();
+        static bool checkButtonState2=false;
+        if (ImGui::CheckButton("SmallCheckButton",&checkButtonState2, true)) {/*checkButtonState2 changed*/}
+        
+        ImGui::Spacing();
+        ImGui::TextUnformatted("ToggleButton:");ImGui::SameLine();
+        ImGui::ToggleButton("ToggleButtonDemo",&checkButtonState1);
 
+        ImGui::Spacing();
+        ImGui::Text("ColorButton (by @ocornut)");
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s","Code posted by @ocornut here:\nhttps://github.com/ocornut/imgui/issues/4722");
+        // [Button rounding depends on the FrameRounding Style property (but can be overridden with the last argument)]
+        const float cbv1width = ImGui::GetContentRegionAvail().x*0.45f;
+        ImGui::ColoredButton("Hello##ColoredButtonV1Hello", ImVec2(cbv1width, 0.0f), IM_COL32(255, 255, 255, 255), IM_COL32(200, 60, 60, 255), IM_COL32(180, 40, 90, 255));
+        ImGui::SameLine();
+        ImGui::ColoredButton("You##ColoredButtonV1You", ImVec2(cbv1width, 0.0f), IM_COL32(255, 255, 255, 255), IM_COL32(50, 220, 60, 255), IM_COL32(69, 150, 70, 255),10.0f); // FrameRounding in [0.0,12.0]
+
+        ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Extended ProgressBar"))
+    {
+        const float time = ((float)(((unsigned int) (ImGui::GetTime() * 1000.f)) % 50000) - 25000.f) / 25000.f;
+        float progress=(time > 0 ? time : -time);
+        // No IDs needed for ProgressBars:
+        ImGui::ProgressBar("ProgressBar", progress);
+        ImGui::ProgressBar("ProgressBar", 1.f - progress);
+        ImGui::ProgressBar("", 500 + progress * 1000, 500, 1500, "%4.0f (absolute value in [500,1500] and fixed bar size)", ImVec2(150, -1));
+        ImGui::ProgressBar("", 500 + progress * 1000, 500, 1500, "%3.0f%% (same as above, but with percentage and new colors)", ImVec2(150, -1), ImVec4(0.7, 0.7, 1, 1),ImVec4(0.05, 0.15, 0.5, 0.8),ImVec4(0.8, 0.8, 0,1));
+        
+        ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Splitter windows"))
+    {
+        float h = 200;
+        static float hsz1 = 300;
+        static float hsz2 = 300;
+        static float vsz1 = 100;
+        static float vsz2 = 100;
+        ImGui::Splitter(true, 8.0f, &hsz1, &hsz2, 8, 8, h);
+        ImGui::BeginChild("1", ImVec2(hsz1, h), true);
+            ImGui::Text("Window 1");
+        ImGui::EndChild();
+        ImGui::SameLine();
+
+        ImGui::BeginChild("2", ImVec2(hsz2, h), true);
+            ImGui::Splitter(false, 8.0f, &vsz1, &vsz2, 8, 8, hsz2);
+            ImGui::BeginChild("3", ImVec2(hsz2, vsz1), false);
+                ImGui::Text("Window 2");
+            ImGui::EndChild();
+            ImGui::BeginChild("4", ImVec2(hsz2, vsz2), false);
+                ImGui::Text("Window 3");
+            ImGui::EndChild();
+        ImGui::EndChild();
+
+        ImGui::TreePop();
+    }
+}
+#endif
 } // namespace Imgui
 
 #ifndef NO_IMGUIHELPER_SERIALIZATION

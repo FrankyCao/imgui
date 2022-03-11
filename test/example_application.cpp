@@ -202,6 +202,7 @@ public:
     bool show_knob_window = false;
     bool show_text_editor_window = false;
     bool show_tab_window = false;
+    bool show_help_demo_window = false;
 
 public:
 
@@ -347,6 +348,7 @@ bool Application_Frame(void* handle, bool app_will_quit)
         ImGui::Checkbox("Show KNob Window", &example->show_knob_window);
         ImGui::Checkbox("Show Text Edit Window", &example->show_text_editor_window);
         ImGui::Checkbox("Show Tab Window", &example->show_tab_window);
+        ImGui::Checkbox("Show Help Demo Window", &example->show_help_demo_window);
 #if IMGUI_VULKAN_SHADER
         ImGui::Checkbox("Show Vulkan Shader Test Window", &example->show_shader_window);
 #endif
@@ -449,6 +451,15 @@ bool Application_Frame(void* handle, bool app_will_quit)
         {
             ImGui::ShowAddonsTabWindow();   // see its code for further info         
         }
+        ImGui::End();
+    }
+
+    // Show Help demo Window
+    if (example->show_help_demo_window)
+    {
+        ImGui::SetNextWindowSize(ImVec2(900, 400), ImGuiCond_FirstUseEver);
+        ImGui::Begin("Help Widget", &example->show_help_demo_window);
+        ImGui::ShowHelpDemoWindow();
         ImGui::End();
     }
 
