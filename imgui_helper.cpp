@@ -1242,7 +1242,7 @@ bool ColorRing(const char* label, float thickness, int split)
 	return false;
 }
 
-void HueSelectorEx(char const* label, ImVec2 const size, float* hueCenter, float* hueWidth, float* featherLeft, float* featherRight, ImU32 triangleColor, int division, float alpha, float hideHueAlpha, float offset)
+void HueSelectorEx(char const* label, ImVec2 const size, float* hueCenter, float* hueWidth, float* featherLeft, float* featherRight, float defaultVal, float ui_zoom, ImU32 triangleColor, int division, float alpha, float hideHueAlpha, float offset)
 {
     ImGuiIO &io = ImGui::GetIO();
 	ImGuiID const iID = ImGui::GetID(label);
@@ -1298,7 +1298,7 @@ void HueSelectorEx(char const* label, ImVec2 const size, float* hueCenter, float
     {
         if (ImGui::IsMouseDragging(ImGuiMouseButton_Left))
         {
-            auto diff = io.MouseDelta.x / size.x;
+            auto diff = io.MouseDelta.x * ui_zoom / size.x;
             *hueCenter += diff;
             *hueCenter = ImClamp(*hueCenter, 0.f, 1.f);
         }
@@ -1312,26 +1312,30 @@ void HueSelectorEx(char const* label, ImVec2 const size, float* hueCenter, float
             if (*hueWidth > 0.5)
                 *hueWidth = 0.5;
         }
+        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+        {
+            *hueCenter = defaultVal;
+        }
     }
 
     const float arrowWidth = pDrawList->_Data->FontSize;
     float arrowOffset = curPos.x + *hueCenter * size.x;
-    ImGui::Dummy(ImVec2(0, arrowWidth * 2));
+    ImGui::Dummy(ImVec2(0, arrowWidth / 2));
     ImGui::RenderArrow(pDrawList, ImVec2(arrowOffset - arrowWidth / 2, curPos.y + size.y), IM_COL32(255,255,0,255), ImGuiDir_Up);
     std::ostringstream oss;
     oss << std::fixed << std::setprecision(2) << *hueCenter;
     std::string value_str = oss.str();
     ImVec2 str_size = ImGui::CalcTextSize(value_str.c_str(), nullptr, true);
-    pDrawList->AddText(ImVec2(arrowOffset - str_size.x * 0.5f, curPos.y + size.y + arrowWidth), IM_COL32(255,255,0,255), value_str.c_str());
+    pDrawList->AddText(ImVec2(curPos.x + size.x / 2 - str_size.x * 0.5f, curPos.y + size.y / 2 - arrowWidth / 2), IM_COL32(255,255,0,255), value_str.c_str());
 	ImGui::PopID();
 }
 
-void HueSelector(char const* label, ImVec2 const size, float* hueCenter, float* hueWidth, float* featherLeft, float* featherRight, int division, float alpha, float hideHueAlpha, float offset)
+void HueSelector(char const* label, ImVec2 const size, float* hueCenter, float* hueWidth, float* featherLeft, float* featherRight, float defaultVal, float ui_zoom, int division, float alpha, float hideHueAlpha, float offset)
 {
-	HueSelectorEx(label, size, hueCenter, hueWidth, featherLeft, featherRight, IM_COL32(255, 128, 0, 255), division, alpha, hideHueAlpha, offset);
+	HueSelectorEx(label, size, hueCenter, hueWidth, featherLeft, featherRight, defaultVal, ui_zoom, IM_COL32(255, 128, 0, 255), division, alpha, hideHueAlpha, offset);
 }
 
-void LumianceSelector(char const* label, ImVec2 const size, float* lumCenter, int division, float gamma, bool rgb_color, ImVec4 const color)
+void LumianceSelector(char const* label, ImVec2 const size, float* lumCenter, float defaultVal, float ui_zoom, int division, float gamma, bool rgb_color, ImVec4 const color)
 {
     ImGuiIO &io = ImGui::GetIO();
 	ImGuiID const iID = ImGui::GetID(label);
@@ -1359,24 +1363,28 @@ void LumianceSelector(char const* label, ImVec2 const size, float* lumCenter, in
     {
         if (ImGui::IsMouseDragging(ImGuiMouseButton_Left))
         {
-            auto diff = io.MouseDelta.x * 2 / size.x;
+            auto diff = io.MouseDelta.x * 2 * ui_zoom / size.x;
             *lumCenter += diff;
             *lumCenter = ImClamp(*lumCenter, -1.f, 1.f);
+        }
+        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+        {
+            *lumCenter = defaultVal;
         }
     }
     const float arrowWidth = pDrawList->_Data->FontSize;
     float arrowOffset = curPos.x + (*lumCenter / 2 + 0.5) * size.x;
-    ImGui::Dummy(ImVec2(0, arrowWidth * 2));
+    ImGui::Dummy(ImVec2(0, arrowWidth / 2));
     ImGui::RenderArrow(pDrawList, ImVec2(arrowOffset - arrowWidth / 2, curPos.y + size.y), IM_COL32(255,255,0,255), ImGuiDir_Up);
     std::ostringstream oss;
     oss << std::fixed << std::setprecision(2) << *lumCenter;
     std::string value_str = oss.str();
     ImVec2 str_size = ImGui::CalcTextSize(value_str.c_str(), nullptr, true);
-    pDrawList->AddText(ImVec2(arrowOffset - str_size.x * 0.5f, curPos.y + size.y + arrowWidth), IM_COL32(255,255,0,255), value_str.c_str());
+    pDrawList->AddText(ImVec2(curPos.x + size.x / 2 - str_size.x * 0.5f, curPos.y + size.y / 2 - arrowWidth / 2), IM_COL32(255,255,0,255), value_str.c_str());
 	ImGui::PopID();
 }
 
-void SaturationSelector(char const* label, ImVec2 const size, float* satCenter, int division, float gamma, bool rgb_color, ImVec4 const color)
+void SaturationSelector(char const* label, ImVec2 const size, float* satCenter, float defaultVal, float ui_zoom, int division, float gamma, bool rgb_color, ImVec4 const color)
 {
     ImGuiIO &io = ImGui::GetIO();
 	ImGuiID const iID = ImGui::GetID(label);
@@ -1404,24 +1412,28 @@ void SaturationSelector(char const* label, ImVec2 const size, float* satCenter, 
     {
         if (ImGui::IsMouseDragging(ImGuiMouseButton_Left))
         {
-            auto diff = io.MouseDelta.x * 2 / size.x;
+            auto diff = io.MouseDelta.x * 2 * ui_zoom / size.x;
             *satCenter += diff;
             *satCenter = ImClamp(*satCenter, -1.f, 1.f);
+        }
+        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+        {
+            *satCenter = defaultVal;
         }
     }
     const float arrowWidth = pDrawList->_Data->FontSize;
     float arrowOffset = curPos.x + (*satCenter / 2 + 0.5) * size.x;
-    ImGui::Dummy(ImVec2(0, arrowWidth * 2));
+    ImGui::Dummy(ImVec2(0, arrowWidth / 2));
     ImGui::RenderArrow(pDrawList, ImVec2(arrowOffset - arrowWidth / 2, curPos.y + size.y), IM_COL32(255,255,0,255), ImGuiDir_Up);
 	std::ostringstream oss;
     oss << std::fixed << std::setprecision(2) << *satCenter;
     std::string value_str = oss.str();
     ImVec2 str_size = ImGui::CalcTextSize(value_str.c_str(), nullptr, true);
-    pDrawList->AddText(ImVec2(arrowOffset - str_size.x * 0.5f, curPos.y + size.y + arrowWidth), IM_COL32(255,255,0,255), value_str.c_str());
+    pDrawList->AddText(ImVec2(curPos.x + size.x / 2 - str_size.x * 0.5f, curPos.y + size.y / 2 - arrowWidth / 2), IM_COL32(255,255,0,255), value_str.c_str());
     ImGui::PopID();
 }
 
-void ContrastSelector(char const* label, ImVec2 const size, float* conCenter, bool rgb_color, ImVec4 const color)
+void ContrastSelector(char const* label, ImVec2 const size, float* conCenter, float defaultVal, float ui_zoom, bool rgb_color, ImVec4 const color)
 {
     ImGuiIO &io = ImGui::GetIO();
 	ImGuiID const iID = ImGui::GetID(label);
@@ -1449,20 +1461,24 @@ void ContrastSelector(char const* label, ImVec2 const size, float* conCenter, bo
     {
         if (ImGui::IsMouseDragging(ImGuiMouseButton_Left))
         {
-            auto diff = io.MouseDelta.x * 4 / size.x;
+            auto diff = io.MouseDelta.x * 4 * ui_zoom / size.x;
             *conCenter += diff;
-            *conCenter = ImClamp(*conCenter, -1.f, 3.f);
+            *conCenter = ImClamp(*conCenter, 0.f, 4.f);
+        }
+        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+        {
+            *conCenter = defaultVal;
         }
     }
     const float arrowWidth = pDrawList->_Data->FontSize;
-    float arrowOffset = curPos.x + (*conCenter / 4 + 0.25) * size.x;
-    ImGui::Dummy(ImVec2(0, arrowWidth * 2));
+    float arrowOffset = curPos.x + (*conCenter / 4) * size.x;
+    ImGui::Dummy(ImVec2(0, arrowWidth / 2));
     ImGui::RenderArrow(pDrawList, ImVec2(arrowOffset - arrowWidth / 2, curPos.y + size.y), IM_COL32(255,255,0,255), ImGuiDir_Up);
 	std::ostringstream oss;
     oss << std::fixed << std::setprecision(2) << *conCenter;
     std::string value_str = oss.str();
     ImVec2 str_size = ImGui::CalcTextSize(value_str.c_str(), nullptr, true);
-    pDrawList->AddText(ImVec2(arrowOffset - str_size.x * 0.5f, curPos.y + size.y + arrowWidth), IM_COL32(255,255,0,255), value_str.c_str());
+    pDrawList->AddText(ImVec2(curPos.x + size.x / 2 - str_size.x * 0.5f, curPos.y + size.y / 2 - arrowWidth / 2), IM_COL32(0,0,0,255), value_str.c_str());
     ImGui::PopID();
 }
 
@@ -2540,24 +2556,24 @@ void ShowHelpDemoWindow()
 		
         ImGui::Spacing();
         ImGui::TextUnformatted("Hue:"); ImGui::SameLine();
-        ImGui::HueSelector("Hue Selector", ImVec2(width, height), &hueCenter, &hueWidth, &featherLeft, &featherRight, division, alphaHue, alphaHideHue, offset);
+        ImGui::HueSelector("Hue Selector", ImVec2(width, height), &hueCenter, &hueWidth, &featherLeft, &featherRight, 0.5f, 1.0f, division, alphaHue, alphaHideHue, offset);
 		
         static bool rgb_color = false;
         ImGui::Checkbox("RGB Color Bar", &rgb_color);
         ImGui::Spacing();
         static float lumianceCenter = 0.0f;
         ImGui::TextUnformatted("Lum:"); ImGui::SameLine();
-        ImGui::LumianceSelector("Lumiance Selector", ImVec2(width, height), &lumianceCenter, division, gamma, rgb_color);
+        ImGui::LumianceSelector("Lumiance Selector", ImVec2(width, height), &lumianceCenter, 0.0f, 1.0f, division, gamma, rgb_color);
 
         ImGui::Spacing();
         static float saturationCenter = 0.0f;
         ImGui::TextUnformatted("Sat:"); ImGui::SameLine();
-        ImGui::SaturationSelector("Saturation Selector", ImVec2(width, height), &saturationCenter, division, gamma, rgb_color);
+        ImGui::SaturationSelector("Saturation Selector", ImVec2(width, height), &saturationCenter, 0.0f, 1.0f, division, gamma, rgb_color);
 
         ImGui::Spacing();
-        static float contrastCenter = 0.0f;
+        static float contrastCenter = 1.0f;
         ImGui::TextUnformatted("Con:"); ImGui::SameLine();
-        ImGui::ContrastSelector("Contrast Selector", ImVec2(width, height), &contrastCenter, rgb_color);
+        ImGui::ContrastSelector("Contrast Selector", ImVec2(width, height), &contrastCenter, 1.0f, 1.0f, rgb_color);
 
         ImGui::PopItemWidth();
         ImGui::TreePop();
