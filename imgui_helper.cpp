@@ -964,6 +964,508 @@ float ProgressBar(const char *optionalPrefixText, float value, const float minVa
     return valueFraction;
 }
 
+
+// Color bar and ring
+static inline float  ImDot(const ImVec2& a, const ImVec2& b) { return a.x * b.x + a.y * b.y; }
+// func: ImU32(*func)(float const x, float const y)
+template < typename Type >
+inline
+Type	ScaleFromNormalized(Type const x, Type const newMin, Type const newMax)
+{
+	return x * (newMax - newMin) + newMin;
+}
+template < bool IsBilinear, typename FuncType >
+inline
+void DrawColorDensityPlotEx(ImDrawList* pDrawList, FuncType func, float minX, float maxX, float minY, float maxY, ImVec2 position, ImVec2 size, int resolutionX, int resolutionY)
+{
+	ImVec2 const uv = ImGui::GetFontTexUvWhitePixel();
+
+	float const sx = size.x / ((float)resolutionX);
+	float const sy = size.y / ((float)resolutionY);
+
+	float const dy = 1.0f / ((float)resolutionY);
+	float const dx = 1.0f / ((float)resolutionX);
+	float const hdx = 0.5f / ((float)resolutionX);
+	float const hdy = 0.5f / ((float)resolutionY);
+
+	for (int i = 0; i < resolutionX; ++i)
+	{
+		float x0;
+		float x1;
+		if (IsBilinear)
+		{
+			x0 = ScaleFromNormalized(((float)i + 0) * dx, minX, maxX);
+			x1 = ScaleFromNormalized(((float)i + 1) * dx, minX, maxX);
+		}
+		else
+		{
+			x0 = ScaleFromNormalized(((float)i + 0) * dx + hdx, minX, maxX);
+		}
+
+		for (int j = 0; j < resolutionY; ++j)
+		{
+			float y0;
+			float y1;
+			if (IsBilinear)
+			{
+				y0 = ScaleFromNormalized(((float)(j + 0) * dy), maxY, minY);
+				y1 = ScaleFromNormalized(((float)(j + 1) * dy), maxY, minY);
+			}
+			else
+			{
+				y0 = ScaleFromNormalized(((float)(j + 0) * dy + hdy), maxY, minY);
+			}
+
+			ImU32 const col00 = func(x0, y0);
+			if (IsBilinear)
+			{
+				ImU32 const col01 = func(x0, y1);
+				ImU32 const col10 = func(x1, y0);
+				ImU32 const col11 = func(x1, y1);
+				pDrawList->AddRectFilledMultiColor(	position + ImVec2(sx * (i + 0), sy * (j + 0)),
+													position + ImVec2(sx * (i + 1), sy * (j + 1)),
+													col00, col10, col11, col01);
+			}
+			else
+			{
+				pDrawList->AddRectFilledMultiColor(	position + ImVec2(sx * (i + 0), sy * (j + 0)),
+													position + ImVec2(sx * (i + 1), sy * (j + 1)),
+													col00, col00, col00, col00);
+			}
+		}
+	}
+}
+
+// func: ImU32(*func)(float const t)
+template <bool IsBilinear, typename FuncType>
+inline
+void	DrawColorBandEx(ImDrawList* pDrawList, ImVec2 const vpos, ImVec2 const size, FuncType func, int division, float gamma)
+{
+	float const width = size.x;
+	float const height = size.y;
+
+	float const fSlice = static_cast<float>(division);
+
+	ImVec2 dA(vpos);
+	ImVec2 dB(vpos.x + width / fSlice, vpos.y + height);
+
+	ImVec2 const dD(ImVec2(width / fSlice, 0));
+
+	auto curColor =	[gamma, &func](float const x, float const)
+					{
+						return func(ImPow(x, gamma));
+					};
+
+	DrawColorDensityPlotEx< IsBilinear >(pDrawList, curColor, 0.0f, 1.0f, 0.0f, 0.0f, vpos, size, division, 1);
+}
+
+template <bool IsBilinear, typename FuncType>
+inline
+void	DrawColorRingEx(ImDrawList* pDrawList, ImVec2 const curPos, ImVec2 const size, float thickness_, FuncType func, int division, float colorOffset)
+{
+	float const radius = ImMin(size.x, size.y) * 0.5f;
+
+	float const dAngle = 2.0f * IM_PI / ((float)division);
+	float angle = 2.0f * IM_PI / 3.0f;
+
+	ImVec2 offset = curPos + ImVec2(radius, radius);
+	if (size.x < size.y)
+	{
+		offset.y += 0.5f * (size.y - size.x);
+	}
+	else if (size.x > size.y)
+	{
+		offset.x += 0.5f * (size.x - size.y);
+	}
+
+	float const thickness = ImSaturate(thickness_) * radius;
+
+	ImVec2 const uv = ImGui::GetFontTexUvWhitePixel();
+	pDrawList->PrimReserve(division * 6, division * 4);
+	for (int i = 0; i < division; ++i)
+	{
+		float x0 = radius * ImCos(angle);
+		float y0 = radius * ImSin(angle);
+
+		float x1 = radius * ImCos(angle + dAngle);
+		float y1 = radius * ImSin(angle + dAngle);
+
+		float x2 = (radius - thickness) * ImCos(angle + dAngle);
+		float y2 = (radius - thickness) * ImSin(angle + dAngle);
+
+		float x3 = (radius - thickness) * ImCos(angle);
+		float y3 = (radius - thickness) * ImSin(angle);
+
+		pDrawList->PrimWriteIdx((ImDrawIdx)(pDrawList->_VtxCurrentIdx));
+		pDrawList->PrimWriteIdx((ImDrawIdx)(pDrawList->_VtxCurrentIdx + 1));
+		pDrawList->PrimWriteIdx((ImDrawIdx)(pDrawList->_VtxCurrentIdx + 2));
+
+		pDrawList->PrimWriteIdx((ImDrawIdx)(pDrawList->_VtxCurrentIdx));
+		pDrawList->PrimWriteIdx((ImDrawIdx)(pDrawList->_VtxCurrentIdx + 2));
+		pDrawList->PrimWriteIdx((ImDrawIdx)(pDrawList->_VtxCurrentIdx + 3));
+
+		float const t0 = fmodf(colorOffset + ((float)i) / ((float)division), 1.0f);
+		ImU32 const uCol0 = func(t0);
+
+		if (IsBilinear)
+		{
+			float const t1 = fmodf(colorOffset + ((float)(i + 1)) / ((float)division), 1.0f);
+			ImU32 const uCol1 = func(t1);
+			pDrawList->PrimWriteVtx(offset + ImVec2(x0, y0), uv, uCol0);
+			pDrawList->PrimWriteVtx(offset + ImVec2(x1, y1), uv, uCol1);
+			pDrawList->PrimWriteVtx(offset + ImVec2(x2, y2), uv, uCol1);
+			pDrawList->PrimWriteVtx(offset + ImVec2(x3, y3), uv, uCol0);
+		}
+		else
+		{
+			pDrawList->PrimWriteVtx(offset + ImVec2(x0, y0), uv, uCol0);
+			pDrawList->PrimWriteVtx(offset + ImVec2(x1, y1), uv, uCol0);
+			pDrawList->PrimWriteVtx(offset + ImVec2(x2, y2), uv, uCol0);
+			pDrawList->PrimWriteVtx(offset + ImVec2(x3, y3), uv, uCol0);
+		}
+		angle += dAngle;
+	}
+}
+
+void DrawHueBand(ImDrawList* pDrawList, ImVec2 const vpos, ImVec2 const size, int division, float alpha, float gamma, float offset)
+{
+	auto HueFunc = [alpha, offset](float const tt) -> ImU32
+	{
+		float t;
+		if (tt - offset < 0.0f)
+			t = ImFmod(1.0f + (tt - offset), 1.0f);
+		else
+			t = ImFmod(tt - offset, 1.0f);
+		float r, g, b;
+		ImGui::ColorConvertHSVtoRGB(t, 1.0f, 1.0f, r, g, b);
+		int const ur = static_cast<int>(255.0f * r);
+		int const ug = static_cast<int>(255.0f * g);
+		int const ub = static_cast<int>(255.0f * b);
+		int const ua = static_cast<int>(255.0f * alpha);
+		return IM_COL32(ur, ug, ub, ua);
+	};
+	DrawColorBandEx< true >(pDrawList, vpos, size, HueFunc, division, gamma);
+}
+
+void DrawHueBand(ImDrawList* pDrawList, ImVec2 const vpos, ImVec2 const size, int division, float colorStartRGB[3], float alpha, float gamma)
+{
+	float h, s, v;
+	ImGui::ColorConvertRGBtoHSV(colorStartRGB[0], colorStartRGB[1], colorStartRGB[2], h, s, v);
+	DrawHueBand(pDrawList, vpos, size, division, alpha, gamma, h);
+}
+
+void DrawLumianceBand(ImDrawList* pDrawList, ImVec2 const vpos, ImVec2 const size, int division, ImVec4 const& color, float gamma)
+{
+	float h, s, v;
+	ImGui::ColorConvertRGBtoHSV(color.x, color.y, color.z, h, s, v);
+	auto LumianceFunc = [h, s, v](float const t) -> ImU32
+	{
+		float r, g, b;
+		ImGui::ColorConvertHSVtoRGB(h, s, ImLerp(0.0f, v, t), r, g, b);
+		int const ur = static_cast<int>(255.0f * r);
+		int const ug = static_cast<int>(255.0f * g);
+		int const ub = static_cast<int>(255.0f * b);
+		return IM_COL32(ur, ug, ub, 255);
+	};
+	DrawColorBandEx< true >(pDrawList, vpos, size, LumianceFunc, division, gamma);
+}
+
+void DrawSaturationBand(ImDrawList* pDrawList, ImVec2 const vpos, ImVec2 const size, int division, ImVec4 const& color, float gamma)
+{
+	float h, s, v;
+	ImGui::ColorConvertRGBtoHSV(color.x, color.y, color.z, h, s, v);
+	auto SaturationFunc = [h, s, v](float const t) -> ImU32
+	{
+		float r, g, b;
+		ImGui::ColorConvertHSVtoRGB(h, ImLerp(0.0f, 1.0f, t) * s, ImLerp(0.5f, 1.0f, t) * v, r, g, b);
+		int const ur = static_cast<int>(255.0f * r);
+		int const ug = static_cast<int>(255.0f * g);
+		int const ub = static_cast<int>(255.0f * b);
+		return IM_COL32(ur, ug, ub, 255);
+	};
+	DrawColorBandEx< true >(pDrawList, vpos, size, SaturationFunc, division, gamma);
+}
+
+void DrawContrastBand(ImDrawList* pDrawList, ImVec2 const vpos, ImVec2 const size, ImVec4 const& color)
+{
+    ImGui::DrawColorBandEx< true >(pDrawList, vpos, size,
+	[size, color](float t)
+	{
+		int seg = t * size.x;
+        float v = ((seg & 1) == 0) ? 1.0 : (1 - t);
+		return IM_COL32(v * color.x * 255.f, v * color.y * 255.f, v * color.z * 255.f, color.w * 255.f);
+	}, size.x, 1.f);
+}
+
+bool ColorRing(const char* label, float thickness, int split)
+{
+	ImGuiID const iID = ImGui::GetID(label);
+	ImGui::PushID(iID);
+	ImVec2 curPos = ImGui::GetCursorScreenPos();
+	float const width = ImGui::GetContentRegionAvail().x;
+	float const height = width;
+	ImGui::InvisibleButton("##Zone", ImVec2(width, height), 0);
+	float radius = width * 0.5f;
+	const float dAngle = 2.0f * IM_PI / ((float)split);
+	float angle = 2.0f * IM_PI / 3.0f;
+	ImVec2 offset = curPos + ImVec2(radius, radius);
+	ImVec2 const uv = ImGui::GetFontTexUvWhitePixel();
+	ImDrawList* pDrawList = ImGui::GetWindowDrawList();
+	pDrawList->PrimReserve(split * 6, split * 4);
+	for (int i = 0; i < split; ++i)
+	{
+		float x0 = radius * ImCos(angle);
+		float y0 = radius * ImSin(angle);
+		float x1 = radius * ImCos(angle + dAngle);
+		float y1 = radius * ImSin(angle + dAngle);
+		float x2 = (radius - thickness) * ImCos(angle + dAngle);
+		float y2 = (radius - thickness) * ImSin(angle + dAngle);
+		float x3 = (radius - thickness) * ImCos(angle);
+		float y3 = (radius - thickness) * ImSin(angle);
+		pDrawList->PrimWriteIdx((ImDrawIdx)(pDrawList->_VtxCurrentIdx));
+		pDrawList->PrimWriteIdx((ImDrawIdx)(pDrawList->_VtxCurrentIdx + 1));
+		pDrawList->PrimWriteIdx((ImDrawIdx)(pDrawList->_VtxCurrentIdx + 2));
+		pDrawList->PrimWriteIdx((ImDrawIdx)(pDrawList->_VtxCurrentIdx));
+		pDrawList->PrimWriteIdx((ImDrawIdx)(pDrawList->_VtxCurrentIdx + 2));
+		pDrawList->PrimWriteIdx((ImDrawIdx)(pDrawList->_VtxCurrentIdx + 3));
+		float r0, g0, b0;
+		float r1, g1, b1;
+		ImGui::ColorConvertHSVtoRGB(((float)i) / ((float)(split - 1)), 1.0f, 1.0f, r0, g0, b0);
+		ImGui::ColorConvertHSVtoRGB(((float)((i + 1)%split)) / ((float)(split - 1)), 1.0f, 1.0f, r1, g1, b1);
+		pDrawList->PrimWriteVtx(offset + ImVec2(x0, y0), uv, IM_COL32(r0 * 255, g0 * 255, b0 * 255, 255));
+		pDrawList->PrimWriteVtx(offset + ImVec2(x1, y1), uv, IM_COL32(r1 * 255, g1 * 255, b1 * 255, 255));
+		pDrawList->PrimWriteVtx(offset + ImVec2(x2, y2), uv, IM_COL32(r1 * 255, g1 * 255, b1 * 255, 255));
+		pDrawList->PrimWriteVtx(offset + ImVec2(x3, y3), uv, IM_COL32(r0 * 255, g0 * 255, b0 * 255, 255));
+		angle += dAngle;
+	}
+	ImGui::PopID();
+	return false;
+}
+
+void HueSelectorEx(char const* label, ImVec2 const size, float* hueCenter, float* hueWidth, float* featherLeft, float* featherRight, ImU32 triangleColor, int division, float alpha, float hideHueAlpha, float offset)
+{
+    ImGuiIO &io = ImGui::GetIO();
+	ImGuiID const iID = ImGui::GetID(label);
+	ImGui::PushID(iID);
+	ImVec2 curPos = ImGui::GetCursorScreenPos();
+	ImDrawList* pDrawList = ImGui::GetWindowDrawList();
+    ImGui::InvisibleButton("##ZoneHueLineSlider", size);
+	DrawHueBand(pDrawList, curPos, size, division, alpha, 1.0f, offset);
+	float center = ImClamp(ImFmod(*hueCenter + offset, 1.0f), 0.0f, 1.0f - 1e-4f);
+	float width = ImClamp(*hueWidth, 0.0f, 0.5f - 1e-4f);
+	float featherL = ImClamp(*featherLeft, 0.0f, 0.5f - 1e-4f);
+	float featherR = ImClamp(*featherRight, 0.0f, 0.5f - 1e-4f);
+	float xCenter = curPos.x + center * size.x;
+	if (width == 0.0f)
+	{
+		pDrawList->AddLine(ImVec2(xCenter, curPos.y), ImVec2(xCenter, curPos.y + size.y), IM_COL32(0, 0, 0, 255));
+	}
+	else
+	{
+		DrawColorDensityPlotEx< true >(pDrawList,
+		    [hueAlpha = hideHueAlpha, center, width, left = featherL, right = featherR](float const xx, float const) -> ImU32
+		    {
+		    	float x = ImFmod(xx, 1.0f);
+		    	float val;
+		    	if (x < center - width && x > center - width - left)
+		    	{
+		    		val = ImClamp((center * (-1 + hueAlpha) + left + width + x - hueAlpha * (width + x)) / left, hueAlpha, 1.0f);
+		    	}
+		    	else if (x < center + width + right && x > center + width)
+		    	{
+		    		val = ImClamp((center - center * hueAlpha + right + width - hueAlpha * width + (-1 + hueAlpha) * x) / right, hueAlpha, 1.0f);
+		    	}
+		    	else if (x > center - width - left && x < center + width + right)
+		    	{
+		    		val = 1.0f;
+		    	}
+		    	else if (center + width + right > 1.0f)
+		    	{
+		    		val = ImClamp((center - center * hueAlpha + right + width - hueAlpha * width + (-1 + hueAlpha) * (x + 1.0f)) / right, hueAlpha, 1.0f);
+		    	}
+		    	else if (center - width - left < 0.0f)
+		    	{
+		    		val = ImClamp((center * (-1 + hueAlpha) + left + width + x - 1.0f - hueAlpha * (width + x - 1.0f)) / left, hueAlpha, 1.0f);
+		    	}
+		    	else
+		    	{
+		    		val = hueAlpha;
+		    	}
+		    	return IM_COL32(0, 0, 0, ImPow(1.0f - val, 1.0f / 2.2f) * 255);
+		    }, 0.0f, 1.0f, 0.0f, 0.0f, curPos, size, division, 1);
+	}
+    if (ImGui::IsItemHovered())
+    {
+        if (ImGui::IsMouseDragging(ImGuiMouseButton_Left))
+        {
+            auto diff = io.MouseDelta.x / size.x;
+            *hueCenter += diff;
+            *hueCenter = ImClamp(*hueCenter, 0.f, 1.f);
+        }
+        if (io.MouseWheel < -FLT_EPSILON)
+        {
+            *hueWidth *= 0.9;
+        }
+        if (io.MouseWheel > FLT_EPSILON)
+        {
+            *hueWidth *= 1.1;
+            if (*hueWidth > 0.5)
+                *hueWidth = 0.5;
+        }
+    }
+
+    const float arrowWidth = pDrawList->_Data->FontSize;
+    float arrowOffset = curPos.x + *hueCenter * size.x;
+    ImGui::Dummy(ImVec2(0, arrowWidth * 2));
+    ImGui::RenderArrow(pDrawList, ImVec2(arrowOffset - arrowWidth / 2, curPos.y + size.y), IM_COL32(255,255,0,255), ImGuiDir_Up);
+    std::ostringstream oss;
+    oss << std::fixed << std::setprecision(2) << *hueCenter;
+    std::string value_str = oss.str();
+    ImVec2 str_size = ImGui::CalcTextSize(value_str.c_str(), nullptr, true);
+    pDrawList->AddText(ImVec2(arrowOffset - str_size.x * 0.5f, curPos.y + size.y + arrowWidth), IM_COL32(255,255,0,255), value_str.c_str());
+	ImGui::PopID();
+}
+
+void HueSelector(char const* label, ImVec2 const size, float* hueCenter, float* hueWidth, float* featherLeft, float* featherRight, int division, float alpha, float hideHueAlpha, float offset)
+{
+	HueSelectorEx(label, size, hueCenter, hueWidth, featherLeft, featherRight, IM_COL32(255, 128, 0, 255), division, alpha, hideHueAlpha, offset);
+}
+
+void LumianceSelector(char const* label, ImVec2 const size, float* lumCenter, int division, float gamma, bool rgb_color, ImVec4 const color)
+{
+    ImGuiIO &io = ImGui::GetIO();
+	ImGuiID const iID = ImGui::GetID(label);
+	ImGui::PushID(iID);
+    ImVec2 curPos = ImGui::GetCursorScreenPos();
+	ImDrawList* pDrawList = ImGui::GetWindowDrawList();
+    ImGui::InvisibleButton("##ZoneLumianceSlider", size);
+    if (!rgb_color)
+    {
+        DrawLumianceBand(pDrawList, curPos, size, division, color, gamma);
+    }
+    else
+    {
+        ImVec2 bar_size = ImVec2(size.x, size.y / 4);
+        ImVec2 r_pos = curPos;
+        ImVec2 g_pos = ImVec2(curPos.x, curPos.y + size.y / 4);
+        ImVec2 b_pos = ImVec2(curPos.x, curPos.y + size.y * 2 / 4);
+        ImVec2 w_pos = ImVec2(curPos.x, curPos.y + size.y * 3 / 4);
+        DrawLumianceBand(pDrawList, r_pos, bar_size, division, ImVec4(1, 0, 0, 1), gamma);
+        DrawLumianceBand(pDrawList, g_pos, bar_size, division, ImVec4(0, 1, 0, 1), gamma);
+        DrawLumianceBand(pDrawList, b_pos, bar_size, division, ImVec4(0, 0, 1, 1), gamma);
+        DrawLumianceBand(pDrawList, w_pos, bar_size, division, ImVec4(1, 1, 1, 1), gamma);
+    }
+    if (ImGui::IsItemHovered())
+    {
+        if (ImGui::IsMouseDragging(ImGuiMouseButton_Left))
+        {
+            auto diff = io.MouseDelta.x * 2 / size.x;
+            *lumCenter += diff;
+            *lumCenter = ImClamp(*lumCenter, -1.f, 1.f);
+        }
+    }
+    const float arrowWidth = pDrawList->_Data->FontSize;
+    float arrowOffset = curPos.x + (*lumCenter / 2 + 0.5) * size.x;
+    ImGui::Dummy(ImVec2(0, arrowWidth * 2));
+    ImGui::RenderArrow(pDrawList, ImVec2(arrowOffset - arrowWidth / 2, curPos.y + size.y), IM_COL32(255,255,0,255), ImGuiDir_Up);
+    std::ostringstream oss;
+    oss << std::fixed << std::setprecision(2) << *lumCenter;
+    std::string value_str = oss.str();
+    ImVec2 str_size = ImGui::CalcTextSize(value_str.c_str(), nullptr, true);
+    pDrawList->AddText(ImVec2(arrowOffset - str_size.x * 0.5f, curPos.y + size.y + arrowWidth), IM_COL32(255,255,0,255), value_str.c_str());
+	ImGui::PopID();
+}
+
+void SaturationSelector(char const* label, ImVec2 const size, float* satCenter, int division, float gamma, bool rgb_color, ImVec4 const color)
+{
+    ImGuiIO &io = ImGui::GetIO();
+	ImGuiID const iID = ImGui::GetID(label);
+	ImGui::PushID(iID);
+    ImVec2 curPos = ImGui::GetCursorScreenPos();
+	ImDrawList* pDrawList = ImGui::GetWindowDrawList();
+    ImGui::InvisibleButton("##ZoneSaturationSlider", size);
+    if (!rgb_color)
+    {
+        DrawSaturationBand(pDrawList, curPos, size, division, color, gamma);
+    }
+    else
+    {
+        ImVec2 bar_size = ImVec2(size.x, size.y / 4);
+        ImVec2 r_pos = curPos;
+        ImVec2 g_pos = ImVec2(curPos.x, curPos.y + size.y / 4);
+        ImVec2 b_pos = ImVec2(curPos.x, curPos.y + size.y * 2 / 4);
+        ImVec2 w_pos = ImVec2(curPos.x, curPos.y + size.y * 3 / 4);
+        DrawSaturationBand(pDrawList, r_pos, bar_size, division, ImVec4(1, 0, 0, 1), gamma);
+        DrawSaturationBand(pDrawList, g_pos, bar_size, division, ImVec4(0, 1, 0, 1), gamma);
+        DrawSaturationBand(pDrawList, b_pos, bar_size, division, ImVec4(0, 0, 1, 1), gamma);
+        DrawSaturationBand(pDrawList, w_pos, bar_size, division, ImVec4(1, 1, 1, 1), gamma);
+    }
+    if (ImGui::IsItemHovered())
+    {
+        if (ImGui::IsMouseDragging(ImGuiMouseButton_Left))
+        {
+            auto diff = io.MouseDelta.x * 2 / size.x;
+            *satCenter += diff;
+            *satCenter = ImClamp(*satCenter, -1.f, 1.f);
+        }
+    }
+    const float arrowWidth = pDrawList->_Data->FontSize;
+    float arrowOffset = curPos.x + (*satCenter / 2 + 0.5) * size.x;
+    ImGui::Dummy(ImVec2(0, arrowWidth * 2));
+    ImGui::RenderArrow(pDrawList, ImVec2(arrowOffset - arrowWidth / 2, curPos.y + size.y), IM_COL32(255,255,0,255), ImGuiDir_Up);
+	std::ostringstream oss;
+    oss << std::fixed << std::setprecision(2) << *satCenter;
+    std::string value_str = oss.str();
+    ImVec2 str_size = ImGui::CalcTextSize(value_str.c_str(), nullptr, true);
+    pDrawList->AddText(ImVec2(arrowOffset - str_size.x * 0.5f, curPos.y + size.y + arrowWidth), IM_COL32(255,255,0,255), value_str.c_str());
+    ImGui::PopID();
+}
+
+void ContrastSelector(char const* label, ImVec2 const size, float* conCenter, bool rgb_color, ImVec4 const color)
+{
+    ImGuiIO &io = ImGui::GetIO();
+	ImGuiID const iID = ImGui::GetID(label);
+	ImGui::PushID(iID);
+    ImVec2 curPos = ImGui::GetCursorScreenPos();
+	ImDrawList* pDrawList = ImGui::GetWindowDrawList();
+    ImGui::InvisibleButton("##ZoneContrastSlider", size);
+    if (!rgb_color)
+    {
+        DrawContrastBand(pDrawList, curPos, size, color);
+    }
+    else
+    {
+        ImVec2 bar_size = ImVec2(size.x, size.y / 4);
+        ImVec2 r_pos = curPos;
+        ImVec2 g_pos = ImVec2(curPos.x, curPos.y + size.y / 4);
+        ImVec2 b_pos = ImVec2(curPos.x, curPos.y + size.y * 2 / 4);
+        ImVec2 w_pos = ImVec2(curPos.x, curPos.y + size.y * 3 / 4);
+        DrawContrastBand(pDrawList, r_pos, bar_size, ImVec4(1, 0, 0, 1));
+        DrawContrastBand(pDrawList, g_pos, bar_size, ImVec4(0, 1, 0, 1));
+        DrawContrastBand(pDrawList, b_pos, bar_size, ImVec4(0, 0, 1, 1));
+        DrawContrastBand(pDrawList, w_pos, bar_size, ImVec4(1, 1, 1, 1));
+    }
+    if (ImGui::IsItemHovered())
+    {
+        if (ImGui::IsMouseDragging(ImGuiMouseButton_Left))
+        {
+            auto diff = io.MouseDelta.x * 4 / size.x;
+            *conCenter += diff;
+            *conCenter = ImClamp(*conCenter, -1.f, 3.f);
+        }
+    }
+    const float arrowWidth = pDrawList->_Data->FontSize;
+    float arrowOffset = curPos.x + (*conCenter / 4 + 0.25) * size.x;
+    ImGui::Dummy(ImVec2(0, arrowWidth * 2));
+    ImGui::RenderArrow(pDrawList, ImVec2(arrowOffset - arrowWidth / 2, curPos.y + size.y), IM_COL32(255,255,0,255), ImGuiDir_Up);
+	std::ostringstream oss;
+    oss << std::fixed << std::setprecision(2) << *conCenter;
+    std::string value_str = oss.str();
+    ImVec2 str_size = ImGui::CalcTextSize(value_str.c_str(), nullptr, true);
+    pDrawList->AddText(ImVec2(arrowOffset - str_size.x * 0.5f, curPos.y + size.y + arrowWidth), IM_COL32(255,255,0,255), value_str.c_str());
+    ImGui::PopID();
+}
+
 #ifndef NO_IMGUIHELPER_FONT_METHODS
 const ImFont *GetFont(int fntIndex) {return (fntIndex>=0 && fntIndex<ImGui::GetIO().Fonts->Fonts.size()) ? ImGui::GetIO().Fonts->Fonts[fntIndex] : NULL;}
 void PushFont(int fntIndex)    {
@@ -1890,6 +2392,176 @@ void ShowHelpDemoWindow()
         
         ImGui::TreePop();
     }
+	if (ImGui::TreeNode("Color Bands"))
+	{
+        ImGui::PushItemWidth(300);
+		static float col[4] = { 1, 1, 1, 1 };
+		ImGui::ColorEdit4("Color", col);
+		float const width = 300;
+		float const height = 32.0f;
+		static float gamma = 1.0f;
+		ImGui::DragFloat("Gamma##Color", &gamma, 0.01f, 0.1f, 10.0f);
+		static int division = 32;
+		ImGui::DragInt("Division", &division, 1, 1, 128);
+
+		ImGui::Text("HueBand");
+		ImGui::DrawHueBand(ImGui::GetWindowDrawList(), ImGui::GetCursorScreenPos(), ImVec2(width, height), division, col, col[3], gamma);
+		ImGui::InvisibleButton("##Zone", ImVec2(width, height), 0);
+
+		ImGui::Text("LuminanceBand");
+		ImGui::DrawLumianceBand(ImGui::GetWindowDrawList(), ImGui::GetCursorScreenPos(), ImVec2(width, height), division, ImVec4(col[0], col[1], col[2], col[3]), gamma);
+		ImGui::InvisibleButton("##Zone", ImVec2(width, height), 0);
+
+		ImGui::Text("SaturationBand");
+		ImGui::DrawSaturationBand(ImGui::GetWindowDrawList(), ImGui::GetCursorScreenPos(), ImVec2(width, height), division, ImVec4(col[0], col[1], col[2], col[3]), gamma);
+		ImGui::InvisibleButton("##Zone", ImVec2(width, height), 0);
+
+        ImGui::Text("ContrastBand");
+		ImGui::DrawContrastBand(ImGui::GetWindowDrawList(), ImGui::GetCursorScreenPos(), ImVec2(width, height), ImVec4(col[0], col[1], col[2], col[3]));
+		ImGui::InvisibleButton("##Zone", ImVec2(width, height), 0);
+
+		ImGui::Separator();
+		ImGui::Text("Custom Color Band");
+		static int frequency = 6;
+		ImGui::SliderInt("Frequency", &frequency, 1, 32);
+		static float alpha = 1.0f;
+		ImGui::SliderFloat("alpha", &alpha, 0.0f, 1.0f);
+
+		float const fFrequency = frequency;
+		float const fAlpha = alpha;
+		ImGui::DrawColorBandEx< true >(ImGui::GetWindowDrawList(), ImGui::GetCursorScreenPos(), ImVec2(width, height),
+			[fFrequency, fAlpha](float const t)
+			{
+				float r = ImSign(ImSin(fFrequency * 2.0f * IM_PI * t + 2.0f * IM_PI * 0.0f / fFrequency)) * 0.5f + 0.5f;
+				float g = ImSign(ImSin(fFrequency * 2.0f * IM_PI * t + 2.0f * IM_PI * 2.0f / fFrequency)) * 0.5f + 0.5f;
+				float b = ImSign(ImSin(fFrequency * 2.0f * IM_PI * t + 2.0f * IM_PI * 4.0f / fFrequency)) * 0.5f + 0.5f;
+
+				return IM_COL32(r * 255, g * 255, b * 255, fAlpha * 255);
+			},
+			division, gamma);
+		ImGui::InvisibleButton("##Zone", ImVec2(width, height), 0);
+        ImGui::PopItemWidth();
+		ImGui::TreePop();
+	}
+    if (ImGui::TreeNode("Color Ring"))
+	{
+        ImGui::PushItemWidth(300);
+		static int division = 16;
+		float const width = 300;//ImGui::GetContentRegionAvail().x;
+		ImGui::SliderInt("Division", &division, 3, 128);
+		static float colorOffset = 16;
+		ImGui::SliderFloat("Color Offset", &colorOffset, 0.0f, 2.0f);
+		static float thickness = 0.5f;
+		ImGui::SliderFloat("Thickness", &thickness, 1.0f / width, 1.0f);
+
+		ImDrawList* pDrawList = ImGui::GetWindowDrawList();
+		{
+			//float const width = ImGui::GetContentRegionAvail().x;
+			ImVec2 curPos = ImGui::GetCursorScreenPos();
+			ImGui::InvisibleButton("##Zone", ImVec2(width, width), 0);
+
+			ImGui::DrawColorRingEx< true >(pDrawList, curPos, ImVec2(width, width), thickness,
+				[](float t)
+				{
+					float r, g, b;
+					ImGui::ColorConvertHSVtoRGB(t, 1.0f, 1.0f, r, g, b);
+
+					return IM_COL32(r * 255, g * 255, b * 255, 255);
+				}, division, colorOffset);
+		}
+		static float center = 0.5f;
+		ImGui::DragFloat("Center", &center, 0.01f, 0.0f, 1.0f);
+		static float colorDotBound = 0.5f;
+		ImGui::SliderFloat("Alpha Pow", &colorDotBound, -1.0f, 1.0f);
+		static int frequency = 6;
+		ImGui::SliderInt("Frequency", &frequency, 1, 32);
+		{
+			ImGui::Text("Nearest");
+			//float const width = ImGui::GetContentRegionAvail().x;
+			ImVec2 curPos = ImGui::GetCursorScreenPos();
+			ImGui::InvisibleButton("##Zone", ImVec2(width, width) * 0.5f, 0);
+
+			float fCenter = center;
+			float fColorDotBound = colorDotBound;
+			ImGui::DrawColorRingEx< false >(pDrawList, curPos, ImVec2(width, width * 0.5f), thickness,
+				[fCenter, fColorDotBound](float t)
+				{
+					float r, g, b;
+					ImGui::ColorConvertHSVtoRGB(t, 1.0f, 1.0f, r, g, b);
+
+					ImVec2 const v0(ImCos(t * 2.0f * IM_PI), ImSin(t * 2.0f * IM_PI));
+					ImVec2 const v1(ImCos(fCenter * 2.0f * IM_PI), ImSin(fCenter * 2.0f * IM_PI));
+
+					float const dot = ImGui::ImDot(v0, v1);
+					float const angle = ImAcos(dot) / IM_PI;// / width;
+
+					return IM_COL32(r * 255, g * 255, b * 255, (dot > fColorDotBound ? 1.0f : 0.0f) * 255);
+				}, division, colorOffset);
+		}
+		{
+			ImGui::Text("Custom");
+			//float const width = ImGui::GetContentRegionAvail().x;
+			ImVec2 curPos = ImGui::GetCursorScreenPos();
+			ImGui::InvisibleButton("##Zone", ImVec2(width, width) * 0.5f, 0);
+
+			float const fFreq = (float)frequency;
+			ImGui::DrawColorRingEx< true >(pDrawList, curPos, ImVec2(width, width) * 0.5f, thickness,
+				[fFreq](float t)
+				{
+					float v = ImSign(ImCos(fFreq * 2.0f * IM_PI * t)) * 0.5f + 0.5f;
+
+					return IM_COL32(v * 255, v * 255, v * 255, 255);
+				}, division, colorOffset);
+		}
+        ImGui::PopItemWidth();
+		ImGui::TreePop();
+	}
+    if (ImGui::TreeNode("Color Selector"))
+	{
+        ImGui::PushItemWidth(300);
+		float const width = 300;
+		float const height = 32.0f;
+		static float offset = 0.0f;
+		static int division = 32;
+        static float gamma = 1.0f;
+		ImGui::DragInt("Division", &division, 1.0f, 2, 256);
+        ImGui::DragFloat("Gamma##Color", &gamma, 0.01f, 0.1f, 10.0f);
+		static float alphaHue = 1.0f;
+		static float alphaHideHue = 0.125f;
+		ImGui::DragFloat("Offset##ColorSelector", &offset, 0.0f, 0.0f, 1.0f);
+		ImGui::DragFloat("Alpha Hue", &alphaHue, 0.0f, 0.0f, 1.0f);
+		ImGui::DragFloat("Alpha Hue Hide", &alphaHideHue, 0.0f, 0.0f, 1.0f);
+		static float hueCenter = 0.5f;
+		static float hueWidth = 0.1f;
+		static float featherLeft = 0.125f;
+		static float featherRight = 0.125f;
+		ImGui::DragFloat("featherLeft", &featherLeft, 0.0f, 0.0f, 0.5f);
+		ImGui::DragFloat("featherRight", &featherRight, 0.0f, 0.0f, 0.5f);
+		
+        ImGui::Spacing();
+        ImGui::TextUnformatted("Hue:"); ImGui::SameLine();
+        ImGui::HueSelector("Hue Selector", ImVec2(width, height), &hueCenter, &hueWidth, &featherLeft, &featherRight, division, alphaHue, alphaHideHue, offset);
+		
+        static bool rgb_color = false;
+        ImGui::Checkbox("RGB Color Bar", &rgb_color);
+        ImGui::Spacing();
+        static float lumianceCenter = 0.0f;
+        ImGui::TextUnformatted("Lum:"); ImGui::SameLine();
+        ImGui::LumianceSelector("Lumiance Selector", ImVec2(width, height), &lumianceCenter, division, gamma, rgb_color);
+
+        ImGui::Spacing();
+        static float saturationCenter = 0.0f;
+        ImGui::TextUnformatted("Sat:"); ImGui::SameLine();
+        ImGui::SaturationSelector("Saturation Selector", ImVec2(width, height), &saturationCenter, division, gamma, rgb_color);
+
+        ImGui::Spacing();
+        static float contrastCenter = 0.0f;
+        ImGui::TextUnformatted("Con:"); ImGui::SameLine();
+        ImGui::ContrastSelector("Contrast Selector", ImVec2(width, height), &contrastCenter, rgb_color);
+
+        ImGui::PopItemWidth();
+        ImGui::TreePop();
+	}
     if (ImGui::TreeNode("Splitter windows"))
     {
         float h = 200;

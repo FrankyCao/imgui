@@ -13,6 +13,8 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <sstream>
+#include <iomanip>
 
 namespace ImGui {
 // ImGui Info
@@ -72,6 +74,20 @@ IMGUI_API bool ColoredButton(const char* label, const ImVec2& size, ImU32 text_c
 // It does not need any ID.
 IMGUI_API float ProgressBar(const char* optionalPrefixText,float value,const float minValue=0.f,const float maxValue=1.f,const char* format="%1.0f%%",const ImVec2& sizeOfBarWithoutTextInPixels=ImVec2(-1,-1),
                 const ImVec4& colorLeft=ImVec4(0,1,0,0.8),const ImVec4& colorRight=ImVec4(0,0.4,0,0.8),const ImVec4& colorBorder=ImVec4(0.25,0.25,1.0,1));
+
+// Color Processing
+IMGUI_API void DrawHueBand(ImDrawList* pDrawList, ImVec2 const vpos, ImVec2 const size, int division, float alpha, float gamma, float offset = 0.0f);
+IMGUI_API void DrawHueBand(ImDrawList* pDrawList, ImVec2 const vpos, ImVec2 const size, int division, float colorStartRGB[3], float alpha, float gamma);
+IMGUI_API void DrawLumianceBand(ImDrawList* pDrawList, ImVec2 const vpos, ImVec2 const size, int division, ImVec4 const& color, float gamma);
+IMGUI_API void DrawSaturationBand(ImDrawList* pDrawList, ImVec2 const vpos, ImVec2 const size, int division, ImVec4 const& color, float gamma);
+IMGUI_API void DrawContrastBand(ImDrawList* pDrawList, ImVec2 const vpos, ImVec2 const size, ImVec4 const& color);
+IMGUI_API bool ColorRing(const char* label, float thickness, int split);
+
+// Color Selector
+IMGUI_API void HueSelector(char const* label, ImVec2 const size, float* hueCenter, float* hueWidth, float* featherLeft, float* featherRight, int division = 32, float alpha = 1.0f, float hideHueAlpha = 0.75f, float offset = 0.0f);
+IMGUI_API void LumianceSelector(char const* label, ImVec2 const size, float* lumCenter, int division = 32, float gamma = 1.f, bool rgb_color = false, ImVec4 const color = ImVec4(1, 1, 1, 1));
+IMGUI_API void SaturationSelector(char const* label, ImVec2 const size, float* satCenter, int division = 32, float gamma = 1.f, bool rgb_color = false, ImVec4 const color = ImVec4(1, 1, 1, 1));
+IMGUI_API void ContrastSelector(char const* label, ImVec2 const size, float* conCenter, bool rgb_color = false, ImVec4 const color = ImVec4(1, 1, 1, 1));
 
 // Handy if we want to use ImGui::Image(...) or ImGui::ImageButton(...) with a glyph
 IMGUI_API bool GetTexCoordsFromGlyph(unsigned short glyph,ImVec2& uv0,ImVec2& uv1);
