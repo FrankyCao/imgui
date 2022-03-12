@@ -165,8 +165,8 @@ void	DrawColorRingEx(ImDrawList* pDrawList, ImVec2 const curPos, ImVec2 const si
 {
 	float const radius = ImMin(size.x, size.y) * 0.5f;
 
-	float const dAngle = 2.0f * IM_PI / ((float)division);
-	float angle = 2.0f * IM_PI / 3.0f;
+	float const dAngle = -2.0f * IM_PI / ((float)division);
+	float angle = 0; //2.0f * IM_PI / 3.0f;
 
 	ImVec2 offset = curPos + ImVec2(radius, radius);
 	if (size.x < size.y)
@@ -239,6 +239,7 @@ IMGUI_API void HueSelector(char const* label, ImVec2 const size, float* hueCente
 IMGUI_API void LumianceSelector(char const* label, ImVec2 const size, float* lumCenter, float defaultVal, float ui_zoom = 1.0f, int division = 32, float gamma = 1.f, bool rgb_color = false, ImVec4 const color = ImVec4(1, 1, 1, 1));
 IMGUI_API void SaturationSelector(char const* label, ImVec2 const size, float* satCenter, float defaultVal, float ui_zoom = 1.0f, int division = 32, float gamma = 1.f, bool rgb_color = false, ImVec4 const color = ImVec4(1, 1, 1, 1));
 IMGUI_API void ContrastSelector(char const* label, ImVec2 const size, float* conCenter, float defaultVal, float ui_zoom = 1.0f, bool rgb_color = false, ImVec4 const color = ImVec4(1, 1, 1, 1));
+IMGUI_API void BalanceSelector(char const* label, ImVec2 const size, ImVec4 * rgba, ImVec4 defaultVal, float ui_zoom = 1.0f, int division = 128, float thickness = 1.0f, float colorOffset = 0);
 
 // https://github.com/CedricGuillemet/imgInspect
 /*

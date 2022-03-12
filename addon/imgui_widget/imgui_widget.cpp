@@ -1200,7 +1200,9 @@ static void HueSelectorEx(char const* label, ImVec2 const size, float* hueCenter
     oss << std::fixed << std::setprecision(2) << *hueCenter;
     std::string value_str = oss.str();
     ImVec2 str_size = ImGui::CalcTextSize(value_str.c_str(), nullptr, true);
+    ImGui::PushStyleVar(ImGuiStyleVar_TexGlyphShadowOffset, ImVec2(1, 1));
     pDrawList->AddText(ImVec2(curPos.x + size.x / 2 - str_size.x * 0.5f, curPos.y + size.y / 2 - arrowWidth / 2), IM_COL32(255,255,0,255), value_str.c_str());
+    ImGui::PopStyleVar();
 	ImGui::PopID();
 }
 
@@ -1254,8 +1256,10 @@ void ImGui::LumianceSelector(char const* label, ImVec2 const size, float* lumCen
     oss << std::fixed << std::setprecision(2) << *lumCenter;
     std::string value_str = oss.str();
     ImVec2 str_size = ImGui::CalcTextSize(value_str.c_str(), nullptr, true);
+    ImGui::PushStyleVar(ImGuiStyleVar_TexGlyphShadowOffset, ImVec2(1, 1));
     pDrawList->AddText(ImVec2(curPos.x + size.x / 2 - str_size.x * 0.5f, curPos.y + size.y / 2 - arrowWidth / 2), IM_COL32(255,255,0,255), value_str.c_str());
-	ImGui::PopID();
+	ImGui::PopStyleVar();
+    ImGui::PopID();
 }
 
 void ImGui::SaturationSelector(char const* label, ImVec2 const size, float* satCenter, float defaultVal, float ui_zoom, int division, float gamma, bool rgb_color, ImVec4 const color)
@@ -1303,7 +1307,9 @@ void ImGui::SaturationSelector(char const* label, ImVec2 const size, float* satC
     oss << std::fixed << std::setprecision(2) << *satCenter;
     std::string value_str = oss.str();
     ImVec2 str_size = ImGui::CalcTextSize(value_str.c_str(), nullptr, true);
+    ImGui::PushStyleVar(ImGuiStyleVar_TexGlyphShadowOffset, ImVec2(1, 1));
     pDrawList->AddText(ImVec2(curPos.x + size.x / 2 - str_size.x * 0.5f, curPos.y + size.y / 2 - arrowWidth / 2), IM_COL32(255,255,0,255), value_str.c_str());
+    ImGui::PopStyleVar();
     ImGui::PopID();
 }
 
@@ -1352,7 +1358,96 @@ void ImGui::ContrastSelector(char const* label, ImVec2 const size, float* conCen
     oss << std::fixed << std::setprecision(2) << *conCenter;
     std::string value_str = oss.str();
     ImVec2 str_size = ImGui::CalcTextSize(value_str.c_str(), nullptr, true);
-    pDrawList->AddText(ImVec2(curPos.x + size.x / 2 - str_size.x * 0.5f, curPos.y + size.y / 2 - arrowWidth / 2), IM_COL32(0,0,0,255), value_str.c_str());
+    ImGui::PushStyleVar(ImGuiStyleVar_TexGlyphShadowOffset, ImVec2(1, 1));
+    pDrawList->AddText(ImVec2(curPos.x + size.x / 2 - str_size.x * 0.5f, curPos.y + size.y / 2 - arrowWidth / 2), rgb_color ? IM_COL32(255,255,0,255) : IM_COL32(0,0,0,255), value_str.c_str());
+    ImGui::PopStyleVar();
+    ImGui::PopID();
+}
+
+static bool isCircleContainsPoint(ImVec2 point, float radius, ImVec2 center)
+{
+    float dist = (point.x - center.x) * (point.x - center.x) + (point.y - center.y) * (point.y - center.y);
+    return dist <= radius * radius;
+}
+
+static float PointToAngle(float dx, float dy)
+{
+    float hAngle = 0;
+    if (dy == 0 && dx > 0)
+        hAngle = 0.f;           // positive x axis
+    else if (dy == 0 && dx < 0)
+        hAngle = 180.f;         // negative x axis
+    else if (dx == 0 && dy < 0)
+        hAngle = 90.f;          // positive y axis
+    else if (dx == 0 && dy > 0)
+        hAngle = 270.f;         // negative y axis
+    else if (dx > 0 && dy > 0)
+        hAngle = 90.f - atan2(dx, dy) * 180.f / M_PI;   // first quadrant
+    else if (dx < 0 && dy > 0)
+        hAngle = 90.f + atan2(-dx, dy) * 180.f / M_PI;  // second quadrant
+    else if (dx < 0 && dy < 0)
+        hAngle = 270.f - atan2(-dx, -dy) * 180.f / M_PI;// third quadrant
+    else if (dx > 0 && dy < 0)
+        hAngle = 270.f + atan2(dx, -dy) * 180.f / M_PI; // fourth quadrant
+    return hAngle;
+}
+
+void ImGui::BalanceSelector(char const* label, ImVec2 const size, ImVec4 * rgba, ImVec4 defaultVal, float ui_zoom, int division, float thickness, float colorOffset)
+{
+    ImGuiIO &io = ImGui::GetIO();
+	ImGuiID const iID = ImGui::GetID(label);
+	ImGui::PushID(iID);
+    auto curPos = ImGui::GetCursorScreenPos();
+    const float ringDiameter = size.x > size.y ? size.x / 2 : size.y / 2;
+    const float ringRadius = ringDiameter / 2;
+    auto ringPos = curPos + ImVec2((size.x - ringDiameter) / 4, 10);
+    auto center_point = ringPos + ImVec2(ringRadius, ringRadius);
+	ImDrawList* pDrawList = ImGui::GetWindowDrawList();
+    ImGui::InvisibleButton("##ZoneBalanceSlider", ImVec2(size.x, ringDiameter + 20));
+    ImGui::DrawColorRingEx< true >(pDrawList, ringPos, ImVec2(ringDiameter, ringDiameter), thickness,
+		[rgba](float t)
+	{
+		float r, g, b;
+		ImGui::ColorConvertHSVtoRGB(t, 1.0f, 1.0f, r, g, b);
+
+		return IM_COL32(r * 255, g * 255, b * 255, 255);
+	}, division, colorOffset);
+    
+    if (ImGui::IsItemHovered())
+    {
+        if (isCircleContainsPoint(io.MousePos, ringRadius, center_point))
+        {
+            float x_offset = (io.MousePos.x - center_point.x) / ringRadius;
+            float y_offset = -(io.MousePos.y - center_point.y) / ringRadius;
+            if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+            {
+                *rgba = defaultVal;
+            }
+            else if (ImGui::IsMouseDown(ImGuiMouseButton_Left))
+            {
+
+            }
+            float angle = PointToAngle(x_offset, y_offset);
+            float length = sqrt(x_offset * x_offset + y_offset * y_offset);
+            float r, g, b;
+		    ImGui::ColorConvertHSVtoRGB(angle / 360.0, length, 1.0f, r, g, b);
+            ImGui::BeginTooltip();
+            ImGui::Text("a=%f", angle);
+            ImGui::Text("l=%f", length);
+            ImGui::Text("r=%f", r);
+            ImGui::Text("g=%f", g);
+            ImGui::Text("b=%f", b);
+            ImGui::EndTooltip();
+        }
+    }
+    ImGui::PushItemWidth(size.x / 3);
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+	ImGui::DragFloat("##R", &rgba->x, 0.005f, -1.0f, 1.0f); ImGui::SameLine();
+	ImGui::DragFloat("##G", &rgba->y, 0.005f, -1.0f, 1.0f); ImGui::SameLine();
+    ImGui::DragFloat("##B", &rgba->z, 0.005f, -1.0f, 1.0f);
+    ImGui::PopStyleVar();
+    ImGui::PopItemWidth();
+    ImGui::DragFloat("##W", &rgba->w, 0.005f, -1.0f, 1.0f);
     ImGui::PopID();
 }
 
@@ -1421,6 +1516,7 @@ inline void histogram(const int width, const int height, const unsigned char* co
         }
     }
 }
+
 inline void drawNormal(ImDrawList* draw_list, const ImRect& rc, float x, float y)
 {
     draw_list->AddCircle(rc.GetCenter(), rc.GetWidth() / 2.f, 0x20AAAAAA, 24, 1.f);

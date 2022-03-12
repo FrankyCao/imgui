@@ -191,10 +191,10 @@ void ShowExtraWidgetDemoWindow()
     if (ImGui::TreeNode("Color Ring"))
 	{
         ImGui::PushItemWidth(300);
-		static int division = 16;
+		static int division = 32;
 		float const width = 300;
 		ImGui::SliderInt("Division", &division, 3, 128);
-		static float colorOffset = 16;
+		static float colorOffset = 0;
 		ImGui::SliderFloat("Color Offset", &colorOffset, 0.0f, 2.0f);
 		static float thickness = 0.5f;
 		ImGui::SliderFloat("Thickness", &thickness, 1.0f / width, 1.0f);
@@ -300,6 +300,11 @@ void ShowExtraWidgetDemoWindow()
         static float contrastCenter = 1.0f;
         ImGui::TextUnformatted("Con:"); ImGui::SameLine();
         ImGui::ContrastSelector("Contrast Selector", ImVec2(width, height), &contrastCenter, 1.0f, 1.0f, rgb_color);
+
+        ImGui::Spacing();
+        static ImVec4 rgba = ImVec4(0.0, 0.0, 0.0, 0.0);
+        ImGui::TextUnformatted("Bal:"); ImGui::SameLine();
+        ImGui::BalanceSelector("Balance Selector", ImVec2(width, width), &rgba, ImVec4(0, 0, 0, 0), 1.0f);
 
         ImGui::PopItemWidth();
         ImGui::TreePop();
