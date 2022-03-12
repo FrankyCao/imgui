@@ -306,9 +306,9 @@ static void main_loop(void* arg)
             ImVec2 mouseUVCoord = (io.MousePos - rc.Min) / rc.GetSize();
             if (ImGui::IsItemHovered() && mouseUVCoord.x >= 0.f && mouseUVCoord.y >= 0.f)
             {
-                ImGuiHelper::ImageInspect(image.w, image.h, 
-                                        (const unsigned char*)image.data, mouseUVCoord, 
-                                        displayedTextureSize);
+                ImGui::ImageInspect(image.w, image.h, 
+                                    (const unsigned char*)image.data, mouseUVCoord, 
+                                    displayedTextureSize);
             }
         }
 

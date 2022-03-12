@@ -13,8 +13,6 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include <sstream>
-#include <iomanip>
 
 namespace ImGui {
 // ImGui Info
@@ -45,7 +43,6 @@ IMGUI_API bool IsItemJustReleased();
 // Drawn an rectangle around last ImGui widget.
 IMGUI_API void Debug_DrawItemRect(const ImVec4& col = ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
 
-#ifndef NO_IMGUIHELPER_FONT_METHODS
 IMGUI_API const ImFont* GetFont(int fntIndex);
 IMGUI_API void PushFont(int fntIndex);    // using the index of the font instead of a ImFont* is easier (you can set up an enum).
 IMGUI_API void TextColoredV(int fntIndex,const ImVec4& col, const char* fmt, va_list args);
@@ -53,50 +50,12 @@ IMGUI_API void TextColored(int fntIndex,const ImVec4& col, const char* fmt, ...)
 IMGUI_API void TextV(int fntIndex,const char* fmt, va_list args);
 IMGUI_API void Text(int fntIndex,const char* fmt, ...) IM_FMTARGS(2);
 
-// Splitter
-IMGUI_API bool Splitter(bool split_vertically, float thickness, float* size1, float* size2, float min_size1, float min_size2, float splitter_long_axis_size = -1.0f);
-
-// ToggleButton
-IMGUI_API void ToggleButton(const char* str_id, bool* v);
-IMGUI_API bool ToggleButton(const char *str_id, bool *v, const ImVec2 &size);
-IMGUI_API bool BulletToggleButton(const char* label,bool* v, ImVec2 &pos, ImVec2 &size);
-
-// CheckButton
-IMGUI_API bool CheckButton(const char* label, bool* pvalue, bool useSmallButton = false, float checkedStateAlphaMult = 0.5f);
-
-// ColoredButtonV1: code posted by @ocornut here: https://github.com/ocornut/imgui/issues/4722
-// [Button rounding depends on the FrameRounding Style property (but can be overridden with the last argument)]
-IMGUI_API bool ColoredButton(const char* label, const ImVec2& size, ImU32 text_color, ImU32 bg_color_1, ImU32 bg_color_2, float frame_rounding_override=-1.f);
-
-// new ProgressBar
-// Please note that you can tweak the "format" argument if you want to add a prefix (or a suffix) piece of text to the text that appears at the right of the bar.
-// returns the value "fraction" in 0.f-1.f.
-// It does not need any ID.
-IMGUI_API float ProgressBar(const char* optionalPrefixText,float value,const float minValue=0.f,const float maxValue=1.f,const char* format="%1.0f%%",const ImVec2& sizeOfBarWithoutTextInPixels=ImVec2(-1,-1),
-                const ImVec4& colorLeft=ImVec4(0,1,0,0.8),const ImVec4& colorRight=ImVec4(0,0.4,0,0.8),const ImVec4& colorBorder=ImVec4(0.25,0.25,1.0,1));
-
-// Color Processing
-IMGUI_API void DrawHueBand(ImDrawList* pDrawList, ImVec2 const vpos, ImVec2 const size, int division, float alpha, float gamma, float offset = 0.0f);
-IMGUI_API void DrawHueBand(ImDrawList* pDrawList, ImVec2 const vpos, ImVec2 const size, int division, float colorStartRGB[3], float alpha, float gamma);
-IMGUI_API void DrawLumianceBand(ImDrawList* pDrawList, ImVec2 const vpos, ImVec2 const size, int division, ImVec4 const& color, float gamma);
-IMGUI_API void DrawSaturationBand(ImDrawList* pDrawList, ImVec2 const vpos, ImVec2 const size, int division, ImVec4 const& color, float gamma);
-IMGUI_API void DrawContrastBand(ImDrawList* pDrawList, ImVec2 const vpos, ImVec2 const size, ImVec4 const& color);
-IMGUI_API bool ColorRing(const char* label, float thickness, int split);
-
-// Color Selector
-IMGUI_API void HueSelector(char const* label, ImVec2 const size, float* hueCenter, float* hueWidth, float* featherLeft, float* featherRight, float defaultVal, float ui_zoom = 1.0f, int division = 32, float alpha = 1.0f, float hideHueAlpha = 0.75f, float offset = 0.0f);
-IMGUI_API void LumianceSelector(char const* label, ImVec2 const size, float* lumCenter, float defaultVal, float ui_zoom = 1.0f, int division = 32, float gamma = 1.f, bool rgb_color = false, ImVec4 const color = ImVec4(1, 1, 1, 1));
-IMGUI_API void SaturationSelector(char const* label, ImVec2 const size, float* satCenter, float defaultVal, float ui_zoom = 1.0f, int division = 32, float gamma = 1.f, bool rgb_color = false, ImVec4 const color = ImVec4(1, 1, 1, 1));
-IMGUI_API void ContrastSelector(char const* label, ImVec2 const size, float* conCenter, float defaultVal, float ui_zoom = 1.0f, bool rgb_color = false, ImVec4 const color = ImVec4(1, 1, 1, 1));
-
 // Handy if we want to use ImGui::Image(...) or ImGui::ImageButton(...) with a glyph
 IMGUI_API bool GetTexCoordsFromGlyph(unsigned short glyph,ImVec2& uv0,ImVec2& uv1);
 // Returns the height of the main menu based on the current font and style
 // Warning: according to https://github.com/ocornut/imgui/issues/252 this approach can fail [Better call ImGui::GetWindowSize().y from inside the menu and store the result somewhere]
 IMGUI_API float CalcMainMenuHeight();
-#endif //NO_IMGUIHELPER_FONT_METHODS
 
-#ifndef NO_IMGUIHELPER_DRAW_METHODS
 // Extensions to ImDrawList
 IMGUI_API void ImDrawListAddConvexPolyFilledWithVerticalGradient(ImDrawList* dl, const ImVec2* points, const int points_count, ImU32 colTop, ImU32 colBot, float miny=-1.f, float maxy=-1.f);
 IMGUI_API void ImDrawListPathFillWithVerticalGradientAndStroke(ImDrawList* dl, const ImU32& fillColorTop, const ImU32& fillColorBottom, const ImU32& strokeColor, bool strokeClosed=false, float strokeThickness = 1.0f, float miny=-1.f, float maxy=-1.f);
@@ -118,7 +77,6 @@ IMGUI_API void ImDrawListAddRectWithHorizontalGradient(ImDrawList *dl, const ImV
 IMGUI_API void ImDrawListAddEllipseWithHorizontalGradient(ImDrawList *dl, const ImVec2 &centre, const ImVec2 &radii, const ImU32 &fillColorLeft, const ImU32 &fillColorRight, const ImU32 &strokeColor, int num_segments = 12, float strokeThickness = 1.0f);
 IMGUI_API void ImDrawListAddCircleWithHorizontalGradient(ImDrawList *dl, const ImVec2 &centre, float radius, const ImU32 &fillColorLeft, const ImU32 &fillColorRight, const ImU32 &strokeColor, int num_segments = 12, float strokeThickness = 1.0f);
 IMGUI_API void ImDrawListAddRectWithHorizontalGradient(ImDrawList *dl, const ImVec2 &a, const ImVec2 &b, const ImU32 &fillColor, float fillColorGradientDeltaIn0_05, const ImU32 &strokeColor, float rounding = 0.0f, int rounding_corners = 0, float strokeThickness = 1.0f);
-#endif //NO_IMGUIHELPER_DRAW_METHODS
 
 // These two methods are inspired by imguidock.cpp
 // if optionalRootWindowName==NULL, they refer to the current window
@@ -127,50 +85,31 @@ IMGUI_API void ImDrawListAddRectWithHorizontalGradient(ImDrawList *dl, const ImV
 IMGUI_API void PutInBackground(const char* optionalRootWindowName=NULL);
 IMGUI_API void PutInForeground(const char* optionalRootWindowName=NULL);
 
-#   ifdef IMGUI_USE_ZLIB	// requires linking to library -lZlib
+// ImGui Stringify
+IMGUI_API bool Base64Encode(const char* input,int inputSize,ImVector<char>& output,bool stringifiedMode=false,int numCharsPerLineInStringifiedMode=112);
+IMGUI_API bool Base64Decode(const char* input,ImVector<char>& output);
+
+IMGUI_API bool Base85Encode(const char* input,int inputSize,ImVector<char>& output,bool stringifiedMode=false,int numCharsPerLineInStringifiedMode=112);
+IMGUI_API bool Base85Decode(const char* input,ImVector<char>& output);
+
+IMGUI_API bool BinaryStringify(const char* input, int inputSize, ImVector<char>& output, int numInputBytesPerLineInStringifiedMode=80, bool serializeUnsignedBytes=false);
+IMGUI_API bool TextStringify(const char* input, ImVector<char>& output, int numCharsPerLineInStringifiedMode=0, int inputSize=0, bool noBackslashAtLineEnds=false);
 // Two methods that fill rv and return true on success
-#       ifndef NO_IMGUIHELPER_SERIALIZATION
-#           ifndef NO_IMGUIHELPER_SERIALIZATION_LOAD
+IMGUI_API bool Base64DecodeFromFile(const char* filePath,ImVector<char>& rv);
+IMGUI_API bool Base85DecodeFromFile(const char* filePath,ImVector<char>& rv);
+
+#ifdef IMGUI_USE_ZLIB	// requires linking to library -lZlib
+// Two methods that fill rv and return true on success
 IMGUI_API bool GzDecompressFromFile(const char* filePath,ImVector<char>& rv,bool clearRvBeforeUsage=true);
-#   ifdef YES_IMGUISTRINGIFIER
 IMGUI_API bool GzBase64DecompressFromFile(const char* filePath,ImVector<char>& rv);
 IMGUI_API bool GzBase85DecompressFromFile(const char* filePath,ImVector<char>& rv);
-#   endif //#YES_IMGUISTRINGIFIER
-#           endif //NO_IMGUIHELPER_SERIALIZATION_LOAD
-#       endif //NO_IMGUIHELPER_SERIALIZATION
 IMGUI_API bool GzDecompressFromMemory(const char* memoryBuffer,int memoryBufferSize,ImVector<char>& rv,bool clearRvBeforeUsage=true);
 IMGUI_API bool GzCompressFromMemory(const char* memoryBuffer,int memoryBufferSize,ImVector<char>& rv,bool clearRvBeforeUsage=true);
-#   ifdef YES_IMGUISTRINGIFIER
 IMGUI_API bool GzBase64DecompressFromMemory(const char* input,ImVector<char>& rv);
 IMGUI_API bool GzBase85DecompressFromMemory(const char* input,ImVector<char>& rv);
 IMGUI_API bool GzBase64CompressFromMemory(const char* input,int inputSize,ImVector<char>& output,bool stringifiedMode=false,int numCharsPerLineInStringifiedMode=112);
 IMGUI_API bool GzBase85CompressFromMemory(const char* input,int inputSize,ImVector<char>& output,bool stringifiedMode=false,int numCharsPerLineInStringifiedMode=112);
-#   endif //#YES_IMGUISTRINGIFIER
-#   endif //IMGUI_USE_ZLIB
-
-#   ifdef YES_IMGUIBZ2
-// Two methods that fill rv and return true on success
-#       ifndef NO_IMGUIHELPER_SERIALIZATION
-#           ifndef NO_IMGUIHELPER_SERIALIZATION_LOAD
-IMGUI_API bool Bz2DecompressFromFile(const char* filePath,ImVector<char>& rv,bool clearRvBeforeUsage=true);
-#   ifdef YES_IMGUISTRINGIFIER
-IMGUI_API bool Bz2Base64DecompressFromFile(const char* filePath, ImVector<char>& rv);
-IMGUI_API bool Bz2Base85DecompressFromFile(const char* filePath,ImVector<char>& rv);
-#   endif //#YES_IMGUISTRINGIFIER
-#           endif //NO_IMGUIHELPER_SERIALIZATION_LOAD
-#       endif //NO_IMGUIHELPER_SERIALIZATION
-// TODO: we can add helpers to compress bz2 as well...
-#   endif //YES_IMGUIBZ2
-
-#   ifdef YES_IMGUISTRINGIFIER
-// Two methods that fill rv and return true on success
-#       ifndef NO_IMGUIHELPER_SERIALIZATION
-#           ifndef NO_IMGUIHELPER_SERIALIZATION_LOAD
-IMGUI_API bool Base64DecodeFromFile(const char* filePath,ImVector<char>& rv);
-IMGUI_API bool Base85DecodeFromFile(const char* filePath,ImVector<char>& rv);
-#           endif //NO_IMGUIHELPER_SERIALIZATION_LOAD
-#       endif //NO_IMGUIHELPER_SERIALIZATION
-#   endif //YES_IMGUISTRINGIFIER
+#endif //IMGUI_USE_ZLIB
 
 // IMPORTANT: FT_INT,FT_UNSIGNED,FT_FLOAT,FT_DOUBLE,FT_BOOL support from 1 to 4 components.
 enum FieldType {
@@ -388,10 +327,25 @@ private:
     float m_MaximumColumnWidthAcc = -1.0f;
 };
 
-// Demo Window
-#if IMGUI_BUILD_EXAMPLE
-IMGUI_API void ShowHelpDemoWindow();
-#endif
+struct IMGUI_API ImTree
+{
+    std::string name;
+    std::vector<ImTree> childrens;
+    void * data {nullptr};
+    ImTree() {}
+    ImTree(std::string _name, void * _data = nullptr) { name = _name; data = _data; }
+    ImTree* FindChildren(std::string _name)
+    {
+        auto iter = std::find_if(childrens.begin(), childrens.end(), [_name](const ImTree& tree)
+        {
+            return tree.name.compare(_name) == 0;
+        });
+        if (iter != childrens.end())
+            return &(*iter);
+        else
+            return nullptr;
+    }
+};
 }   // ImGui
 
 
@@ -495,30 +449,6 @@ IMGUI_API int StringAppend(ImVector<char>& v,const char* fmt, ...);
 
 // ImGui Theme generator
 IMGUI_API void ThemeGenerator(const char* name, bool* p_open = NULL, ImGuiWindowFlags flags = 0);
-
-// https://github.com/CedricGuillemet/imgInspect
-/*
-//example
-Image pickerImage;
-ImGui::ImageButton(pickerImage.textureID, ImVec2(pickerImage.mWidth, pickerImage.mHeight));
-ImRect rc = ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
-ImVec2 mouseUVCoord = (io.MousePos - rc.Min) / rc.GetSize();
-mouseUVCoord.y = 1.f - mouseUVCoord.y;
-if (io.KeyShift && io.MouseDown[0] && mouseUVCoord.x >= 0.f && mouseUVCoord.y >= 0.f)
-{
-        int width = pickerImage.mWidth;
-        int height = pickerImage.mHeight;
-
-        ImGuiHelper::ImageInspect(width, height, pickerImage.GetBits(), mouseUVCoord, displayedTextureSize);
-}
-*/
-IMGUI_API void ImageInspect(const int width,
-                            const int height,
-                            const unsigned char* const bits,
-                            ImVec2 mouseUVCoord,
-                            ImVec2 displayedTextureSize,
-                            bool histogram_full = false,
-                            int zoom_size = 8);
 } // ImGuiHelper
 
 #ifndef NO_IMGUIKNOWNCOLOR_DEFINITIONS

@@ -80,7 +80,6 @@ using namespace gl;
 #endif
 #endif
 
-#ifndef NO_IMGUIHELPER_DRAW_METHODS
 #if !defined(alloca)
 #	if defined(__GLIBC__) || defined(__sun) || defined(__APPLE__) || defined(__NEWLIB__)
 #		include <alloca.h>     // alloca (glibc uses <alloca.h>. Note that Cygwin may have _WIN32 defined, so the order matters here)
@@ -95,7 +94,6 @@ using namespace gl;
 #       include <stdlib.h>     // alloca
 #   endif
 #endif //alloca
-#endif //NO_IMGUIHELPER_DRAW_METHODS
 
 #if IMGUI_RENDERING_VULKAN
 #include <imgui_impl_vulkan.h>
@@ -724,765 +722,6 @@ void Debug_DrawItemRect(const ImVec4& col)
     drawList->AddRect(itemMin, itemMax, ImColor(col));
 }
 
-// Splitter
-bool Splitter(bool split_vertically, float thickness, float* size1, float* size2, float min_size1, float min_size2, float splitter_long_axis_size)
-{
-	using namespace ImGui;
-	ImGuiContext& g = *GImGui;
-	ImGuiWindow* window = g.CurrentWindow;
-	ImGuiID id = window->GetID("##Splitter");
-	ImRect bb;
-	bb.Min = window->DC.CursorPos + (split_vertically ? ImVec2(*size1, 0.0f) : ImVec2(0.0f, *size1));
-	bb.Max = bb.Min + CalcItemSize(split_vertically ? ImVec2(thickness, splitter_long_axis_size) : ImVec2(splitter_long_axis_size, thickness), 0.0f, 0.0f);
-	return SplitterBehavior(bb, id, split_vertically ? ImGuiAxis_X : ImGuiAxis_Y, size1, size2, min_size1, min_size2, 1.0, 0.01);
-}
-
-// ToggleButton
-void ToggleButton(const char* str_id, bool* v)
-{
-    ImVec2 p = ImGui::GetCursorScreenPos();
-    ImDrawList* draw_list = ImGui::GetWindowDrawList();
-
-    float height = ImGui::GetFrameHeight();
-    float width = height * 1.55f;
-    float radius = height * 0.50f;
-
-    ImGui::InvisibleButton(str_id, ImVec2(width, height));
-    if (ImGui::IsItemClicked())
-        *v = !*v;
-
-    float t = *v ? 1.0f : 0.0f;
-
-    ImGuiContext& g = *GImGui;
-    float ANIM_SPEED = 0.08f;
-    if (g.LastActiveId == g.CurrentWindow->GetID(str_id))
-    {
-        float t_anim = ImSaturate(g.LastActiveIdTimer / ANIM_SPEED);
-        t = *v ? (t_anim) : (1.0f - t_anim);
-    }
-
-    ImU32 col_bg;
-    if (ImGui::IsItemHovered())
-        col_bg = ImGui::GetColorU32(ImLerp(ImVec4(0.78f, 0.78f, 0.78f, 1.0f), ImVec4(0.64f, 0.83f, 0.34f, 1.0f), t));
-    else
-        col_bg = ImGui::GetColorU32(ImLerp(ImVec4(0.85f, 0.85f, 0.85f, 1.0f), ImVec4(0.56f, 0.83f, 0.26f, 1.0f), t));
-
-    draw_list->AddRectFilled(p, ImVec2(p.x + width, p.y + height), col_bg, height * 0.5f);
-    draw_list->AddCircleFilled(ImVec2(p.x + radius + t * (width - radius * 2.0f), p.y + radius), radius - 1.5f, IM_COL32(255, 255, 255, 255));
-}
-
-bool ToggleButton(const char *str_id, bool *v, const ImVec2 &size)
-{
-    bool valueChange = false;
-
-    ImVec2 pos = ImGui::GetCursorScreenPos();
-    ImDrawList *draw_list = ImGui::GetWindowDrawList();
-
-    ImGui::InvisibleButton(str_id, size);
-    if (ImGui::IsItemClicked())
-    {
-        *v = !*v;
-        valueChange = true;
-    }
-
-    ImU32 col_tint = ImGui::GetColorU32((*v ? ImGui::GetColorU32(ImGuiCol_Text) : ImGui::GetColorU32(ImGuiCol_Border)));
-    ImU32 col_bg = ImGui::GetColorU32(ImGui::GetColorU32(ImGuiCol_WindowBg));
-    if (ImGui::IsItemHovered())
-    {
-        col_bg = ImGui::GetColorU32(ImGuiCol_ButtonHovered);
-    }
-    if (ImGui::IsItemActive() || *v)
-    {
-        col_bg = ImGui::GetColorU32(ImGuiCol_Button);
-    }
-
-    draw_list->AddRectFilled(pos, pos + size, ImGui::GetColorU32(col_bg));
-
-    auto textSize = ImGui::CalcTextSize(str_id);
-    draw_list->AddText(ImVec2(pos.x + (size.x - textSize.x) / 2, pos.y), col_tint, str_id);
-
-    return valueChange;
-}
-
-bool BulletToggleButton(const char* label, bool* v, ImVec2 &pos, ImVec2 &size)
-{
-    bool valueChange = false;
-
-    ImDrawList *draw_list = ImGui::GetWindowDrawList();
-    ImVec2 old_pos = ImGui::GetCursorScreenPos();
-    ImGui::SetCursorScreenPos(pos);
-    ImGui::InvisibleButton(label, size);
-    if (ImGui::IsItemClicked())
-    {
-        *v = !*v;
-        valueChange = true;
-    }
-    pos += size / 2;
-    if (*v)
-    {
-        draw_list->AddCircleFilled(pos, draw_list->_Data->FontSize * 0.20f, IM_COL32(255, 0, 0, 255), 8);
-    }
-    else
-    {
-        draw_list->AddCircleFilled(pos, draw_list->_Data->FontSize * 0.20f, IM_COL32(128, 128, 128, 255), 8);
-    }
-    ImGui::SetCursorScreenPos(old_pos);
-    return valueChange;
-}
-
-// CheckButton
-bool CheckButton(const char* label, bool* pvalue, bool useSmallButton, float checkedStateAlphaMult) {
-    bool rv = false;
-    const bool tmp = pvalue ? *pvalue : false;
-    if (tmp) {
-        ImVec4 CheckButtonColor = ImVec4(1.0, 1.0, 1.0, checkedStateAlphaMult);
-        ImVec4 CheckButtonHoveredColor = ImVec4(1.0, 1.0, 1.0, checkedStateAlphaMult);
-        ImVec4 CheckButtonActiveColor = ImVec4(1.0, 1.0, 1.0, checkedStateAlphaMult);
-        ImGui::PushStyleColor(ImGuiCol_Button,CheckButtonColor);
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered,CheckButtonHoveredColor);
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive,CheckButtonActiveColor);
-    }
-    if (useSmallButton) {if (ImGui::SmallButton(label)) {if (pvalue) *pvalue=!(*pvalue);rv=true;}}
-    else if (ImGui::Button(label)) {if (pvalue) *pvalue=!(*pvalue);rv=true;}
-    if (tmp) ImGui::PopStyleColor(3);
-    return rv;
-}
-
-// ColoredButtonV1: code posted by @ocornut here: https://github.com/ocornut/imgui/issues/4722
-// [Button rounding depends on the FrameRounding Style property (but can be overridden with the last argument)]
-bool ColoredButton(const char* label, const ImVec2& size_arg, ImU32 text_color, ImU32 bg_color_1, ImU32 bg_color_2,float frame_rounding_override)    {
-    ImGuiWindow* window = GetCurrentWindow();
-    if (window->SkipItems)
-        return false;
-
-    ImGuiContext& g = *GImGui;
-    const ImGuiStyle& style = g.Style;
-    const ImGuiID id = window->GetID(label);
-    const ImVec2 label_size = CalcTextSize(label, NULL, true);
-
-    ImVec2 pos = window->DC.CursorPos;
-    ImVec2 size = CalcItemSize(size_arg, label_size.x + style.FramePadding.x * 2.0f, label_size.y + style.FramePadding.y * 2.0f);
-
-    const ImRect bb(pos, pos + size);
-    ItemSize(size, style.FramePadding.y);
-    if (!ItemAdd(bb, id))
-        return false;
-
-    ImGuiButtonFlags flags = ImGuiButtonFlags_None;
-    if (g.LastItemData.InFlags & ImGuiItemFlags_ButtonRepeat)
-        flags |= ImGuiButtonFlags_Repeat;
-
-    bool hovered, held;
-    bool pressed = ButtonBehavior(bb, id, &hovered, &held, flags);
-
-    // Render
-    const bool is_gradient = bg_color_1 != bg_color_2;
-    if (held || hovered)
-    {
-        // Modify colors (ultimately this can be prebaked in the style)
-        float h_increase = (held && hovered) ? 0.02f : 0.02f;
-        float v_increase = (held && hovered) ? 0.20f : 0.07f;
-
-        ImVec4 bg1f = ColorConvertU32ToFloat4(bg_color_1);
-        ColorConvertRGBtoHSV(bg1f.x, bg1f.y, bg1f.z, bg1f.x, bg1f.y, bg1f.z);
-        bg1f.x = ImMin(bg1f.x + h_increase, 1.0f);
-        bg1f.z = ImMin(bg1f.z + v_increase, 1.0f);
-        ColorConvertHSVtoRGB(bg1f.x, bg1f.y, bg1f.z, bg1f.x, bg1f.y, bg1f.z);
-        bg_color_1 = GetColorU32(bg1f);
-        if (is_gradient)
-        {
-            ImVec4 bg2f = ColorConvertU32ToFloat4(bg_color_2);
-            ColorConvertRGBtoHSV(bg2f.x, bg2f.y, bg2f.z, bg2f.x, bg2f.y, bg2f.z);
-            bg2f.z = ImMin(bg2f.z + h_increase, 1.0f);
-            bg2f.z = ImMin(bg2f.z + v_increase, 1.0f);
-            ColorConvertHSVtoRGB(bg2f.x, bg2f.y, bg2f.z, bg2f.x, bg2f.y, bg2f.z);
-            bg_color_2 = GetColorU32(bg2f);
-        }
-        else
-        {
-            bg_color_2 = bg_color_1;
-        }
-    }
-    RenderNavHighlight(bb, id);
-
-#if 0
-    // V1 : faster but prevents rounding
-    window->DrawList->AddRectFilledMultiColor(bb.Min, bb.Max, bg_color_1, bg_color_1, bg_color_2, bg_color_2);
-    if (g.Style.FrameBorderSize > 0.0f)
-        window->DrawList->AddRect(bb.Min, bb.Max, GetColorU32(ImGuiCol_Border), 0.0f, 0, g.Style.FrameBorderSize);
-#endif
-
-    // V2
-    const float frameRounding = frame_rounding_override>=0.f ? frame_rounding_override : g.Style.FrameRounding;
-    int vert_start_idx = window->DrawList->VtxBuffer.Size;
-    window->DrawList->AddRectFilled(bb.Min, bb.Max, bg_color_1, frameRounding);
-    int vert_end_idx = window->DrawList->VtxBuffer.Size;
-    if (is_gradient)
-        ShadeVertsLinearColorGradientKeepAlpha(window->DrawList, vert_start_idx, vert_end_idx, bb.Min, bb.GetBL(), bg_color_1, bg_color_2);
-    if (g.Style.FrameBorderSize > 0.0f)
-        window->DrawList->AddRect(bb.Min, bb.Max, GetColorU32(ImGuiCol_Border), frameRounding, 0, g.Style.FrameBorderSize);
-
-    if (g.LogEnabled)
-        LogSetNextTextDecoration("[", "]");
-    PushStyleColor(ImGuiCol_Text, text_color);
-    RenderTextClipped(bb.Min + style.FramePadding, bb.Max - style.FramePadding, label, NULL, &label_size, style.ButtonTextAlign, &bb);
-    PopStyleColor();
-
-    IMGUI_TEST_ENGINE_ITEM_INFO(id, label, g.LastItemData.StatusFlags);
-    return pressed;
-}
-
-// ProgressBar
-float ProgressBar(const char *optionalPrefixText, float value, const float minValue, const float maxValue, const char *format, const ImVec2 &sizeOfBarWithoutTextInPixels, const ImVec4 &colorLeft, const ImVec4 &colorRight, const ImVec4 &colorBorder)    {
-    if (value<minValue) value=minValue;
-    else if (value>maxValue) value = maxValue;
-    const float valueFraction = (maxValue==minValue) ? 1.0f : ((value-minValue)/(maxValue-minValue));
-    const bool needsPercConversion = strstr(format,"%%")!=NULL;
-
-    ImVec2 size = sizeOfBarWithoutTextInPixels;
-    if (size.x<=0) size.x = ImGui::GetWindowWidth()*0.25f;
-    if (size.y<=0) size.y = ImGui::GetTextLineHeightWithSpacing(); // or without
-
-    const ImFontAtlas* fontAtlas = ImGui::GetIO().Fonts;
-
-    if (optionalPrefixText && strlen(optionalPrefixText)>0) {
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("%s",optionalPrefixText);
-        ImGui::SameLine();
-    }
-
-    if (valueFraction>0)   {
-        ImGui::Image(fontAtlas->TexID,ImVec2(size.x*valueFraction,size.y), fontAtlas->TexUvWhitePixel,fontAtlas->TexUvWhitePixel,colorLeft,colorBorder);
-    }
-    if (valueFraction<1)   {
-        if (valueFraction>0) ImGui::SameLine(0,0);
-        ImGui::Image(fontAtlas->TexID,ImVec2(size.x*(1.f-valueFraction),size.y), fontAtlas->TexUvWhitePixel,fontAtlas->TexUvWhitePixel,colorRight,colorBorder);
-    }
-    ImGui::SameLine();
-
-    ImGui::Text(format,needsPercConversion ? (valueFraction*100.f+0.0001f) : value);
-    return valueFraction;
-}
-
-
-// Color bar and ring
-static inline float  ImDot(const ImVec2& a, const ImVec2& b) { return a.x * b.x + a.y * b.y; }
-// func: ImU32(*func)(float const x, float const y)
-template < typename Type >
-inline
-Type	ScaleFromNormalized(Type const x, Type const newMin, Type const newMax)
-{
-	return x * (newMax - newMin) + newMin;
-}
-template < bool IsBilinear, typename FuncType >
-inline
-void DrawColorDensityPlotEx(ImDrawList* pDrawList, FuncType func, float minX, float maxX, float minY, float maxY, ImVec2 position, ImVec2 size, int resolutionX, int resolutionY)
-{
-	ImVec2 const uv = ImGui::GetFontTexUvWhitePixel();
-
-	float const sx = size.x / ((float)resolutionX);
-	float const sy = size.y / ((float)resolutionY);
-
-	float const dy = 1.0f / ((float)resolutionY);
-	float const dx = 1.0f / ((float)resolutionX);
-	float const hdx = 0.5f / ((float)resolutionX);
-	float const hdy = 0.5f / ((float)resolutionY);
-
-	for (int i = 0; i < resolutionX; ++i)
-	{
-		float x0;
-		float x1;
-		if (IsBilinear)
-		{
-			x0 = ScaleFromNormalized(((float)i + 0) * dx, minX, maxX);
-			x1 = ScaleFromNormalized(((float)i + 1) * dx, minX, maxX);
-		}
-		else
-		{
-			x0 = ScaleFromNormalized(((float)i + 0) * dx + hdx, minX, maxX);
-		}
-
-		for (int j = 0; j < resolutionY; ++j)
-		{
-			float y0;
-			float y1;
-			if (IsBilinear)
-			{
-				y0 = ScaleFromNormalized(((float)(j + 0) * dy), maxY, minY);
-				y1 = ScaleFromNormalized(((float)(j + 1) * dy), maxY, minY);
-			}
-			else
-			{
-				y0 = ScaleFromNormalized(((float)(j + 0) * dy + hdy), maxY, minY);
-			}
-
-			ImU32 const col00 = func(x0, y0);
-			if (IsBilinear)
-			{
-				ImU32 const col01 = func(x0, y1);
-				ImU32 const col10 = func(x1, y0);
-				ImU32 const col11 = func(x1, y1);
-				pDrawList->AddRectFilledMultiColor(	position + ImVec2(sx * (i + 0), sy * (j + 0)),
-													position + ImVec2(sx * (i + 1), sy * (j + 1)),
-													col00, col10, col11, col01);
-			}
-			else
-			{
-				pDrawList->AddRectFilledMultiColor(	position + ImVec2(sx * (i + 0), sy * (j + 0)),
-													position + ImVec2(sx * (i + 1), sy * (j + 1)),
-													col00, col00, col00, col00);
-			}
-		}
-	}
-}
-
-// func: ImU32(*func)(float const t)
-template <bool IsBilinear, typename FuncType>
-inline
-void	DrawColorBandEx(ImDrawList* pDrawList, ImVec2 const vpos, ImVec2 const size, FuncType func, int division, float gamma)
-{
-	float const width = size.x;
-	float const height = size.y;
-
-	float const fSlice = static_cast<float>(division);
-
-	ImVec2 dA(vpos);
-	ImVec2 dB(vpos.x + width / fSlice, vpos.y + height);
-
-	ImVec2 const dD(ImVec2(width / fSlice, 0));
-
-	auto curColor =	[gamma, &func](float const x, float const)
-					{
-						return func(ImPow(x, gamma));
-					};
-
-	DrawColorDensityPlotEx< IsBilinear >(pDrawList, curColor, 0.0f, 1.0f, 0.0f, 0.0f, vpos, size, division, 1);
-}
-
-template <bool IsBilinear, typename FuncType>
-inline
-void	DrawColorRingEx(ImDrawList* pDrawList, ImVec2 const curPos, ImVec2 const size, float thickness_, FuncType func, int division, float colorOffset)
-{
-	float const radius = ImMin(size.x, size.y) * 0.5f;
-
-	float const dAngle = 2.0f * IM_PI / ((float)division);
-	float angle = 2.0f * IM_PI / 3.0f;
-
-	ImVec2 offset = curPos + ImVec2(radius, radius);
-	if (size.x < size.y)
-	{
-		offset.y += 0.5f * (size.y - size.x);
-	}
-	else if (size.x > size.y)
-	{
-		offset.x += 0.5f * (size.x - size.y);
-	}
-
-	float const thickness = ImSaturate(thickness_) * radius;
-
-	ImVec2 const uv = ImGui::GetFontTexUvWhitePixel();
-	pDrawList->PrimReserve(division * 6, division * 4);
-	for (int i = 0; i < division; ++i)
-	{
-		float x0 = radius * ImCos(angle);
-		float y0 = radius * ImSin(angle);
-
-		float x1 = radius * ImCos(angle + dAngle);
-		float y1 = radius * ImSin(angle + dAngle);
-
-		float x2 = (radius - thickness) * ImCos(angle + dAngle);
-		float y2 = (radius - thickness) * ImSin(angle + dAngle);
-
-		float x3 = (radius - thickness) * ImCos(angle);
-		float y3 = (radius - thickness) * ImSin(angle);
-
-		pDrawList->PrimWriteIdx((ImDrawIdx)(pDrawList->_VtxCurrentIdx));
-		pDrawList->PrimWriteIdx((ImDrawIdx)(pDrawList->_VtxCurrentIdx + 1));
-		pDrawList->PrimWriteIdx((ImDrawIdx)(pDrawList->_VtxCurrentIdx + 2));
-
-		pDrawList->PrimWriteIdx((ImDrawIdx)(pDrawList->_VtxCurrentIdx));
-		pDrawList->PrimWriteIdx((ImDrawIdx)(pDrawList->_VtxCurrentIdx + 2));
-		pDrawList->PrimWriteIdx((ImDrawIdx)(pDrawList->_VtxCurrentIdx + 3));
-
-		float const t0 = fmodf(colorOffset + ((float)i) / ((float)division), 1.0f);
-		ImU32 const uCol0 = func(t0);
-
-		if (IsBilinear)
-		{
-			float const t1 = fmodf(colorOffset + ((float)(i + 1)) / ((float)division), 1.0f);
-			ImU32 const uCol1 = func(t1);
-			pDrawList->PrimWriteVtx(offset + ImVec2(x0, y0), uv, uCol0);
-			pDrawList->PrimWriteVtx(offset + ImVec2(x1, y1), uv, uCol1);
-			pDrawList->PrimWriteVtx(offset + ImVec2(x2, y2), uv, uCol1);
-			pDrawList->PrimWriteVtx(offset + ImVec2(x3, y3), uv, uCol0);
-		}
-		else
-		{
-			pDrawList->PrimWriteVtx(offset + ImVec2(x0, y0), uv, uCol0);
-			pDrawList->PrimWriteVtx(offset + ImVec2(x1, y1), uv, uCol0);
-			pDrawList->PrimWriteVtx(offset + ImVec2(x2, y2), uv, uCol0);
-			pDrawList->PrimWriteVtx(offset + ImVec2(x3, y3), uv, uCol0);
-		}
-		angle += dAngle;
-	}
-}
-
-void DrawHueBand(ImDrawList* pDrawList, ImVec2 const vpos, ImVec2 const size, int division, float alpha, float gamma, float offset)
-{
-	auto HueFunc = [alpha, offset](float const tt) -> ImU32
-	{
-		float t;
-		if (tt - offset < 0.0f)
-			t = ImFmod(1.0f + (tt - offset), 1.0f);
-		else
-			t = ImFmod(tt - offset, 1.0f);
-		float r, g, b;
-		ImGui::ColorConvertHSVtoRGB(t, 1.0f, 1.0f, r, g, b);
-		int const ur = static_cast<int>(255.0f * r);
-		int const ug = static_cast<int>(255.0f * g);
-		int const ub = static_cast<int>(255.0f * b);
-		int const ua = static_cast<int>(255.0f * alpha);
-		return IM_COL32(ur, ug, ub, ua);
-	};
-	DrawColorBandEx< true >(pDrawList, vpos, size, HueFunc, division, gamma);
-}
-
-void DrawHueBand(ImDrawList* pDrawList, ImVec2 const vpos, ImVec2 const size, int division, float colorStartRGB[3], float alpha, float gamma)
-{
-	float h, s, v;
-	ImGui::ColorConvertRGBtoHSV(colorStartRGB[0], colorStartRGB[1], colorStartRGB[2], h, s, v);
-	DrawHueBand(pDrawList, vpos, size, division, alpha, gamma, h);
-}
-
-void DrawLumianceBand(ImDrawList* pDrawList, ImVec2 const vpos, ImVec2 const size, int division, ImVec4 const& color, float gamma)
-{
-	float h, s, v;
-	ImGui::ColorConvertRGBtoHSV(color.x, color.y, color.z, h, s, v);
-	auto LumianceFunc = [h, s, v](float const t) -> ImU32
-	{
-		float r, g, b;
-		ImGui::ColorConvertHSVtoRGB(h, s, ImLerp(0.0f, v, t), r, g, b);
-		int const ur = static_cast<int>(255.0f * r);
-		int const ug = static_cast<int>(255.0f * g);
-		int const ub = static_cast<int>(255.0f * b);
-		return IM_COL32(ur, ug, ub, 255);
-	};
-	DrawColorBandEx< true >(pDrawList, vpos, size, LumianceFunc, division, gamma);
-}
-
-void DrawSaturationBand(ImDrawList* pDrawList, ImVec2 const vpos, ImVec2 const size, int division, ImVec4 const& color, float gamma)
-{
-	float h, s, v;
-	ImGui::ColorConvertRGBtoHSV(color.x, color.y, color.z, h, s, v);
-	auto SaturationFunc = [h, s, v](float const t) -> ImU32
-	{
-		float r, g, b;
-		ImGui::ColorConvertHSVtoRGB(h, ImLerp(0.0f, 1.0f, t) * s, ImLerp(0.5f, 1.0f, t) * v, r, g, b);
-		int const ur = static_cast<int>(255.0f * r);
-		int const ug = static_cast<int>(255.0f * g);
-		int const ub = static_cast<int>(255.0f * b);
-		return IM_COL32(ur, ug, ub, 255);
-	};
-	DrawColorBandEx< true >(pDrawList, vpos, size, SaturationFunc, division, gamma);
-}
-
-void DrawContrastBand(ImDrawList* pDrawList, ImVec2 const vpos, ImVec2 const size, ImVec4 const& color)
-{
-    ImGui::DrawColorBandEx< true >(pDrawList, vpos, size,
-	[size, color](float t)
-	{
-		int seg = t * size.x;
-        float v = ((seg & 1) == 0) ? 1.0 : (1 - t);
-		return IM_COL32(v * color.x * 255.f, v * color.y * 255.f, v * color.z * 255.f, color.w * 255.f);
-	}, size.x, 1.f);
-}
-
-bool ColorRing(const char* label, float thickness, int split)
-{
-	ImGuiID const iID = ImGui::GetID(label);
-	ImGui::PushID(iID);
-	ImVec2 curPos = ImGui::GetCursorScreenPos();
-	float const width = ImGui::GetContentRegionAvail().x;
-	float const height = width;
-	ImGui::InvisibleButton("##Zone", ImVec2(width, height), 0);
-	float radius = width * 0.5f;
-	const float dAngle = 2.0f * IM_PI / ((float)split);
-	float angle = 2.0f * IM_PI / 3.0f;
-	ImVec2 offset = curPos + ImVec2(radius, radius);
-	ImVec2 const uv = ImGui::GetFontTexUvWhitePixel();
-	ImDrawList* pDrawList = ImGui::GetWindowDrawList();
-	pDrawList->PrimReserve(split * 6, split * 4);
-	for (int i = 0; i < split; ++i)
-	{
-		float x0 = radius * ImCos(angle);
-		float y0 = radius * ImSin(angle);
-		float x1 = radius * ImCos(angle + dAngle);
-		float y1 = radius * ImSin(angle + dAngle);
-		float x2 = (radius - thickness) * ImCos(angle + dAngle);
-		float y2 = (radius - thickness) * ImSin(angle + dAngle);
-		float x3 = (radius - thickness) * ImCos(angle);
-		float y3 = (radius - thickness) * ImSin(angle);
-		pDrawList->PrimWriteIdx((ImDrawIdx)(pDrawList->_VtxCurrentIdx));
-		pDrawList->PrimWriteIdx((ImDrawIdx)(pDrawList->_VtxCurrentIdx + 1));
-		pDrawList->PrimWriteIdx((ImDrawIdx)(pDrawList->_VtxCurrentIdx + 2));
-		pDrawList->PrimWriteIdx((ImDrawIdx)(pDrawList->_VtxCurrentIdx));
-		pDrawList->PrimWriteIdx((ImDrawIdx)(pDrawList->_VtxCurrentIdx + 2));
-		pDrawList->PrimWriteIdx((ImDrawIdx)(pDrawList->_VtxCurrentIdx + 3));
-		float r0, g0, b0;
-		float r1, g1, b1;
-		ImGui::ColorConvertHSVtoRGB(((float)i) / ((float)(split - 1)), 1.0f, 1.0f, r0, g0, b0);
-		ImGui::ColorConvertHSVtoRGB(((float)((i + 1)%split)) / ((float)(split - 1)), 1.0f, 1.0f, r1, g1, b1);
-		pDrawList->PrimWriteVtx(offset + ImVec2(x0, y0), uv, IM_COL32(r0 * 255, g0 * 255, b0 * 255, 255));
-		pDrawList->PrimWriteVtx(offset + ImVec2(x1, y1), uv, IM_COL32(r1 * 255, g1 * 255, b1 * 255, 255));
-		pDrawList->PrimWriteVtx(offset + ImVec2(x2, y2), uv, IM_COL32(r1 * 255, g1 * 255, b1 * 255, 255));
-		pDrawList->PrimWriteVtx(offset + ImVec2(x3, y3), uv, IM_COL32(r0 * 255, g0 * 255, b0 * 255, 255));
-		angle += dAngle;
-	}
-	ImGui::PopID();
-	return false;
-}
-
-void HueSelectorEx(char const* label, ImVec2 const size, float* hueCenter, float* hueWidth, float* featherLeft, float* featherRight, float defaultVal, float ui_zoom, ImU32 triangleColor, int division, float alpha, float hideHueAlpha, float offset)
-{
-    ImGuiIO &io = ImGui::GetIO();
-	ImGuiID const iID = ImGui::GetID(label);
-	ImGui::PushID(iID);
-	ImVec2 curPos = ImGui::GetCursorScreenPos();
-	ImDrawList* pDrawList = ImGui::GetWindowDrawList();
-    ImGui::InvisibleButton("##ZoneHueLineSlider", size);
-	DrawHueBand(pDrawList, curPos, size, division, alpha, 1.0f, offset);
-	float center = ImClamp(ImFmod(*hueCenter + offset, 1.0f), 0.0f, 1.0f - 1e-4f);
-	float width = ImClamp(*hueWidth, 0.0f, 0.5f - 1e-4f);
-	float featherL = ImClamp(*featherLeft, 0.0f, 0.5f - 1e-4f);
-	float featherR = ImClamp(*featherRight, 0.0f, 0.5f - 1e-4f);
-	float xCenter = curPos.x + center * size.x;
-	if (width == 0.0f)
-	{
-		pDrawList->AddLine(ImVec2(xCenter, curPos.y), ImVec2(xCenter, curPos.y + size.y), IM_COL32(0, 0, 0, 255));
-	}
-	else
-	{
-		DrawColorDensityPlotEx< true >(pDrawList,
-		    [hueAlpha = hideHueAlpha, center, width, left = featherL, right = featherR](float const xx, float const) -> ImU32
-		    {
-		    	float x = ImFmod(xx, 1.0f);
-		    	float val;
-		    	if (x < center - width && x > center - width - left)
-		    	{
-		    		val = ImClamp((center * (-1 + hueAlpha) + left + width + x - hueAlpha * (width + x)) / left, hueAlpha, 1.0f);
-		    	}
-		    	else if (x < center + width + right && x > center + width)
-		    	{
-		    		val = ImClamp((center - center * hueAlpha + right + width - hueAlpha * width + (-1 + hueAlpha) * x) / right, hueAlpha, 1.0f);
-		    	}
-		    	else if (x > center - width - left && x < center + width + right)
-		    	{
-		    		val = 1.0f;
-		    	}
-		    	else if (center + width + right > 1.0f)
-		    	{
-		    		val = ImClamp((center - center * hueAlpha + right + width - hueAlpha * width + (-1 + hueAlpha) * (x + 1.0f)) / right, hueAlpha, 1.0f);
-		    	}
-		    	else if (center - width - left < 0.0f)
-		    	{
-		    		val = ImClamp((center * (-1 + hueAlpha) + left + width + x - 1.0f - hueAlpha * (width + x - 1.0f)) / left, hueAlpha, 1.0f);
-		    	}
-		    	else
-		    	{
-		    		val = hueAlpha;
-		    	}
-		    	return IM_COL32(0, 0, 0, ImPow(1.0f - val, 1.0f / 2.2f) * 255);
-		    }, 0.0f, 1.0f, 0.0f, 0.0f, curPos, size, division, 1);
-	}
-    if (ImGui::IsItemHovered())
-    {
-        if (ImGui::IsMouseDragging(ImGuiMouseButton_Left))
-        {
-            auto diff = io.MouseDelta.x * ui_zoom / size.x;
-            *hueCenter += diff;
-            *hueCenter = ImClamp(*hueCenter, 0.f, 1.f);
-        }
-        if (io.MouseWheel < -FLT_EPSILON)
-        {
-            *hueWidth *= 0.9;
-        }
-        if (io.MouseWheel > FLT_EPSILON)
-        {
-            *hueWidth *= 1.1;
-            if (*hueWidth > 0.5)
-                *hueWidth = 0.5;
-        }
-        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
-        {
-            *hueCenter = defaultVal;
-        }
-    }
-
-    const float arrowWidth = pDrawList->_Data->FontSize;
-    float arrowOffset = curPos.x + *hueCenter * size.x;
-    ImGui::Dummy(ImVec2(0, arrowWidth / 2));
-    ImGui::RenderArrow(pDrawList, ImVec2(arrowOffset - arrowWidth / 2, curPos.y + size.y), IM_COL32(255,255,0,255), ImGuiDir_Up);
-    std::ostringstream oss;
-    oss << std::fixed << std::setprecision(2) << *hueCenter;
-    std::string value_str = oss.str();
-    ImVec2 str_size = ImGui::CalcTextSize(value_str.c_str(), nullptr, true);
-    pDrawList->AddText(ImVec2(curPos.x + size.x / 2 - str_size.x * 0.5f, curPos.y + size.y / 2 - arrowWidth / 2), IM_COL32(255,255,0,255), value_str.c_str());
-	ImGui::PopID();
-}
-
-void HueSelector(char const* label, ImVec2 const size, float* hueCenter, float* hueWidth, float* featherLeft, float* featherRight, float defaultVal, float ui_zoom, int division, float alpha, float hideHueAlpha, float offset)
-{
-	HueSelectorEx(label, size, hueCenter, hueWidth, featherLeft, featherRight, defaultVal, ui_zoom, IM_COL32(255, 128, 0, 255), division, alpha, hideHueAlpha, offset);
-}
-
-void LumianceSelector(char const* label, ImVec2 const size, float* lumCenter, float defaultVal, float ui_zoom, int division, float gamma, bool rgb_color, ImVec4 const color)
-{
-    ImGuiIO &io = ImGui::GetIO();
-	ImGuiID const iID = ImGui::GetID(label);
-	ImGui::PushID(iID);
-    ImVec2 curPos = ImGui::GetCursorScreenPos();
-	ImDrawList* pDrawList = ImGui::GetWindowDrawList();
-    ImGui::InvisibleButton("##ZoneLumianceSlider", size);
-    if (!rgb_color)
-    {
-        DrawLumianceBand(pDrawList, curPos, size, division, color, gamma);
-    }
-    else
-    {
-        ImVec2 bar_size = ImVec2(size.x, size.y / 4);
-        ImVec2 r_pos = curPos;
-        ImVec2 g_pos = ImVec2(curPos.x, curPos.y + size.y / 4);
-        ImVec2 b_pos = ImVec2(curPos.x, curPos.y + size.y * 2 / 4);
-        ImVec2 w_pos = ImVec2(curPos.x, curPos.y + size.y * 3 / 4);
-        DrawLumianceBand(pDrawList, r_pos, bar_size, division, ImVec4(1, 0, 0, 1), gamma);
-        DrawLumianceBand(pDrawList, g_pos, bar_size, division, ImVec4(0, 1, 0, 1), gamma);
-        DrawLumianceBand(pDrawList, b_pos, bar_size, division, ImVec4(0, 0, 1, 1), gamma);
-        DrawLumianceBand(pDrawList, w_pos, bar_size, division, ImVec4(1, 1, 1, 1), gamma);
-    }
-    if (ImGui::IsItemHovered())
-    {
-        if (ImGui::IsMouseDragging(ImGuiMouseButton_Left))
-        {
-            auto diff = io.MouseDelta.x * 2 * ui_zoom / size.x;
-            *lumCenter += diff;
-            *lumCenter = ImClamp(*lumCenter, -1.f, 1.f);
-        }
-        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
-        {
-            *lumCenter = defaultVal;
-        }
-    }
-    const float arrowWidth = pDrawList->_Data->FontSize;
-    float arrowOffset = curPos.x + (*lumCenter / 2 + 0.5) * size.x;
-    ImGui::Dummy(ImVec2(0, arrowWidth / 2));
-    ImGui::RenderArrow(pDrawList, ImVec2(arrowOffset - arrowWidth / 2, curPos.y + size.y), IM_COL32(255,255,0,255), ImGuiDir_Up);
-    std::ostringstream oss;
-    oss << std::fixed << std::setprecision(2) << *lumCenter;
-    std::string value_str = oss.str();
-    ImVec2 str_size = ImGui::CalcTextSize(value_str.c_str(), nullptr, true);
-    pDrawList->AddText(ImVec2(curPos.x + size.x / 2 - str_size.x * 0.5f, curPos.y + size.y / 2 - arrowWidth / 2), IM_COL32(255,255,0,255), value_str.c_str());
-	ImGui::PopID();
-}
-
-void SaturationSelector(char const* label, ImVec2 const size, float* satCenter, float defaultVal, float ui_zoom, int division, float gamma, bool rgb_color, ImVec4 const color)
-{
-    ImGuiIO &io = ImGui::GetIO();
-	ImGuiID const iID = ImGui::GetID(label);
-	ImGui::PushID(iID);
-    ImVec2 curPos = ImGui::GetCursorScreenPos();
-	ImDrawList* pDrawList = ImGui::GetWindowDrawList();
-    ImGui::InvisibleButton("##ZoneSaturationSlider", size);
-    if (!rgb_color)
-    {
-        DrawSaturationBand(pDrawList, curPos, size, division, color, gamma);
-    }
-    else
-    {
-        ImVec2 bar_size = ImVec2(size.x, size.y / 4);
-        ImVec2 r_pos = curPos;
-        ImVec2 g_pos = ImVec2(curPos.x, curPos.y + size.y / 4);
-        ImVec2 b_pos = ImVec2(curPos.x, curPos.y + size.y * 2 / 4);
-        ImVec2 w_pos = ImVec2(curPos.x, curPos.y + size.y * 3 / 4);
-        DrawSaturationBand(pDrawList, r_pos, bar_size, division, ImVec4(1, 0, 0, 1), gamma);
-        DrawSaturationBand(pDrawList, g_pos, bar_size, division, ImVec4(0, 1, 0, 1), gamma);
-        DrawSaturationBand(pDrawList, b_pos, bar_size, division, ImVec4(0, 0, 1, 1), gamma);
-        DrawSaturationBand(pDrawList, w_pos, bar_size, division, ImVec4(1, 1, 1, 1), gamma);
-    }
-    if (ImGui::IsItemHovered())
-    {
-        if (ImGui::IsMouseDragging(ImGuiMouseButton_Left))
-        {
-            auto diff = io.MouseDelta.x * 2 * ui_zoom / size.x;
-            *satCenter += diff;
-            *satCenter = ImClamp(*satCenter, -1.f, 1.f);
-        }
-        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
-        {
-            *satCenter = defaultVal;
-        }
-    }
-    const float arrowWidth = pDrawList->_Data->FontSize;
-    float arrowOffset = curPos.x + (*satCenter / 2 + 0.5) * size.x;
-    ImGui::Dummy(ImVec2(0, arrowWidth / 2));
-    ImGui::RenderArrow(pDrawList, ImVec2(arrowOffset - arrowWidth / 2, curPos.y + size.y), IM_COL32(255,255,0,255), ImGuiDir_Up);
-	std::ostringstream oss;
-    oss << std::fixed << std::setprecision(2) << *satCenter;
-    std::string value_str = oss.str();
-    ImVec2 str_size = ImGui::CalcTextSize(value_str.c_str(), nullptr, true);
-    pDrawList->AddText(ImVec2(curPos.x + size.x / 2 - str_size.x * 0.5f, curPos.y + size.y / 2 - arrowWidth / 2), IM_COL32(255,255,0,255), value_str.c_str());
-    ImGui::PopID();
-}
-
-void ContrastSelector(char const* label, ImVec2 const size, float* conCenter, float defaultVal, float ui_zoom, bool rgb_color, ImVec4 const color)
-{
-    ImGuiIO &io = ImGui::GetIO();
-	ImGuiID const iID = ImGui::GetID(label);
-	ImGui::PushID(iID);
-    ImVec2 curPos = ImGui::GetCursorScreenPos();
-	ImDrawList* pDrawList = ImGui::GetWindowDrawList();
-    ImGui::InvisibleButton("##ZoneContrastSlider", size);
-    if (!rgb_color)
-    {
-        DrawContrastBand(pDrawList, curPos, size, color);
-    }
-    else
-    {
-        ImVec2 bar_size = ImVec2(size.x, size.y / 4);
-        ImVec2 r_pos = curPos;
-        ImVec2 g_pos = ImVec2(curPos.x, curPos.y + size.y / 4);
-        ImVec2 b_pos = ImVec2(curPos.x, curPos.y + size.y * 2 / 4);
-        ImVec2 w_pos = ImVec2(curPos.x, curPos.y + size.y * 3 / 4);
-        DrawContrastBand(pDrawList, r_pos, bar_size, ImVec4(1, 0, 0, 1));
-        DrawContrastBand(pDrawList, g_pos, bar_size, ImVec4(0, 1, 0, 1));
-        DrawContrastBand(pDrawList, b_pos, bar_size, ImVec4(0, 0, 1, 1));
-        DrawContrastBand(pDrawList, w_pos, bar_size, ImVec4(1, 1, 1, 1));
-    }
-    if (ImGui::IsItemHovered())
-    {
-        if (ImGui::IsMouseDragging(ImGuiMouseButton_Left))
-        {
-            auto diff = io.MouseDelta.x * 4 * ui_zoom / size.x;
-            *conCenter += diff;
-            *conCenter = ImClamp(*conCenter, 0.f, 4.f);
-        }
-        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
-        {
-            *conCenter = defaultVal;
-        }
-    }
-    const float arrowWidth = pDrawList->_Data->FontSize;
-    float arrowOffset = curPos.x + (*conCenter / 4) * size.x;
-    ImGui::Dummy(ImVec2(0, arrowWidth / 2));
-    ImGui::RenderArrow(pDrawList, ImVec2(arrowOffset - arrowWidth / 2, curPos.y + size.y), IM_COL32(255,255,0,255), ImGuiDir_Up);
-	std::ostringstream oss;
-    oss << std::fixed << std::setprecision(2) << *conCenter;
-    std::string value_str = oss.str();
-    ImVec2 str_size = ImGui::CalcTextSize(value_str.c_str(), nullptr, true);
-    pDrawList->AddText(ImVec2(curPos.x + size.x / 2 - str_size.x * 0.5f, curPos.y + size.y / 2 - arrowWidth / 2), IM_COL32(0,0,0,255), value_str.c_str());
-    ImGui::PopID();
-}
-
-#ifndef NO_IMGUIHELPER_FONT_METHODS
 const ImFont *GetFont(int fntIndex) {return (fntIndex>=0 && fntIndex<ImGui::GetIO().Fonts->Fonts.size()) ? ImGui::GetIO().Fonts->Fonts[fntIndex] : NULL;}
 void PushFont(int fntIndex)    {
     IM_ASSERT(fntIndex>=0 && fntIndex<ImGui::GetIO().Fonts->Fonts.size());
@@ -1539,9 +778,7 @@ float CalcMainMenuHeight()  {
         return (io.FontGlobalScale * font->Scale * font->FontSize) + style.FramePadding.y * 2.0f;
     }
 }
-#endif //NO_IMGUIHELPER_FONT_METHODS
 
-#ifndef NO_IMGUIHELPER_DRAW_METHODS
 inline static void GetVerticalGradientTopAndBottomColors(ImU32 c,float fillColorGradientDeltaIn0_05,ImU32& tc,ImU32& bc)  {
     if (fillColorGradientDeltaIn0_05==0) {tc=bc=c;return;}
 
@@ -1932,7 +1169,6 @@ void ImDrawListAddRectWithHorizontalGradient(ImDrawList *dl, const ImVec2 &a, co
     ImU32 fillColorTop,fillColorBottom;GetVerticalGradientTopAndBottomColors(fillColor,fillColorGradientDeltaIn0_05,fillColorTop,fillColorBottom);
     ImDrawListAddRectWithHorizontalGradient(dl,a,b,fillColorTop,fillColorBottom,strokeColor,rounding,rounding_corners,strokeThickness);
 }
-#endif //NO_IMGUIHELPER_DRAW_METHODS
 
 // These two methods are inspired by imguidock.cpp
 void PutInBackground(const char* optionalRootWindowName)  {
@@ -2366,245 +1602,6 @@ void Grid::End()
 
     ImGui::PopID();
 }
-#if IMGUI_BUILD_EXAMPLE
-void ShowHelpDemoWindow()
-{
-    if (ImGui::TreeNode("Extended Buttons"))
-    {
-        // Check Buttons
-        ImGui::Spacing();
-        ImGui::AlignTextToFramePadding();ImGui::Text("Check Buttons:");
-        ImGui::SameLine();
-        static bool checkButtonState1=false;
-        if (ImGui::CheckButton("CheckButton",&checkButtonState1)) {/*checkButtonState1 changed*/}
-        ImGui::SameLine();
-        static bool checkButtonState2=false;
-        if (ImGui::CheckButton("SmallCheckButton",&checkButtonState2, true)) {/*checkButtonState2 changed*/}
-        
-        ImGui::Spacing();
-        ImGui::TextUnformatted("ToggleButton:");ImGui::SameLine();
-        ImGui::ToggleButton("ToggleButtonDemo",&checkButtonState1);
-
-        ImGui::Spacing();
-        ImGui::Text("ColorButton (by @ocornut)");
-        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s","Code posted by @ocornut here:\nhttps://github.com/ocornut/imgui/issues/4722");
-        // [Button rounding depends on the FrameRounding Style property (but can be overridden with the last argument)]
-        const float cbv1width = ImGui::GetContentRegionAvail().x*0.45f;
-        ImGui::ColoredButton("Hello##ColoredButtonV1Hello", ImVec2(cbv1width, 0.0f), IM_COL32(255, 255, 255, 255), IM_COL32(200, 60, 60, 255), IM_COL32(180, 40, 90, 255));
-        ImGui::SameLine();
-        ImGui::ColoredButton("You##ColoredButtonV1You", ImVec2(cbv1width, 0.0f), IM_COL32(255, 255, 255, 255), IM_COL32(50, 220, 60, 255), IM_COL32(69, 150, 70, 255),10.0f); // FrameRounding in [0.0,12.0]
-
-        ImGui::TreePop();
-    }
-    if (ImGui::TreeNode("Extended ProgressBar"))
-    {
-        const float time = ((float)(((unsigned int) (ImGui::GetTime() * 1000.f)) % 50000) - 25000.f) / 25000.f;
-        float progress=(time > 0 ? time : -time);
-        // No IDs needed for ProgressBars:
-        ImGui::ProgressBar("ProgressBar", progress);
-        ImGui::ProgressBar("ProgressBar", 1.f - progress);
-        ImGui::ProgressBar("", 500 + progress * 1000, 500, 1500, "%4.0f (absolute value in [500,1500] and fixed bar size)", ImVec2(150, -1));
-        ImGui::ProgressBar("", 500 + progress * 1000, 500, 1500, "%3.0f%% (same as above, but with percentage and new colors)", ImVec2(150, -1), ImVec4(0.7, 0.7, 1, 1),ImVec4(0.05, 0.15, 0.5, 0.8),ImVec4(0.8, 0.8, 0,1));
-        
-        ImGui::TreePop();
-    }
-	if (ImGui::TreeNode("Color Bands"))
-	{
-        ImGui::PushItemWidth(300);
-		static float col[4] = { 1, 1, 1, 1 };
-		ImGui::ColorEdit4("Color", col);
-		float const width = 300;
-		float const height = 32.0f;
-		static float gamma = 1.0f;
-		ImGui::DragFloat("Gamma##Color", &gamma, 0.01f, 0.1f, 10.0f);
-		static int division = 32;
-		ImGui::DragInt("Division", &division, 1, 1, 128);
-
-		ImGui::Text("HueBand");
-		ImGui::DrawHueBand(ImGui::GetWindowDrawList(), ImGui::GetCursorScreenPos(), ImVec2(width, height), division, col, col[3], gamma);
-		ImGui::InvisibleButton("##Zone", ImVec2(width, height), 0);
-
-		ImGui::Text("LuminanceBand");
-		ImGui::DrawLumianceBand(ImGui::GetWindowDrawList(), ImGui::GetCursorScreenPos(), ImVec2(width, height), division, ImVec4(col[0], col[1], col[2], col[3]), gamma);
-		ImGui::InvisibleButton("##Zone", ImVec2(width, height), 0);
-
-		ImGui::Text("SaturationBand");
-		ImGui::DrawSaturationBand(ImGui::GetWindowDrawList(), ImGui::GetCursorScreenPos(), ImVec2(width, height), division, ImVec4(col[0], col[1], col[2], col[3]), gamma);
-		ImGui::InvisibleButton("##Zone", ImVec2(width, height), 0);
-
-        ImGui::Text("ContrastBand");
-		ImGui::DrawContrastBand(ImGui::GetWindowDrawList(), ImGui::GetCursorScreenPos(), ImVec2(width, height), ImVec4(col[0], col[1], col[2], col[3]));
-		ImGui::InvisibleButton("##Zone", ImVec2(width, height), 0);
-
-		ImGui::Separator();
-		ImGui::Text("Custom Color Band");
-		static int frequency = 6;
-		ImGui::SliderInt("Frequency", &frequency, 1, 32);
-		static float alpha = 1.0f;
-		ImGui::SliderFloat("alpha", &alpha, 0.0f, 1.0f);
-
-		float const fFrequency = frequency;
-		float const fAlpha = alpha;
-		ImGui::DrawColorBandEx< true >(ImGui::GetWindowDrawList(), ImGui::GetCursorScreenPos(), ImVec2(width, height),
-			[fFrequency, fAlpha](float const t)
-			{
-				float r = ImSign(ImSin(fFrequency * 2.0f * IM_PI * t + 2.0f * IM_PI * 0.0f / fFrequency)) * 0.5f + 0.5f;
-				float g = ImSign(ImSin(fFrequency * 2.0f * IM_PI * t + 2.0f * IM_PI * 2.0f / fFrequency)) * 0.5f + 0.5f;
-				float b = ImSign(ImSin(fFrequency * 2.0f * IM_PI * t + 2.0f * IM_PI * 4.0f / fFrequency)) * 0.5f + 0.5f;
-
-				return IM_COL32(r * 255, g * 255, b * 255, fAlpha * 255);
-			},
-			division, gamma);
-		ImGui::InvisibleButton("##Zone", ImVec2(width, height), 0);
-        ImGui::PopItemWidth();
-		ImGui::TreePop();
-	}
-    if (ImGui::TreeNode("Color Ring"))
-	{
-        ImGui::PushItemWidth(300);
-		static int division = 16;
-		float const width = 300;//ImGui::GetContentRegionAvail().x;
-		ImGui::SliderInt("Division", &division, 3, 128);
-		static float colorOffset = 16;
-		ImGui::SliderFloat("Color Offset", &colorOffset, 0.0f, 2.0f);
-		static float thickness = 0.5f;
-		ImGui::SliderFloat("Thickness", &thickness, 1.0f / width, 1.0f);
-
-		ImDrawList* pDrawList = ImGui::GetWindowDrawList();
-		{
-			//float const width = ImGui::GetContentRegionAvail().x;
-			ImVec2 curPos = ImGui::GetCursorScreenPos();
-			ImGui::InvisibleButton("##Zone", ImVec2(width, width), 0);
-
-			ImGui::DrawColorRingEx< true >(pDrawList, curPos, ImVec2(width, width), thickness,
-				[](float t)
-				{
-					float r, g, b;
-					ImGui::ColorConvertHSVtoRGB(t, 1.0f, 1.0f, r, g, b);
-
-					return IM_COL32(r * 255, g * 255, b * 255, 255);
-				}, division, colorOffset);
-		}
-		static float center = 0.5f;
-		ImGui::DragFloat("Center", &center, 0.01f, 0.0f, 1.0f);
-		static float colorDotBound = 0.5f;
-		ImGui::SliderFloat("Alpha Pow", &colorDotBound, -1.0f, 1.0f);
-		static int frequency = 6;
-		ImGui::SliderInt("Frequency", &frequency, 1, 32);
-		{
-			ImGui::Text("Nearest");
-			//float const width = ImGui::GetContentRegionAvail().x;
-			ImVec2 curPos = ImGui::GetCursorScreenPos();
-			ImGui::InvisibleButton("##Zone", ImVec2(width, width) * 0.5f, 0);
-
-			float fCenter = center;
-			float fColorDotBound = colorDotBound;
-			ImGui::DrawColorRingEx< false >(pDrawList, curPos, ImVec2(width, width * 0.5f), thickness,
-				[fCenter, fColorDotBound](float t)
-				{
-					float r, g, b;
-					ImGui::ColorConvertHSVtoRGB(t, 1.0f, 1.0f, r, g, b);
-
-					ImVec2 const v0(ImCos(t * 2.0f * IM_PI), ImSin(t * 2.0f * IM_PI));
-					ImVec2 const v1(ImCos(fCenter * 2.0f * IM_PI), ImSin(fCenter * 2.0f * IM_PI));
-
-					float const dot = ImGui::ImDot(v0, v1);
-					float const angle = ImAcos(dot) / IM_PI;// / width;
-
-					return IM_COL32(r * 255, g * 255, b * 255, (dot > fColorDotBound ? 1.0f : 0.0f) * 255);
-				}, division, colorOffset);
-		}
-		{
-			ImGui::Text("Custom");
-			//float const width = ImGui::GetContentRegionAvail().x;
-			ImVec2 curPos = ImGui::GetCursorScreenPos();
-			ImGui::InvisibleButton("##Zone", ImVec2(width, width) * 0.5f, 0);
-
-			float const fFreq = (float)frequency;
-			ImGui::DrawColorRingEx< true >(pDrawList, curPos, ImVec2(width, width) * 0.5f, thickness,
-				[fFreq](float t)
-				{
-					float v = ImSign(ImCos(fFreq * 2.0f * IM_PI * t)) * 0.5f + 0.5f;
-
-					return IM_COL32(v * 255, v * 255, v * 255, 255);
-				}, division, colorOffset);
-		}
-        ImGui::PopItemWidth();
-		ImGui::TreePop();
-	}
-    if (ImGui::TreeNode("Color Selector"))
-	{
-        ImGui::PushItemWidth(300);
-		float const width = 300;
-		float const height = 32.0f;
-		static float offset = 0.0f;
-		static int division = 32;
-        static float gamma = 1.0f;
-		ImGui::DragInt("Division", &division, 1.0f, 2, 256);
-        ImGui::DragFloat("Gamma##Color", &gamma, 0.01f, 0.1f, 10.0f);
-		static float alphaHue = 1.0f;
-		static float alphaHideHue = 0.125f;
-		ImGui::DragFloat("Offset##ColorSelector", &offset, 0.0f, 0.0f, 1.0f);
-		ImGui::DragFloat("Alpha Hue", &alphaHue, 0.0f, 0.0f, 1.0f);
-		ImGui::DragFloat("Alpha Hue Hide", &alphaHideHue, 0.0f, 0.0f, 1.0f);
-		static float hueCenter = 0.5f;
-		static float hueWidth = 0.1f;
-		static float featherLeft = 0.125f;
-		static float featherRight = 0.125f;
-		ImGui::DragFloat("featherLeft", &featherLeft, 0.0f, 0.0f, 0.5f);
-		ImGui::DragFloat("featherRight", &featherRight, 0.0f, 0.0f, 0.5f);
-		
-        ImGui::Spacing();
-        ImGui::TextUnformatted("Hue:"); ImGui::SameLine();
-        ImGui::HueSelector("Hue Selector", ImVec2(width, height), &hueCenter, &hueWidth, &featherLeft, &featherRight, 0.5f, 1.0f, division, alphaHue, alphaHideHue, offset);
-		
-        static bool rgb_color = false;
-        ImGui::Checkbox("RGB Color Bar", &rgb_color);
-        ImGui::Spacing();
-        static float lumianceCenter = 0.0f;
-        ImGui::TextUnformatted("Lum:"); ImGui::SameLine();
-        ImGui::LumianceSelector("Lumiance Selector", ImVec2(width, height), &lumianceCenter, 0.0f, 1.0f, division, gamma, rgb_color);
-
-        ImGui::Spacing();
-        static float saturationCenter = 0.0f;
-        ImGui::TextUnformatted("Sat:"); ImGui::SameLine();
-        ImGui::SaturationSelector("Saturation Selector", ImVec2(width, height), &saturationCenter, 0.0f, 1.0f, division, gamma, rgb_color);
-
-        ImGui::Spacing();
-        static float contrastCenter = 1.0f;
-        ImGui::TextUnformatted("Con:"); ImGui::SameLine();
-        ImGui::ContrastSelector("Contrast Selector", ImVec2(width, height), &contrastCenter, 1.0f, 1.0f, rgb_color);
-
-        ImGui::PopItemWidth();
-        ImGui::TreePop();
-	}
-    if (ImGui::TreeNode("Splitter windows"))
-    {
-        float h = 200;
-        static float hsz1 = 300;
-        static float hsz2 = 300;
-        static float vsz1 = 100;
-        static float vsz2 = 100;
-        ImGui::Splitter(true, 8.0f, &hsz1, &hsz2, 8, 8, h);
-        ImGui::BeginChild("1", ImVec2(hsz1, h), true);
-            ImGui::Text("Window 1");
-        ImGui::EndChild();
-        ImGui::SameLine();
-
-        ImGui::BeginChild("2", ImVec2(hsz2, h), true);
-            ImGui::Splitter(false, 8.0f, &vsz1, &vsz2, 8, 8, hsz2);
-            ImGui::BeginChild("3", ImVec2(hsz2, vsz1), false);
-                ImGui::Text("Window 2");
-            ImGui::EndChild();
-            ImGui::BeginChild("4", ImVec2(hsz2, vsz2), false);
-                ImGui::Text("Window 3");
-            ImGui::EndChild();
-        ImGui::EndChild();
-
-        ImGui::TreePop();
-    }
-}
-#endif
 } // namespace Imgui
 
 #ifndef NO_IMGUIHELPER_SERIALIZATION
@@ -3305,181 +2302,516 @@ void ThemeGenerator(const char* name, bool* p_open, ImGuiWindowFlags flags)
     }
     ImGui::End();
 }
-
-// imgInspect
-inline void histogram(const int width, const int height, const unsigned char* const bits)
-{
-    unsigned int count[4][256] = {0};
-    const unsigned char* ptrCols = bits;
-    ImGui::InvisibleButton("histogram", ImVec2(256, 128));
-    for (int l = 0; l < height * width; l++)
-    {
-        count[0][*ptrCols++]++;
-        count[1][*ptrCols++]++;
-        count[2][*ptrCols++]++;
-        count[3][*ptrCols++]++;
-    }
-    unsigned int maxv = count[0][0];
-    unsigned int* pCount = &count[0][0];
-    for (int i = 0; i < 3 * 256; i++, pCount++)
-    {
-        maxv = (maxv > *pCount) ? maxv : *pCount;
-    }
-    ImDrawList* drawList = ImGui::GetWindowDrawList();
-    const ImVec2 rmin = ImGui::GetItemRectMin();
-    const ImVec2 rmax = ImGui::GetItemRectMax();
-    const ImVec2 size = ImGui::GetItemRectSize();
-    const float hFactor = size.y / float(maxv);
-    for (int i = 0; i <= 10; i++)
-    {
-        float ax = rmin.x + (size.x / 10.f) * float(i);
-        float ay = rmin.y + (size.y / 10.f) * float(i);
-        drawList->AddLine(ImVec2(rmin.x, ay), ImVec2(rmax.x, ay), 0x80808080);
-        drawList->AddLine(ImVec2(ax, rmin.y), ImVec2(ax, rmax.y), 0x80808080);
-    }
-    const float barWidth = (size.x / 256.f);
-    for (int j = 0; j < 256; j++)
-    {
-        // pixel count << 2 + color index(on 2 bits)
-        uint32_t cols[3] = {(count[0][j] << 2), (count[1][j] << 2) + 1, (count[2][j] << 2) + 2};
-        if (cols[0] > cols[1])
-            ImSwap(cols[0], cols[1]);
-        if (cols[1] > cols[2])
-            ImSwap(cols[1], cols[2]);
-        if (cols[0] > cols[1])
-            ImSwap(cols[0], cols[1]);
-        float heights[3];
-        uint32_t colors[3];
-        uint32_t currentColor = 0xFFFFFFFF;
-        for (int i = 0; i < 3; i++)
-        {
-            heights[i] = rmax.y - (cols[i] >> 2) * hFactor;
-            colors[i] = currentColor;
-            currentColor -= 0xFF << ((cols[i] & 3) * 8);
-        }
-        float currentHeight = rmax.y;
-        const float left = rmin.x + barWidth * float(j);
-        const float right = left + barWidth;
-        for (int i = 0; i < 3; i++)
-        {
-            if (heights[i] >= currentHeight)
-            {
-                continue;
-            }
-            drawList->AddRectFilled(ImVec2(left, currentHeight), ImVec2(right, heights[i]), colors[i]);
-            currentHeight = heights[i];
-        }
-    }
-}
-inline void drawNormal(ImDrawList* draw_list, const ImRect& rc, float x, float y)
-{
-    draw_list->AddCircle(rc.GetCenter(), rc.GetWidth() / 2.f, 0x20AAAAAA, 24, 1.f);
-    draw_list->AddCircle(rc.GetCenter(), rc.GetWidth() / 4.f, 0x20AAAAAA, 24, 1.f);
-    draw_list->AddLine(rc.GetCenter(), rc.GetCenter() + ImVec2(x, y) * rc.GetWidth() / 2.f, 0xFF0000FF, 2.f);
-}
-
-void ImageInspect(const int width,
-                const int height,
-                const unsigned char* const bits,
-                ImVec2 mouseUVCoord,
-                ImVec2 displayedTextureSize,
-                bool histogram_full,
-                int zoom_size)
-{
-    ImGui::BeginTooltip();
-    ImGui::BeginGroup();
-    ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    static const float zoomRectangleWidth = 80.f;
-    // bitmap zoom
-    ImGui::InvisibleButton("AnotherInvisibleMan", ImVec2(zoomRectangleWidth, zoomRectangleWidth));
-    const ImRect pickRc(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
-    draw_list->AddRectFilled(pickRc.Min, pickRc.Max, 0xFF000000);
-    static int zoomSize = zoom_size / 2;
-    uint32_t zoomData[(zoomSize * 2 + 1) * (zoomSize * 2 + 1)];
-    const float quadWidth = zoomRectangleWidth / float(zoomSize * 2 + 1);
-    const ImVec2 quadSize(quadWidth, quadWidth);
-    const int basex = ImClamp(int(mouseUVCoord.x * width), zoomSize, width - zoomSize);
-    const int basey = ImClamp(int(mouseUVCoord.y * height), zoomSize, height - zoomSize);
-    for (int y = -zoomSize; y <= zoomSize; y++)
-    {
-        for (int x = -zoomSize; x <= zoomSize; x++)
-        {
-            uint32_t texel = ((uint32_t*)bits)[(basey - y) * width + x + basex];
-            ImVec2 pos = pickRc.Min + ImVec2(float(x + zoomSize), float(zoomSize - y)) * quadSize;
-            draw_list->AddRectFilled(pos, pos + quadSize, texel);
-        }
-    }
-    //ImGui::SameLine();
-    // center quad
-    const ImVec2 pos = pickRc.Min + ImVec2(float(zoomSize), float(zoomSize)) * quadSize;
-    draw_list->AddRect(pos, pos + quadSize, 0xFF0000FF, 0.f, 15, 2.f);
-    // normal direction
-    ImGui::InvisibleButton("AndOneMore", ImVec2(zoomRectangleWidth, zoomRectangleWidth));
-    ImRect normRc(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
-    for (int y = -zoomSize; y <= zoomSize; y++)
-    {
-        for (int x = -zoomSize; x <= zoomSize; x++)
-        {
-            uint32_t texel = ((uint32_t*)bits)[(basey - y) * width + x + basex];
-            const ImVec2 posQuad = normRc.Min + ImVec2(float(x + zoomSize), float(zoomSize - y)) * quadSize;
-            //draw_list->AddRectFilled(pos, pos + quadSize, texel);
-            const float nx = float(texel & 0xFF) / 128.f - 1.f;
-            const float ny = float((texel & 0xFF00)>>8) / 128.f - 1.f;
-            const ImRect rc(posQuad, posQuad + quadSize);
-            drawNormal(draw_list, rc, nx, ny);
-        }
-    }
-    ImGui::EndGroup();
-    ImGui::SameLine();
-    ImGui::BeginGroup();
-    uint32_t texel = ((uint32_t*)bits)[basey * width + basex];
-    ImVec4 color = ImColor(texel);
-    ImVec4 colHSV;
-    ImGui::ColorConvertRGBtoHSV(color.x, color.y, color.z, colHSV.x, colHSV.y, colHSV.z);
-    ImGui::Text("U %1.3f V %1.3f", mouseUVCoord.x, mouseUVCoord.y);
-    ImGui::Text("Coord %d %d", int(mouseUVCoord.x * width), int(mouseUVCoord.y * height));
-    ImGui::Separator();
-    ImGui::Text("R 0x%02x  G 0x%02x  B 0x%02x", int(color.x * 255.f), int(color.y * 255.f), int(color.z * 255.f));
-    ImGui::Text("R %1.3f G %1.3f B %1.3f", color.x, color.y, color.z);
-    ImGui::Separator();
-    ImGui::Text(
-        "H 0x%02x  S 0x%02x  V 0x%02x", int(colHSV.x * 255.f), int(colHSV.y * 255.f), int(colHSV.z * 255.f));
-    ImGui::Text("H %1.3f S %1.3f V %1.3f", colHSV.x, colHSV.y, colHSV.z);
-    ImGui::Separator();
-    ImGui::Text("Alpha 0x%02x", int(color.w * 255.f));
-    ImGui::Text("Alpha %1.3f", color.w);
-    ImGui::Separator();
-    ImGui::Text("Size %d, %d", int(displayedTextureSize.x), int(displayedTextureSize.y));
-    ImGui::EndGroup();
-    if (histogram_full)
-    {
-        histogram(width, height, bits);
-    }
-    else
-    {
-        for (int y = -zoomSize; y <= zoomSize; y++)
-        {
-            for (int x = -zoomSize; x <= zoomSize; x++)
-            {
-                uint32_t texel = ((uint32_t*)bits)[(basey - y) * width + x + basex];
-                zoomData[(y + zoomSize) * zoomSize * 2 + x + zoomSize] = texel;
-            }
-        }
-        histogram(zoomSize * 2, zoomSize * 2, (const unsigned char*)zoomData);
-    }
-    ImGui::EndTooltip();
-}
 } //namespace ImGuiHelper
 #endif //NO_IMGUIHELPER_SERIALIZATION
 
+namespace base64 
+{
+// Decoder here
+	extern "C"
+	{
+		typedef enum {step_a, step_b, step_c, step_d} base64_decodestep;
+		typedef struct {base64_decodestep step;char plainchar;} base64_decodestate;
+
+inline int base64_decode_value(char value_in)	{
+	static const char decoding[] = {62,-1,-1,-1,63,52,53,54,55,56,57,58,59,60,61,-1,-1,-1,-2,-1,-1,-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,-1,-1,-1,-1,-1,-1,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51};
+	static const char decoding_size = sizeof(decoding);
+	value_in -= 43;
+	if (value_in < 0 || value_in > decoding_size) return -1;
+	return decoding[(int)value_in];
+}
+inline void base64_init_decodestate(base64_decodestate* state_in)	{
+	state_in->step = step_a;
+	state_in->plainchar = 0;
+}
+inline int base64_decode_block(const char* code_in, const int length_in, char* plaintext_out, base64_decodestate* state_in)	{
+	const char* codechar = code_in;
+	char* plainchar = plaintext_out;
+	char fragment;
+	
+	*plainchar = state_in->plainchar;
+	
+	switch (state_in->step)
+	{
+		while (1)
+		{
+	case step_a:
+			do {
+				if (codechar == code_in+length_in)
+				{
+					state_in->step = step_a;
+					state_in->plainchar = *plainchar;
+					return plainchar - plaintext_out;
+				}
+				fragment = (char)base64_decode_value(*codechar++);
+			} while (fragment < 0);
+			*plainchar    = (fragment & 0x03f) << 2;
+	case step_b:
+			do {
+				if (codechar == code_in+length_in)
+				{
+					state_in->step = step_b;
+					state_in->plainchar = *plainchar;
+					return plainchar - plaintext_out;
+				}
+				fragment = (char)base64_decode_value(*codechar++);
+			} while (fragment < 0);
+			*plainchar++ |= (fragment & 0x030) >> 4;
+			*plainchar    = (fragment & 0x00f) << 4;
+	case step_c:
+			do {
+				if (codechar == code_in+length_in)
+				{
+					state_in->step = step_c;
+					state_in->plainchar = *plainchar;
+					return plainchar - plaintext_out;
+				}
+				fragment = (char)base64_decode_value(*codechar++);
+			} while (fragment < 0);
+			*plainchar++ |= (fragment & 0x03c) >> 2;
+			*plainchar    = (fragment & 0x003) << 6;
+	case step_d:
+			do {
+				if (codechar == code_in+length_in)
+				{
+					state_in->step = step_d;
+					state_in->plainchar = *plainchar;
+					return plainchar - plaintext_out;
+				}
+				fragment = (char)base64_decode_value(*codechar++);
+			} while (fragment < 0);
+			*plainchar++   |= (fragment & 0x03f);
+		}
+	}
+	/* control should not reach here */
+	return plainchar - plaintext_out;
+}
+	}	// extern "C"
+	struct decoder
+	{
+		base64_decodestate _state;
+		int _buffersize;
+		
+		decoder(int buffersize_in = 4096) : _buffersize(buffersize_in) {}
+		int decode(char value_in) {return base64_decode_value(value_in);}
+		int decode(const char* code_in, const int length_in, char* plaintext_out)	{return base64_decode_block(code_in, length_in, plaintext_out, &_state);}
+	};
+
+// Encoder Here
+	extern "C" {
+		typedef enum {step_A, step_B, step_C} base64_encodestep;
+		typedef struct {base64_encodestep step;char result;int stepcount;} base64_encodestate;
+
+const int CHARS_PER_LINE = 2147483647;//72; // This was hard coded to 72 originally. But here we add '\n' at a later step. So we use MAX_INT here.
+inline void base64_init_encodestate(base64_encodestate* state_in)	{
+	state_in->step = step_A;
+	state_in->result = 0;
+	state_in->stepcount = 0;
+}
+inline char base64_encode_value(char value_in)	{
+	static const char* encoding = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+	if (value_in > 63) return '=';
+	return encoding[(int)value_in];
+}
+inline int base64_encode_block(const char* plaintext_in, int length_in, char* code_out, base64_encodestate* state_in)	{
+	const char* plainchar = plaintext_in;
+	const char* const plaintextend = plaintext_in + length_in;
+	char* codechar = code_out;
+    char result = '\0';
+    char fragment = '\0';
+	
+	result = state_in->result;
+	
+	switch (state_in->step)
+	{
+		while (1)
+		{
+	case step_A:
+			if (plainchar == plaintextend)
+			{
+				state_in->result = result;
+				state_in->step = step_A;
+				return codechar - code_out;
+			}
+			fragment = *plainchar++;
+			result = (fragment & 0x0fc) >> 2;
+			*codechar++ = base64_encode_value(result);
+			result = (fragment & 0x003) << 4;
+	case step_B:
+			if (plainchar == plaintextend)
+			{
+				state_in->result = result;
+				state_in->step = step_B;
+				return codechar - code_out;
+			}
+			fragment = *plainchar++;
+			result |= (fragment & 0x0f0) >> 4;
+			*codechar++ = base64_encode_value(result);
+			result = (fragment & 0x00f) << 2;
+	case step_C:
+			if (plainchar == plaintextend)
+			{
+				state_in->result = result;
+				state_in->step = step_C;
+				return codechar - code_out;
+			}
+			fragment = *plainchar++;
+			result |= (fragment & 0x0c0) >> 6;
+			*codechar++ = base64_encode_value(result);
+			result  = (fragment & 0x03f) >> 0;
+			*codechar++ = base64_encode_value(result);
+			
+			++(state_in->stepcount);
+			if (state_in->stepcount == CHARS_PER_LINE/4)
+			{
+				*codechar++ = '\n';
+				state_in->stepcount = 0;
+			}
+		}
+	}
+	/* control should not reach here */
+	return codechar - code_out;
+}
+
+inline int base64_encode_blockend(char* code_out, base64_encodestate* state_in)	{
+	char* codechar = code_out;
+	
+	switch (state_in->step)
+	{
+	case step_B:
+		*codechar++ = base64_encode_value(state_in->result);
+		*codechar++ = '=';
+		*codechar++ = '=';
+		break;
+	case step_C:
+		*codechar++ = base64_encode_value(state_in->result);
+		*codechar++ = '=';
+		break;
+	case step_A:
+		break;
+	}
+	*codechar++ = '\n';
+	
+	return codechar - code_out;
+}	
+	} // extern "C"
+	struct encoder
+	{
+		base64_encodestate _state;
+		int _buffersize;
+		
+		encoder(int buffersize_in = 4096)
+		: _buffersize(buffersize_in)
+		{}
+		int encode(char value_in)
+		{
+			return base64_encode_value(value_in);
+		}
+		int encode(const char* code_in, const int length_in, char* plaintext_out)
+		{
+			return base64_encode_block(code_in, length_in, plaintext_out, &_state);
+		}
+		int encode_end(char* plaintext_out)
+		{
+			return base64_encode_blockend(plaintext_out, &_state);
+		}
+	};
+} // namespace base64
+
+namespace ImGui {
+namespace Stringifier {
+template <typename VectorChar> static bool Base64Decode(const char* input,VectorChar& output)
+{
+    output.clear();if (!input) return false;
+    const int N = 4096;
+    base64::decoder d(N);
+    base64_init_decodestate(&d._state);
+
+    int outputStart=0,outputlength = 0;
+    int codelength = strlen(input);
+    const char* pIn = input;
+    int stepCodeLength = 0;
+    do
+    {
+        output.resize(outputStart+N);
+        stepCodeLength = codelength>=N?N:codelength;
+        outputlength = d.decode(pIn, stepCodeLength, &output[outputStart]);
+        outputStart+=outputlength;
+        pIn+=stepCodeLength;
+        codelength-=stepCodeLength;
+    }
+    while (codelength>0);
+
+    output.resize(outputStart);
+    //
+    base64_init_decodestate(&d._state);
+    return true;
+}
+
+template <typename VectorChar> static bool Base64Encode(const char* input,int inputSize,VectorChar& output)
+{
+	output.clear();if (!input || inputSize==0) return false;
+
+    const int N=4096;
+    base64::encoder e(N);
+    base64_init_encodestate(&e._state);
+
+    int outputStart=0,outputlength = 0;
+    int codelength = inputSize;
+    const char* pIn = input;
+    int stepCodeLength = 0;
+
+    do
+    {
+        output.resize(outputStart+2*N);
+        stepCodeLength = codelength>=N?N:codelength;
+        outputlength = e.encode(pIn, stepCodeLength,&output[outputStart]);
+        outputStart+=outputlength;
+        pIn+=stepCodeLength;
+        codelength-=stepCodeLength;
+    }
+    while (codelength>0);
+
+    output.resize(outputStart+2*N);
+    outputlength = e.encode_end(&output[outputStart]);
+    outputStart+=outputlength;
+    output.resize(outputStart);
+    //
+    base64_init_encodestate(&e._state);
+
+	return true;
+}
+inline static unsigned int Decode85Byte(char c)   { return c >= '\\' ? c-36 : c-35; }
+static void Decode85(const unsigned char* src, unsigned char* dst)
+{
+    while (*src)
+    {
+        unsigned int tmp = Decode85Byte(src[0]) + 85*(Decode85Byte(src[1]) + 85*(Decode85Byte(src[2]) + 85*(Decode85Byte(src[3]) + 85*Decode85Byte(src[4]))));
+        dst[0] = ((tmp >> 0) & 0xFF); dst[1] = ((tmp >> 8) & 0xFF); dst[2] = ((tmp >> 16) & 0xFF); dst[3] = ((tmp >> 24) & 0xFF);   // We can't assume little-endianness.
+        src += 5;
+        dst += 4;
+    }
+}
+template <typename VectorChar> static bool Base85Decode(const char* input,VectorChar& output)
+{
+	output.clear();if (!input) return false;
+	const int outputSize = (((int)strlen(input) + 4) / 5) * 4;
+	output.resize(outputSize);
+    Decode85((const unsigned char*)input,(unsigned char*)&output[0]);
+    return true;
+}
+
+inline static char Encode85Byte(unsigned int x)
+{
+    x = (x % 85) + 35;
+    return (x>='\\') ? x+1 : x;
+}
+template <typename VectorChar> static bool Base85Encode(const char* input,int inputSize,VectorChar& output,bool outputStringifiedMode,int numCharsPerLineInStringifiedMode=112)	
+{
+    // Adapted from binary_to_compressed_c(...) inside imgui_draw.cpp
+    output.clear();if (!input || inputSize==0) return false;
+    output.reserve((int)((float)inputSize*1.3f));
+    if (numCharsPerLineInStringifiedMode<=12) numCharsPerLineInStringifiedMode = 12;
+    if (outputStringifiedMode) output.push_back('"');
+    char prev_c = 0;int cnt=0;
+    for (int src_i = 0; src_i < inputSize; src_i += 4)
+    {
+        unsigned int d = *(unsigned int*)(input + src_i);
+        for (unsigned int n5 = 0; n5 < 5; n5++, d /= 85)
+        {
+            char c = Encode85Byte(d);
+            if (outputStringifiedMode && c == '?' && prev_c == '?') output.push_back('\\');	// This is made a little more complicated by the fact that ??X sequences are interpreted as trigraphs by old C/C++ compilers. So we need to escape pairs of ??.
+            output.push_back(c);
+            prev_c = c;
+        }
+        cnt+=4;
+        if (outputStringifiedMode && cnt>=numCharsPerLineInStringifiedMode)
+        {
+            output.push_back('"');
+            output.push_back('	');
+            output.push_back('\\');
+            //output.push_back(' ');
+            output.push_back('\n');
+            output.push_back('"');
+            cnt=0;
+        }
+    }
+    // End
+    if (outputStringifiedMode)
+    {
+        output.push_back('"');
+        output.push_back(';');
+        output.push_back('\n');
+        output.push_back('\n');
+    }
+    output.push_back('\0');	// End character
+
+    return true;
+}
+} // namespace Stringifier
+
+bool Base64Encode(const char* input,int inputSize,ImVector<char>& output,bool stringifiedMode,int numCharsPerLineInStringifiedMode)
+{
+    if (!stringifiedMode) return Stringifier::Base64Encode<ImVector<char> >(input,inputSize,output);
+    else
+    {
+        ImVector<char> output1;
+        if (!Stringifier::Base64Encode<ImVector<char> >(input,inputSize,output1)) {output.clear();return false;}
+        if (output1.size()==0) {output.clear();return false;}
+        if (!ImGui::TextStringify(&output1[0],output,numCharsPerLineInStringifiedMode,output1.size()-1)) {output.clear();return false;}
+    }
+    return true;
+}
+
+bool Base64Decode(const char* input,ImVector<char>& output)
+{
+    return Stringifier::Base64Decode<ImVector<char> >(input,output);
+}
+
+bool Base85Encode(const char* input,int inputSize,ImVector<char>& output,bool stringifiedMode,int numCharsPerLineInStringifiedMode)
+{
+    return Stringifier::Base85Encode<ImVector<char> >(input,inputSize,output,stringifiedMode,numCharsPerLineInStringifiedMode);
+}
+
+bool Base85Decode(const char* input,ImVector<char>& output)
+{
+    return Stringifier::Base85Decode<ImVector<char> >(input,output);
+}
+
+bool BinaryStringify(const char* input, int inputSize, ImVector<char>& output, int numInputBytesPerLineInStringifiedMode,bool serializeUnsignedBytes)
+{
+    output.clear();
+    if (!input || inputSize<=0) return false;
+    ImGuiTextBuffer b;
+    b.clear();
+    b.Buf.reserve(inputSize*7.5f);
+    // -----------------------------------------------------------
+    if (serializeUnsignedBytes)
+    {
+        b.appendf("{%d",(int) (*((unsigned char*) &input[0])));  // start byte
+        int cnt=1;
+        for (int i=1;i<inputSize;i++)
+        {
+            if (cnt++>=numInputBytesPerLineInStringifiedMode) {cnt=0;b.appendf("\n");}
+            b.appendf(",%d",(int) (*((unsigned char*) &input[i])));
+        }
+    }
+    else
+    {
+        b.appendf("{%d",(int)input[0]);  // start byte
+        int cnt=1;
+        for (int i=1;i<inputSize;i++)
+        {
+            if (cnt++>=numInputBytesPerLineInStringifiedMode) {cnt=0;b.appendf("\n");}
+            b.appendf(",%d",(int)input[i]);
+        }
+    }
+    b.appendf("};\n");
+    //-------------------------------------------------------------
+    b.Buf.swap(output);
+    return true;
+}
+
+bool TextStringify(const char* input, ImVector<char>& output, int numCharsPerLineInStringifiedMode, int inputSize, bool noBackslashAtLineEnds)
+{
+    output.clear();if (!input) return false;
+    if (inputSize<=0) inputSize=strlen(input);
+    output.reserve(inputSize*1.25f);
+    // --------------------------------------------------------------
+    output.push_back('"');
+    char c='\n';int cnt=0;bool endFile = false;
+    for (int i=0;i<inputSize;i++)
+    {
+        c = input[i];
+        switch (c)
+        {
+        case '\\':
+            output.push_back('\\');
+            output.push_back('\\');
+            break;
+        case '"':
+            output.push_back('\\');
+            output.push_back('"');
+            break;
+        case '\r':
+        case '\n':
+            //---------------------
+            output.push_back('\\');
+            output.push_back(c=='\n' ? 'n' : 'r');
+            if (numCharsPerLineInStringifiedMode<=0)
+            {
+                // Break at newline to ease reading:
+                output.push_back('"');                
+                if (i==inputSize-1)
+                {
+                    endFile = true;
+                    if (!noBackslashAtLineEnds) output.push_back(';');
+                    output.push_back('\n');
+                }
+                else
+                {
+                    if (!noBackslashAtLineEnds)
+                    {
+                        output.push_back('\t');
+                        output.push_back('\\');
+                    }
+                    output.push_back('\n');
+                    output.push_back('"');
+                }
+                cnt = 0;
+                //--------------------
+            }
+            //--------------------
+            break;
+        default:
+            output.push_back(c);
+            if (++cnt>=numCharsPerLineInStringifiedMode && numCharsPerLineInStringifiedMode>0)
+            {
+                //---------------------
+                //output.push_back('\\');
+                //output.push_back('n');
+                output.push_back('"');
+
+                if (i==inputSize-1)
+                {
+                    endFile = true;
+                    if (!noBackslashAtLineEnds) output.push_back(';');
+                    output.push_back('\n');
+                }
+                else
+                {
+                    if (!noBackslashAtLineEnds)
+                    {
+                        output.push_back('\t');
+                        output.push_back('\\');
+                    }
+                    output.push_back('\n');
+                    output.push_back('"');
+                }
+                cnt = 0;
+                //--------------------
+            }
+            break;
+        }
+    }
+
+    if (!endFile)
+    {
+        output.push_back('"');
+        if (!noBackslashAtLineEnds) output.push_back(';');
+        output.push_back('\n');
+        //--------------------
+    }
+
+    output.push_back('\0');	// End character
+    //-------------------------------------------------------------
+    return true;
+}
+} // namespace ImGui
 
 #ifdef IMGUI_USE_ZLIB	// requires linking to library -lZlib
 #include <zlib.h>
-
 namespace ImGui {
-
-#ifndef NO_IMGUIHELPER_SERIALIZATION
-#ifndef NO_IMGUIHELPER_SERIALIZATION_LOAD
 bool GzDecompressFromFile(const char* filePath,ImVector<char>& rv,bool clearRvBeforeUsage)   {
     if (clearRvBeforeUsage) rv.clear();
     ImVector<char> f_data;
@@ -3488,7 +2820,6 @@ bool GzDecompressFromFile(const char* filePath,ImVector<char>& rv,bool clearRvBe
     return GzDecompressFromMemory(&f_data[0],f_data.size(),rv,clearRvBeforeUsage);
     //----------------------------------------------------
 }
-#   ifdef YES_IMGUISTRINGIFIER
 bool GzBase64DecompressFromFile(const char* filePath,ImVector<char>& rv)    {
     ImVector<char> f_data;
     if (!ImGuiHelper::GetFileContent(filePath,f_data,true,"r",true)) return false;
@@ -3499,9 +2830,6 @@ bool GzBase85DecompressFromFile(const char* filePath,ImVector<char>& rv)    {
     if (!ImGuiHelper::GetFileContent(filePath,f_data,true,"r",true)) return false;
     return ImGui::GzBase85DecompressFromMemory(&f_data[0],rv);
 }
-#   endif //#YES_IMGUISTRINGIFIER
-#endif //NO_IMGUIHELPER_SERIALIZATION_LOAD
-#endif //NO_IMGUIHELPER_SERIALIZATION
 
 bool GzDecompressFromMemory(const char* memoryBuffer,int memoryBufferSize,ImVector<char>& rv,bool clearRvBeforeUsage)    {
     if (clearRvBeforeUsage) rv.clear();
@@ -3569,7 +2897,7 @@ bool GzCompressFromMemory(const char* memoryBuffer,int memoryBufferSize,ImVector
 
     return done;
 }
-#   ifdef YES_IMGUISTRINGIFIER
+
 bool GzBase64DecompressFromMemory(const char* input,ImVector<char>& rv) {
     rv.clear();ImVector<char> v;
     if (ImGui::Base64Decode(input,v)) return false;
@@ -3592,47 +2920,11 @@ bool GzBase85CompressFromMemory(const char* input,int inputSize,ImVector<char>& 
     if (!ImGui::GzCompressFromMemory(input,inputSize,output1)) return false;
     return ImGui::Base85Encode(&output1[0],output1.size(),output,stringifiedMode,numCharsPerLineInStringifiedMode);
 }
-#   endif //#YES_IMGUISTRINGIFIER
-
 } // namespace ImGui
 #endif //IMGUI_USE_ZLIB
 
-#   ifdef YES_IMGUIBZ2
-//#include "../imguiyesaddons/imguibz2.h"   // This should be already included
 namespace ImGui {
 // Two methods that fill rv and return true on success
-#       ifndef NO_IMGUIHELPER_SERIALIZATION
-#           ifndef NO_IMGUIHELPER_SERIALIZATION_LOAD
-bool Bz2DecompressFromFile(const char* filePath,ImVector<char>& rv,bool clearRvBeforeUsage) {
-    if (clearRvBeforeUsage) rv.clear();
-    ImVector<char> f_data;
-    if (!ImGuiHelper::GetFileContent(filePath,f_data,true,"rb",false)) return false;
-    //----------------------------------------------------
-    return ImGui::Bz2DecompressFromMemory(&f_data[0],f_data.size(),rv,clearRvBeforeUsage);
-    //----------------------------------------------------
-}
-#   ifdef YES_IMGUISTRINGIFIER
-bool Bz2Base64DecompressFromFile(const char* filePath,ImVector<char>& rv)   {
-    ImVector<char> f_data;
-    if (!ImGuiHelper::GetFileContent(filePath,f_data,true,"r",true)) return false;
-    return ImGui::Bz2Base64Decode(&f_data[0],rv);
-}
-bool Bz2Base85DecompressFromFile(const char* filePath, ImVector<char>& rv)   {
-    ImVector<char> f_data;
-    if (!ImGuiHelper::GetFileContent(filePath,f_data,true,"r",true)) return false;
-    return ImGui::Bz2Base85Decode(&f_data[0],rv);
-}
-#   endif //#YES_IMGUISTRINGIFIER
-#           endif //NO_IMGUIHELPER_SERIALIZATION_LOAD
-#       endif //NO_IMGUIHELPER_SERIALIZATION
-} // namespace ImGui
-#   endif //YES_IMGUIBZ2
-
-#   ifdef YES_IMGUISTRINGIFIER
-namespace ImGui {
-// Two methods that fill rv and return true on success
-#       ifndef NO_IMGUIHELPER_SERIALIZATION
-#           ifndef NO_IMGUIHELPER_SERIALIZATION_LOAD
 bool Base64DecodeFromFile(const char* filePath,ImVector<char>& rv)  {
     ImVector<char> f_data;
     if (!ImGuiHelper::GetFileContent(filePath,f_data,true,"r",true)) return false;
@@ -3643,7 +2935,4 @@ bool Base85DecodeFromFile(const char* filePath,ImVector<char>& rv)  {
     if (!ImGuiHelper::GetFileContent(filePath,f_data,true,"r",true)) return false;
     return ImGui::Base85Decode(&f_data[0],rv);
 }
-#           endif //NO_IMGUIHELPER_SERIALIZATION_LOAD
-#       endif //NO_IMGUIHELPER_SERIALIZATION
 } // namespace ImGui
-#   endif //YES_IMGUISTRINGIFIER

@@ -678,23 +678,23 @@ set(IMGUI_INC_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/addon/TextEditor
 )
 
-# KNob
+# Extra Widget
 set(IMGUI_SRC
     ${IMGUI_SRC}
-    addon/imgui_knob/imgui_knob.cpp
+    addon/imgui_widget/imgui_widget.cpp
 )
 set(IMGUI_INCS
     ${IMGUI_INCS}
-    addon/imgui_knob/imgui_knob.h
+    addon/imgui_widget/imgui_widget.h
 )
 set(IMGUI_INC_DIRS
     ${IMGUI_INC_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/addon/imgui_knob
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/imgui_widget
 )
 if (IMGUI_BUILD_EXAMPLE)
     set(IMGUI_SRC
         ${IMGUI_SRC}
-        addon/imgui_knob/imgui_knob_demo.cpp
+        addon/imgui_widget/imgui_widget_demo.cpp
     )
 endif(IMGUI_BUILD_EXAMPLE)
 
@@ -774,6 +774,7 @@ set(IMGUI_INC_DIRS
 )
 
 if(ZLIB_FOUND)
+    add_definitions(-DIMGUI_USE_ZLIB)
     set(LINK_LIBS
         ${LINK_LIBS}
         ${ZLIB_LDFLAGS}

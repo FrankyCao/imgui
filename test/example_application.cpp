@@ -10,7 +10,7 @@
 #include "imgui_markdown.h"
 #include "imgui_memory_editor.h"
 #include "ImGuiFileDialog.h"
-#include "imgui_knob.h"
+#include "imgui_widget.h"
 #include "HotKey.h"
 #include "TextEditor.h"
 #include "ImGuiTabWindow.h"
@@ -199,10 +199,9 @@ public:
 
     bool show_file_dialog_window = false;
     bool show_markdown_window = false;
-    bool show_knob_window = false;
+    bool show_widget_window = false;
     bool show_text_editor_window = false;
     bool show_tab_window = false;
-    bool show_help_demo_window = false;
 
 public:
 
@@ -345,10 +344,10 @@ bool Application_Frame(void* handle, bool app_will_quit)
         ImGui::Checkbox("File Dialog Window", &example->show_file_dialog_window);
         ImGui::Checkbox("Memory Edit Window", &example->mem_edit.Open);
         ImGui::Checkbox("Show Markdown Window", &example->show_markdown_window);
-        ImGui::Checkbox("Show KNob Window", &example->show_knob_window);
+        ImGui::Checkbox("Show Extra Widget Window", &example->show_widget_window);
         ImGui::Checkbox("Show Text Edit Window", &example->show_text_editor_window);
         ImGui::Checkbox("Show Tab Window", &example->show_tab_window);
-        ImGui::Checkbox("Show Help Demo Window", &example->show_help_demo_window);
+
 #if IMGUI_VULKAN_SHADER
         ImGui::Checkbox("Show Vulkan Shader Test Window", &example->show_shader_window);
 #endif
@@ -373,9 +372,9 @@ bool Application_Frame(void* handle, bool app_will_quit)
             ImVec2 mouseUVCoord = (io.MousePos - rc.Min) / rc.GetSize();
             if (ImGui::IsItemHovered() && mouseUVCoord.x >= 0.f && mouseUVCoord.y >= 0.f)
             {
-                ImGuiHelper::ImageInspect(example->image.w, example->image.h, 
-                                        (const unsigned char*)example->image.data, mouseUVCoord, 
-                                        displayedTextureSize);
+                ImGui::ImageInspect(example->image.w, example->image.h, 
+                                    (const unsigned char*)example->image.data, mouseUVCoord, 
+                                    displayedTextureSize);
             }
         }
 
@@ -428,12 +427,12 @@ bool Application_Frame(void* handle, bool app_will_quit)
         ImGui::End();
     }
 
-    // Show KNob Window
-    if (example->show_knob_window)
+    // Show Extra widget Window
+    if (example->show_widget_window)
     {
-        ImGui::SetNextWindowSize(ImVec2(900, 400), ImGuiCond_FirstUseEver);
-        ImGui::Begin("KNob Widget", &example->show_knob_window);
-        ImGui::ShowKnobDemoWindow();
+        ImGui::SetNextWindowSize(ImVec2(1024, 768), ImGuiCond_FirstUseEver);
+        ImGui::Begin("Extra Widget", &example->show_widget_window);
+        ImGui::ShowExtraWidgetDemoWindow();
         ImGui::End();
     }
 
@@ -451,15 +450,6 @@ bool Application_Frame(void* handle, bool app_will_quit)
         {
             ImGui::ShowAddonsTabWindow();   // see its code for further info         
         }
-        ImGui::End();
-    }
-
-    // Show Help demo Window
-    if (example->show_help_demo_window)
-    {
-        ImGui::SetNextWindowSize(ImVec2(900, 400), ImGuiCond_FirstUseEver);
-        ImGui::Begin("Help Widget", &example->show_help_demo_window);
-        ImGui::ShowHelpDemoWindow();
         ImGui::End();
     }
 
