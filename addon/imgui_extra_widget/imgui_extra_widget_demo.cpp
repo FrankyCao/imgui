@@ -3,7 +3,7 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
 //-----------------------------------------------------------------------------------------------------------------
-#include "imgui_widget.h"
+#include "imgui_extra_widget.h"
 
 namespace ImGui
 {
@@ -309,6 +309,37 @@ void ShowExtraWidgetDemoWindow()
         ImGui::PopItemWidth();
         ImGui::TreePop();
 	}
+    if (ImGui::TreeNode("Slider Select"))
+    {
+        ImGui::PushItemWidth(300);
+
+        static ImVec2 val2d(0.f, 0.f);
+        static ImVec4 val3d(0.f, 0.f, 0.f, 0.f);
+        ImGui::InputVec2("Vec2D", &val2d, ImVec2(-1.f, -1.f), ImVec2(1.f, 1.f));
+        ImGui::Separator();
+
+        ImGui::SliderScalar2D("Scalar2D ", &val2d.x, &val2d.y, -1.f, 1.f, -1.f, 1.f);
+        ImGui::Separator();
+
+        ImGui::InputVec3("Vec3D", &val3d, ImVec4(-1.f, -1.f, -1.f, -1.f), ImVec4(1.f, 1.f, 1.f, 1.f));
+        ImGui::Separator();
+
+        ImGui::SliderScalar3D("Scalar3D", &val3d.x, &val3d.y, &val3d.z, -1.f, 1.f, -1.f, 1.f, -1.f, 1.f);
+        ImGui::Separator();
+
+        static ImVec2 min(-0.5f, -0.5f);
+		static ImVec2 max(0.5f, 0.5f);
+		ImGui::RangeSelect2D("Range Select 2D", &min.x, &min.y, &max.x, &max.y, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f);
+
+        ImGui::PopItemWidth();
+        ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Bezier windows"))
+    { 
+        static float v[5] = { 0.950f, 0.050f, 0.795f, 0.035f }; 
+        ImGui::Bezier("easeInExpo", v);
+        ImGui::TreePop();
+    }
     if (ImGui::TreeNode("Splitter windows"))
     {
         float h = 200;

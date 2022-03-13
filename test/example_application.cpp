@@ -7,13 +7,13 @@
 #include <sstream>
 #include <string>
 #include <cerrno>
-#include "imgui_markdown.h"
-#include "imgui_memory_editor.h"
-#include "ImGuiFileDialog.h"
-#include "imgui_widget.h"
-#include "HotKey.h"
-#include "TextEditor.h"
-#include "ImGuiTabWindow.h"
+#include <imgui_markdown.h>
+#include <imgui_memory_editor.h>
+#include <ImGuiFileDialog.h>
+#include <imgui_extra_widget.h>
+#include <HotKey.h>
+#include <TextEditor.h>
+#include <ImGuiTabWindow.h>
 #if IMGUI_VULKAN_SHADER
 #include <ImVulkanShader.h>
 #endif
@@ -195,6 +195,7 @@ public:
 
 public:
     bool show_demo_window = true;
+    bool show_viewport_fullscreen = false;
     bool show_another_window = false;
 
     bool show_file_dialog_window = false;
@@ -202,7 +203,7 @@ public:
     bool show_widget_window = false;
     bool show_text_editor_window = false;
     bool show_tab_window = false;
-
+   
 public:
 
     std::string get_file_contents(const char *filename);
@@ -340,6 +341,16 @@ bool Application_Frame(void* handle, bool app_will_quit)
 
         ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
         ImGui::Checkbox("Demo Window", &example->show_demo_window);      // Edit bools storing our window open/close state
+        if (ImGui::Checkbox("Full Screen Window", &example->show_viewport_fullscreen))
+        {
+            if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+            {
+                auto platformio = ImGui::GetPlatformIO();
+                if (platformio.Platform_FullScreen) platformio.Platform_FullScreen(ImGui::GetMainViewport(), example->show_viewport_fullscreen);
+            }
+            else
+                Application_FullScreen(example->show_viewport_fullscreen);
+        }
         ImGui::Checkbox("Another Window", &example->show_another_window);
         ImGui::Checkbox("File Dialog Window", &example->show_file_dialog_window);
         ImGui::Checkbox("Memory Edit Window", &example->mem_edit.Open);

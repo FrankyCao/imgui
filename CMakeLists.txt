@@ -681,20 +681,20 @@ set(IMGUI_INC_DIRS
 # Extra Widget
 set(IMGUI_SRC
     ${IMGUI_SRC}
-    addon/imgui_widget/imgui_widget.cpp
+    addon/imgui_extra_widget/imgui_extra_widget.cpp
 )
 set(IMGUI_INCS
     ${IMGUI_INCS}
-    addon/imgui_widget/imgui_widget.h
+    addon/imgui_extra_widget/imgui_extra_widget.h
 )
 set(IMGUI_INC_DIRS
     ${IMGUI_INC_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/addon/imgui_widget
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/imgui_extra_widget
 )
 if (IMGUI_BUILD_EXAMPLE)
     set(IMGUI_SRC
         ${IMGUI_SRC}
-        addon/imgui_widget/imgui_widget_demo.cpp
+        addon/imgui_extra_widget/imgui_extra_widget_demo.cpp
     )
 endif(IMGUI_BUILD_EXAMPLE)
 
