@@ -316,17 +316,9 @@ void ShowExtraWidgetDemoWindow()
         static ImVec2 val2d(0.f, 0.f);
         static ImVec4 val3d(0.f, 0.f, 0.f, 0.f);
         ImGui::InputVec2("Vec2D", &val2d, ImVec2(-1.f, -1.f), ImVec2(1.f, 1.f));
-        ImGui::Separator();
-
-        ImGui::SliderScalar2D("Scalar2D ", &val2d.x, &val2d.y, -1.f, 1.f, -1.f, 1.f);
-        ImGui::Separator();
-
+        ImGui::SameLine();
         ImGui::InputVec3("Vec3D", &val3d, ImVec4(-1.f, -1.f, -1.f, -1.f), ImVec4(1.f, 1.f, 1.f, 1.f));
-        ImGui::Separator();
-
-        ImGui::SliderScalar3D("Scalar3D", &val3d.x, &val3d.y, &val3d.z, -1.f, 1.f, -1.f, 1.f, -1.f, 1.f);
-        ImGui::Separator();
-
+        ImGui::SameLine();
         static ImVec2 min(-0.5f, -0.5f);
 		static ImVec2 max(0.5f, 0.5f);
 		ImGui::RangeSelect2D("Range Select 2D", &min.x, &min.y, &max.x, &max.y, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f);

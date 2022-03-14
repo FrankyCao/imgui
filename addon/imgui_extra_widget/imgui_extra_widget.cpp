@@ -1022,11 +1022,11 @@ static float DistOnSegmentSqr(ImVec2 pos, ImVec2 start, ImVec2 end)
     return dist - to_dist;
 }
 
-
 bool ImGui::SliderScalar2D(char const* pLabel, float* fValueX, float* fValueY, const float fMinX, const float fMaxX, const float fMinY, const float fMaxY, float const fZoom /*= 1.0f*/)
 {
     IM_ASSERT(fMinX < fMaxX);
     IM_ASSERT(fMinY < fMaxY);
+    static bool drag_mouse = false;
     ImGuiID const iID = ImGui::GetID(pLabel);
     ImVec2 const vSizeSubstract =  ImGui::CalcTextSize(std::to_string(1.0f).c_str()) * 1.1f;
     float const w = ImGui::CalcItemWidth();
@@ -1035,11 +1035,13 @@ bool ImGui::SliderScalar2D(char const* pLabel, float* fValueX, float* fValueY, c
 
     float const fHeightOffset = ImGui::GetTextLineHeight();
     ImVec2 const vHeightOffset(0.0f, fHeightOffset);
-
-    ImVec2 vPos = ImGui::GetCursorScreenPos();
+    ImVec2 const FrameSize = ImVec2(w, w) + vHeightOffset * 4;
+    ImGui::BeginChild(iID, FrameSize, false, ImGuiWindowFlags_NoMove);
+    ImVec2 vPos = ImGui::GetCursorScreenPos() + ImVec2(0, 4);
     ImRect oRect(vPos + vHeightOffset, vPos + vSize + vHeightOffset);
 
-    ImGui::Text("%s", pLabel);
+    ImGui::TextUnformatted(pLabel);
+    ImGui::Spacing();
     ImGui::PushID(iID);
 
     ImU32 const uFrameCol = ImGui::GetColorU32(ImGuiCol_FrameBg);
@@ -1060,6 +1062,7 @@ bool ImGui::SliderScalar2D(char const* pLabel, float* fValueX, float* fValueY, c
         *fValueY = fDeltaY - vCursorPos.y/(oRect.Max.y - oRect.Min.y)*fDeltaY + fMinY;
 
         bModified = true;
+        drag_mouse = true;
     }
 
     *fValueX = ImMin(ImMax(*fValueX, fMinX), fMaxX);
@@ -1125,6 +1128,7 @@ bool ImGui::SliderScalar2D(char const* pLabel, float* fValueX, float* fValueY, c
         *fValueX = vCursorPos.x/(oRect.Max.x - oRect.Min.x)*fDeltaX + fMinX;
 
         bModified = true;
+        drag_mouse = true;
     }
     else if (ImGui::IsMouseHoveringRect(vHandlePosY - ImVec2(fHandleRadius, fHandleRadius) - vSecurity, vHandlePosY + ImVec2(fHandleRadius, fHandleRadius) + vSecurity) &&
             ImGui::IsMouseDown(ImGuiMouseButton_Left))
@@ -1134,6 +1138,16 @@ bool ImGui::SliderScalar2D(char const* pLabel, float* fValueX, float* fValueY, c
         *fValueY = fDeltaY - vCursorPos.y/(oRect.Max.y - oRect.Min.y)*fDeltaY + fMinY;
 
         bModified = true;
+        drag_mouse = true;
+    }
+
+    if (drag_mouse)
+        ImGui::CaptureMouseFromApp();
+
+    if (!ImGui::IsMouseDown(ImGuiMouseButton_Left) && drag_mouse)
+    {
+        drag_mouse = false;
+        ImGui::CaptureMouseFromApp(false);
     }
 
     pDrawList->AddText(
@@ -1179,7 +1193,7 @@ bool ImGui::SliderScalar2D(char const* pLabel, float* fValueX, float* fValueY, c
 
     ImGui::PopID();
 
-    ImGui::Dummy(vHeightOffset);
+    ImGui::Dummy(ImVec2(0, 4));
     ImGui::Dummy(vHeightOffset);
     ImGui::Dummy(vSize);
 
@@ -1195,7 +1209,7 @@ bool ImGui::SliderScalar2D(char const* pLabel, float* fValueX, float* fValueY, c
 
     bModified |= ImGui::DragScalar(pBufferXID, ImGuiDataType_Float, fValueX, fSpeedX, &fMinX, &fMaxX);
     bModified |= ImGui::DragScalar(pBufferYID, ImGuiDataType_Float, fValueY, fSpeedY, &fMinY, &fMaxY);
-
+    ImGui::EndChild();
     return bModified;
 }
 
@@ -1206,7 +1220,7 @@ bool ImGui::SliderScalar3D(char const* pLabel, float* pValueX, float* pValueY, f
     IM_ASSERT(fMinZ < fMaxZ);
 
     ImGuiID const iID = ImGui::GetID(pLabel);
-
+    static bool drag_mouse = false;
     ImVec2 const vSizeSubstract = ImGui::CalcTextSize(std::to_string(1.0f).c_str()) * 1.1f;
     float const w = ImGui::CalcItemWidth();
     float const vSizeFull = w;
@@ -1215,12 +1229,13 @@ bool ImGui::SliderScalar3D(char const* pLabel, float* pValueX, float* pValueY, f
 
     float const fHeightOffset = ImGui::GetTextLineHeight();
     ImVec2 const vHeightOffset(0.0f, fHeightOffset);
-
+    ImVec2 const FrameSize = ImVec2(w, w) + vHeightOffset * 4;
+    ImGui::BeginChild(iID, FrameSize, false, ImGuiWindowFlags_NoMove);
     ImVec2 vPos = ImGui::GetCursorScreenPos();
     ImRect oRect(vPos + vHeightOffset, vPos + vSize + vHeightOffset);
 
-    ImGui::Text("%s", pLabel);
-
+    ImGui::TextUnformatted(pLabel);
+    ImGui::Spacing();
     ImGui::PushID(iID);
 
     ImU32 const uFrameCol	= ImGui::GetColorU32(ImGuiCol_FrameBg) | 0xFF000000;
@@ -1286,6 +1301,7 @@ bool ImGui::SliderScalar3D(char const* pLabel, float* pValueX, float* pValueY, f
             fZ = fDist*fDeltaZ*fDist + fMinZ;
 
             bModified = true;
+            drag_mouse = true;
         }
     }
 
@@ -1303,6 +1319,7 @@ bool ImGui::SliderScalar3D(char const* pLabel, float* pValueX, float* pValueY, f
         fY = fDeltaY - vLocalPos.y/(oXYDrag.Max.y - oXYDrag.Min.y)*fDeltaY + fMinY;
 
         bModified = true;
+        drag_mouse = true;
     }
 
     fX = ImMin(ImMax(fX, fMinX), fMaxX);
@@ -1374,6 +1391,7 @@ bool ImGui::SliderScalar3D(char const* pLabel, float* pValueX, float* pValueY, f
         fX = fDeltaX*fCursorPosX/(2.0f*fX3) + fMinX;
 
         bModified = true;
+        drag_mouse = true;
     }
     else if (ImGui::IsMouseHoveringRect(vHandlePosY - ImVec2(fHandleRadius, fHandleRadius) - vSecurity, vHandlePosY + ImVec2(fHandleRadius, fHandleRadius) + vSecurity) &&
             ImGui::IsMouseDown(ImGuiMouseButton_Left))
@@ -1383,6 +1401,16 @@ bool ImGui::SliderScalar3D(char const* pLabel, float* pValueX, float* pValueY, f
         fY = fDeltaY*(1.0f - fCursorPosY/(2.0f*fY3)) + fMinY;
 
         bModified = true;
+        drag_mouse = true;
+    }
+
+    if (drag_mouse)
+        ImGui::CaptureMouseFromApp();
+
+    if (!ImGui::IsMouseDown(ImGuiMouseButton_Left) && drag_mouse)
+    {
+        drag_mouse = false;
+        ImGui::CaptureMouseFromApp(false);
     }
 
     pDrawList->AddText(
@@ -1505,6 +1533,7 @@ bool ImGui::SliderScalar3D(char const* pLabel, float* pValueX, float* pValueY, f
     bModified |= ImGui::DragScalar(pBufferYID, ImGuiDataType_Float, &fY, fMoveDeltaY, &fMinY, &fMaxY);
     bModified |= ImGui::DragScalar(pBufferZID, ImGuiDataType_Float, &fZ, fMoveDeltaZ, &fMinZ, &fMaxZ);
 
+    ImGui::EndChild();
     return bModified;
 }
 
@@ -1563,6 +1592,8 @@ bool ImGui::RangeSelect2D(char const* pLabel, float* pCurMinX, float* pCurMinY, 
 	ImVec2 const vSize(vSizeFull, vSizeFull);
 	float const fHeightOffset = ImGui::GetTextLineHeight();
 	ImVec2 const vHeightOffset(0.0f, fHeightOffset);
+    ImVec2 const FrameSize = ImVec2(w, w) + vHeightOffset * 3;
+    ImGui::BeginChild(iID, FrameSize, false, ImGuiWindowFlags_NoMove);
 	ImVec2 vPos = ImGui::GetCursorScreenPos();
 	ImRect oRect(vPos + vHeightOffset, vPos + vSize + vHeightOffset);
 	constexpr float fCursorOff = 10.0f;
@@ -1709,6 +1740,7 @@ bool ImGui::RangeSelect2D(char const* pLabel, float* pCurMinX, float* pCurMinY, 
 						pDrawList->AddLine(oDragZone.Max, oDragZone.Max - ImVec2(0.0f, oRegionRect.GetHeight() * 0.2f), uFrameCol, 1.0f);
 						if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && ImGui::IsMouseHoveringRect(oDragZone.Min, oDragZone.Max))
 						{
+                            ImGui::CaptureMouseFromApp();
 							ImVec2 vDragDelta = ImGui::GetMousePos() - oDragZone.GetCenter();
 							if (*pCurMinX <= fBoundMinX && vDragDelta.x < 0.0f)
 							{
@@ -1738,6 +1770,9 @@ bool ImGui::RangeSelect2D(char const* pLabel, float* pCurMinX, float* pCurMinY, 
 			}
 		}
 	}
+
+    ImGui::CaptureMouseFromApp(held);
+
 	char pBufferMinX[16];
 	char pBufferMaxX[16];
 	char pBufferMinY[16];
@@ -1798,14 +1833,28 @@ bool ImGui::RangeSelect2D(char const* pLabel, float* pCurMinX, float* pCurMinY, 
 	pDrawList->AddCircleFilled(ImVec2(vMaxCursorPos.x, oRect.Max.y), 2.0f, uBlue, 3);
 	//////////////////////////////////////////////////////////////////////////
 	ImGui::PopID();
-	//ImGui::Dummy(vHeightOffset);
-	//ImGui::Dummy(vHeightOffset);
 	ImGui::Dummy(vSize);
-	//ImGui::Text("Min x: %f", fCurMinX);
-	//ImGui::Text("Min y: %f", fCurMinY);
-	//ImGui::Text("Max x: %f", fCurMaxX);
-	//ImGui::Text("Max y: %f", fCurMaxY);
-	//ImGui::Dummy(vHeightOffset);
+    auto string_width = ImGui::CalcTextSize("MinX");
+    ImGui::PushMultiItemsWidths(2, w - string_width.x * 3);
+    float const fSpeedX = fDeltaX/128.0f;
+    float const fSpeedY = fDeltaY/128.0f;
+
+    char pBufferMinXID[64];
+    ImFormatString(pBufferMinXID, IM_ARRAYSIZE(pBufferMinXID), "MinX##%d", *(ImS32 const*)&iID);
+    char pBufferMinYID[64];
+    ImFormatString(pBufferMinYID, IM_ARRAYSIZE(pBufferMinYID), "MinY##%d", *(ImS32 const*)&iID);
+    char pBufferMaxXID[64];
+    ImFormatString(pBufferMaxXID, IM_ARRAYSIZE(pBufferMaxXID), "MaxX##%d", *(ImS32 const*)&iID);
+    char pBufferMaxYID[64];
+    ImFormatString(pBufferMaxYID, IM_ARRAYSIZE(pBufferMaxYID), "MaxY##%d", *(ImS32 const*)&iID);
+
+    bModified |= ImGui::DragScalar(pBufferMinXID, ImGuiDataType_Float, pCurMinX , fSpeedX, &fBoundMinX, &fBoundMaxX);
+    ImGui::SameLine();
+    bModified |= ImGui::DragScalar(pBufferMinYID, ImGuiDataType_Float, pCurMinY , fSpeedY, &fBoundMinY, &fBoundMaxY);
+    bModified |= ImGui::DragScalar(pBufferMaxXID, ImGuiDataType_Float, pCurMaxX , fSpeedX, &fBoundMinX, &fBoundMaxX);
+    ImGui::SameLine();
+    bModified |= ImGui::DragScalar(pBufferMaxYID, ImGuiDataType_Float, pCurMaxY , fSpeedY, &fBoundMinY, &fBoundMaxY);
+    ImGui::EndChild();
 	return bModified;
 }
 
