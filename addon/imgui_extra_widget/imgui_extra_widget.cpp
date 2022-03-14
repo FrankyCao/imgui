@@ -765,8 +765,9 @@ bool ImGui::Splitter(bool split_vertically, float thickness, float* size1, float
 }
 
 // ToggleButton
-void ImGui::ToggleButton(const char* str_id, bool* v)
+bool ImGui::ToggleButton(const char* str_id, bool* v)
 {
+    bool valueChange = false;
     ImVec2 p = ImGui::GetCursorScreenPos();
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
@@ -776,7 +777,10 @@ void ImGui::ToggleButton(const char* str_id, bool* v)
 
     ImGui::InvisibleButton(str_id, ImVec2(width, height));
     if (ImGui::IsItemClicked())
+    {
         *v = !*v;
+        valueChange = true;
+    }
 
     float t = *v ? 1.0f : 0.0f;
 
@@ -796,6 +800,7 @@ void ImGui::ToggleButton(const char* str_id, bool* v)
 
     draw_list->AddRectFilled(p, ImVec2(p.x + width, p.y + height), col_bg, height * 0.5f);
     draw_list->AddCircleFilled(ImVec2(p.x + radius + t * (width - radius * 2.0f), p.y + radius), radius - 1.5f, IM_COL32(255, 255, 255, 255));
+    return valueChange;
 }
 
 bool ImGui::ToggleButton(const char *str_id, bool *v, const ImVec2 &size)
@@ -2212,7 +2217,9 @@ static void HueSelectorEx(char const* label, ImVec2 const size, float* hueCenter
 	ImGui::PushID(iID);
 	ImVec2 curPos = ImGui::GetCursorScreenPos();
 	ImDrawList* pDrawList = ImGui::GetWindowDrawList();
-    ImGui::InvisibleButton("##ZoneHueLineSlider", size);
+    const float arrowWidth = pDrawList->_Data->FontSize;
+    ImRect selectorRect = ImRect(curPos, curPos + size + ImVec2(0, arrowWidth));
+    ImGui::InvisibleButton("##ZoneHueLineSlider", selectorRect.GetSize());
 	ImGui::DrawHueBand(pDrawList, curPos, size, division, alpha, 1.0f, offset);
 	float center = ImClamp(ImFmod(*hueCenter + offset, 1.0f), 0.0f, 1.0f - 1e-4f);
 	float width = ImClamp(*hueWidth, 0.0f, 0.5f - 1e-4f);
@@ -2281,7 +2288,6 @@ static void HueSelectorEx(char const* label, ImVec2 const size, float* hueCenter
         }
     }
 
-    const float arrowWidth = pDrawList->_Data->FontSize;
     float arrowOffset = curPos.x + *hueCenter * size.x;
     ImGui::Dummy(ImVec2(0, arrowWidth / 2));
     ImGui::RenderArrow(pDrawList, ImVec2(arrowOffset - arrowWidth / 2, curPos.y + size.y), IM_COL32(255,255,0,255), ImGuiDir_Up);
@@ -2307,7 +2313,9 @@ void ImGui::LumianceSelector(char const* label, ImVec2 const size, float* lumCen
 	ImGui::PushID(iID);
     ImVec2 curPos = ImGui::GetCursorScreenPos();
 	ImDrawList* pDrawList = ImGui::GetWindowDrawList();
-    ImGui::InvisibleButton("##ZoneLumianceSlider", size);
+    const float arrowWidth = pDrawList->_Data->FontSize;
+    ImRect selectorRect = ImRect(curPos, curPos + size + ImVec2(0, arrowWidth));
+    ImGui::InvisibleButton("##ZoneLumianceSlider", selectorRect.GetSize());
     if (!rgb_color)
     {
         ImGui::DrawLumianceBand(pDrawList, curPos, size, division, color, gamma);
@@ -2337,7 +2345,6 @@ void ImGui::LumianceSelector(char const* label, ImVec2 const size, float* lumCen
             *lumCenter = defaultVal;
         }
     }
-    const float arrowWidth = pDrawList->_Data->FontSize;
     float arrowOffset = curPos.x + (*lumCenter / 2 + 0.5) * size.x;
     ImGui::Dummy(ImVec2(0, arrowWidth / 2));
     ImGui::RenderArrow(pDrawList, ImVec2(arrowOffset - arrowWidth / 2, curPos.y + size.y), IM_COL32(255,255,0,255), ImGuiDir_Up);
@@ -2358,7 +2365,9 @@ void ImGui::SaturationSelector(char const* label, ImVec2 const size, float* satC
 	ImGui::PushID(iID);
     ImVec2 curPos = ImGui::GetCursorScreenPos();
 	ImDrawList* pDrawList = ImGui::GetWindowDrawList();
-    ImGui::InvisibleButton("##ZoneSaturationSlider", size);
+    const float arrowWidth = pDrawList->_Data->FontSize;
+    ImRect selectorRect = ImRect(curPos, curPos + size + ImVec2(0, arrowWidth));
+    ImGui::InvisibleButton("##ZoneSaturationSlider", selectorRect.GetSize());
     if (!rgb_color)
     {
         ImGui::DrawSaturationBand(pDrawList, curPos, size, division, color, gamma);
@@ -2388,7 +2397,6 @@ void ImGui::SaturationSelector(char const* label, ImVec2 const size, float* satC
             *satCenter = defaultVal;
         }
     }
-    const float arrowWidth = pDrawList->_Data->FontSize;
     float arrowOffset = curPos.x + (*satCenter / 2 + 0.5) * size.x;
     ImGui::Dummy(ImVec2(0, arrowWidth / 2));
     ImGui::RenderArrow(pDrawList, ImVec2(arrowOffset - arrowWidth / 2, curPos.y + size.y), IM_COL32(255,255,0,255), ImGuiDir_Up);
@@ -2409,7 +2417,9 @@ void ImGui::ContrastSelector(char const* label, ImVec2 const size, float* conCen
 	ImGui::PushID(iID);
     ImVec2 curPos = ImGui::GetCursorScreenPos();
 	ImDrawList* pDrawList = ImGui::GetWindowDrawList();
-    ImGui::InvisibleButton("##ZoneContrastSlider", size);
+    const float arrowWidth = pDrawList->_Data->FontSize;
+    ImRect selectorRect = ImRect(curPos, curPos + size + ImVec2(0, arrowWidth));
+    ImGui::InvisibleButton("##ZoneContrastSlider", selectorRect.GetSize());
     if (!rgb_color)
     {
         ImGui::DrawContrastBand(pDrawList, curPos, size, color);
@@ -2439,7 +2449,6 @@ void ImGui::ContrastSelector(char const* label, ImVec2 const size, float* conCen
             *conCenter = defaultVal;
         }
     }
-    const float arrowWidth = pDrawList->_Data->FontSize;
     float arrowOffset = curPos.x + (*conCenter / 4) * size.x;
     ImGui::Dummy(ImVec2(0, arrowWidth / 2));
     ImGui::RenderArrow(pDrawList, ImVec2(arrowOffset - arrowWidth / 2, curPos.y + size.y), IM_COL32(255,255,0,255), ImGuiDir_Up);

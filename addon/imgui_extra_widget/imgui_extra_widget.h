@@ -49,7 +49,7 @@ IMGUI_API void RoundProgressBar(float radius, float *p_value, float v_min, float
 IMGUI_API bool Splitter(bool split_vertically, float thickness, float* size1, float* size2, float min_size1, float min_size2, float splitter_long_axis_size = -1.0f);
 
 // ToggleButton
-IMGUI_API void ToggleButton(const char* str_id, bool* v);
+IMGUI_API bool ToggleButton(const char* str_id, bool* v);
 IMGUI_API bool ToggleButton(const char *str_id, bool *v, const ImVec2 &size);
 IMGUI_API bool BulletToggleButton(const char* label,bool* v, ImVec2 &pos, ImVec2 &size);
 
