@@ -326,10 +326,12 @@ void ShowExtraWidgetDemoWindow()
         ImGui::PopItemWidth();
         ImGui::TreePop();
     }
-    if (ImGui::TreeNode("Bezier windows"))
+    if (ImGui::TreeNode("Bezier Select"))
     { 
+        ImGui::PushItemWidth(300);
         static float v[5] = { 0.950f, 0.050f, 0.795f, 0.035f }; 
-        ImGui::Bezier("easeInExpo", v);
+        ImGui::BezierSelect("##easeInExpo", v);
+        ImGui::PopItemWidth();
         ImGui::TreePop();
     }
     if (ImGui::TreeNode("Splitter windows"))
