@@ -295,7 +295,7 @@ void ShowExtraWidgetDemoWindow()
         static float saturationCenter = 0.0f;
         ImGui::TextUnformatted("Sat:"); ImGui::SameLine();
         ImGui::SaturationSelector("Saturation Selector", ImVec2(width, height), &saturationCenter, 0.0f, 1.0f, division, gamma, rgb_color);
-
+        
         ImGui::Spacing();
         static float contrastCenter = 1.0f;
         ImGui::TextUnformatted("Con:"); ImGui::SameLine();
@@ -303,8 +303,7 @@ void ShowExtraWidgetDemoWindow()
 
         ImGui::Spacing();
         static ImVec4 rgba = ImVec4(0.0, 0.0, 0.0, 0.0);
-        ImGui::TextUnformatted("Bal:"); ImGui::SameLine();
-        ImGui::BalanceSelector("Balance Selector", ImVec2(width, width), &rgba, ImVec4(0, 0, 0, 0), 1.0f);
+        ImGui::BalanceSelector("Balance Selector", ImVec2(width / 2, height), &rgba, ImVec4(0, 0, 0, 0), 1.0f);
 
         ImGui::PopItemWidth();
         ImGui::TreePop();
@@ -328,10 +327,8 @@ void ShowExtraWidgetDemoWindow()
     }
     if (ImGui::TreeNode("Bezier Select"))
     { 
-        ImGui::PushItemWidth(300);
         static float v[5] = { 0.950f, 0.050f, 0.795f, 0.035f }; 
-        ImGui::BezierSelect("##easeInExpo", v);
-        ImGui::PopItemWidth();
+        ImGui::BezierSelect("##easeInExpo", ImVec2(200, 200), v);
         ImGui::TreePop();
     }
     if (ImGui::TreeNode("Splitter windows"))

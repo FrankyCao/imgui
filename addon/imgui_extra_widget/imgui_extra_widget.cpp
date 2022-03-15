@@ -1902,7 +1902,7 @@ float ImGui::BezierValue(float dt01, float P[4], int step)
     return results[(int) ((dt01 < 0 ? 0 : dt01 > 1 ? 1 : dt01) * _step)].y;
 }
 
-bool ImGui::BezierSelect(const char *label, float P[5]) 
+bool ImGui::BezierSelect(const char *label, const ImVec2 size, float P[5]) 
 {
     // visuals
     enum { SMOOTHNESS = 64 }; // curve smoothness: the higher number of segments, the smoother curve
@@ -1911,7 +1911,6 @@ bool ImGui::BezierSelect(const char *label, float P[5])
     enum { GRAB_RADIUS = 8 }; // handlers: circle radius
     enum { GRAB_BORDER = 2 }; // handlers: circle border width
     enum { AREA_CONSTRAINED = false }; // should grabbers be constrained to grid area?
-    enum { AREA_WIDTH = 0 }; // area width in pixels. 0 for adaptive size (will use max avail width)
     // curve presets
     static struct { const char *name; float points[4]; } presets [] = 
     {
@@ -1945,6 +1944,7 @@ bool ImGui::BezierSelect(const char *label, float P[5])
     bool reload = 0;
     ImGuiID const iID = ImGui::GetID(label);
     ImGui::PushID(label);
+    ImGui::BeginGroup();
     if (ImGui::ArrowButton("##lt", ImGuiDir_Left))
     {
         if (--P[4] >= 0) reload = 1; else ++P[4];
@@ -1981,10 +1981,12 @@ bool ImGui::BezierSelect(const char *label, float P[5])
     ImDrawList* DrawList = ImGui::GetWindowDrawList();
     ImGuiWindow* Window = ImGui::GetCurrentWindow();
     if (Window->SkipItems)
+    {
+        ImGui::EndGroup();
         return false;
+    }
     // header and spacing
-    const float avail = ImGui::CalcItemWidth();
-    const float dim = AREA_WIDTH > 0 ? AREA_WIDTH : avail;
+    const float dim = size.x;
     ImGui::PushMultiItemsWidths(2, dim);
     bool changed = false;
     changed |= ImGui::SliderFloat("##P0X", &P[0], -2.f, 2.f, "%.2f", 1.f); ImGui::SameLine();
@@ -1999,10 +2001,11 @@ bool ImGui::BezierSelect(const char *label, float P[5])
     ImGui::ItemSize(bb);
     if (!ImGui::ItemAdd(bb, 0))
     {
+        ImGui::EndGroup();
         return changed;
     }
     const ImGuiID id = Window->GetID(label);
-    hovered |= 0 != ImGui::ItemHoverable(ImRect(bb.Min, bb.Min + ImVec2(avail, dim)), id);
+    hovered |= 0 != ImGui::ItemHoverable(ImRect(bb.Min, bb.Min + ImVec2(dim, dim)), id);
     ImGui::RenderFrame(bb.Min, bb.Max, ImGui::GetColorU32(ImGuiCol_FrameBg, 1), true, Style.FrameRounding);
     // background grid
     for (int i = 0; i <= Canvas.x; i += (Canvas.x / 4)) {
@@ -2091,6 +2094,7 @@ bool ImGui::BezierSelect(const char *label, float P[5])
     DrawList->AddCircleFilled(p1, GRAB_RADIUS - GRAB_BORDER, ImColor(pink));
     DrawList->AddCircleFilled(p2, GRAB_RADIUS, ImColor(white));
     DrawList->AddCircleFilled(p2, GRAB_RADIUS - GRAB_BORDER, ImColor(cyan));
+    ImGui::EndGroup();
     return changed;
 }
 
@@ -2219,6 +2223,7 @@ static void HueSelectorEx(char const* label, ImVec2 const size, float* hueCenter
 	ImDrawList* pDrawList = ImGui::GetWindowDrawList();
     const float arrowWidth = pDrawList->_Data->FontSize;
     ImRect selectorRect = ImRect(curPos, curPos + size + ImVec2(0, arrowWidth));
+    ImGui::BeginGroup();
     ImGui::InvisibleButton("##ZoneHueLineSlider", selectorRect.GetSize());
 	ImGui::DrawHueBand(pDrawList, curPos, size, division, alpha, 1.0f, offset);
 	float center = ImClamp(ImFmod(*hueCenter + offset, 1.0f), 0.0f, 1.0f - 1e-4f);
@@ -2298,6 +2303,7 @@ static void HueSelectorEx(char const* label, ImVec2 const size, float* hueCenter
     ImGui::PushStyleVar(ImGuiStyleVar_TexGlyphShadowOffset, ImVec2(1, 1));
     pDrawList->AddText(ImVec2(curPos.x + size.x / 2 - str_size.x * 0.5f, curPos.y + size.y / 2 - arrowWidth / 2), IM_COL32(255,255,0,255), value_str.c_str());
     ImGui::PopStyleVar();
+    ImGui::EndGroup();
 	ImGui::PopID();
 }
 
@@ -2315,6 +2321,7 @@ void ImGui::LumianceSelector(char const* label, ImVec2 const size, float* lumCen
 	ImDrawList* pDrawList = ImGui::GetWindowDrawList();
     const float arrowWidth = pDrawList->_Data->FontSize;
     ImRect selectorRect = ImRect(curPos, curPos + size + ImVec2(0, arrowWidth));
+    ImGui::BeginGroup();
     ImGui::InvisibleButton("##ZoneLumianceSlider", selectorRect.GetSize());
     if (!rgb_color)
     {
@@ -2355,6 +2362,7 @@ void ImGui::LumianceSelector(char const* label, ImVec2 const size, float* lumCen
     ImGui::PushStyleVar(ImGuiStyleVar_TexGlyphShadowOffset, ImVec2(1, 1));
     pDrawList->AddText(ImVec2(curPos.x + size.x / 2 - str_size.x * 0.5f, curPos.y + size.y / 2 - arrowWidth / 2), IM_COL32(255,255,0,255), value_str.c_str());
 	ImGui::PopStyleVar();
+    ImGui::EndGroup();
     ImGui::PopID();
 }
 
@@ -2367,6 +2375,7 @@ void ImGui::SaturationSelector(char const* label, ImVec2 const size, float* satC
 	ImDrawList* pDrawList = ImGui::GetWindowDrawList();
     const float arrowWidth = pDrawList->_Data->FontSize;
     ImRect selectorRect = ImRect(curPos, curPos + size + ImVec2(0, arrowWidth));
+    ImGui::BeginGroup();
     ImGui::InvisibleButton("##ZoneSaturationSlider", selectorRect.GetSize());
     if (!rgb_color)
     {
@@ -2407,6 +2416,7 @@ void ImGui::SaturationSelector(char const* label, ImVec2 const size, float* satC
     ImGui::PushStyleVar(ImGuiStyleVar_TexGlyphShadowOffset, ImVec2(1, 1));
     pDrawList->AddText(ImVec2(curPos.x + size.x / 2 - str_size.x * 0.5f, curPos.y + size.y / 2 - arrowWidth / 2), IM_COL32(255,255,0,255), value_str.c_str());
     ImGui::PopStyleVar();
+    ImGui::EndGroup();
     ImGui::PopID();
 }
 
@@ -2419,6 +2429,7 @@ void ImGui::ContrastSelector(char const* label, ImVec2 const size, float* conCen
 	ImDrawList* pDrawList = ImGui::GetWindowDrawList();
     const float arrowWidth = pDrawList->_Data->FontSize;
     ImRect selectorRect = ImRect(curPos, curPos + size + ImVec2(0, arrowWidth));
+    ImGui::BeginGroup();
     ImGui::InvisibleButton("##ZoneContrastSlider", selectorRect.GetSize());
     if (!rgb_color)
     {
@@ -2459,6 +2470,7 @@ void ImGui::ContrastSelector(char const* label, ImVec2 const size, float* conCen
     ImGui::PushStyleVar(ImGuiStyleVar_TexGlyphShadowOffset, ImVec2(1, 1));
     pDrawList->AddText(ImVec2(curPos.x + size.x / 2 - str_size.x * 0.5f, curPos.y + size.y / 2 - arrowWidth / 2), rgb_color ? IM_COL32(255,255,0,255) : IM_COL32(0,0,0,255), value_str.c_str());
     ImGui::PopStyleVar();
+    ImGui::EndGroup();
     ImGui::PopID();
 }
 
@@ -2490,18 +2502,44 @@ static float PointToAngle(float dx, float dy)
     return hAngle;
 }
 
+static ImVec2 AngleToPoint(float angle, float length)
+{
+    ImVec2 point(0, 0);
+    float hAngle = angle * M_PI / 180.f;
+    if (angle == 0.f)
+        point = ImVec2(length, 0);  // positive x axis
+    else if (angle == 180.f)
+        point = ImVec2(-length, 0); // negative x axis
+    else if (angle == 90.f)
+        point = ImVec2(0, -length); // positive y axis
+    else if (angle == 270.f)
+        point = ImVec2(0, length);  // negative y axis
+    else
+        point = ImVec2(length * cos(hAngle), length * sin(hAngle));
+    return point;
+}
+
 void ImGui::BalanceSelector(char const* label, ImVec2 const size, ImVec4 * rgba, ImVec4 defaultVal, float ui_zoom, int division, float thickness, float colorOffset)
 {
     ImGuiIO &io = ImGui::GetIO();
 	ImGuiID const iID = ImGui::GetID(label);
 	ImGui::PushID(iID);
     auto curPos = ImGui::GetCursorScreenPos();
-    const float ringDiameter = size.x > size.y ? size.x / 2 : size.y / 2;
+    const float ringDiameter = size.x > size.y ? size.x : size.y;
     const float ringRadius = ringDiameter / 2;
-    auto ringPos = curPos + ImVec2((size.x - ringDiameter) / 4, 10);
-    auto center_point = ringPos + ImVec2(ringRadius, ringRadius);
 	ImDrawList* pDrawList = ImGui::GetWindowDrawList();
-    ImGui::InvisibleButton("##ZoneBalanceSlider", ImVec2(size.x, ringDiameter + 20));
+    const float sliderHeight = pDrawList->_Data->FontSize;
+
+    ImGui::BeginGroup();
+    auto str_size = ImGui::CalcTextSize(label);
+    auto text_pos = ImVec2(curPos.x + size.x / 2 - str_size.x / 2, curPos.y);
+    pDrawList->AddText(text_pos, IM_COL32_WHITE, label);
+    auto ringPos = curPos + ImVec2(0, sliderHeight + 5);
+    auto center_point = ringPos + ImVec2(ringRadius, ringRadius);
+    auto ringSize = ImVec2(size.x, ringDiameter + 10);
+    ImGui::SetCursorScreenPos(ringPos);
+    ImGui::InvisibleButton("##ZoneBalanceSlider", ringSize);
+    pDrawList->AddCircle(center_point, ringRadius + 2, IM_COL32_WHITE, 0, 2);
     ImGui::DrawColorRingEx< true >(pDrawList, ringPos, ImVec2(ringDiameter, ringDiameter), thickness,
 		[rgba](float t)
 	{
@@ -2521,31 +2559,67 @@ void ImGui::BalanceSelector(char const* label, ImVec2 const size, ImVec4 * rgba,
             {
                 *rgba = defaultVal;
             }
-            else if (ImGui::IsMouseDown(ImGuiMouseButton_Left))
+            else if (ImGui::IsMouseDragging(ImGuiMouseButton_Left))
             {
-
-            }
-            float angle = PointToAngle(x_offset, y_offset);
-            float length = sqrt(x_offset * x_offset + y_offset * y_offset);
-            float r, g, b;
-		    ImGui::ColorConvertHSVtoRGB(angle / 360.0, length, 1.0f, r, g, b);
-            ImGui::BeginTooltip();
-            ImGui::Text("a=%f", angle);
-            ImGui::Text("l=%f", length);
-            ImGui::Text("r=%f", r);
-            ImGui::Text("g=%f", g);
-            ImGui::Text("b=%f", b);
-            ImGui::EndTooltip();
+                float angle = PointToAngle(x_offset, y_offset);
+                float length = sqrt(x_offset * x_offset + y_offset * y_offset);
+                float r, g, b;
+		        ImGui::ColorConvertHSVtoRGB(angle / 360.0, length, 1.0f, r, g, b);
+                if (std::min(r, std::min(g, b)) == r)
+                { r = -length; g = g + length - 1.f; b = b + length - 1.0f; }
+                if (std::min(r, std::min(g, b)) == g)
+                { g = -length; r = r + length - 1.f; b = b + length - 1.0f; }
+                if (std::min(r, std::min(g, b)) == b)
+                { b = -length; r = r + length - 1.f; g = g + length - 1.0f; }
+                rgba->x = r; rgba->y = g; rgba->z = b;
+            }            
         }
     }
+    {
+        float l, r = rgba->x, g = rgba->y, b = rgba->z;
+        if (std::min(r, std::min(g, b)) == r)
+        { l = -r; r = 1 - l; g = g + 1 - l; b = b + 1 - l; }
+        if (std::min(r, std::min(g, b)) == b)
+        { l = -b; b = 1 - l; g = g + 1 - l; r = r + 1 - l; }
+        if (std::min(r, std::min(g, b)) == g)
+        { l = -g; g = 1 - l; b = b + 1 - l; r = r + 1 - l; }
+        if (rgba->x == 0 && rgba->y == 0 && rgba->z == 0)
+        {
+            r = 1.f; b = 1.f; g = 1.f; l = 0.f;
+        }
+        
+        float angle, length, v;
+        ImGui::ColorConvertRGBtoHSV(r, g, b, angle, length, v);
+        angle = angle * 360;
+        auto point = AngleToPoint(angle, length);
+        point = ImVec2(point.x * ringRadius, -point.y * ringRadius);
+        pDrawList->AddCircle(center_point + point, 3, IM_COL32_BLACK);
+        pDrawList->AddCircle(center_point + point, 2, IM_COL32_WHITE);
+    }
+
+    ImGui::SetCursorScreenPos(ringPos + ImVec2(0, ringSize.y));
+    ImGui::SetWindowFontScale(0.7);
     ImGui::PushItemWidth(size.x / 3);
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-	ImGui::DragFloat("##R", &rgba->x, 0.005f, -1.0f, 1.0f); ImGui::SameLine();
-	ImGui::DragFloat("##G", &rgba->y, 0.005f, -1.0f, 1.0f); ImGui::SameLine();
-    ImGui::DragFloat("##B", &rgba->z, 0.005f, -1.0f, 1.0f);
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(255, 0, 0, 128));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(255, 64, 64, 128));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(255, 128, 128, 128));
+	ImGui::DragFloat("##R##BalanceSelector", &rgba->x, 0.005f, -1.0f, 1.0f, "%.2f"); ImGui::SameLine();
+    ImGui::PopStyleColor(3);
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(0, 255, 0, 128));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(64, 255, 64, 128));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(128, 255, 128, 128));
+	ImGui::DragFloat("##G##BalanceSelector", &rgba->y, 0.005f, -1.0f, 1.0f, "%.2f"); ImGui::SameLine();
+    ImGui::PopStyleColor(3);
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(0, 0, 255, 128));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(64, 64, 255, 128));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(128, 128, 255, 128));
+    ImGui::DragFloat("##B##BalanceSelector", &rgba->z, 0.005f, -1.0f, 1.0f, "%.2f");
+    ImGui::PopStyleColor(3);
     ImGui::PopStyleVar();
     ImGui::PopItemWidth();
-    ImGui::DragFloat("##W", &rgba->w, 0.005f, -1.0f, 1.0f);
+    ImGui::SetWindowFontScale(1.0);
+    ImGui::EndGroup();
     ImGui::PopID();
 }
 

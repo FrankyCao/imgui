@@ -78,7 +78,7 @@ IMGUI_API bool RangeSelect2D(char const* pLabel, float* pCurMinX, float* pCurMin
 IMGUI_API bool RangeSelectVec2(const char* pLabel, ImVec2* pCurMin, ImVec2* pCurMax, ImVec2 const vBoundMin, ImVec2 const vBoundMax, float const fScale /*= 1.0f*/);
 
 // Bezier Widget
-IMGUI_API bool  BezierSelect(const char *label, float P[5]);    // P[4] is curve presets(0 - 24)
+IMGUI_API bool  BezierSelect(const char *label, const ImVec2 size, float P[5]);    // P[4] is curve presets(0 - 24)
 IMGUI_API float BezierValue(float dt01, float P[4], int step = 0);
 
 
