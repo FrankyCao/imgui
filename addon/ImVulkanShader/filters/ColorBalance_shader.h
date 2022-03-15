@@ -114,7 +114,7 @@ sfpvec3 balance(sfpvec3 rgb) \n\
     value.b = get_component(rgb.b, l, sfp(p.blue_shadows),  sfp(p.blue_midtones),   sfp(p.blue_highlights)); \n\
     if (p.preserve_lightness == 1) \n\
         value = preservel(value, l); \n\
-    return value; \n\
+    return clamp(value, sfp(0.f), sfp(1.f)); \n\
 } \n\
 \n\
 void main() \n\
