@@ -254,6 +254,7 @@ IMGUI_API void LumianceSelector(char const* label, ImVec2 const size, float* lum
 IMGUI_API void GammaSelector(char const* label, ImVec2 const size, float* gammaCenter, float defaultVal, float vmin, float vmax, float ui_zoom = 1.0f, int division = 32);
 IMGUI_API void SaturationSelector(char const* label, ImVec2 const size, float* satCenter, float defaultVal, float ui_zoom = 1.0f, int division = 32, float gamma = 1.f, bool rgb_color = false, ImVec4 const color = ImVec4(1, 1, 1, 1));
 IMGUI_API void ContrastSelector(char const* label, ImVec2 const size, float* conCenter, float defaultVal, float ui_zoom = 1.0f, bool rgb_color = false, ImVec4 const color = ImVec4(1, 1, 1, 1));
+IMGUI_API void TemperatureSelector(char const* label, ImVec2 const size, float* tempCenter, float defaultVal, float vmin, float vmax, float ui_zoom = 1.0f, int division = 32);
 IMGUI_API void BalanceSelector(char const* label, ImVec2 const size, ImVec4 * rgba, ImVec4 defaultVal, float ui_zoom = 1.0f, int division = 128, float thickness = 1.0f, float colorOffset = 0);
 
 // https://github.com/CedricGuillemet/imgInspect
