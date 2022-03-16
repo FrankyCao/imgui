@@ -2366,6 +2366,56 @@ void ImGui::LumianceSelector(char const* label, ImVec2 const size, float* lumCen
     ImGui::PopID();
 }
 
+void ImGui::GammaSelector(char const* label, ImVec2 const size, float* gammaCenter, float defaultVal, float vmin, float vmax, float ui_zoom, int division)
+{
+    if (vmax <= vmin)
+        return;
+    float v_range = fabs(vmax - vmin);
+    ImGuiIO &io = ImGui::GetIO();
+	ImGuiID const iID = ImGui::GetID(label);
+	ImGui::PushID(iID);
+    ImVec2 curPos = ImGui::GetCursorScreenPos();
+	ImDrawList* pDrawList = ImGui::GetWindowDrawList();
+    const float arrowWidth = pDrawList->_Data->FontSize;
+    ImRect selectorRect = ImRect(curPos, curPos + size + ImVec2(0, arrowWidth));
+    ImGui::BeginGroup();
+    ImGui::InvisibleButton("##ZoneGammaSlider", selectorRect.GetSize());
+
+	auto GammaFunc = [v_range](float const t) -> ImU32
+	{
+        float gamma = t * v_range;
+        int color = ImPow((1 - t), gamma) * 255;
+		return IM_COL32(color, color, color, 255);
+	};
+	ImGui::DrawColorBandEx< true >(pDrawList, curPos, size, GammaFunc, division, 1.f);
+    
+    if (ImGui::IsItemHovered())
+    {
+        if (ImGui::IsMouseDragging(ImGuiMouseButton_Left))
+        {
+            auto diff = io.MouseDelta.x * 2 * ui_zoom / size.x;
+            *gammaCenter += diff;
+            *gammaCenter = ImClamp(*gammaCenter, vmin, vmax);
+        }
+        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+        {
+            *gammaCenter = defaultVal;
+        }
+    }
+    float arrowOffset = curPos.x + (*gammaCenter / v_range) * size.x;
+    ImGui::Dummy(ImVec2(0, arrowWidth / 2));
+    ImGui::RenderArrow(pDrawList, ImVec2(arrowOffset - arrowWidth / 2, curPos.y + size.y), IM_COL32(255,255,0,255), ImGuiDir_Up);
+    std::ostringstream oss;
+    oss << std::fixed << std::setprecision(2) << *gammaCenter;
+    std::string value_str = oss.str();
+    ImVec2 str_size = ImGui::CalcTextSize(value_str.c_str(), nullptr, true);
+    ImGui::PushStyleVar(ImGuiStyleVar_TexGlyphShadowOffset, ImVec2(1, 1));
+    pDrawList->AddText(ImVec2(curPos.x + size.x / 2 - str_size.x * 0.5f, curPos.y + size.y / 2 - arrowWidth / 2), IM_COL32(255,255,0,255), value_str.c_str());
+	ImGui::PopStyleVar();
+    ImGui::EndGroup();
+    ImGui::PopID();
+}
+
 void ImGui::SaturationSelector(char const* label, ImVec2 const size, float* satCenter, float defaultVal, float ui_zoom, int division, float gamma, bool rgb_color, ImVec4 const color)
 {
     ImGuiIO &io = ImGui::GetIO();
