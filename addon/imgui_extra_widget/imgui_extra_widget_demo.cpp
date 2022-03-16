@@ -302,6 +302,16 @@ void ShowExtraWidgetDemoWindow()
         ImGui::ContrastSelector("Contrast Selector", ImVec2(width, height), &contrastCenter, 1.0f, 1.0f, rgb_color);
 
         ImGui::Spacing();
+        static float gammaCenter = 1.0f;
+        ImGui::TextUnformatted("Gma:"); ImGui::SameLine();
+        ImGui::GammaSelector("Gamma Selector", ImVec2(width, height), &gammaCenter, 1.0f, 0.f, 4.f, 1.0f);
+
+        ImGui::Spacing();
+        static float temperatureCenter = 5000.0f;
+        ImGui::TextUnformatted("Tmp:"); ImGui::SameLine();
+        ImGui::TemperatureSelector("TemperatureSelector Selector", ImVec2(width, height), &temperatureCenter, 5000.0f, 2000.f, 8000.f, 1.0f);
+
+        ImGui::Spacing();
         static ImVec4 rgba = ImVec4(0.0, 0.0, 0.0, 0.0);
         ImGui::BalanceSelector("Balance Selector", ImVec2(width / 2, height), &rgba, ImVec4(0, 0, 0, 0), 1.0f);
 
