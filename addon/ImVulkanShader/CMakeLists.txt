@@ -152,6 +152,7 @@ set(VKSHADER_SRCS
     filters/DeBand_vulkan.cpp
     filters/DeInterlace_vulkan.cpp
     filters/Histogram_vulkan.cpp
+    filters/Waveform_vulkan.cpp
 )
 set(VKSHADER_INCS
     ${VKSHADER_INCS}
@@ -222,6 +223,8 @@ set(VKSHADER_INCS
     filters/DeInterlace_vulkan.h
     filters/Histogram_shader.h
     filters/Histogram_vulkan.h
+    filters/Waveform_shader.h
+    filters/Waveform_vulkan.h
 )
 set(VKSHADER_SRCS
     ${VKSHADER_SRCS}
