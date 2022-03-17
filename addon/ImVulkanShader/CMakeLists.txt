@@ -151,6 +151,7 @@ set(VKSHADER_SRCS
     filters/HQDN3D_vulkan.cpp
     filters/DeBand_vulkan.cpp
     filters/DeInterlace_vulkan.cpp
+    filters/CIE_vulkan.cpp
     filters/Histogram_vulkan.cpp
     filters/Waveform_vulkan.cpp
 )
@@ -221,6 +222,8 @@ set(VKSHADER_INCS
     filters/DeBand_vulkan.h
     filters/DeInterlace_shader.h
     filters/DeInterlace_vulkan.h
+    filters/CIE_shader.h
+    filters/CIE_vulkan.h
     filters/Histogram_shader.h
     filters/Histogram_vulkan.h
     filters/Waveform_shader.h
@@ -267,7 +270,7 @@ add_library(
 
 set(VKSHADER_VERSION_MAJOR 1)
 set(VKSHADER_VERSION_MINOR 1)
-set(VKSHADER_VERSION_PATCH 0)
+set(VKSHADER_VERSION_PATCH 3)
 set(VKSHADER_VERSION_STRING ${VKSHADER_VERSION_MAJOR}.${VKSHADER_VERSION_MINOR}.${VKSHADER_VERSION_PATCH})
 
 if(NOT VKSHADER_STATIC)
