@@ -1143,7 +1143,7 @@ void CIE_vulkan::upload_param(const ImGui::VkMat& src, ImGui::VkMat& dst, float 
     else if (src.type == IM_DT_FLOAT32)  bindings[3] = src;
     bindings[4] = buffer;
     bindings[5] = xyz_matrix_gpu;
-    std::vector<ImGui::vk_constant_type> constants(10);
+    std::vector<ImGui::vk_constant_type> constants(9);
     constants[0].i = src.w;
     constants[1].i = src.h;
     constants[2].i = src.c;
@@ -1153,7 +1153,6 @@ void CIE_vulkan::upload_param(const ImGui::VkMat& src, ImGui::VkMat& dst, float 
     constants[6].i = buffer.h;
     constants[7].i = 1;
     constants[8].i = cie;
-    constants[9].f = intensity;
     cmd->record_pipeline(pipe, bindings, constants, buffer);
 
     std::vector<ImGui::VkMat> bindings_merge(9);
@@ -1168,7 +1167,7 @@ void CIE_vulkan::upload_param(const ImGui::VkMat& src, ImGui::VkMat& dst, float 
     else if (backgroud_gpu.type == IM_DT_FLOAT32)  bindings_merge[7] = backgroud_gpu;
 
     bindings_merge[8] = buffer;
-    std::vector<ImGui::vk_constant_type> constants_merge(11);
+    std::vector<ImGui::vk_constant_type> constants_merge(12);
     constants_merge[0].i = backgroud_gpu.w;
     constants_merge[1].i = backgroud_gpu.h;
     constants_merge[2].i = backgroud_gpu.c;
@@ -1180,6 +1179,7 @@ void CIE_vulkan::upload_param(const ImGui::VkMat& src, ImGui::VkMat& dst, float 
     constants_merge[8].i = dst.color_format;
     constants_merge[9].i = dst.type;
     constants_merge[10].i = show_color ? 1 : 0;
+    constants_merge[11].f = intensity;
     cmd->record_pipeline(pipe_merge, bindings_merge, constants_merge, dst);
 }
 

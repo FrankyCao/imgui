@@ -16,7 +16,6 @@ layout (push_constant) uniform parameter \n\
     int outcstep; \n\
 \n\
     int cie; \n\
-    float intensity; \n\
 \n\
 } p; \
 "
@@ -78,8 +77,10 @@ void cie(int x, int y) \n\
     ixy.y = (p.outh - 1) - int(((p.outh - 1) * fxy.y)); \n\
     if (ixy.x >= 0 && ixy.x < p.outw && ixy.y >= 0 && ixy.y < p.outh) \n\
     { \n\
+        memoryBarrierBuffer(); \n\
         int offset = ixy.y * p.outw + ixy.x; \n\
-        atomicAdd(alpha_blob_data[offset], int(p.intensity * 255)); \n\
+        atomicAdd(alpha_blob_data[offset], 1); \n\
+        memoryBarrierBuffer(); \n\
     } \n\
 } \
 "
@@ -128,6 +129,7 @@ layout (push_constant) uniform parameter \n\
     int out_type; \n\
     \n\
     int show_color; \n\
+    float intensity; \n\
 } p; \
 "
 
@@ -137,12 +139,13 @@ void merge(int x, int y) \n\
 { \n\
     sfpvec4 rgba = load_rgba(x, y, p.w, p.cstep, p.in_format, p.in_type); \n\
     int offset = y * p.w + x; \n\
-    int alpha = alpha_blob_data[offset]; \n\
+    int alpha = int(alpha_blob_data[offset] * p.intensity); \n\
     if (p.show_color == 1) \n\
     { \n\
         if (alpha > 0) \n\
         { \n\
-            rgba *= sfp(1.f - clamp(alpha / 255.f, 0.f, 1.f)); \n\
+            //rgba.r = rgba.b = rgba.g = sfp(1.f - clamp(alpha / 255.f, 0.f, 1.f)); \n\
+            rgba.r = rgba.b = rgba.g = sfp(clamp(alpha / 255.f, 0.f, 1.f)); \n\
             rgba.a = sfp(1.f); \n\
             store_rgba(rgba, x, y, p.out_w, p.out_cstep, p.out_format, p.out_type); \n\
         } else { \n\
