@@ -1128,12 +1128,9 @@ void CIE_vulkan::upload_param(const ImGui::VkMat& src, ImGui::VkMat& dst, float 
 {
     std::vector<ImGui::VkMat> bindings_set(1);
     bindings_set[0] = buffer;
-    std::vector<ImGui::vk_constant_type> constants_set(5);
+    std::vector<ImGui::vk_constant_type> constants_set(2);
     constants_set[0].i = buffer.w;
     constants_set[1].i = buffer.h;
-    constants_set[2].i = 1;
-    constants_set[3].i = buffer.color_format;
-    constants_set[4].i = show_color ? 1 : 0;
     cmd->record_pipeline(pipe_set, bindings_set, constants_set, buffer);
 
     std::vector<ImGui::VkMat> bindings(6);

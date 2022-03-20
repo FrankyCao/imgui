@@ -103,7 +103,7 @@ SHADER_HEADER
 SHADER_PARAM
 SHADER_SRC_DATA
 R"(
-layout (binding = 4) buffer alpha_blob { int alpha_blob_data[]; };
+layout (binding = 4) restrict buffer alpha_blob { int alpha_blob_data[]; };
 layout (binding = 5) readonly buffer matrix_r2x { float convert_matrix_r2x[]; };
 )"
 SHADER_LOAD_RGBA
@@ -206,10 +206,6 @@ layout (push_constant) uniform parameter \n\
 { \n\
     int w; \n\
     int h; \n\
-    int cstep; \n\
-    \n\
-    int format; \n\
-    int show_color; \n\
 } p; \
 "
 

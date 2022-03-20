@@ -2586,9 +2586,9 @@ static float PointToAngle(float dx, float dy)
     else if (dy == 0 && dx < 0)
         hAngle = 180.f;         // negative x axis
     else if (dx == 0 && dy < 0)
-        hAngle = 90.f;          // positive y axis
-    else if (dx == 0 && dy > 0)
         hAngle = 270.f;         // negative y axis
+    else if (dx == 0 && dy > 0)
+        hAngle = 90.f;          // positive y axis
     else if (dx > 0 && dy > 0)
         hAngle = 90.f - atan2(dx, dy) * 180.f / M_PI;   // first quadrant
     else if (dx < 0 && dy > 0)
@@ -2609,9 +2609,9 @@ static ImVec2 AngleToPoint(float angle, float length)
     else if (angle == 180.f)
         point = ImVec2(-length, 0); // negative x axis
     else if (angle == 90.f)
-        point = ImVec2(0, -length); // positive y axis
+        point = ImVec2(0, length); // positive y axis
     else if (angle == 270.f)
-        point = ImVec2(0, length);  // negative y axis
+        point = ImVec2(0, -length);  // negative y axis
     else
         point = ImVec2(length * cos(hAngle), length * sin(hAngle));
     return point;

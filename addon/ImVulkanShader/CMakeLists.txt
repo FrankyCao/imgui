@@ -154,6 +154,7 @@ set(VKSHADER_SRCS
     filters/CIE_vulkan.cpp
     filters/Histogram_vulkan.cpp
     filters/Waveform_vulkan.cpp
+    filters/Vector_vulkan.cpp
 )
 set(VKSHADER_INCS
     ${VKSHADER_INCS}
@@ -228,6 +229,8 @@ set(VKSHADER_INCS
     filters/Histogram_vulkan.h
     filters/Waveform_shader.h
     filters/Waveform_vulkan.h
+    filters/Vector_shader.h
+    filters/Vector_vulkan.h
 )
 set(VKSHADER_SRCS
     ${VKSHADER_SRCS}
