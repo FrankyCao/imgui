@@ -703,6 +703,35 @@ static inline void monochrome_color_location(double waveLength, int w, int h,
     }
 }
 
+static inline void color_location(double px, double py, float w, float h, int cie, float *xP, float *yP)
+{
+    if (cie == LUV) 
+    {
+        double up, vp;
+
+        xy_to_upvp(px, py, &up, &vp);
+        *xP = up * (w - 1);
+        *yP = (h - 1) - vp * (h - 1);
+    } 
+    else if (cie == UCS) 
+    {
+        double u, v;
+
+        xy_to_uv(px, py, &u, &v);
+        *xP = u * (w - 1);
+        *yP = (h - 1) - v * (h - 1);
+    } 
+    else if (cie == XYY) 
+    {
+        *xP = px * (w - 1);
+        *yP = (h - 1) - py * (h - 1);
+    } 
+    else 
+    {
+        assert(0);
+    }
+}
+
 static inline void draw_line(uint8_t *const pixels, int linesize,
                             int x0, int y0, int x1, int y1,
                             int w, int h,
@@ -1072,6 +1101,34 @@ CIE_vulkan::~CIE_vulkan()
         if (opt.blob_vkallocator) { vkdev->reclaim_blob_allocator(opt.blob_vkallocator); opt.blob_vkallocator = nullptr; }
         if (opt.staging_vkallocator) { vkdev->reclaim_staging_allocator(opt.staging_vkallocator); opt.staging_vkallocator = nullptr; }
     }
+}
+
+void CIE_vulkan::GetWhitePoint(ColorsSystems cs, float w, float h, float* x, float* y)
+{
+    double px = color_systems[cs].xWhite;
+    double py = color_systems[cs].yWhite; 
+    color_location(px, py, w, h, cie, x, y);
+}
+
+void CIE_vulkan::GetRedPoint(ColorsSystems cs, float w, float h, float* x, float* y)
+{
+    double px = color_systems[cs].xRed;
+    double py = color_systems[cs].xRed; 
+    color_location(px, py, w, h, cie, x, y);
+}
+
+void CIE_vulkan::GetBluePoint(ColorsSystems cs, float w, float h, float* x, float* y)
+{
+    double px = color_systems[cs].xBlue;
+    double py = color_systems[cs].yBlue; 
+    color_location(px, py, w, h, cie, x, y);
+}
+
+void CIE_vulkan::GetGreenPoint(ColorsSystems cs, float w, float h, float* x, float* y)
+{
+    double px = color_systems[cs].xGreen;
+    double py = color_systems[cs].yGreen; 
+    color_location(px, py, w, h, cie, x, y);
 }
 
 void CIE_vulkan::SetParam(int _color_system, int _cie, int _size, int _gamuts, float _contrast, bool _correct_gamma)

@@ -38,6 +38,12 @@ public:
 
     void scope(const ImGui::ImMat& src, ImGui::ImMat& dst, float intensity = 0.01, bool show_color = true);
 
+public:
+    void GetWhitePoint(ColorsSystems cs, float w, float h, float* x, float* y);
+    void GetRedPoint(ColorsSystems cs, float w, float h, float* x, float* y);
+    void GetBluePoint(ColorsSystems cs, float w, float h, float* x, float* y);
+    void GetGreenPoint(ColorsSystems cs, float w, float h, float* x, float* y);
+
 private:
     ImGui::VulkanDevice* vkdev      {nullptr};
     ImGui::Option opt;
