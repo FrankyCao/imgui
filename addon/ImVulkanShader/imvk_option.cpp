@@ -21,6 +21,10 @@ Option::Option()
     use_int8_storage = false;
     use_int8_arithmetic = false;
 
+    use_packing_layout = false;
+
+    use_shader_pack8 = false;
+
     use_subgroup_basic = false;
     use_subgroup_vote = false;
     use_subgroup_ballot = false;
@@ -29,8 +33,11 @@ Option::Option()
     use_image_storage = false;
     use_tensor_storage = false;
 
-    use_packing_layout = false;
-    use_shader_pack8 = false;
+    use_reserved_0 = false;
+
+    use_local_pool_allocator = true;
+
+    use_shader_local_memory = true;
 }
 
 } // namespace ImGui

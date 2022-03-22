@@ -3184,6 +3184,7 @@ int compile_spirv_module(const char* comp_data, int comp_data_size, const Option
         if (opt.use_fp16_arithmetic)
         {
             custom_defines.push_back(std::make_pair("sfpvec8", "f16mat2x4"));
+            custom_defines.push_back(std::make_pair("sfpmat2", "f16mat2"));
             custom_defines.push_back(std::make_pair("sfpmat3", "f16mat3"));
             custom_defines.push_back(std::make_pair("sfpmat4", "f16mat4"));
         }
@@ -3204,6 +3205,7 @@ int compile_spirv_module(const char* comp_data, int comp_data_size, const Option
         custom_defines.push_back(std::make_pair("sfpvec3", "vec3"));
         custom_defines.push_back(std::make_pair("sfpvec4", "vec4"));
         custom_defines.push_back(std::make_pair("sfpvec8", "mat2x4"));
+        custom_defines.push_back(std::make_pair("sfpmat2", "mat2"));
         custom_defines.push_back(std::make_pair("sfpmat3", "mat3"));
         custom_defines.push_back(std::make_pair("sfpmat4", "mat4"));
     }
@@ -3215,6 +3217,7 @@ int compile_spirv_module(const char* comp_data, int comp_data_size, const Option
         custom_defines.push_back(std::make_pair("afpvec3", "f16vec3"));
         custom_defines.push_back(std::make_pair("afpvec4", "f16vec4"));
         custom_defines.push_back(std::make_pair("afpvec8", "f16mat2x4"));
+        custom_defines.push_back(std::make_pair("afpmat2", "f16mat2"));
         custom_defines.push_back(std::make_pair("afpmat3", "f16mat3"));
         custom_defines.push_back(std::make_pair("afpmat4", "f16mat4"));
     }
@@ -3225,8 +3228,66 @@ int compile_spirv_module(const char* comp_data, int comp_data_size, const Option
         custom_defines.push_back(std::make_pair("afpvec3", "vec3"));
         custom_defines.push_back(std::make_pair("afpvec4", "vec4"));
         custom_defines.push_back(std::make_pair("afpvec8", "mat2x4"));
+        custom_defines.push_back(std::make_pair("afpmat2", "mat2"));
         custom_defines.push_back(std::make_pair("afpmat3", "mat3"));
         custom_defines.push_back(std::make_pair("afpmat4", "mat4"));
+    }
+
+    if (opt.use_fp16_arithmetic)
+    {
+        custom_defines.push_back(std::make_pair("lfp", "float16_t"));
+        custom_defines.push_back(std::make_pair("lfpvec4", "f16vec4"));
+    }
+    else if (opt.use_fp16_storage || opt.use_fp16_packed)
+    {
+        custom_defines.push_back(std::make_pair("lfp", "float"));
+        custom_defines.push_back(std::make_pair("lfpvec4", "uvec2"));
+    }
+    else
+    {
+        custom_defines.push_back(std::make_pair("lfp", "float"));
+        custom_defines.push_back(std::make_pair("lfpvec4", "vec4"));
+    }
+
+    if (opt.use_fp16_storage && opt.use_fp16_arithmetic)
+    {
+        custom_defines.push_back(std::make_pair("sfp2lfp(v)", "v"));
+        custom_defines.push_back(std::make_pair("sfp2lfpvec4(v)", "v"));
+
+        custom_defines.push_back(std::make_pair("lfp2afp(v)", "v"));
+        custom_defines.push_back(std::make_pair("lfp2afpvec4(v)", "v"));
+    }
+    else if (opt.use_fp16_packed && opt.use_fp16_arithmetic)
+    {
+        custom_defines.push_back(std::make_pair("sfp2lfp(v)", "v"));
+        custom_defines.push_back(std::make_pair("sfp2lfpvec4(v)", "v"));
+
+        custom_defines.push_back(std::make_pair("lfp2afp(v)", "float16_t(v)"));
+        custom_defines.push_back(std::make_pair("lfp2afpvec4(v)", "f16vec4(vec4(unpackHalf2x16(v.x),unpackHalf2x16(v.y)))"));
+    }
+    else if (opt.use_fp16_storage)
+    {
+        custom_defines.push_back(std::make_pair("sfp2lfp(v)", "float(v)"));
+        custom_defines.push_back(std::make_pair("sfp2lfpvec4(v)", "uvec2(packHalf2x16(vec4(v).rg),packHalf2x16(vec4(v).ba))"));
+
+        custom_defines.push_back(std::make_pair("lfp2afp(v)", "v"));
+        custom_defines.push_back(std::make_pair("lfp2afpvec4(v)", "vec4(unpackHalf2x16(v.x),unpackHalf2x16(v.y))"));
+    }
+    else if (opt.use_fp16_packed)
+    {
+        custom_defines.push_back(std::make_pair("sfp2lfp(v)", "v"));
+        custom_defines.push_back(std::make_pair("sfp2lfpvec4(v)", "v"));
+
+        custom_defines.push_back(std::make_pair("lfp2afp(v)", "v"));
+        custom_defines.push_back(std::make_pair("lfp2afpvec4(v)", "vec4(unpackHalf2x16(v.x),unpackHalf2x16(v.y))"));
+    }
+    else
+    {
+        custom_defines.push_back(std::make_pair("sfp2lfp(v)", "v"));
+        custom_defines.push_back(std::make_pair("sfp2lfpvec4(v)", "v"));
+
+        custom_defines.push_back(std::make_pair("lfp2afp(v)", "v"));
+        custom_defines.push_back(std::make_pair("lfp2afpvec4(v)", "v"));
     }
 
     if (opt.use_fp16_storage && opt.use_fp16_arithmetic)
@@ -3563,6 +3624,11 @@ int compile_spirv_module(const char* comp_data, int comp_data_size, const Option
         {
             custom_defines.push_back(std::make_pair("ImVulkan_subgroup_shuffle", "1"));
         }
+    }
+
+    if (opt.use_shader_local_memory)
+    {
+        custom_defines.push_back(std::make_pair("ImVulkan_shader_local_memory", "1"));
     }
 
     std::string preamble;

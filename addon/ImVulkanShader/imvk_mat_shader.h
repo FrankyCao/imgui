@@ -169,8 +169,9 @@ void main()
 #define DT_FLOAT32      5 \n\
 #define DT_FLOAT64      6 \n\
 #define M_PI sfp(3.141592653589793) \n\
+#define M_SQRT1_2 sfp(0.707106781186547524401) \n\
 \
-" // 44 lines
+" // 45 lines
 
 // shader binding for command data
 #define SHADER_SRC_DATA \
