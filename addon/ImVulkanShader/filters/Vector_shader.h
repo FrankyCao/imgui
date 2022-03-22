@@ -91,38 +91,6 @@ SHADER_RGBA_TO_HSL
 SHADER_MAIN
 ;
 
-// set shader
-#define SHADER_SET_PARAM \
-" \n\
-layout (push_constant) uniform parameter \n\
-{ \n\
-    int w; \n\
-    int h; \n\
-} p; \
-"
-
-#define SHADER_SET_MAIN \
-" \n\
-void main() \n\
-{ \n\
-    int gx = int(gl_GlobalInvocationID.x); \n\
-    int gy = int(gl_GlobalInvocationID.y); \n\
-    if (gx >= p.w || gy >= p.h) \n\
-        return; \n\
-    int offset = gy * p.w + gx; \n\
-    alpha_blob_data[offset] = 0; \n\
-} \
-"
-
-static const char Vector_set_data[] = 
-SHADER_HEADER
-R"(
-layout (binding = 0) writeonly buffer alpha_blob { int alpha_blob_data[]; };
-)"
-SHADER_SET_PARAM
-SHADER_SET_MAIN
-;
-
 // merge shader
 #define SHADER_MERGE_PARAM \
 " \n\

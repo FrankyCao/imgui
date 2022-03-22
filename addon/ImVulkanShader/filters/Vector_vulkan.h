@@ -17,12 +17,10 @@ private:
     ImGui::Option opt;
     ImGui::VkCompute * cmd          {nullptr};
     ImGui::Pipeline* pipe           {nullptr};
-    ImGui::Pipeline* pipe_set       {nullptr};
     ImGui::Pipeline* pipe_merge     {nullptr};
 
 private:
     int size {512};
-    ImGui::VkMat buffer;
 
 private:
     void upload_param(const ImGui::VkMat& src, ImGui::VkMat& dst, float intensity);
