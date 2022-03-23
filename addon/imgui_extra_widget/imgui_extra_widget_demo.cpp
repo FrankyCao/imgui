@@ -149,19 +149,19 @@ void ShowExtraWidgetDemoWindow()
 		ImGui::DragInt("Division", &division, 1, 1, 128);
 
 		ImGui::Text("HueBand");
-		ImGui::DrawHueBand(ImGui::GetWindowDrawList(), ImGui::GetCursorScreenPos(), ImVec2(width, height), division, col, col[3], gamma);
+		ImGui::DrawHueBand(ImGui::GetCursorScreenPos(), ImVec2(width, height), division, col, col[3], gamma);
 		ImGui::InvisibleButton("##Zone", ImVec2(width, height), 0);
 
 		ImGui::Text("LuminanceBand");
-		ImGui::DrawLumianceBand(ImGui::GetWindowDrawList(), ImGui::GetCursorScreenPos(), ImVec2(width, height), division, ImVec4(col[0], col[1], col[2], col[3]), gamma);
+		ImGui::DrawLumianceBand(ImGui::GetCursorScreenPos(), ImVec2(width, height), division, ImVec4(col[0], col[1], col[2], col[3]), gamma);
 		ImGui::InvisibleButton("##Zone", ImVec2(width, height), 0);
 
 		ImGui::Text("SaturationBand");
-		ImGui::DrawSaturationBand(ImGui::GetWindowDrawList(), ImGui::GetCursorScreenPos(), ImVec2(width, height), division, ImVec4(col[0], col[1], col[2], col[3]), gamma);
+		ImGui::DrawSaturationBand(ImGui::GetCursorScreenPos(), ImVec2(width, height), division, ImVec4(col[0], col[1], col[2], col[3]), gamma);
 		ImGui::InvisibleButton("##Zone", ImVec2(width, height), 0);
 
         ImGui::Text("ContrastBand");
-		ImGui::DrawContrastBand(ImGui::GetWindowDrawList(), ImGui::GetCursorScreenPos(), ImVec2(width, height), ImVec4(col[0], col[1], col[2], col[3]));
+		ImGui::DrawContrastBand(ImGui::GetCursorScreenPos(), ImVec2(width, height), ImVec4(col[0], col[1], col[2], col[3]));
 		ImGui::InvisibleButton("##Zone", ImVec2(width, height), 0);
 
 		ImGui::Separator();
@@ -341,6 +341,10 @@ void ShowExtraWidgetDemoWindow()
         ImGui::BezierSelect("##easeInExpo", ImVec2(200, 200), v);
         ImGui::TreePop();
     }
+    //if (ImGui::TreeNode("Custom Draw"))
+    //{
+    //    ImGui::TreePop();
+    //}
     if (ImGui::TreeNode("Splitter windows"))
     {
         float h = 200;

@@ -2099,8 +2099,9 @@ bool ImGui::BezierSelect(const char *label, const ImVec2 size, float P[5])
 }
 
 // Color bar and ring
-void ImGui::DrawHueBand(ImDrawList* pDrawList, ImVec2 const vpos, ImVec2 const size, int division, float alpha, float gamma, float offset)
+void ImGui::DrawHueBand(ImVec2 const vpos, ImVec2 const size, int division, float alpha, float gamma, float offset)
 {
+    ImDrawList* pDrawList = ImGui::GetWindowDrawList();
 	auto HueFunc = [alpha, offset](float const tt) -> ImU32
 	{
 		float t;
@@ -2119,17 +2120,18 @@ void ImGui::DrawHueBand(ImDrawList* pDrawList, ImVec2 const vpos, ImVec2 const s
 	ImGui::DrawColorBandEx< true >(pDrawList, vpos, size, HueFunc, division, gamma);
 }
 
-void ImGui::DrawHueBand(ImDrawList* pDrawList, ImVec2 const vpos, ImVec2 const size, int division, float colorStartRGB[3], float alpha, float gamma)
+void ImGui::DrawHueBand(ImVec2 const vpos, ImVec2 const size, int division, float colorStartRGB[3], float alpha, float gamma)
 {
 	float h, s, v;
 	ImGui::ColorConvertRGBtoHSV(colorStartRGB[0], colorStartRGB[1], colorStartRGB[2], h, s, v);
-	ImGui::DrawHueBand(pDrawList, vpos, size, division, alpha, gamma, h);
+	ImGui::DrawHueBand(vpos, size, division, alpha, gamma, h);
 }
 
-void ImGui::DrawLumianceBand(ImDrawList* pDrawList, ImVec2 const vpos, ImVec2 const size, int division, ImVec4 const& color, float gamma)
+void ImGui::DrawLumianceBand(ImVec2 const vpos, ImVec2 const size, int division, ImVec4 const& color, float gamma)
 {
 	float h, s, v;
 	ImGui::ColorConvertRGBtoHSV(color.x, color.y, color.z, h, s, v);
+    ImDrawList* pDrawList = ImGui::GetWindowDrawList();
 	auto LumianceFunc = [h, s, v](float const t) -> ImU32
 	{
 		float r, g, b;
@@ -2142,10 +2144,11 @@ void ImGui::DrawLumianceBand(ImDrawList* pDrawList, ImVec2 const vpos, ImVec2 co
 	ImGui::DrawColorBandEx< true >(pDrawList, vpos, size, LumianceFunc, division, gamma);
 }
 
-void ImGui::DrawSaturationBand(ImDrawList* pDrawList, ImVec2 const vpos, ImVec2 const size, int division, ImVec4 const& color, float gamma)
+void ImGui::DrawSaturationBand(ImVec2 const vpos, ImVec2 const size, int division, ImVec4 const& color, float gamma)
 {
 	float h, s, v;
 	ImGui::ColorConvertRGBtoHSV(color.x, color.y, color.z, h, s, v);
+    ImDrawList* pDrawList = ImGui::GetWindowDrawList();
 	auto SaturationFunc = [h, s, v](float const t) -> ImU32
 	{
 		float r, g, b;
@@ -2158,8 +2161,9 @@ void ImGui::DrawSaturationBand(ImDrawList* pDrawList, ImVec2 const vpos, ImVec2 
 	ImGui::DrawColorBandEx< true >(pDrawList, vpos, size, SaturationFunc, division, gamma);
 }
 
-void ImGui::DrawContrastBand(ImDrawList* pDrawList, ImVec2 const vpos, ImVec2 const size, ImVec4 const& color)
+void ImGui::DrawContrastBand(ImVec2 const vpos, ImVec2 const size, ImVec4 const& color)
 {
+    ImDrawList* pDrawList = ImGui::GetWindowDrawList();
     ImGui::DrawColorBandEx< true >(pDrawList, vpos, size,
 	[size, color](float t)
 	{
@@ -2225,7 +2229,7 @@ static void HueSelectorEx(char const* label, ImVec2 const size, float* hueCenter
     ImRect selectorRect = ImRect(curPos, curPos + size + ImVec2(0, arrowWidth));
     ImGui::BeginGroup();
     ImGui::InvisibleButton("##ZoneHueLineSlider", selectorRect.GetSize());
-	ImGui::DrawHueBand(pDrawList, curPos, size, division, alpha, 1.0f, offset);
+	ImGui::DrawHueBand(curPos, size, division, alpha, 1.0f, offset);
 	float center = ImClamp(ImFmod(*hueCenter + offset, 1.0f), 0.0f, 1.0f - 1e-4f);
 	float width = ImClamp(*hueWidth, 0.0f, 0.5f - 1e-4f);
 	float featherL = ImClamp(*featherLeft, 0.0f, 0.5f - 1e-4f);
@@ -2325,7 +2329,7 @@ void ImGui::LumianceSelector(char const* label, ImVec2 const size, float* lumCen
     ImGui::InvisibleButton("##ZoneLumianceSlider", selectorRect.GetSize());
     if (!rgb_color)
     {
-        ImGui::DrawLumianceBand(pDrawList, curPos, size, division, color, gamma);
+        ImGui::DrawLumianceBand(curPos, size, division, color, gamma);
     }
     else
     {
@@ -2334,10 +2338,10 @@ void ImGui::LumianceSelector(char const* label, ImVec2 const size, float* lumCen
         ImVec2 g_pos = ImVec2(curPos.x, curPos.y + size.y / 4);
         ImVec2 b_pos = ImVec2(curPos.x, curPos.y + size.y * 2 / 4);
         ImVec2 w_pos = ImVec2(curPos.x, curPos.y + size.y * 3 / 4);
-        ImGui::DrawLumianceBand(pDrawList, r_pos, bar_size, division, ImVec4(1, 0, 0, 1), gamma);
-        ImGui::DrawLumianceBand(pDrawList, g_pos, bar_size, division, ImVec4(0, 1, 0, 1), gamma);
-        ImGui::DrawLumianceBand(pDrawList, b_pos, bar_size, division, ImVec4(0, 0, 1, 1), gamma);
-        ImGui::DrawLumianceBand(pDrawList, w_pos, bar_size, division, ImVec4(1, 1, 1, 1), gamma);
+        ImGui::DrawLumianceBand(r_pos, bar_size, division, ImVec4(1, 0, 0, 1), gamma);
+        ImGui::DrawLumianceBand(g_pos, bar_size, division, ImVec4(0, 1, 0, 1), gamma);
+        ImGui::DrawLumianceBand(b_pos, bar_size, division, ImVec4(0, 0, 1, 1), gamma);
+        ImGui::DrawLumianceBand(w_pos, bar_size, division, ImVec4(1, 1, 1, 1), gamma);
     }
     if (ImGui::IsItemHovered())
     {
@@ -2477,7 +2481,7 @@ void ImGui::SaturationSelector(char const* label, ImVec2 const size, float* satC
     ImGui::InvisibleButton("##ZoneSaturationSlider", selectorRect.GetSize());
     if (!rgb_color)
     {
-        ImGui::DrawSaturationBand(pDrawList, curPos, size, division, color, gamma);
+        ImGui::DrawSaturationBand(curPos, size, division, color, gamma);
     }
     else
     {
@@ -2486,10 +2490,10 @@ void ImGui::SaturationSelector(char const* label, ImVec2 const size, float* satC
         ImVec2 g_pos = ImVec2(curPos.x, curPos.y + size.y / 4);
         ImVec2 b_pos = ImVec2(curPos.x, curPos.y + size.y * 2 / 4);
         ImVec2 w_pos = ImVec2(curPos.x, curPos.y + size.y * 3 / 4);
-        ImGui::DrawSaturationBand(pDrawList, r_pos, bar_size, division, ImVec4(1, 0, 0, 1), gamma);
-        ImGui::DrawSaturationBand(pDrawList, g_pos, bar_size, division, ImVec4(0, 1, 0, 1), gamma);
-        ImGui::DrawSaturationBand(pDrawList, b_pos, bar_size, division, ImVec4(0, 0, 1, 1), gamma);
-        ImGui::DrawSaturationBand(pDrawList, w_pos, bar_size, division, ImVec4(1, 1, 1, 1), gamma);
+        ImGui::DrawSaturationBand(r_pos, bar_size, division, ImVec4(1, 0, 0, 1), gamma);
+        ImGui::DrawSaturationBand(g_pos, bar_size, division, ImVec4(0, 1, 0, 1), gamma);
+        ImGui::DrawSaturationBand(b_pos, bar_size, division, ImVec4(0, 0, 1, 1), gamma);
+        ImGui::DrawSaturationBand(w_pos, bar_size, division, ImVec4(1, 1, 1, 1), gamma);
     }
     if (ImGui::IsItemHovered())
     {
@@ -2531,7 +2535,7 @@ void ImGui::ContrastSelector(char const* label, ImVec2 const size, float* conCen
     ImGui::InvisibleButton("##ZoneContrastSlider", selectorRect.GetSize());
     if (!rgb_color)
     {
-        ImGui::DrawContrastBand(pDrawList, curPos, size, color);
+        ImGui::DrawContrastBand(curPos, size, color);
     }
     else
     {
@@ -2540,10 +2544,10 @@ void ImGui::ContrastSelector(char const* label, ImVec2 const size, float* conCen
         ImVec2 g_pos = ImVec2(curPos.x, curPos.y + size.y / 4);
         ImVec2 b_pos = ImVec2(curPos.x, curPos.y + size.y * 2 / 4);
         ImVec2 w_pos = ImVec2(curPos.x, curPos.y + size.y * 3 / 4);
-        ImGui::DrawContrastBand(pDrawList, r_pos, bar_size, ImVec4(1, 0, 0, 1));
-        ImGui::DrawContrastBand(pDrawList, g_pos, bar_size, ImVec4(0, 1, 0, 1));
-        ImGui::DrawContrastBand(pDrawList, b_pos, bar_size, ImVec4(0, 0, 1, 1));
-        ImGui::DrawContrastBand(pDrawList, w_pos, bar_size, ImVec4(1, 1, 1, 1));
+        ImGui::DrawContrastBand(r_pos, bar_size, ImVec4(1, 0, 0, 1));
+        ImGui::DrawContrastBand(g_pos, bar_size, ImVec4(0, 1, 0, 1));
+        ImGui::DrawContrastBand(b_pos, bar_size, ImVec4(0, 0, 1, 1));
+        ImGui::DrawContrastBand(w_pos, bar_size, ImVec4(1, 1, 1, 1));
     }
     if (ImGui::IsItemHovered())
     {
@@ -2793,6 +2797,7 @@ inline void drawNormal(ImDrawList* draw_list, const ImRect& rc, float x, float y
     draw_list->AddCircle(rc.GetCenter(), rc.GetWidth() / 4.f, 0x20AAAAAA, 24, 1.f);
     draw_list->AddLine(rc.GetCenter(), rc.GetCenter() + ImVec2(x, y) * rc.GetWidth() / 2.f, 0xFF0000FF, 2.f);
 }
+
 void ImGui::ImageInspect(const int width,
                         const int height,
                         const unsigned char* const bits,
@@ -2883,4 +2888,737 @@ void ImGui::ImageInspect(const int width,
         histogram(zoomSize * 2, zoomSize * 2, (const unsigned char*)zoomData);
     }
     ImGui::EndTooltip();
+}
+
+// Extensions to ImDrawList
+inline static ImU32 GetVerticalGradient(const ImVec4& ct,const ImVec4& cb,float DH,float H)
+{
+    IM_ASSERT(H!=0);
+    const float fa = DH/H;
+    const float fc = (1.f-fa);
+    return ImGui::ColorConvertFloat4ToU32
+    (
+        ImVec4
+        (
+            ct.x * fc + cb.x * fa,
+            ct.y * fc + cb.y * fa,
+            ct.z * fc + cb.z * fa,
+            ct.w * fc + cb.w * fa
+        )
+    );
+}
+
+inline static void GetVerticalGradientTopAndBottomColors(ImU32 c, float fillColorGradientDeltaIn0_05, ImU32& tc, ImU32& bc)
+{
+    if (fillColorGradientDeltaIn0_05 == 0) { tc = bc = c; return; }
+
+    static ImU32 cacheColorIn = 0;
+    static float cacheGradientIn = 0.f;
+    static ImU32 cacheTopColorOut = 0;
+    static ImU32 cacheBottomColorOut = 0;
+    if (cacheColorIn == c && cacheGradientIn == fillColorGradientDeltaIn0_05) { tc = cacheTopColorOut; bc = cacheBottomColorOut; return; }
+    cacheColorIn = c;
+    cacheGradientIn = fillColorGradientDeltaIn0_05;
+    const bool negative = (fillColorGradientDeltaIn0_05 < 0);
+    if (negative) fillColorGradientDeltaIn0_05 = -fillColorGradientDeltaIn0_05;
+    if (fillColorGradientDeltaIn0_05 > 0.5f) fillColorGradientDeltaIn0_05 = 0.5f;
+
+    // New code:
+    //#define IM_COL32(R,G,B,A)    (((ImU32)(A)<<IM_COL32_A_SHIFT) | ((ImU32)(B)<<IM_COL32_B_SHIFT) | ((ImU32)(G)<<IM_COL32_G_SHIFT) | ((ImU32)(R)<<IM_COL32_R_SHIFT))
+    const int fcgi = fillColorGradientDeltaIn0_05 * 255.0f;
+    const int R = (unsigned char) (c >> IM_COL32_R_SHIFT);    // The cast should reset upper bits (as far as I hope)
+    const int G = (unsigned char) (c >> IM_COL32_G_SHIFT);
+    const int B = (unsigned char) (c >> IM_COL32_B_SHIFT);
+    const int A = (unsigned char) (c >> IM_COL32_A_SHIFT);
+
+    int r = R + fcgi, g = G + fcgi, b = B + fcgi;
+    if (r > 255) r = 255;
+    if (g > 255) g = 255;
+    if (b > 255) b = 255;
+    if (negative) bc = IM_COL32(r,g,b,A); else tc = IM_COL32(r,g,b,A);
+
+    r = R - fcgi; g = G - fcgi; b = B - fcgi;
+    if (r < 0) r = 0;
+    if (g < 0) g = 0;
+    if (b < 0) b = 0;
+    if (negative) tc = IM_COL32(r,g,b,A); else bc = IM_COL32(r,g,b,A);
+
+    cacheTopColorOut = tc;
+    cacheBottomColorOut = bc;
+}
+
+void ImGui::ImDrawListAddConvexPolyFilledWithVerticalGradient(ImDrawList *dl, const ImVec2 *points, const int points_count, ImU32 colTop, ImU32 colBot,float miny,float maxy)
+{
+    if (!dl) return;
+    if (colTop == colBot)  
+    {
+        dl->AddConvexPolyFilled(points, points_count, colTop);
+        return;
+    }
+    const ImVec2 uv = GImGui->DrawListSharedData.TexUvWhitePixel;
+    const bool anti_aliased = GImGui->Style.AntiAliasedFill;
+
+    int height=0;
+    if (miny <= 0 || maxy <= 0)
+    {
+        const float max_float = 999999999999999999.f;
+        miny = max_float; maxy = -max_float;
+        for (int i = 0; i < points_count; i++)
+        {
+            const float h = points[i].y;
+            if (h < miny) miny = h;
+            else if (h > maxy) maxy = h;
+        }
+    }
+    height = maxy - miny;
+    const ImVec4 colTopf = ColorConvertU32ToFloat4(colTop);
+    const ImVec4 colBotf = ColorConvertU32ToFloat4(colBot);
+
+    if (anti_aliased)
+    {
+        // Anti-aliased Fill
+        const float AA_SIZE = 1.0f;
+
+        const ImVec4 colTransTopf(colTopf.x,colTopf.y,colTopf.z,0.f);
+        const ImVec4 colTransBotf(colBotf.x,colBotf.y,colBotf.z,0.f);
+        const int idx_count = (points_count - 2) * 3 + points_count * 6;
+        const int vtx_count = (points_count * 2);
+        dl->PrimReserve(idx_count, vtx_count);
+
+        // Add indexes for fill
+        unsigned int vtx_inner_idx = dl->_VtxCurrentIdx;
+        unsigned int vtx_outer_idx = dl->_VtxCurrentIdx + 1;
+        for (int i = 2; i < points_count; i++)
+        {
+            dl->_IdxWritePtr[0] = (ImDrawIdx)(vtx_inner_idx); 
+            dl->_IdxWritePtr[1] = (ImDrawIdx)(vtx_inner_idx + ((i - 1) << 1)); 
+            dl->_IdxWritePtr[2] = (ImDrawIdx)(vtx_inner_idx + (i << 1));
+            dl->_IdxWritePtr += 3;
+        }
+
+        // Compute normals
+        ImVec2* temp_normals = (ImVec2*)alloca(points_count * sizeof(ImVec2));
+        for (int i0 = points_count - 1, i1 = 0; i1 < points_count; i0 = i1++)
+        {
+            const ImVec2& p0 = points[i0];
+            const ImVec2& p1 = points[i1];
+            ImVec2 diff = p1 - p0;
+            diff *= ImInvLength(diff, 1.0f);
+            temp_normals[i0].x = diff.y;
+            temp_normals[i0].y = -diff.x;
+        }
+
+        for (int i0 = points_count-1, i1 = 0; i1 < points_count; i0 = i1++)
+        {
+            // Average normals
+            const ImVec2& n0 = temp_normals[i0];
+            const ImVec2& n1 = temp_normals[i1];
+            ImVec2 dm = (n0 + n1) * 0.5f;
+            float dmr2 = dm.x * dm.x + dm.y * dm.y;
+            if (dmr2 > 0.000001f)
+            {
+                float scale = 1.0f / dmr2;
+                if (scale > 100.0f) scale = 100.0f;
+                dm *= scale;
+            }
+            dm *= AA_SIZE * 0.5f;
+
+            // Add vertices
+            //_VtxWritePtr[0].pos = (points[i1] - dm); _VtxWritePtr[0].uv = uv; _VtxWritePtr[0].col = col;        // Inner
+            //_VtxWritePtr[1].pos = (points[i1] + dm); _VtxWritePtr[1].uv = uv; _VtxWritePtr[1].col = col_trans;  // Outer
+            dl->_VtxWritePtr[0].pos = (points[i1] - dm); dl->_VtxWritePtr[0].uv = uv; dl->_VtxWritePtr[0].col = GetVerticalGradient(colTopf,colBotf,points[i1].y - miny,height);        // Inner
+            dl->_VtxWritePtr[1].pos = (points[i1] + dm); dl->_VtxWritePtr[1].uv = uv; dl->_VtxWritePtr[1].col = GetVerticalGradient(colTransTopf,colTransBotf,points[i1].y - miny,height);  // Outer
+            dl->_VtxWritePtr += 2;
+
+            // Add indexes for fringes
+            dl->_IdxWritePtr[0] = (ImDrawIdx)(vtx_inner_idx+(i1<<1)); dl->_IdxWritePtr[1] = (ImDrawIdx)(vtx_inner_idx + (i0 << 1)); dl->_IdxWritePtr[2] = (ImDrawIdx)(vtx_outer_idx + (i0 << 1));
+            dl->_IdxWritePtr[3] = (ImDrawIdx)(vtx_outer_idx+(i0<<1)); dl->_IdxWritePtr[4] = (ImDrawIdx)(vtx_outer_idx + (i1 << 1)); dl->_IdxWritePtr[5] = (ImDrawIdx)(vtx_inner_idx + (i1 << 1));
+            dl->_IdxWritePtr += 6;
+        }
+        dl->_VtxCurrentIdx += (ImDrawIdx)vtx_count;
+    }
+    else
+    {
+        // Non Anti-aliased Fill
+        const int idx_count = (points_count - 2) * 3;
+        const int vtx_count = points_count;
+        dl->PrimReserve(idx_count, vtx_count);
+        for (int i = 0; i < vtx_count; i++)
+        {
+            //_VtxWritePtr[0].pos = points[i]; _VtxWritePtr[0].uv = uv; _VtxWritePtr[0].col = col;
+            dl->_VtxWritePtr[0].pos = points[i]; dl->_VtxWritePtr[0].uv = uv; dl->_VtxWritePtr[0].col = GetVerticalGradient(colTopf,colBotf,points[i].y - miny,height);
+            dl->_VtxWritePtr++;
+        }
+        for (int i = 2; i < points_count; i++)
+        {
+            dl->_IdxWritePtr[0] = (ImDrawIdx)(dl->_VtxCurrentIdx);
+            dl->_IdxWritePtr[1] = (ImDrawIdx)(dl->_VtxCurrentIdx + i - 1);
+            dl->_IdxWritePtr[2] = (ImDrawIdx)(dl->_VtxCurrentIdx + i);
+            dl->_IdxWritePtr += 3;
+        }
+        dl->_VtxCurrentIdx += (ImDrawIdx)vtx_count;
+    }
+}
+
+void ImGui::ImDrawListPathFillWithVerticalGradientAndStroke(ImDrawList *dl, const ImU32 &fillColorTop, const ImU32 &fillColorBottom, const ImU32 &strokeColor, bool strokeClosed, float strokeThickness, float miny, float maxy)
+{
+    if (!dl) return;
+    if (fillColorTop == fillColorBottom) dl->AddConvexPolyFilled(dl->_Path.Data,dl->_Path.Size, fillColorTop);
+    else if ((fillColorTop & IM_COL32_A_MASK) != 0 || (fillColorBottom & IM_COL32_A_MASK) != 0) ImDrawListAddConvexPolyFilledWithVerticalGradient(dl, dl->_Path.Data, dl->_Path.Size, fillColorTop, fillColorBottom,miny,maxy);
+    if ((strokeColor & IM_COL32_A_MASK) != 0 && strokeThickness > 0) dl->AddPolyline(dl->_Path.Data, dl->_Path.Size, strokeColor, strokeClosed, strokeThickness);
+    dl->PathClear();
+}
+
+void ImGui::ImDrawListPathFillAndStroke(ImDrawList *dl, const ImU32 &fillColor, const ImU32 &strokeColor, bool strokeClosed, float strokeThickness)
+{
+    if (!dl) return;
+    if ((fillColor & IM_COL32_A_MASK) != 0) dl->AddConvexPolyFilled(dl->_Path.Data, dl->_Path.Size, fillColor);
+    if ((strokeColor & IM_COL32_A_MASK) != 0 && strokeThickness>0) dl->AddPolyline(dl->_Path.Data, dl->_Path.Size, strokeColor, strokeClosed, strokeThickness);
+    dl->PathClear();
+}
+
+void ImGui::ImDrawListAddRect(ImDrawList *dl, const ImVec2 &a, const ImVec2 &b, const ImU32 &fillColor, const ImU32 &strokeColor, float rounding, int rounding_corners, float strokeThickness)
+{
+    if (!dl || (((fillColor & IM_COL32_A_MASK) == 0) && ((strokeColor & IM_COL32_A_MASK) == 0)))  return;
+    dl->PathRect(a, b, rounding, rounding_corners);
+    ImDrawListPathFillAndStroke(dl,fillColor,strokeColor,true,strokeThickness);
+}
+
+void ImGui::ImDrawListAddRectWithVerticalGradient(ImDrawList *dl, const ImVec2 &a, const ImVec2 &b, const ImU32 &fillColorTop, const ImU32 &fillColorBottom, const ImU32 &strokeColor, float rounding, int rounding_corners, float strokeThickness)
+{
+    if (!dl || (((fillColorTop & IM_COL32_A_MASK) == 0) && ((fillColorBottom & IM_COL32_A_MASK) == 0) && ((strokeColor & IM_COL32_A_MASK) == 0)))  return;
+    if (rounding == 0.f || rounding_corners == ImDrawFlags_RoundCornersNone)
+    {
+        dl->AddRectFilledMultiColor(a,b,fillColorTop,fillColorTop,fillColorBottom,fillColorBottom); // Huge speedup!
+        if ((strokeColor& IM_COL32_A_MASK) != 0 && strokeThickness > 0.f)
+        {
+            dl->PathRect(a, b, rounding, rounding_corners);
+            dl->AddPolyline(dl->_Path.Data, dl->_Path.Size, strokeColor, true, strokeThickness);
+            dl->PathClear();
+        }
+    }
+    else 
+    {
+        dl->PathRect(a, b, rounding, rounding_corners);
+        ImDrawListPathFillWithVerticalGradientAndStroke(dl,fillColorTop,fillColorBottom,strokeColor,true,strokeThickness,a.y,b.y);
+    }
+}
+
+void ImGui::ImDrawListPathArcTo(ImDrawList *dl, const ImVec2 &centre, const ImVec2 &radii, float amin, float amax, int num_segments)
+{
+    if (!dl) return;
+    if (radii.x == 0.0f || radii.y == 0) dl->_Path.push_back(centre);
+    dl->_Path.reserve(dl->_Path.Size + (num_segments + 1));
+    for (int i = 0; i <= num_segments; i++)
+    {
+        const float a = amin + ((float)i / (float)num_segments) * (amax - amin);
+        dl->_Path.push_back(ImVec2(centre.x + cosf(a) * radii.x, centre.y + sinf(a) * radii.y));
+    }
+}
+
+void ImGui::ImDrawListAddEllipse(ImDrawList *dl, const ImVec2 &centre, const ImVec2 &radii, const ImU32 &fillColor, const ImU32 &strokeColor, int num_segments, float strokeThickness)
+{
+    if (!dl) return;
+    const float a_max = IM_PI * 2.0f * ((float)num_segments - 1.0f) / (float)num_segments;
+    ImDrawListPathArcTo(dl,centre, radii, 0.0f, a_max, num_segments);
+    ImDrawListPathFillAndStroke(dl,fillColor,strokeColor,true,strokeThickness);
+}
+
+void ImGui::ImDrawListAddEllipseWithVerticalGradient(ImDrawList *dl, const ImVec2 &centre, const ImVec2 &radii, const ImU32 &fillColorTop, const ImU32 &fillColorBottom, const ImU32 &strokeColor, int num_segments, float strokeThickness)
+{
+    if (!dl) return;
+    const float a_max = IM_PI * 2.0f * ((float)num_segments - 1.0f) / (float)num_segments;
+    ImDrawListPathArcTo(dl,centre, radii, 0.0f, a_max, num_segments);
+    ImDrawListPathFillWithVerticalGradientAndStroke(dl,fillColorTop,fillColorBottom,strokeColor,true,strokeThickness,centre.y-radii.y,centre.y+radii.y);
+}
+
+void ImGui::ImDrawListAddCircle(ImDrawList *dl, const ImVec2 &centre, float radius, const ImU32 &fillColor, const ImU32 &strokeColor, int num_segments, float strokeThickness)
+{
+    if (!dl) return;
+    const ImVec2 radii(radius,radius);
+    const float a_max = IM_PI * 2.0f * ((float)num_segments - 1.0f) / (float)num_segments;
+    ImDrawListPathArcTo(dl,centre, radii, 0.0f, a_max, num_segments-1);
+    ImDrawListPathFillAndStroke(dl,fillColor,strokeColor,true,strokeThickness);
+}
+
+void ImGui::ImDrawListAddCircleWithVerticalGradient(ImDrawList *dl, const ImVec2 &centre, float radius, const ImU32 &fillColorTop, const ImU32 &fillColorBottom, const ImU32 &strokeColor, int num_segments, float strokeThickness)
+{
+    if (!dl) return;
+    const ImVec2 radii(radius,radius);
+    const float a_max = IM_PI * 2.0f * ((float)num_segments - 1.0f) / (float)num_segments;
+    ImDrawListPathArcTo(dl,centre, radii, 0.0f, a_max, num_segments-1);
+    ImDrawListPathFillWithVerticalGradientAndStroke(dl,fillColorTop,fillColorBottom,strokeColor,true,strokeThickness,centre.y-radius,centre.y+radius);
+}
+
+void ImGui::ImDrawListAddRectWithVerticalGradient(ImDrawList *dl, const ImVec2 &a, const ImVec2 &b, const ImU32 &fillColor, float fillColorGradientDeltaIn0_05, const ImU32 &strokeColor, float rounding, int rounding_corners, float strokeThickness)
+{
+    ImU32 fillColorTop,fillColorBottom;
+    GetVerticalGradientTopAndBottomColors(fillColor,fillColorGradientDeltaIn0_05,fillColorTop,fillColorBottom);
+    ImDrawListAddRectWithVerticalGradient(dl,a,b,fillColorTop,fillColorBottom,strokeColor,rounding,rounding_corners,strokeThickness);
+}
+
+void ImGui::ImDrawListAddPolyLine(ImDrawList *dl, const ImVec2* polyPoints, int numPolyPoints, ImU32 strokeColor, float strokeThickness, bool strokeClosed, const ImVec2 &offset, const ImVec2 &scale)
+{
+    if (polyPoints && numPolyPoints>0 && (strokeColor & IM_COL32_A_MASK) != 0)
+    {
+	    static ImVector<ImVec2> points;
+	    points.resize(numPolyPoints);
+	    for (int i = 0; i < numPolyPoints; i++)   points[i] = offset + polyPoints[i] * scale;
+        dl->AddPolyline(&points[0],points.size(),strokeColor,strokeClosed,strokeThickness);
+    }
+}
+
+void ImGui::ImDrawListAddConvexPolyFilledWithHorizontalGradient(ImDrawList *dl, const ImVec2 *points, const int points_count, ImU32 colLeft, ImU32 colRight, float minx, float maxx)
+{
+    if (!dl) return;
+    if (colLeft == colRight) 
+    {
+        dl->AddConvexPolyFilled(points,points_count,colLeft);
+        return;
+    }
+    const ImVec2 uv = GImGui->DrawListSharedData.TexUvWhitePixel;
+    const bool anti_aliased = GImGui->Style.AntiAliasedFill;
+
+    int width = 0;
+    if (minx <= 0 || maxx <= 0) 
+    {
+        const float max_float = 999999999999999999.f;
+        minx = max_float;
+        maxx = -max_float;
+        for (int i = 0; i < points_count; i++)
+        {
+            const float w = points[i].x;
+            if (w < minx) minx = w;
+            else if (w > maxx) maxx = w;
+        }
+    }
+    width = maxx - minx;
+    const ImVec4 colLeftf  = ColorConvertU32ToFloat4(colLeft);
+    const ImVec4 colRightf = ColorConvertU32ToFloat4(colRight);
+
+    if (anti_aliased)
+    {
+        // Anti-aliased Fill
+        const float AA_SIZE = 1.0f;
+
+        const ImVec4 colTransLeftf(colLeftf.x,colLeftf.y,colLeftf.z,0.f);
+        const ImVec4 colTransRightf(colRightf.x,colRightf.y,colRightf.z,0.f);
+        const int idx_count = (points_count - 2) * 3 + points_count * 6;
+        const int vtx_count = (points_count * 2);
+        dl->PrimReserve(idx_count, vtx_count);
+
+        // Add indexes for fill
+        unsigned int vtx_inner_idx = dl->_VtxCurrentIdx;
+        unsigned int vtx_outer_idx = dl->_VtxCurrentIdx + 1;
+        for (int i = 2; i < points_count; i++)
+        {
+            dl->_IdxWritePtr[0] = (ImDrawIdx)(vtx_inner_idx);
+            dl->_IdxWritePtr[1] = (ImDrawIdx)(vtx_inner_idx + ((i - 1) << 1));
+            dl->_IdxWritePtr[2] = (ImDrawIdx)(vtx_inner_idx + (i << 1));
+            dl->_IdxWritePtr += 3;
+        }
+
+        // Compute normals
+        ImVec2* temp_normals = (ImVec2*)alloca(points_count * sizeof(ImVec2));
+        for (int i0 = points_count - 1, i1 = 0; i1 < points_count; i0 = i1++)
+        {
+            const ImVec2& p0 = points[i0];
+            const ImVec2& p1 = points[i1];
+            ImVec2 diff = p1 - p0;
+            diff *= ImInvLength(diff, 1.0f);
+            temp_normals[i0].x = diff.y;
+            temp_normals[i0].y = -diff.x;
+        }
+
+        for (int i0 = points_count - 1, i1 = 0; i1 < points_count; i0 = i1++)
+        {
+            // Average normals
+            const ImVec2& n0 = temp_normals[i0];
+            const ImVec2& n1 = temp_normals[i1];
+            ImVec2 dm = (n0 + n1) * 0.5f;
+            float dmr2 = dm.x * dm.x + dm.y * dm.y;
+            if (dmr2 > 0.000001f)
+            {
+                float scale = 1.0f / dmr2;
+                if (scale > 100.0f) scale = 100.0f;
+                dm *= scale;
+            }
+            dm *= AA_SIZE * 0.5f;
+
+            // Add vertices
+            //_VtxWritePtr[0].pos = (points[i1] - dm); _VtxWritePtr[0].uv = uv; _VtxWritePtr[0].col = col;        // Inner
+            //_VtxWritePtr[1].pos = (points[i1] + dm); _VtxWritePtr[1].uv = uv; _VtxWritePtr[1].col = col_trans;  // Outer
+            dl->_VtxWritePtr[0].pos = (points[i1] - dm); dl->_VtxWritePtr[0].uv = uv; dl->_VtxWritePtr[0].col = GetVerticalGradient(colLeftf,colRightf,points[i1].x - minx,width);        // Inner
+            dl->_VtxWritePtr[1].pos = (points[i1] + dm); dl->_VtxWritePtr[1].uv = uv; dl->_VtxWritePtr[1].col = GetVerticalGradient(colTransLeftf,colTransRightf,points[i1].x - minx,width);  // Outer
+            dl->_VtxWritePtr += 2;
+
+            // Add indexes for fringes
+            dl->_IdxWritePtr[0] = (ImDrawIdx)(vtx_inner_idx + (i1 << 1)); dl->_IdxWritePtr[1] = (ImDrawIdx)(vtx_inner_idx + (i0 << 1)); dl->_IdxWritePtr[2] = (ImDrawIdx)(vtx_outer_idx + (i0 << 1));
+            dl->_IdxWritePtr[3] = (ImDrawIdx)(vtx_outer_idx + (i0 << 1)); dl->_IdxWritePtr[4] = (ImDrawIdx)(vtx_outer_idx + (i1 << 1)); dl->_IdxWritePtr[5] = (ImDrawIdx)(vtx_inner_idx + (i1 << 1));
+            dl->_IdxWritePtr += 6;
+        }
+        dl->_VtxCurrentIdx += (ImDrawIdx)vtx_count;
+    }
+    else
+    {
+        // Non Anti-aliased Fill
+        const int idx_count = (points_count - 2) * 3;
+        const int vtx_count = points_count;
+        dl->PrimReserve(idx_count, vtx_count);
+        for (int i = 0; i < vtx_count; i++)
+        {
+            //_VtxWritePtr[0].pos = points[i]; _VtxWritePtr[0].uv = uv; _VtxWritePtr[0].col = col;
+            dl->_VtxWritePtr[0].pos = points[i]; dl->_VtxWritePtr[0].uv = uv; dl->_VtxWritePtr[0].col = GetVerticalGradient(colLeftf,colRightf,points[i].x - minx,width);
+            dl->_VtxWritePtr++;
+        }
+        for (int i = 2; i < points_count; i++)
+        {
+            dl->_IdxWritePtr[0] = (ImDrawIdx)(dl->_VtxCurrentIdx); dl->_IdxWritePtr[1] = (ImDrawIdx)(dl->_VtxCurrentIdx + i - 1); dl->_IdxWritePtr[2] = (ImDrawIdx)(dl->_VtxCurrentIdx + i);
+            dl->_IdxWritePtr += 3;
+        }
+        dl->_VtxCurrentIdx += (ImDrawIdx)vtx_count;
+    }
+}
+
+void ImGui::ImDrawListPathFillWithHorizontalGradientAndStroke(ImDrawList *dl, const ImU32 &fillColorLeft, const ImU32 &fillColorRight, const ImU32 &strokeColor, bool strokeClosed, float strokeThickness, float minx, float maxx)
+{
+    if (!dl) return;
+    if (fillColorLeft==fillColorRight) dl->AddConvexPolyFilled(dl->_Path.Data,dl->_Path.Size, fillColorLeft);
+    else if ((fillColorLeft & IM_COL32_A_MASK) != 0 || (fillColorRight & IM_COL32_A_MASK) != 0) ImDrawListAddConvexPolyFilledWithHorizontalGradient(dl, dl->_Path.Data, dl->_Path.Size, fillColorLeft, fillColorRight,minx,maxx);
+    if ((strokeColor & IM_COL32_A_MASK) != 0 && strokeThickness > 0) dl->AddPolyline(dl->_Path.Data, dl->_Path.Size, strokeColor, strokeClosed, strokeThickness);
+    dl->PathClear();
+}
+
+void ImGui::ImDrawListAddRectWithHorizontalGradient(ImDrawList *dl, const ImVec2 &a, const ImVec2 &b, const ImU32 &fillColorLeft, const ImU32 &fillColoRight, const ImU32 &strokeColor, float rounding, int rounding_corners, float strokeThickness)
+{
+    if (!dl || (((fillColorLeft & IM_COL32_A_MASK) == 0) && ((fillColoRight & IM_COL32_A_MASK) == 0) && ((strokeColor & IM_COL32_A_MASK) == 0)))  return;
+    if (rounding == 0.f || rounding_corners == ImDrawFlags_RoundCornersNone)
+    {
+        dl->AddRectFilledMultiColor(a,b,fillColorLeft,fillColoRight,fillColoRight,fillColorLeft); // Huge speedup!
+        if ((strokeColor& IM_COL32_A_MASK) != 0 && strokeThickness > 0.f)
+        {
+            dl->PathRect(a, b, rounding, rounding_corners);
+            dl->AddPolyline(dl->_Path.Data, dl->_Path.Size, strokeColor, true, strokeThickness);
+            dl->PathClear();
+        }
+    }
+    else
+    {
+        dl->PathRect(a, b, rounding, rounding_corners);
+        ImDrawListPathFillWithHorizontalGradientAndStroke(dl,fillColorLeft,fillColoRight,strokeColor,true,strokeThickness,a.x,b.x);
+    }
+}
+
+void ImGui::ImDrawListAddEllipseWithHorizontalGradient(ImDrawList *dl, const ImVec2 &centre, const ImVec2 &radii, const ImU32 &fillColorLeft, const ImU32 &fillColorRight, const ImU32 &strokeColor, int num_segments, float strokeThickness)
+{
+    if (!dl) return;
+    const float a_max = IM_PI * 2.0f * ((float)num_segments - 1.0f) / (float)num_segments;
+    ImDrawListPathArcTo(dl,centre, radii, 0.0f, a_max, num_segments);
+    ImDrawListPathFillWithHorizontalGradientAndStroke(dl,fillColorLeft,fillColorRight,strokeColor,true,strokeThickness,centre.y - radii.y,centre.y + radii.y);
+}
+
+void ImGui::ImDrawListAddCircleWithHorizontalGradient(ImDrawList *dl, const ImVec2 &centre, float radius, const ImU32 &fillColorLeft, const ImU32 &fillColorRight, const ImU32 &strokeColor, int num_segments, float strokeThickness)
+{
+    if (!dl) return;
+    const ImVec2 radii(radius,radius);
+    const float a_max = IM_PI * 2.0f * ((float)num_segments - 1.0f) / (float)num_segments;
+    ImDrawListPathArcTo(dl,centre, radii, 0.0f, a_max, num_segments - 1);
+    ImDrawListPathFillWithHorizontalGradientAndStroke(dl,fillColorLeft,fillColorRight,strokeColor,true,strokeThickness,centre.y - radius,centre.y + radius);
+}
+
+void ImGui::ImDrawListAddRectWithHorizontalGradient(ImDrawList *dl, const ImVec2 &a, const ImVec2 &b, const ImU32 &fillColor, float fillColorGradientDeltaIn0_05, const ImU32 &strokeColor, float rounding, int rounding_corners, float strokeThickness)
+{
+    ImU32 fillColorTop,fillColorBottom;
+    GetVerticalGradientTopAndBottomColors(fillColor,fillColorGradientDeltaIn0_05,fillColorTop,fillColorBottom);
+    ImDrawListAddRectWithHorizontalGradient(dl,a,b,fillColorTop,fillColorBottom,strokeColor,rounding,rounding_corners,strokeThickness);
+}
+
+ImVec2 ImGui::ImCalcVerticalTextSize(const char* text, const char* text_end, bool hide_text_after_double_hash, float wrap_width)
+{
+    const ImVec2 rv = ImGui::CalcTextSize(text,text_end,hide_text_after_double_hash,wrap_width);
+    return ImVec2(rv.y,rv.x);
+}
+
+void ImGui::ImRenderTextVertical(const ImFont* font,ImDrawList* draw_list, float size, ImVec2 pos, ImU32 col, const ImVec4& clip_rect, const char* text_begin,  const char* text_end, float wrap_width, bool cpu_fine_clip, bool rotateCCW) 
+{
+    if (!text_end) text_end = text_begin + strlen(text_begin);
+
+    const float scale = size / font->FontSize;
+    const float line_height = font->FontSize * scale;
+
+    // Align to be pixel perfect
+    pos.x = (float)(int)pos.x;// + (rotateCCW ? (font->FontSize-font->DisplayOffset.y) : 0);  // Not sure it's correct
+    pos.y = (float)(int)pos.y;// + font->DisplayOffset.x;  [+ImFontConfig::GlyphOffset.x?]
+
+    float x = pos.x;
+    float y = pos.y;
+    if (x > clip_rect.z)
+        return;
+
+    const bool word_wrap_enabled = (wrap_width > 0.0f);
+    const char* word_wrap_eol = NULL;
+    const float y_dir = rotateCCW ? -1.f : 1.f;
+
+    // Skip non-visible lines
+    const char* s = text_begin;
+    if (!word_wrap_enabled && y + line_height < clip_rect.y)
+        while (s < text_end && *s != '\n')  // Fast-forward to next line
+            s++;
+
+    // Reserve vertices for remaining worse case (over-reserving is useful and easily amortized)
+    const int vtx_count_max = (int)(text_end - s) * 4;
+    const int idx_count_max = (int)(text_end - s) * 6;
+    const int idx_expected_size = draw_list->IdxBuffer.Size + idx_count_max;
+    draw_list->PrimReserve(idx_count_max, vtx_count_max);
+
+    ImDrawVert* vtx_write = draw_list->_VtxWritePtr;
+    ImDrawIdx* idx_write = draw_list->_IdxWritePtr;
+    unsigned int vtx_current_idx = draw_list->_VtxCurrentIdx;
+    float x1 = 0.f, x2 = 0.f, y1 = 0.f, y2 = 0.f;
+
+    while (s < text_end)
+    {
+        if (word_wrap_enabled)
+        {
+            // Calculate how far we can render. Requires two passes on the string data but keeps the code simple and not intrusive for what's essentially an uncommon feature.
+            if (!word_wrap_eol)
+            {
+                word_wrap_eol = font->CalcWordWrapPositionA(scale, s, text_end, wrap_width - (y - pos.y));
+                if (word_wrap_eol == s) // Wrap_width is too small to fit anything. Force displaying 1 character to minimize the height discontinuity.
+                    word_wrap_eol++;    // +1 may not be a character start point in UTF-8 but it's ok because we use s >= word_wrap_eol below
+            }
+
+            if (s >= word_wrap_eol)
+            {
+                y = pos.y;
+                x += line_height;
+                word_wrap_eol = NULL;
+
+                // Wrapping skips upcoming blanks
+                while (s < text_end)
+                {
+                    const char c = *s;
+                    if (ImCharIsBlankA(c)) { s++; } else if (c == '\n') { s++; break; } else { break; }
+                }
+                continue;
+            }
+        }
+
+        // Decode and advance source
+        unsigned int c = (unsigned int)*s;
+        if (c < 0x80)
+        {
+            s += 1;
+        }
+        else
+        {
+            s += ImTextCharFromUtf8(&c, s, text_end);
+            if (c == 0)
+                break;
+        }
+
+        if (c < 32)
+        {
+            if (c == '\n')
+            {
+                y = pos.y;
+                x += line_height;
+
+                if (x > clip_rect.z)
+                    break;
+                if (!word_wrap_enabled && x + line_height < clip_rect.x)
+                    while (s < text_end && *s != '\n')  // Fast-forward to next line
+                        s++;
+                continue;
+            }
+            if (c == '\r')
+                continue;
+        }
+
+        float char_width = 0.0f;
+        if (const ImFontGlyph* glyph = font->FindGlyph((unsigned short)c))
+        {
+            char_width = glyph->AdvanceX * scale;
+            //fprintf(stderr,"%c [%1.4f]\n",(unsigned char) glyph->Codepoint,char_width);
+
+            // Arbitrarily assume that both space and tabs are empty glyphs as an optimization
+            if (c != ' ' && c != '\t')
+            {
+                // We don't do a second finer clipping test on the Y axis as we've already skipped anything before clip_rect.y and exit once we pass clip_rect.w
+                if (!rotateCCW) 
+                {
+                    x1 = x + (font->FontSize-glyph->Y1) * scale;
+                    x2 = x + (font->FontSize-glyph->Y0) * scale;
+                    y1 = y + glyph->X0 * scale;
+                    y2 = y + glyph->X1 * scale;
+                }
+                else
+                {
+                    x1 = x + glyph->Y0 * scale;
+                    x2 = x + glyph->Y1 * scale;
+                    y1 = y - glyph->X1 * scale;
+                    y2 = y - glyph->X0 * scale;
+                }
+                if (y1 <= clip_rect.w && y2 >= clip_rect.y)
+                {
+                    // Render a character
+                    float u1 = glyph->U0;
+                    float v1 = glyph->V0;
+                    float u2 = glyph->U1;
+                    float v2 = glyph->V1;
+
+                    // CPU side clipping used to fit text in their frame when the frame is too small. Only does clipping for axis aligned quads.
+                    if (cpu_fine_clip)
+                    {
+                        if (x1 < clip_rect.x)
+                        {
+                            u1 = u1 + (1.0f - (x2 - clip_rect.x) / (x2 - x1)) * (u2 - u1);
+                            x1 = clip_rect.x;
+                        }
+                        if (y1 < clip_rect.y)
+                        {
+                            v1 = v1 + (1.0f - (y2 - clip_rect.y) / (y2 - y1)) * (v2 - v1);
+                            y1 = clip_rect.y;
+                        }
+                        if (x2 > clip_rect.z)
+                        {
+                            u2 = u1 + ((clip_rect.z - x1) / (x2 - x1)) * (u2 - u1);
+                            x2 = clip_rect.z;
+                        }
+                        if (y2 > clip_rect.w)
+                        {
+                            v2 = v1 + ((clip_rect.w - y1) / (y2 - y1)) * (v2 - v1);
+                            y2 = clip_rect.w;
+                        }
+                        if (x1 >= x2)
+                        {
+                            y += char_width*y_dir;
+                            continue;
+                        }
+                    }
+
+                    // We are NOT calling PrimRectUV() here because non-inlined causes too much overhead in a debug build.
+                    // Inlined here:
+                    {
+                        idx_write[0] = (ImDrawIdx)(vtx_current_idx); idx_write[1] = (ImDrawIdx)(vtx_current_idx+1); idx_write[2] = (ImDrawIdx)(vtx_current_idx+2);
+                        idx_write[3] = (ImDrawIdx)(vtx_current_idx); idx_write[4] = (ImDrawIdx)(vtx_current_idx+2); idx_write[5] = (ImDrawIdx)(vtx_current_idx+3);
+                        vtx_write[0].col = vtx_write[1].col = vtx_write[2].col = vtx_write[3].col = col;
+                        vtx_write[0].pos.x = x1; vtx_write[0].pos.y = y1;
+                        vtx_write[1].pos.x = x2; vtx_write[1].pos.y = y1;
+                        vtx_write[2].pos.x = x2; vtx_write[2].pos.y = y2;
+                        vtx_write[3].pos.x = x1; vtx_write[3].pos.y = y2;
+
+                        if (rotateCCW)
+                        {
+                            vtx_write[0].uv.x = u2; vtx_write[0].uv.y = v1;
+                            vtx_write[1].uv.x = u2; vtx_write[1].uv.y = v2;
+                            vtx_write[2].uv.x = u1; vtx_write[2].uv.y = v2;
+                            vtx_write[3].uv.x = u1; vtx_write[3].uv.y = v1;
+                        }
+                        else
+                        {
+                            vtx_write[0].uv.x = u1; vtx_write[0].uv.y = v2;
+                            vtx_write[1].uv.x = u1; vtx_write[1].uv.y = v1;
+                            vtx_write[2].uv.x = u2; vtx_write[2].uv.y = v1;
+                            vtx_write[3].uv.x = u2; vtx_write[3].uv.y = v2;
+                        }
+
+                        vtx_write += 4;
+                        vtx_current_idx += 4;
+                        idx_write += 6;
+                    }
+                }
+            }
+        }
+
+        y += char_width*y_dir;
+    }
+
+    // Give back unused vertices
+    draw_list->VtxBuffer.resize((int)(vtx_write - draw_list->VtxBuffer.Data));
+    draw_list->IdxBuffer.resize((int)(idx_write - draw_list->IdxBuffer.Data));
+    draw_list->CmdBuffer[draw_list->CmdBuffer.Size-1].ElemCount -= (idx_expected_size - draw_list->IdxBuffer.Size);
+    draw_list->_VtxWritePtr = vtx_write;
+    draw_list->_IdxWritePtr = idx_write;
+    draw_list->_VtxCurrentIdx = (unsigned int)draw_list->VtxBuffer.Size;
+}
+
+void ImGui::ImAddTextVertical(ImDrawList* drawList,const ImFont* font, float font_size, const ImVec2& pos, ImU32 col, const char* text_begin, const char* text_end, float wrap_width, const ImVec4* cpu_fine_clip_rect,bool rotateCCW)
+{
+    if ((col & IM_COL32_A_MASK) == 0)
+        return;
+
+    if (text_end == NULL)
+        text_end = text_begin + strlen(text_begin);
+    if (text_begin == text_end)
+        return;
+
+    // Note: This is one of the few instance of breaking the encapsulation of ImDrawList, as we pull this from ImGui state, but it is just SO useful.
+    // Might just move Font/FontSize to ImDrawList?
+    if (font == NULL)
+        font = GImGui->Font;
+    if (font_size == 0.0f)
+        font_size = GImGui->FontSize;
+
+    IM_ASSERT(drawList && font->ContainerAtlas->TexID == drawList->_TextureIdStack.back());  // Use high-level ImGui::PushFont() or low-level ImDrawList::PushTextureId() to change font.
+
+    ImVec4 clip_rect = drawList->_ClipRectStack.back();
+    if (cpu_fine_clip_rect)
+    {
+        clip_rect.x = ImMax(clip_rect.x, cpu_fine_clip_rect->x);
+        clip_rect.y = ImMax(clip_rect.y, cpu_fine_clip_rect->y);
+        clip_rect.z = ImMin(clip_rect.z, cpu_fine_clip_rect->z);
+        clip_rect.w = ImMin(clip_rect.w, cpu_fine_clip_rect->w);
+    }
+    ImRenderTextVertical(font, drawList, font_size, pos, col, clip_rect, text_begin, text_end, wrap_width, cpu_fine_clip_rect != NULL,rotateCCW);
+}
+
+void ImGui::ImAddTextVertical(ImDrawList* drawList,const ImVec2& pos, ImU32 col, const char* text_begin, const char* text_end,bool rotateCCW)
+{
+    ImAddTextVertical(drawList,GImGui->Font, GImGui->FontSize, pos, col, text_begin, text_end, 0.0f, NULL, rotateCCW);
+}
+
+void ImGui::ImRenderTextVerticalClipped(const ImVec2& pos_min, const ImVec2& pos_max, const char* text, const char* text_end, const ImVec2* text_size_if_known, const ImVec2& align, const ImVec2* clip_min, const ImVec2* clip_max,bool rotateCCW)
+{
+    // Hide anything after a '##' string
+    const char* text_display_end = FindRenderedTextEnd(text, text_end);
+    const int text_len = (int)(text_display_end - text);
+    if (text_len == 0)
+        return;
+
+    ImGuiContext& g = *GImGui;
+    ImGuiWindow* window = GetCurrentWindow();
+
+    // Perform CPU side clipping for single clipped element to avoid using scissor state
+    ImVec2 pos = pos_min;
+    const ImVec2 text_size = text_size_if_known ? *text_size_if_known : ImCalcVerticalTextSize(text, text_display_end, false, 0.0f);
+
+    if (!clip_max) clip_max = &pos_max;
+    bool need_clipping = (pos.x + text_size.x >= clip_max->x) || (pos.y + text_size.y >= clip_max->y);
+    if (!clip_min) clip_min = &pos_min; else need_clipping |= (pos.x < clip_min->x) || (pos.y < clip_min->y);
+
+    // Align
+    /*if (align & ImGuiAlign_Center) pos.x = ImMax(pos.x, (pos.x + pos_max.x - text_size.x) * 0.5f);
+    else if (align & ImGuiAlign_Right) pos.x = ImMax(pos.x, pos_max.x - text_size.x);
+    if (align & ImGuiAlign_VCenter) pos.y = ImMax(pos.y, (pos.y + pos_max.y - text_size.y) * 0.5f);*/
+
+    //if (align & ImGuiAlign_Center) pos.y = ImMax(pos.y, (pos.y + pos_max.y - text_size.y) * 0.5f);
+    //else if (align & ImGuiAlign_Right) pos.y = ImMax(pos.y, pos_max.y - text_size.y);
+    //if (align & ImGuiAlign_VCenter) pos.x = ImMax(pos.x, (pos.x + pos_max.x - text_size.x) * 0.5f);
+
+    // Align whole block (we should defer that to the better rendering function
+    if (align.x > 0.0f) pos.x = ImMax(pos.x, pos.x + (pos_max.x - pos.x - text_size.x) * align.x);
+    if (align.y > 0.0f) pos.y = ImMax(pos.y, pos.y + (pos_max.y - pos.y - text_size.y) * align.y);
+
+    if (rotateCCW) pos.y+=text_size.y;
+    // Render
+    if (need_clipping)
+    {
+        ImVec4 fine_clip_rect(clip_min->x, clip_min->y, clip_max->x, clip_max->y);
+        ImAddTextVertical(window->DrawList,g.Font, g.FontSize, pos, GetColorU32(ImGuiCol_Text), text, text_display_end, 0.0f, &fine_clip_rect,rotateCCW);
+    }
+    else
+    {
+        ImAddTextVertical(window->DrawList,g.Font, g.FontSize, pos, GetColorU32(ImGuiCol_Text), text, text_display_end, 0.0f, NULL,rotateCCW);
+    }
 }

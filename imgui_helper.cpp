@@ -779,397 +779,6 @@ float CalcMainMenuHeight()  {
     }
 }
 
-inline static void GetVerticalGradientTopAndBottomColors(ImU32 c,float fillColorGradientDeltaIn0_05,ImU32& tc,ImU32& bc)  {
-    if (fillColorGradientDeltaIn0_05==0) {tc=bc=c;return;}
-
-    static ImU32 cacheColorIn=0;static float cacheGradientIn=0.f;static ImU32 cacheTopColorOut=0;static ImU32 cacheBottomColorOut=0;
-    if (cacheColorIn==c && cacheGradientIn==fillColorGradientDeltaIn0_05)   {tc=cacheTopColorOut;bc=cacheBottomColorOut;return;}
-    cacheColorIn=c;cacheGradientIn=fillColorGradientDeltaIn0_05;
-
-    const bool negative = (fillColorGradientDeltaIn0_05<0);
-    if (negative) fillColorGradientDeltaIn0_05=-fillColorGradientDeltaIn0_05;
-    if (fillColorGradientDeltaIn0_05>0.5f) fillColorGradientDeltaIn0_05=0.5f;
-
-
-    // New code:
-    //#define IM_COL32(R,G,B,A)    (((ImU32)(A)<<IM_COL32_A_SHIFT) | ((ImU32)(B)<<IM_COL32_B_SHIFT) | ((ImU32)(G)<<IM_COL32_G_SHIFT) | ((ImU32)(R)<<IM_COL32_R_SHIFT))
-    const int fcgi = fillColorGradientDeltaIn0_05*255.0f;
-    const int R = (unsigned char) (c>>IM_COL32_R_SHIFT);    // The cast should reset upper bits (as far as I hope)
-    const int G = (unsigned char) (c>>IM_COL32_G_SHIFT);
-    const int B = (unsigned char) (c>>IM_COL32_B_SHIFT);
-    const int A = (unsigned char) (c>>IM_COL32_A_SHIFT);
-
-    int r = R+fcgi, g = G+fcgi, b = B+fcgi;
-    if (r>255) r=255;
-    if (g>255) g=255;
-    if (b>255) b=255;
-    if (negative) bc = IM_COL32(r,g,b,A); else tc = IM_COL32(r,g,b,A);
-
-    r = R-fcgi; g = G-fcgi; b = B-fcgi;
-    if (r<0) r=0;
-    if (g<0) g=0;
-    if (b<0) b=0;
-    if (negative) tc = IM_COL32(r,g,b,A); else bc = IM_COL32(r,g,b,A);
-
-    // Old legacy code (to remove)... [However here we lerp alpha too...]
-    /*// Can we do it without the double conversion ImU32 -> ImVec4 -> ImU32 ?
-    const ImVec4 cf = ColorConvertU32ToFloat4(c);
-    ImVec4 tmp(cf.x+fillColorGradientDeltaIn0_05,cf.y+fillColorGradientDeltaIn0_05,cf.z+fillColorGradientDeltaIn0_05,cf.w+fillColorGradientDeltaIn0_05);
-    if (tmp.x>1.f) tmp.x=1.f;if (tmp.y>1.f) tmp.y=1.f;if (tmp.z>1.f) tmp.z=1.f;if (tmp.w>1.f) tmp.w=1.f;
-    if (negative) bc = ColorConvertFloat4ToU32(tmp); else tc = ColorConvertFloat4ToU32(tmp);
-    tmp=ImVec4(cf.x-fillColorGradientDeltaIn0_05,cf.y-fillColorGradientDeltaIn0_05,cf.z-fillColorGradientDeltaIn0_05,cf.w-fillColorGradientDeltaIn0_05);
-    if (tmp.x<0.f) tmp.x=0.f;if (tmp.y<0.f) tmp.y=0.f;if (tmp.z<0.f) tmp.z=0.f;if (tmp.w<0.f) tmp.w=0.f;
-    if (negative) tc = ColorConvertFloat4ToU32(tmp); else bc = ColorConvertFloat4ToU32(tmp);*/
-
-
-    cacheTopColorOut=tc;cacheBottomColorOut=bc;
-}
-inline static ImU32 GetVerticalGradient(const ImVec4& ct,const ImVec4& cb,float DH,float H)    {
-    IM_ASSERT(H!=0);
-    const float fa = DH/H;
-    const float fc = (1.f-fa);
-    return ColorConvertFloat4ToU32(ImVec4(
-        ct.x * fc + cb.x * fa,
-        ct.y * fc + cb.y * fa,
-        ct.z * fc + cb.z * fa,
-        ct.w * fc + cb.w * fa)
-    );
-}
-void ImDrawListAddConvexPolyFilledWithVerticalGradient(ImDrawList *dl, const ImVec2 *points, const int points_count, ImU32 colTop, ImU32 colBot,float miny,float maxy)
-{
-    if (!dl) return;
-    if (colTop==colBot)  {
-        dl->AddConvexPolyFilled(points,points_count,colTop);
-        return;
-    }
-    const ImVec2 uv = GImGui->DrawListSharedData.TexUvWhitePixel;
-    const bool anti_aliased = GImGui->Style.AntiAliasedFill;
-
-    int height=0;
-    if (miny<=0 || maxy<=0) {
-        const float max_float = 999999999999999999.f;
-        miny=max_float;maxy=-max_float;
-        for (int i = 0; i < points_count; i++) {
-            const float h = points[i].y;
-            if (h < miny) miny = h;
-            else if (h > maxy) maxy = h;
-        }
-    }
-    height = maxy-miny;
-    const ImVec4 colTopf = ColorConvertU32ToFloat4(colTop);
-    const ImVec4 colBotf = ColorConvertU32ToFloat4(colBot);
-
-
-    if (anti_aliased)
-    {
-        // Anti-aliased Fill
-        const float AA_SIZE = 1.0f;
-
-        const ImVec4 colTransTopf(colTopf.x,colTopf.y,colTopf.z,0.f);
-        const ImVec4 colTransBotf(colBotf.x,colBotf.y,colBotf.z,0.f);
-        const int idx_count = (points_count-2)*3 + points_count*6;
-        const int vtx_count = (points_count*2);
-        dl->PrimReserve(idx_count, vtx_count);
-
-        // Add indexes for fill
-        unsigned int vtx_inner_idx = dl->_VtxCurrentIdx;
-        unsigned int vtx_outer_idx = dl->_VtxCurrentIdx+1;
-        for (int i = 2; i < points_count; i++)
-        {
-            dl->_IdxWritePtr[0] = (ImDrawIdx)(vtx_inner_idx); dl->_IdxWritePtr[1] = (ImDrawIdx)(vtx_inner_idx+((i-1)<<1)); dl->_IdxWritePtr[2] = (ImDrawIdx)(vtx_inner_idx+(i<<1));
-            dl->_IdxWritePtr += 3;
-        }
-
-        // Compute normals
-        ImVec2* temp_normals = (ImVec2*)alloca(points_count * sizeof(ImVec2));
-        for (int i0 = points_count-1, i1 = 0; i1 < points_count; i0 = i1++)
-        {
-            const ImVec2& p0 = points[i0];
-            const ImVec2& p1 = points[i1];
-            ImVec2 diff = p1 - p0;
-            diff *= ImInvLength(diff, 1.0f);
-            temp_normals[i0].x = diff.y;
-            temp_normals[i0].y = -diff.x;
-        }
-
-        for (int i0 = points_count-1, i1 = 0; i1 < points_count; i0 = i1++)
-        {
-            // Average normals
-            const ImVec2& n0 = temp_normals[i0];
-            const ImVec2& n1 = temp_normals[i1];
-            ImVec2 dm = (n0 + n1) * 0.5f;
-            float dmr2 = dm.x*dm.x + dm.y*dm.y;
-            if (dmr2 > 0.000001f)
-            {
-                float scale = 1.0f / dmr2;
-                if (scale > 100.0f) scale = 100.0f;
-                dm *= scale;
-            }
-            dm *= AA_SIZE * 0.5f;
-
-            // Add vertices
-            //_VtxWritePtr[0].pos = (points[i1] - dm); _VtxWritePtr[0].uv = uv; _VtxWritePtr[0].col = col;        // Inner
-            //_VtxWritePtr[1].pos = (points[i1] + dm); _VtxWritePtr[1].uv = uv; _VtxWritePtr[1].col = col_trans;  // Outer
-            dl->_VtxWritePtr[0].pos = (points[i1] - dm); dl->_VtxWritePtr[0].uv = uv; dl->_VtxWritePtr[0].col = GetVerticalGradient(colTopf,colBotf,points[i1].y-miny,height);        // Inner
-            dl->_VtxWritePtr[1].pos = (points[i1] + dm); dl->_VtxWritePtr[1].uv = uv; dl->_VtxWritePtr[1].col = GetVerticalGradient(colTransTopf,colTransBotf,points[i1].y-miny,height);  // Outer
-            dl->_VtxWritePtr += 2;
-
-            // Add indexes for fringes
-            dl->_IdxWritePtr[0] = (ImDrawIdx)(vtx_inner_idx+(i1<<1)); dl->_IdxWritePtr[1] = (ImDrawIdx)(vtx_inner_idx+(i0<<1)); dl->_IdxWritePtr[2] = (ImDrawIdx)(vtx_outer_idx+(i0<<1));
-            dl->_IdxWritePtr[3] = (ImDrawIdx)(vtx_outer_idx+(i0<<1)); dl->_IdxWritePtr[4] = (ImDrawIdx)(vtx_outer_idx+(i1<<1)); dl->_IdxWritePtr[5] = (ImDrawIdx)(vtx_inner_idx+(i1<<1));
-            dl->_IdxWritePtr += 6;
-        }
-        dl->_VtxCurrentIdx += (ImDrawIdx)vtx_count;
-    }
-    else
-    {
-        // Non Anti-aliased Fill
-        const int idx_count = (points_count-2)*3;
-        const int vtx_count = points_count;
-        dl->PrimReserve(idx_count, vtx_count);
-        for (int i = 0; i < vtx_count; i++)
-        {
-            //_VtxWritePtr[0].pos = points[i]; _VtxWritePtr[0].uv = uv; _VtxWritePtr[0].col = col;
-            dl->_VtxWritePtr[0].pos = points[i]; dl->_VtxWritePtr[0].uv = uv; dl->_VtxWritePtr[0].col = GetVerticalGradient(colTopf,colBotf,points[i].y-miny,height);
-            dl->_VtxWritePtr++;
-        }
-        for (int i = 2; i < points_count; i++)
-        {
-            dl->_IdxWritePtr[0] = (ImDrawIdx)(dl->_VtxCurrentIdx); dl->_IdxWritePtr[1] = (ImDrawIdx)(dl->_VtxCurrentIdx+i-1); dl->_IdxWritePtr[2] = (ImDrawIdx)(dl->_VtxCurrentIdx+i);
-            dl->_IdxWritePtr += 3;
-        }
-        dl->_VtxCurrentIdx += (ImDrawIdx)vtx_count;
-    }
-}
-void ImDrawListPathFillWithVerticalGradientAndStroke(ImDrawList *dl, const ImU32 &fillColorTop, const ImU32 &fillColorBottom, const ImU32 &strokeColor, bool strokeClosed, float strokeThickness, float miny, float maxy)    {
-    if (!dl) return;
-    if (fillColorTop==fillColorBottom) dl->AddConvexPolyFilled(dl->_Path.Data,dl->_Path.Size, fillColorTop);
-    else if ((fillColorTop & IM_COL32_A_MASK) != 0 || (fillColorBottom & IM_COL32_A_MASK) != 0) ImDrawListAddConvexPolyFilledWithVerticalGradient(dl, dl->_Path.Data, dl->_Path.Size, fillColorTop, fillColorBottom,miny,maxy);
-    if ((strokeColor& IM_COL32_A_MASK)!= 0 && strokeThickness>0) dl->AddPolyline(dl->_Path.Data, dl->_Path.Size, strokeColor, strokeClosed, strokeThickness);
-    dl->PathClear();
-}
-void ImDrawListPathFillAndStroke(ImDrawList *dl, const ImU32 &fillColor, const ImU32 &strokeColor, bool strokeClosed, float strokeThickness)    {
-    if (!dl) return;
-    if ((fillColor & IM_COL32_A_MASK) != 0) dl->AddConvexPolyFilled(dl->_Path.Data, dl->_Path.Size, fillColor);
-    if ((strokeColor& IM_COL32_A_MASK)!= 0 && strokeThickness>0) dl->AddPolyline(dl->_Path.Data, dl->_Path.Size, strokeColor, strokeClosed, strokeThickness);
-    dl->PathClear();
-}
-void ImDrawListAddRect(ImDrawList *dl, const ImVec2 &a, const ImVec2 &b, const ImU32 &fillColor, const ImU32 &strokeColor, float rounding, int rounding_corners, float strokeThickness) {
-    if (!dl || (((fillColor & IM_COL32_A_MASK) == 0) && ((strokeColor & IM_COL32_A_MASK) == 0)))  return;
-    dl->PathRect(a, b, rounding, rounding_corners);
-    ImDrawListPathFillAndStroke(dl,fillColor,strokeColor,true,strokeThickness);
-}
-void ImDrawListAddRectWithVerticalGradient(ImDrawList *dl, const ImVec2 &a, const ImVec2 &b, const ImU32 &fillColorTop, const ImU32 &fillColorBottom, const ImU32 &strokeColor, float rounding, int rounding_corners, float strokeThickness) {
-    if (!dl || (((fillColorTop & IM_COL32_A_MASK) == 0) && ((fillColorBottom & IM_COL32_A_MASK) == 0) && ((strokeColor & IM_COL32_A_MASK) == 0)))  return;
-    if (rounding==0.f || rounding_corners==ImDrawFlags_RoundCornersNone) {
-        dl->AddRectFilledMultiColor(a,b,fillColorTop,fillColorTop,fillColorBottom,fillColorBottom); // Huge speedup!
-        if ((strokeColor& IM_COL32_A_MASK)!= 0 && strokeThickness>0.f) {
-            dl->PathRect(a, b, rounding, rounding_corners);
-            dl->AddPolyline(dl->_Path.Data, dl->_Path.Size, strokeColor, true, strokeThickness);
-            dl->PathClear();
-        }
-    }
-    else    {
-        dl->PathRect(a, b, rounding, rounding_corners);
-        ImDrawListPathFillWithVerticalGradientAndStroke(dl,fillColorTop,fillColorBottom,strokeColor,true,strokeThickness,a.y,b.y);
-    }
-}
-void ImDrawListPathArcTo(ImDrawList *dl, const ImVec2 &centre, const ImVec2 &radii, float amin, float amax, int num_segments)  {
-    if (!dl) return;
-    if (radii.x == 0.0f || radii.y==0) dl->_Path.push_back(centre);
-    dl->_Path.reserve(dl->_Path.Size + (num_segments + 1));
-    for (int i = 0; i <= num_segments; i++)
-    {
-        const float a = amin + ((float)i / (float)num_segments) * (amax - amin);
-        dl->_Path.push_back(ImVec2(centre.x + cosf(a) * radii.x, centre.y + sinf(a) * radii.y));
-    }
-}
-void ImDrawListAddEllipse(ImDrawList *dl, const ImVec2 &centre, const ImVec2 &radii, const ImU32 &fillColor, const ImU32 &strokeColor, int num_segments, float strokeThickness)   {
-    if (!dl) return;
-    const float a_max = IM_PI*2.0f * ((float)num_segments - 1.0f) / (float)num_segments;
-    ImDrawListPathArcTo(dl,centre, radii, 0.0f, a_max, num_segments);
-    ImDrawListPathFillAndStroke(dl,fillColor,strokeColor,true,strokeThickness);
-}
-void ImDrawListAddEllipseWithVerticalGradient(ImDrawList *dl, const ImVec2 &centre, const ImVec2 &radii, const ImU32 &fillColorTop, const ImU32 &fillColorBottom, const ImU32 &strokeColor, int num_segments, float strokeThickness)   {
-    if (!dl) return;
-    const float a_max = IM_PI*2.0f * ((float)num_segments - 1.0f) / (float)num_segments;
-    ImDrawListPathArcTo(dl,centre, radii, 0.0f, a_max, num_segments);
-    ImDrawListPathFillWithVerticalGradientAndStroke(dl,fillColorTop,fillColorBottom,strokeColor,true,strokeThickness,centre.y-radii.y,centre.y+radii.y);
-}
-void ImDrawListAddCircle(ImDrawList *dl, const ImVec2 &centre, float radius, const ImU32 &fillColor, const ImU32 &strokeColor, int num_segments, float strokeThickness)   {
-    if (!dl) return;
-    const ImVec2 radii(radius,radius);
-    const float a_max = IM_PI*2.0f * ((float)num_segments - 1.0f) / (float)num_segments;
-    ImDrawListPathArcTo(dl,centre, radii, 0.0f, a_max, num_segments-1);
-    ImDrawListPathFillAndStroke(dl,fillColor,strokeColor,true,strokeThickness);
-}
-void ImDrawListAddCircleWithVerticalGradient(ImDrawList *dl, const ImVec2 &centre, float radius, const ImU32 &fillColorTop, const ImU32 &fillColorBottom, const ImU32 &strokeColor, int num_segments, float strokeThickness)   {
-    if (!dl) return;
-    const ImVec2 radii(radius,radius);
-    const float a_max = IM_PI*2.0f * ((float)num_segments - 1.0f) / (float)num_segments;
-    ImDrawListPathArcTo(dl,centre, radii, 0.0f, a_max, num_segments-1);
-    ImDrawListPathFillWithVerticalGradientAndStroke(dl,fillColorTop,fillColorBottom,strokeColor,true,strokeThickness,centre.y-radius,centre.y+radius);
-}
-void ImDrawListAddRectWithVerticalGradient(ImDrawList *dl, const ImVec2 &a, const ImVec2 &b, const ImU32 &fillColor, float fillColorGradientDeltaIn0_05, const ImU32 &strokeColor, float rounding, int rounding_corners, float strokeThickness)   {
-    ImU32 fillColorTop,fillColorBottom;GetVerticalGradientTopAndBottomColors(fillColor,fillColorGradientDeltaIn0_05,fillColorTop,fillColorBottom);
-    ImDrawListAddRectWithVerticalGradient(dl,a,b,fillColorTop,fillColorBottom,strokeColor,rounding,rounding_corners,strokeThickness);
-}
-void ImDrawListAddPolyLine(ImDrawList *dl, const ImVec2* polyPoints, int numPolyPoints, ImU32 strokeColor, float strokeThickness, bool strokeClosed, const ImVec2 &offset, const ImVec2 &scale) {
-    if (polyPoints && numPolyPoints>0 && (strokeColor & IM_COL32_A_MASK) != 0) {
-	static ImVector<ImVec2> points;
-	points.resize(numPolyPoints);
-	for (int i=0;i<numPolyPoints;i++)   points[i] = offset + polyPoints[i]*scale;
-    dl->AddPolyline(&points[0],points.size(),strokeColor,strokeClosed,strokeThickness);
-    }
-}
-
-void ImDrawListAddConvexPolyFilledWithHorizontalGradient(ImDrawList *dl, const ImVec2 *points, const int points_count, ImU32 colLeft, ImU32 colRight, float minx, float maxx)
-{
-    if (!dl) return;
-    if (colLeft==colRight)  {
-        dl->AddConvexPolyFilled(points,points_count,colLeft);
-        return;
-    }
-    const ImVec2 uv = GImGui->DrawListSharedData.TexUvWhitePixel;
-    const bool anti_aliased = GImGui->Style.AntiAliasedFill;
-    //if (ImGui::GetIO().KeyCtrl) anti_aliased = false; // Debug
-
-    int width=0;
-    if (minx<=0 || maxx<=0) {
-        const float max_float = 999999999999999999.f;
-        minx=max_float;maxx=-max_float;
-        for (int i = 0; i < points_count; i++) {
-            const float w = points[i].x;
-            if (w < minx) minx = w;
-            else if (w > maxx) maxx = w;
-        }
-    }
-    width = maxx-minx;
-    const ImVec4 colLeftf  = ColorConvertU32ToFloat4(colLeft);
-    const ImVec4 colRightf = ColorConvertU32ToFloat4(colRight);
-
-
-    if (anti_aliased)
-    {
-        // Anti-aliased Fill
-        const float AA_SIZE = 1.0f;
-
-        const ImVec4 colTransLeftf(colLeftf.x,colLeftf.y,colLeftf.z,0.f);
-        const ImVec4 colTransRightf(colRightf.x,colRightf.y,colRightf.z,0.f);
-        const int idx_count = (points_count-2)*3 + points_count*6;
-        const int vtx_count = (points_count*2);
-        dl->PrimReserve(idx_count, vtx_count);
-
-        // Add indexes for fill
-        unsigned int vtx_inner_idx = dl->_VtxCurrentIdx;
-        unsigned int vtx_outer_idx = dl->_VtxCurrentIdx+1;
-        for (int i = 2; i < points_count; i++)
-        {
-            dl->_IdxWritePtr[0] = (ImDrawIdx)(vtx_inner_idx); dl->_IdxWritePtr[1] = (ImDrawIdx)(vtx_inner_idx+((i-1)<<1)); dl->_IdxWritePtr[2] = (ImDrawIdx)(vtx_inner_idx+(i<<1));
-            dl->_IdxWritePtr += 3;
-        }
-
-        // Compute normals
-        ImVec2* temp_normals = (ImVec2*)alloca(points_count * sizeof(ImVec2));
-        for (int i0 = points_count-1, i1 = 0; i1 < points_count; i0 = i1++)
-        {
-            const ImVec2& p0 = points[i0];
-            const ImVec2& p1 = points[i1];
-            ImVec2 diff = p1 - p0;
-            diff *= ImInvLength(diff, 1.0f);
-            temp_normals[i0].x = diff.y;
-            temp_normals[i0].y = -diff.x;
-        }
-
-        for (int i0 = points_count-1, i1 = 0; i1 < points_count; i0 = i1++)
-        {
-            // Average normals
-            const ImVec2& n0 = temp_normals[i0];
-            const ImVec2& n1 = temp_normals[i1];
-            ImVec2 dm = (n0 + n1) * 0.5f;
-            float dmr2 = dm.x*dm.x + dm.y*dm.y;
-            if (dmr2 > 0.000001f)
-            {
-                float scale = 1.0f / dmr2;
-                if (scale > 100.0f) scale = 100.0f;
-                dm *= scale;
-            }
-            dm *= AA_SIZE * 0.5f;
-
-            // Add vertices
-            //_VtxWritePtr[0].pos = (points[i1] - dm); _VtxWritePtr[0].uv = uv; _VtxWritePtr[0].col = col;        // Inner
-            //_VtxWritePtr[1].pos = (points[i1] + dm); _VtxWritePtr[1].uv = uv; _VtxWritePtr[1].col = col_trans;  // Outer
-            dl->_VtxWritePtr[0].pos = (points[i1] - dm); dl->_VtxWritePtr[0].uv = uv; dl->_VtxWritePtr[0].col = GetVerticalGradient(colLeftf,colRightf,points[i1].x-minx,width);        // Inner
-            dl->_VtxWritePtr[1].pos = (points[i1] + dm); dl->_VtxWritePtr[1].uv = uv; dl->_VtxWritePtr[1].col = GetVerticalGradient(colTransLeftf,colTransRightf,points[i1].x-minx,width);  // Outer
-            dl->_VtxWritePtr += 2;
-
-            // Add indexes for fringes
-            dl->_IdxWritePtr[0] = (ImDrawIdx)(vtx_inner_idx+(i1<<1)); dl->_IdxWritePtr[1] = (ImDrawIdx)(vtx_inner_idx+(i0<<1)); dl->_IdxWritePtr[2] = (ImDrawIdx)(vtx_outer_idx+(i0<<1));
-            dl->_IdxWritePtr[3] = (ImDrawIdx)(vtx_outer_idx+(i0<<1)); dl->_IdxWritePtr[4] = (ImDrawIdx)(vtx_outer_idx+(i1<<1)); dl->_IdxWritePtr[5] = (ImDrawIdx)(vtx_inner_idx+(i1<<1));
-            dl->_IdxWritePtr += 6;
-        }
-        dl->_VtxCurrentIdx += (ImDrawIdx)vtx_count;
-    }
-    else
-    {
-        // Non Anti-aliased Fill
-        const int idx_count = (points_count-2)*3;
-        const int vtx_count = points_count;
-        dl->PrimReserve(idx_count, vtx_count);
-        for (int i = 0; i < vtx_count; i++)
-        {
-            //_VtxWritePtr[0].pos = points[i]; _VtxWritePtr[0].uv = uv; _VtxWritePtr[0].col = col;
-            dl->_VtxWritePtr[0].pos = points[i]; dl->_VtxWritePtr[0].uv = uv; dl->_VtxWritePtr[0].col = GetVerticalGradient(colLeftf,colRightf,points[i].x-minx,width);
-            dl->_VtxWritePtr++;
-        }
-        for (int i = 2; i < points_count; i++)
-        {
-            dl->_IdxWritePtr[0] = (ImDrawIdx)(dl->_VtxCurrentIdx); dl->_IdxWritePtr[1] = (ImDrawIdx)(dl->_VtxCurrentIdx+i-1); dl->_IdxWritePtr[2] = (ImDrawIdx)(dl->_VtxCurrentIdx+i);
-            dl->_IdxWritePtr += 3;
-        }
-        dl->_VtxCurrentIdx += (ImDrawIdx)vtx_count;
-    }
-}
-void ImDrawListPathFillWithHorizontalGradientAndStroke(ImDrawList *dl, const ImU32 &fillColorLeft, const ImU32 &fillColorRight, const ImU32 &strokeColor, bool strokeClosed, float strokeThickness, float minx, float maxx)    {
-    if (!dl) return;
-    if (fillColorLeft==fillColorRight) dl->AddConvexPolyFilled(dl->_Path.Data,dl->_Path.Size, fillColorLeft);
-    else if ((fillColorLeft & IM_COL32_A_MASK) != 0 || (fillColorRight & IM_COL32_A_MASK) != 0) ImDrawListAddConvexPolyFilledWithHorizontalGradient(dl, dl->_Path.Data, dl->_Path.Size, fillColorLeft, fillColorRight,minx,maxx);
-    if ((strokeColor& IM_COL32_A_MASK)!= 0 && strokeThickness>0) dl->AddPolyline(dl->_Path.Data, dl->_Path.Size, strokeColor, strokeClosed, strokeThickness);
-    dl->PathClear();
-}
-void ImDrawListAddRectWithHorizontalGradient(ImDrawList *dl, const ImVec2 &a, const ImVec2 &b, const ImU32 &fillColorLeft, const ImU32 &fillColoRight, const ImU32 &strokeColor, float rounding, int rounding_corners, float strokeThickness) {
-    if (!dl || (((fillColorLeft & IM_COL32_A_MASK) == 0) && ((fillColoRight & IM_COL32_A_MASK) == 0) && ((strokeColor & IM_COL32_A_MASK) == 0)))  return;
-    if (rounding==0.f || rounding_corners==ImDrawFlags_RoundCornersNone) {
-        dl->AddRectFilledMultiColor(a,b,fillColorLeft,fillColoRight,fillColoRight,fillColorLeft); // Huge speedup!
-        if ((strokeColor& IM_COL32_A_MASK)!= 0 && strokeThickness>0.f) {
-            dl->PathRect(a, b, rounding, rounding_corners);
-            dl->AddPolyline(dl->_Path.Data, dl->_Path.Size, strokeColor, true, strokeThickness);
-            dl->PathClear();
-        }
-    }
-    else    {
-        dl->PathRect(a, b, rounding, rounding_corners);
-        ImDrawListPathFillWithHorizontalGradientAndStroke(dl,fillColorLeft,fillColoRight,strokeColor,true,strokeThickness,a.x,b.x);
-    }
-}
-void ImDrawListAddEllipseWithHorizontalGradient(ImDrawList *dl, const ImVec2 &centre, const ImVec2 &radii, const ImU32 &fillColorLeft, const ImU32 &fillColorRight, const ImU32 &strokeColor, int num_segments, float strokeThickness)   {
-    if (!dl) return;
-    const float a_max = IM_PI*2.0f * ((float)num_segments - 1.0f) / (float)num_segments;
-    ImDrawListPathArcTo(dl,centre, radii, 0.0f, a_max, num_segments);
-    ImDrawListPathFillWithHorizontalGradientAndStroke(dl,fillColorLeft,fillColorRight,strokeColor,true,strokeThickness,centre.y-radii.y,centre.y+radii.y);
-}
-void ImDrawListAddCircleWithHorizontalGradient(ImDrawList *dl, const ImVec2 &centre, float radius, const ImU32 &fillColorLeft, const ImU32 &fillColorRight, const ImU32 &strokeColor, int num_segments, float strokeThickness)   {
-    if (!dl) return;
-    const ImVec2 radii(radius,radius);
-    const float a_max = IM_PI*2.0f * ((float)num_segments - 1.0f) / (float)num_segments;
-    ImDrawListPathArcTo(dl,centre, radii, 0.0f, a_max, num_segments-1);
-    ImDrawListPathFillWithHorizontalGradientAndStroke(dl,fillColorLeft,fillColorRight,strokeColor,true,strokeThickness,centre.y-radius,centre.y+radius);
-}
-void ImDrawListAddRectWithHorizontalGradient(ImDrawList *dl, const ImVec2 &a, const ImVec2 &b, const ImU32 &fillColor, float fillColorGradientDeltaIn0_05, const ImU32 &strokeColor, float rounding, int rounding_corners, float strokeThickness)   {
-    ImU32 fillColorTop,fillColorBottom;GetVerticalGradientTopAndBottomColors(fillColor,fillColorGradientDeltaIn0_05,fillColorTop,fillColorBottom);
-    ImDrawListAddRectWithHorizontalGradient(dl,a,b,fillColorTop,fillColorBottom,strokeColor,rounding,rounding_corners,strokeThickness);
-}
-
 // These two methods are inspired by imguidock.cpp
 void PutInBackground(const char* optionalRootWindowName)  {
     ImGuiWindow* w = optionalRootWindowName ? FindWindowByName(optionalRootWindowName) : GetCurrentWindow();
@@ -2923,7 +2532,8 @@ bool GzBase85CompressFromMemory(const char* input,int inputSize,ImVector<char>& 
 } // namespace ImGui
 #endif //IMGUI_USE_ZLIB
 
-namespace ImGui {
+namespace ImGui
+{
 // Two methods that fill rv and return true on success
 bool Base64DecodeFromFile(const char* filePath,ImVector<char>& rv)  {
     ImVector<char> f_data;
@@ -2934,5 +2544,335 @@ bool Base85DecodeFromFile(const char* filePath,ImVector<char>& rv)  {
     ImVector<char> f_data;
     if (!ImGuiHelper::GetFileContent(filePath,f_data,true,"r",true)) return false;
     return ImGui::Base85Decode(&f_data[0],rv);
+}
+} // namespace ImGui
+
+namespace ImGui
+{
+// FFT 1D
+inline void swap(float* a, float* b)
+{
+	float t = *a;
+	*a = *b;
+	*b = t;
+}
+
+inline float sqr(float arg)
+{
+	return arg * arg;
+}
+
+void ImFFT(float* data, int N,  bool forward)
+{
+	int n = N << 1;
+	int i, j, m, mmax;
+
+	/* bit reversal section */
+
+	j = 0;
+	for (i = 0; i < n; i += 2) 
+	{
+		if (j > i) 
+		{
+			swap (&data[j], &data[i]);
+			swap (&data[j + 1], &data[i + 1]);
+		}
+		m = N;
+		while (m >= 2 && j >= m) 
+		{
+			j -= m;
+			m >>= 1;
+		}
+		j += m;
+	}
+
+	/* Daniel-Lanczos section */
+
+	float theta, wr, wpr, wpi, wi, wtemp;
+	float tempr, tempi;
+	for (mmax = 2; n > mmax;) 
+	{
+		int istep = mmax << 1;
+		theta = (forward ? 1 : -1) * (2.0 * M_PI / mmax);
+		wpr = -2.0 * sqr (sin (0.5 * theta));
+		wpi = sin (theta);
+		wr = 1.0;
+		wi = 0.0;
+		for (m = 0; m < mmax; m += 2) 
+		{
+			for (i = m; i < n; i += istep) 
+			{
+				j = i + mmax;
+				tempr = wr * data[j] - wi * data[j + 1];
+				tempi = wr * data[j + 1] + wi * data[j];
+				data[j] = data[i] - tempr;
+				data[j + 1] = data[i + 1] - tempi;
+				data[i] += tempr;
+				data[i + 1] += tempi;
+			}
+			wr = (wtemp = wr) * wpr - wi * wpi + wr;
+			wi = wi * wpr + wtemp * wpi + wi;
+		}
+		mmax = istep;
+	}
+
+	/* normalisation section */
+
+	const float tmp = 1.0 / sqrt ((float)N);
+	for (i = 0; i < n; i++)
+		data[i] *= tmp;
+}
+
+void ImRFFT(float* data, int N,  bool forward)
+{
+	/* main section */
+	int k;
+	float c1 = 0.5, c2;
+	float theta = M_PI / (float) (N >> 1);
+
+	if (forward) 
+	{
+		c2 = -0.5;
+		ImFFT(data, N >> 1, forward);
+	} 
+	else 
+	{
+		c2 = +0.5;
+		theta = -theta;
+	}
+
+	float wpr = -2.0 * sqr (sin (0.5 * theta));
+	float wpi = sin (theta);
+	float wr = 1.0 + wpr;
+	float wi = wpi;
+	float wtemp;
+
+	int i, i1, i2, i3, i4;
+	float h1r, h1i, h2r, h2i;
+	for (i = 1; i < N >> 2; i++) 
+	{
+		i1 = i + i;
+		i2 = i1 + 1;
+		i3 = N - i1;
+		i4 = i3 + 1;
+		h1r = c1 * (data[i1] + data[i3]);
+		h1i = c1 * (data[i2] - data[i4]);
+		h2r = -c2 * (data[i2] + data[i4]);
+		h2i = c2 * (data[i1] - data[i3]);
+		data[i1] = h1r + wr * h2r - wi * h2i;
+		data[i2] = h1i + wr * h2i + wi * h2r;
+		data[i3] = h1r - wr * h2r + wi * h2i;
+		data[i4] = -h1i + wr * h2i + wi * h2r;
+		wr = (wtemp = wr) * wpr - wi * wpi + wr;
+		wi = wi * wpr + wtemp * wpi + wi;
+	}
+
+	if (forward) 
+	{
+		data[0] = (h1r = data[0]) + data[1];
+		data[1] = h1r - data[1];
+	}
+	else 
+	{
+		data[0] = c1 * ((h1r = data[0]) + data[1]);
+		data[1] = c1 * (h1r - data[1]);
+		ImFFT(data, N >> 1, -1);
+	}
+
+	/* normalisation section */
+
+	const float tmp = forward ? M_SQRT1_2 : M_SQRT2;
+	for (k = 0; k < N; k++)
+		data[k] *= tmp;
+}
+
+int ImReComposeDB(float * in, float * out, int samples)
+{
+	int i,max = 0;
+	float zero_db,db,max_db = -200.0;
+	float tmp;
+
+	zero_db = 10 * log10(sqr((float)(1<<15)) * samples);
+	for (i = 0; i < (samples >> 1) + 1; i++)
+	{
+		if (i != 0 && i != (samples >> 1))
+		{
+			tmp = 2 * (sqr(in[2 * i]) + sqr(in[2 * i+1]));
+		}
+		else
+		{
+			tmp = sqr(in[i == 0 ? 0 : 1]);
+		}
+		db = 10 * log10(tmp) - zero_db;
+		out[i] = db;
+		if (db > max_db)
+		{
+			max_db = db;
+			max = i;
+		}
+	}
+	return max;
+}
+
+int ImReComposeAmplitude(float * in, float * out, int samples)
+{
+	int i,max = 0;
+	float tmp,dmax = 0;
+	for (i = 0; i < (samples >> 1) + 1; i++)
+	{
+		if (i != 0 && i != (samples >> 1))
+		{
+			tmp = 2 * (sqr(in[2 * i]) + sqr(in[2 * i+1]));
+		}
+		else
+		{
+			tmp = sqr(in[i == 0 ? 0 : 1]);
+		}
+		out[i] = tmp;
+		if (tmp > dmax)
+		{
+			dmax = tmp;
+			max = i;
+		}
+	}
+	return max;
+}
+
+int ImReComposePhase(float * in, float * out, int samples)
+{
+	int i;
+	float tmp;
+	int quadrant;
+	for (i = 0; i < (samples >> 1) + 1; i++)
+	{
+		if (in[2 * i] > 0 && in[2 * i + 1] > 0)
+		{
+			quadrant = 1;
+		}
+		else if (in[2 * i] < 0 && in[2 * i + 1] > 0)
+		{
+			quadrant = 2;
+		}
+		else if (in[2 * i] < 0 && in[2 * i + 1] < 0)
+		{
+			quadrant = 3;
+		}
+		else if (in[2 * i] > 0 && in[2 * i + 1] < 0)
+		{
+			quadrant = 4;
+		}
+		else
+		{
+			quadrant = 1;
+		}
+		if (i != 0 && i != (samples >> 1))
+		{
+			tmp = atan((in[2 * i]/in[2 * i + 1]));
+			out[i] = tmp * 180 / M_PI;
+			switch (quadrant)
+			{
+				case 1:
+					break;
+				case 2:
+					out[i] = 180 + out[i];
+					break;
+				case 3:
+					out[i] = 180 + out[i];
+					break;
+				case 4:
+					out[i] = 360 + out[i];
+					break;
+				default:
+					break;
+			}
+		}
+		else
+		{
+			out[i] = 0;
+		}
+	}
+	return 1;
+}
+
+int ImReComposeDBShort(float * in, float * out, int samples)
+{
+	int i,j;
+	int n_sample;
+	int start_sample;
+	float zero_db;
+	float tmp;
+	static unsigned int freq_table[21] = {0,1,2,3,4,5,6,7,8,11,15,20,
+		27,36,47,62,82,107,141,184,255}; //fft_number
+
+	zero_db = 10 * log10(sqr((float)(1<<15)) * samples);
+
+	for (i = 0; i< 20; i++)
+	{
+		start_sample = freq_table[i] * (samples / 256);
+		n_sample = (freq_table[i + 1] - freq_table[i])  * (samples / 256);
+		tmp=0;
+		for (j = start_sample; j < start_sample + n_sample; j++)
+		{
+			tmp += 2 * sqr(in[j]);
+		}
+		
+		tmp /= (float)n_sample;
+		out[i] = 10.0 * log10 (tmp) - zero_db;
+	}
+	return 20;
+}
+
+int ImReComposeDBLong(float * in, float * out, int samples)
+{
+	int i,j;
+	int n_sample;
+	int start_sample;
+	float zero_db;
+	float tmp;
+	static unsigned int freq_table[77] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,
+		19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,
+		35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,
+		52,53,54,55,56,57,58,61,66,71,76,81,87,93,100,107,
+		114,122,131,140,150,161,172,184,255}; //fft_number
+
+	zero_db = 10 * log10(sqr((float)(1<<15)) * samples);
+
+	for (i = 0; i< 76; i++)
+	{
+		start_sample = freq_table[i] * (samples / 256);
+		n_sample = (freq_table[i + 1] - freq_table[i]) * (samples / 256);
+		tmp=0;
+		for (j = start_sample; j < start_sample + n_sample; j++)
+		{
+			tmp += 2 * sqr(in[j]);
+		}
+		
+		tmp /= (float)n_sample;
+		out[i] = 10.0 * log10 (tmp) - zero_db;
+	}
+	return 76;
+}
+
+float ImDoDecibel(float * in, int samples)
+{
+	int i;
+	float db,zero_db;
+	float tmp;
+	zero_db = 10 * log10(sqr((float)(1<<15)) * 2);
+	tmp = 0;
+	for (i = 0; i < (samples >> 1) + 1; i++)
+	{
+		if (i != 0 && i != (samples >> 1))
+		{
+			tmp += 2 * (sqr(in[2 * i]) + sqr(in[2 * i+1]));
+		}
+		else
+		{
+			tmp += sqr(in[i == 0 ? 0 : 1]);
+		}
+	}
+	tmp /= (float)samples;
+	db = 10 * log10(tmp) - zero_db;
+	return db;
 }
 } // namespace ImGui
