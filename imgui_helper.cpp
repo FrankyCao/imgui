@@ -2686,13 +2686,13 @@ void ImRFFT(float* data, int N,  bool forward)
 		data[k] *= tmp;
 }
 
-int ImReComposeDB(float * in, float * out, int samples)
+int ImReComposeDB(float * in, float * out, int samples, bool inverse)
 {
 	int i,max = 0;
 	float zero_db,db,max_db = -200.0;
 	float tmp;
 
-	zero_db = 10 * log10(sqr((float)(1<<15)) * samples);
+	zero_db = - 20 * log10((float)(1<<15));
 	for (i = 0; i < (samples >> 1) + 1; i++)
 	{
 		if (i != 0 && i != (samples >> 1))
@@ -2703,7 +2703,7 @@ int ImReComposeDB(float * in, float * out, int samples)
 		{
 			tmp = sqr(in[i == 0 ? 0 : 1]);
 		}
-		db = 10 * log10(tmp) - zero_db;
+		db = 20 * log10(tmp) - (inverse ? zero_db : 0);
 		out[i] = db;
 		if (db > max_db)
 		{
@@ -2794,7 +2794,7 @@ int ImReComposePhase(float * in, float * out, int samples)
 	return 1;
 }
 
-int ImReComposeDBShort(float * in, float * out, int samples)
+int ImReComposeDBShort(float * in, float * out, int samples, bool inverse)
 {
 	int i,j;
 	int n_sample;
@@ -2804,7 +2804,7 @@ int ImReComposeDBShort(float * in, float * out, int samples)
 	static unsigned int freq_table[21] = {0,1,2,3,4,5,6,7,8,11,15,20,
 		27,36,47,62,82,107,141,184,255}; //fft_number
 
-	zero_db = 10 * log10(sqr((float)(1<<15)) * samples);
+	zero_db = - 20 * log10((float)(1<<15));
 
 	for (i = 0; i< 20; i++)
 	{
@@ -2817,12 +2817,12 @@ int ImReComposeDBShort(float * in, float * out, int samples)
 		}
 		
 		tmp /= (float)n_sample;
-		out[i] = 10.0 * log10 (tmp) - zero_db;
+		out[i] = 20.0 * log10(tmp) - (inverse ? zero_db : 0);
 	}
 	return 20;
 }
 
-int ImReComposeDBLong(float * in, float * out, int samples)
+int ImReComposeDBLong(float * in, float * out, int samples, bool inverse)
 {
 	int i,j;
 	int n_sample;
@@ -2835,7 +2835,7 @@ int ImReComposeDBLong(float * in, float * out, int samples)
 		52,53,54,55,56,57,58,61,66,71,76,81,87,93,100,107,
 		114,122,131,140,150,161,172,184,255}; //fft_number
 
-	zero_db = 10 * log10(sqr((float)(1<<15)) * samples);
+	zero_db = - 20 * log10((float)(1<<15));
 
 	for (i = 0; i< 76; i++)
 	{
@@ -2848,17 +2848,17 @@ int ImReComposeDBLong(float * in, float * out, int samples)
 		}
 		
 		tmp /= (float)n_sample;
-		out[i] = 10.0 * log10 (tmp) - zero_db;
+		out[i] = 20.0 * log10(tmp) - (inverse ? zero_db : 0);
 	}
 	return 76;
 }
 
-float ImDoDecibel(float * in, int samples)
+float ImDoDecibel(float * in, int samples, bool inverse)
 {
 	int i;
 	float db,zero_db;
 	float tmp;
-	zero_db = 10 * log10(sqr((float)(1<<15)) * 2);
+	zero_db = - 20 * log10((float)(1<<15));
 	tmp = 0;
 	for (i = 0; i < (samples >> 1) + 1; i++)
 	{
@@ -2872,7 +2872,7 @@ float ImDoDecibel(float * in, int samples)
 		}
 	}
 	tmp /= (float)samples;
-	db = 10 * log10(tmp) - zero_db;
+	db = 20 * log10(tmp) - (inverse ? zero_db : 0);
 	return db;
 }
 } // namespace ImGui
