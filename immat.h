@@ -373,12 +373,16 @@ public:
     // data reference
     ImMat channel(int c);
     const ImMat channel(int c) const;
-    float* row(int y);
-    const float* row(int y) const;
+
     template<typename T>
-    T* row(int y);
+    inline T* row(int y) { return (T*)((unsigned char*)data + (size_t)w * y * elemsize); }
     template<typename T>
-    const T* row(int y) const;
+    inline const T* row(int y) const { return (const T*)((unsigned char*)data + (size_t)w * y * elemsize); }
+
+    template<typename T>
+    inline T* row_c(int y) { return (T*)((unsigned char*)data + (size_t)w * y * c * elemsize); }
+    template<typename T>
+    inline const T* row_c(int y) const { return (const T*)((unsigned char*)data + (size_t)w * y * c * elemsize); }
 
     // range reference
     ImMat channel_range(int c, int channels);
@@ -1218,34 +1222,16 @@ inline ImMat ImMat::shape() const
 
 inline ImMat ImMat::channel(int _c)
 {
-    return ImMat(w, h, (unsigned char*)data + cstep * _c * elemsize, elemsize, elempack, allocator);
+    ImMat m(w, h, (unsigned char*)data + cstep * _c * elemsize, elemsize, elempack, allocator);
+    m.dims = dims - 1;
+    return m;
 }
 
 inline const ImMat ImMat::channel(int _c) const
 {
-    return ImMat(w, h, (unsigned char*)data + cstep * _c * elemsize, elemsize, elempack, allocator);
-}
-
-inline float* ImMat::row(int y)
-{
-    return (float*)((unsigned char*)data + (size_t)w * y * elemsize);
-}
-
-inline const float* ImMat::row(int y) const
-{
-    return (const float*)((unsigned char*)data + (size_t)w * y * elemsize);
-}
-
-template<typename T>
-inline T* ImMat::row(int y)
-{
-    return (T*)((unsigned char*)data + (size_t)w * y * elemsize);
-}
-
-template<typename T>
-inline const T* ImMat::row(int y) const
-{
-    return (const T*)((unsigned char*)data + (size_t)w * y * elemsize);
+    ImMat m(w, h, (unsigned char*)data + cstep * _c * elemsize, elemsize, elempack, allocator);
+    m.dims = dims - 1;
+    return m;
 }
 
 inline ImMat ImMat::channel_range(int _c, int channels)
