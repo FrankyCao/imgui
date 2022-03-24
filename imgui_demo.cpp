@@ -839,39 +839,6 @@ static void ShowDemoWindowWidgets()
         ImGui::TreePop();
     }
 
-    // add By Dicky
-    IMGUI_DEMO_MARKER("Widgets/Indicator");
-    if (ImGui::TreeNode("Indicator"))
-    {
-        // LoadingIndicatorCircle
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Text("LoadingIndicatorCircle(...) from https://github.com/ocornut/imgui/issues/1901");
-        ImGui::Separator();
-        ImGui::TextUnformatted("Test 1:");ImGui::SameLine();
-        ImGui::LoadingIndicatorCircle("MyLIC1");ImGui::SameLine();
-        ImGui::TextUnformatted("Test 2:");ImGui::SameLine();
-        ImGui::LoadingIndicatorCircle("MyLIC2",1.f,&ImGui::GetStyle().Colors[ImGuiCol_Header],&ImGui::GetStyle().Colors[ImGuiCol_HeaderHovered]);
-        ImGui::AlignTextToFramePadding();ImGui::TextUnformatted("Test 3:");ImGui::SameLine();ImGui::LoadingIndicatorCircle("MyLIC3",2.0f);
-        ImGui::AlignTextToFramePadding();ImGui::TextUnformatted("Test 4:");ImGui::SameLine();ImGui::LoadingIndicatorCircle("MyLIC4",4.0f,&ImGui::GetStyle().Colors[ImGuiCol_Header],&ImGui::GetStyle().Colors[ImGuiCol_HeaderHovered],12,2.f);
-        ImGui::Separator();
-
-        // LoadingIndicatorCircle2
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Text("LoadingIndicatorCircle2(...) from https://github.com/ocornut/imgui/issues/1901");
-        ImGui::Separator();
-        ImGui::TextUnformatted("Test 1:");ImGui::SameLine();
-        ImGui::LoadingIndicatorCircle2("MyLIC21");ImGui::SameLine();
-        ImGui::TextUnformatted("Test 2:");ImGui::SameLine();
-        ImGui::LoadingIndicatorCircle2("MyLIC22",1.f,1.5f,&ImGui::GetStyle().Colors[ImGuiCol_Header]);
-        ImGui::AlignTextToFramePadding();ImGui::TextUnformatted("Test 3:");ImGui::SameLine();ImGui::LoadingIndicatorCircle2("MyLIC23",2.0f);
-        ImGui::AlignTextToFramePadding();ImGui::TextUnformatted("Test 4:");ImGui::SameLine();ImGui::LoadingIndicatorCircle2("MyLIC24",4.0f,1.f,&ImGui::GetStyle().Colors[ImGuiCol_Header]);
-        
-        ImGui::TreePop();
-    }
-    // add By Dicky end
-    
     // Testing ImGuiOnceUponAFrame helper.
     //static ImGuiOnceUponAFrame once;
     //for (int i = 0; i < 5; i++)

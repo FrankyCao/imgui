@@ -53,6 +53,9 @@ IMGUI_API bool ToggleButton(const char* str_id, bool* v);
 IMGUI_API bool ToggleButton(const char *str_id, bool *v, const ImVec2 &size);
 IMGUI_API bool BulletToggleButton(const char* label,bool* v, ImVec2 &pos, ImVec2 &size);
 
+// Input with int64
+IMGUI_API bool InputInt64(const char* label, int64_t* v, int step = 1, int step_fast = 100, ImGuiInputTextFlags flags = 0);
+
 // CheckButton
 IMGUI_API bool CheckButton(const char* label, bool* pvalue, bool useSmallButton = false, float checkedStateAlphaMult = 0.5f);
 
@@ -67,6 +70,14 @@ IMGUI_API bool ColoredButton(const char* label, const ImVec2& size, ImU32 text_c
 IMGUI_API float ProgressBar(const char* optionalPrefixText,float value,const float minValue=0.f,const float maxValue=1.f,const char* format="%1.0f%%",const ImVec2& sizeOfBarWithoutTextInPixels=ImVec2(-1,-1),
                 const ImVec4& colorLeft=ImVec4(0,1,0,0.8),const ImVec4& colorRight=ImVec4(0,0.4,0,0.8),const ImVec4& colorBorder=ImVec4(0.25,0.25,1.0,1));
 
+// new PlotEx
+IMGUI_API int   PlotEx(ImGuiPlotType plot_type, const char* label, float (*values_getter)(void* data, int idx), void* data, int values_count, int values_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 frame_size, bool b_tooltops = true, bool b_comband = false);
+IMGUI_API void  PlotLines(const char* label, const float* values, int values_count, int values_offset = 0, const char* overlay_text = NULL, float scale_min = FLT_MAX, float scale_max = FLT_MAX, ImVec2 graph_size = ImVec2(0, 0), int stride = sizeof(float), bool b_tooltips = true, bool b_comband = false);
+IMGUI_API void  PlotLines(const char* label, float(*values_getter)(void* data, int idx), void* data, int values_count, int values_offset = 0, const char* overlay_text = NULL, float scale_min = FLT_MAX, float scale_max = FLT_MAX, ImVec2 graph_size = ImVec2(0, 0), bool b_tooltips = true, bool b_comband = false);
+
+// new menu item
+IMGUI_API bool  MenuItemEx(const char* label, const char* icon, const char* shortcut = NULL, bool selected = false, bool enabled = true, const char* subscript = nullptr);
+IMGUI_API bool  MenuItem(const char* label, const char* shortcut, bool selected, bool enabled, const char* subscript);  
 
 // Slider 2D and Slider 3D 
 IMGUI_API bool InputVec2(char const* pLabel, ImVec2* pValue, ImVec2 const vMinValue, ImVec2 const vMaxValue, float const fScale = 1.0f);
@@ -309,7 +320,10 @@ IMGUI_API void ImDrawListAddRectWithHorizontalGradient(ImDrawList *dl, const ImV
 IMGUI_API void ImDrawListAddEllipseWithHorizontalGradient(ImDrawList *dl, const ImVec2 &centre, const ImVec2 &radii, const ImU32 &fillColorLeft, const ImU32 &fillColorRight, const ImU32 &strokeColor, int num_segments = 12, float strokeThickness = 1.0f);
 IMGUI_API void ImDrawListAddCircleWithHorizontalGradient(ImDrawList *dl, const ImVec2 &centre, float radius, const ImU32 &fillColorLeft, const ImU32 &fillColorRight, const ImU32 &strokeColor, int num_segments = 12, float strokeThickness = 1.0f);
 IMGUI_API void ImDrawListAddRectWithHorizontalGradient(ImDrawList *dl, const ImVec2 &a, const ImVec2 &b, const ImU32 &fillColor, float fillColorGradientDeltaIn0_05, const ImU32 &strokeColor, float rounding = 0.0f, int rounding_corners = 0, float strokeThickness = 1.0f);
-// 
+// Add Dashed line or circle
+IMGUI_API void  ImDrawListAddLineDashed(ImDrawList *dl, const ImVec2& a, const ImVec2& b, ImU32 col, float thickness = 1.0f, unsigned int segments = 10, unsigned int on_segments = 1, unsigned int off_segments = 1);
+IMGUI_API void  ImDrawListAddCircleDashed(ImDrawList *dl, const ImVec2& centre, float radius, ImU32 col, int num_segments = 12, float thickness = 1.0f, int on_segments = 1, int off_segments = 1);
+IMGUI_API void  ImDrawListPathArcToDashedAndStroke(ImDrawList *dl, const ImVec2& centre, float radius, float a_min, float a_max, ImU32 col, float thickness = 1.0f, int num_segments = 10, int on_segments = 1, int off_segments = 1);
 } // namespace ImGui
 
 namespace ImGui
@@ -321,4 +335,16 @@ IMGUI_API void      ImAddTextVertical(ImDrawList* drawList,const ImFont* font, f
 IMGUI_API void      ImAddTextVertical(ImDrawList* drawList,const ImVec2& pos, ImU32 col, const char* text_begin, const char* text_end = NULL,bool rotateCCW = false);
 IMGUI_API void      ImRenderTextVerticalClipped(const ImVec2& pos_min, const ImVec2& pos_max, const char* text, const char* text_end, const ImVec2* text_size_if_known, const ImVec2& align = ImVec2(0.0f,0.0f), const ImVec2* clip_min = NULL, const ImVec2* clip_max = NULL,bool rotateCCW = false);
 } //namespace ImGui
+
+namespace ImGui
+{
+// Posted by @alexsr here: https://github.com/ocornut/imgui/issues/1901
+// Sligthly modified to provide default behaviour with default args
+IMGUI_API void      LoadingIndicatorCircle(const char* label, float indicatorRadiusFactor=1.f,
+                               const ImVec4* pOptionalMainColor=NULL, const ImVec4* pOptionalBackdropColor=NULL,
+                               int circle_count=8, const float speed=1.f);
+// Posted by @zfedoran here: https://github.com/ocornut/imgui/issues/1901
+// Sligthly modified to provide default behaviour with default args
+IMGUI_API void      LoadingIndicatorCircle2(const char* label, float indicatorRadiusFactor=1.f, float indicatorRadiusThicknessFactor=1.f, const ImVec4* pOptionalColor=NULL);
+} // namespace ImGui
 #endif // IMGUI_WIDGET_H

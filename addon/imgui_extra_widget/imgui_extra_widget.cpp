@@ -862,6 +862,14 @@ bool ImGui::BulletToggleButton(const char* label, bool* v, ImVec2 &pos, ImVec2 &
     return valueChange;
 }
 
+// Input with int64
+bool ImGui::InputInt64(const char* label, int64_t* v, int step, int step_fast, ImGuiInputTextFlags flags)
+{
+    // Hexadecimal input provided as a convenience but the flag name is awkward. Typically you'd use InputText() to parse your own data, if you want to handle prefixes.
+    const char* format = (flags & ImGuiInputTextFlags_CharsHexadecimal) ? "%16X" : "%lld";
+    return InputScalar(label, ImGuiDataType_S64, (void*)v, (void*)(step > 0 ? &step : NULL), (void*)(step_fast > 0 ? &step_fast : NULL), format, flags);
+}
+
 // CheckButton
 bool ImGui::CheckButton(const char* label, bool* pvalue, bool useSmallButton, float checkedStateAlphaMult) {
     bool rv = false;
@@ -3333,6 +3341,72 @@ void ImGui::ImDrawListAddRectWithHorizontalGradient(ImDrawList *dl, const ImVec2
     ImDrawListAddRectWithHorizontalGradient(dl,a,b,fillColorTop,fillColorBottom,strokeColor,rounding,rounding_corners,strokeThickness);
 }
 
+void ImGui::ImDrawListAddLineDashed(ImDrawList *dl, const ImVec2& a, const ImVec2& b, ImU32 col, float thickness, unsigned int num_segments, unsigned int on_segments, unsigned int off_segments)
+{
+    if ((col >> 24) == 0)
+        return;
+    int on = 0, off = 0;
+    ImVec2 dir = (b - a) / num_segments;
+    for (int i = 0; i <= num_segments; i++)
+    {
+        ImVec2 point(a + dir * i);
+        if(on < on_segments) {
+            dl->_Path.push_back(point);
+            on++;
+        } else if(on == on_segments && off == 0) {
+            dl->_Path.push_back(point);
+            dl->PathStroke(col, false, thickness);
+            off++;
+        } else if(on == on_segments && off < off_segments) {
+            off++;
+        } else {
+            dl->_Path.resize(0);
+            dl->_Path.push_back(point);
+            on=1;
+            off=0;
+        }
+    }
+    dl->PathStroke(col, false, thickness);
+}
+
+void ImGui::ImDrawListPathArcToDashedAndStroke(ImDrawList *dl, const ImVec2& centre, float radius, float amin, float amax, ImU32 col, float thickness, int num_segments, int on_segments, int off_segments)
+{
+    if (radius == 0.0f)
+        dl->_Path.push_back(centre);
+    dl->_Path.reserve(dl->_Path.Size + (num_segments + 1));
+    int on = 0, off = 0;
+    for (int i = 0; i <= num_segments + 1; i++)
+    {
+        const float a = amin + ((float)i / (float)num_segments) * (amax - amin);
+        ImVec2 point(centre.x + cosf(a) * radius, centre.y + sinf(a) * radius);
+        if(on < on_segments) {
+            dl->_Path.push_back(point);
+            on++;
+        } else if(on == on_segments && off == 0) {
+            dl->_Path.push_back(point);
+            dl->PathStroke(col, false, thickness);
+            off++;
+        } else if(on == on_segments && off < off_segments) {
+            off++;
+        } else {
+            dl->_Path.resize(0);
+            dl->_Path.push_back(point);
+            on=1;
+            off=0;
+        }
+    }
+    dl->PathStroke(col, false, thickness);
+}
+
+void ImGui::ImDrawListAddCircleDashed(ImDrawList *dl, const ImVec2& centre, float radius, ImU32 col, int num_segments, float thickness, int on_segments, int off_segments)
+{
+    if ((col >> 24) == 0 || on_segments == 0)
+        return;
+    const float a_max = IM_PI*2.0f * ((float)num_segments - 1.0f) / (float)num_segments;
+    ImDrawListPathArcToDashedAndStroke(dl, centre, radius-0.5f, 0.0f, a_max, col, thickness, num_segments, on_segments, off_segments);
+}
+
+// Vertical Text
 ImVec2 ImGui::ImCalcVerticalTextSize(const char* text, const char* text_end, bool hide_text_after_double_hash, float wrap_width)
 {
     const ImVec2 rv = ImGui::CalcTextSize(text,text_end,hide_text_after_double_hash,wrap_width);
@@ -3621,4 +3695,368 @@ void ImGui::ImRenderTextVerticalClipped(const ImVec2& pos_min, const ImVec2& pos
     {
         ImAddTextVertical(window->DrawList,g.Font, g.FontSize, pos, GetColorU32(ImGuiCol_Text), text, text_display_end, 0.0f, NULL,rotateCCW);
     }
+}
+
+// add By Dicky
+// Posted by @alexsr here: https://github.com/ocornut/imgui/issues/1901
+// Sligthly modified to provide default behaviour with default args
+void ImGui::LoadingIndicatorCircle(const char* label, float indicatorRadiusFactor,
+                                   const ImVec4* pOptionalMainColor, const ImVec4* pOptionalBackdropColor,
+                                   int circle_count,const float speed)
+{
+    ImGuiWindow* window = GetCurrentWindow();
+    if (window->SkipItems) {
+        return;
+    }
+
+    ImGuiContext& g = *GImGui;
+    const ImGuiID id = window->GetID(label);
+    const ImGuiStyle& style = GetStyle();
+
+    if (circle_count<=0) circle_count = 12;
+    if (indicatorRadiusFactor<=0.f) indicatorRadiusFactor = 1.f;
+    if (!pOptionalMainColor)        pOptionalMainColor = &style.Colors[ImGuiCol_Button];
+    if (!pOptionalBackdropColor)    pOptionalBackdropColor = &style.Colors[ImGuiCol_ButtonHovered];
+
+    const float lineHeight = GetTextLineHeight(); // or GetTextLineHeight() or GetTextLineHeightWithSpacing() ?
+    float indicatorRadiusPixels = indicatorRadiusFactor*lineHeight*0.5f;
+
+    const ImVec2 pos = window->DC.CursorPos;
+    const float circle_radius = indicatorRadiusPixels / 8.f;
+    indicatorRadiusPixels-= 2.0f*circle_radius;
+    const ImRect bb(pos, ImVec2(pos.x + indicatorRadiusPixels*2.f+4.f*circle_radius,
+                                pos.y + indicatorRadiusPixels*2.f+4.f*circle_radius));
+    ItemSize(bb, style.FramePadding.y);
+    if (!ItemAdd(bb, id)) {
+        return;
+    }
+    const float base_num_segments = circle_radius*1.f;
+    const double t = g.Time;
+    const float degree_offset = 2.0f * IM_PI / circle_count;
+    for (int i = 0; i < circle_count; ++i) {
+        const float sinx = -ImSin(degree_offset * i);
+        const float cosx = ImCos(degree_offset * i);
+        const float growth = ImMax(0.0f, ImSin((float)(t*(double)(speed*3.0f)-(double)(i*degree_offset))));
+        ImVec4 color;
+        color.x = pOptionalMainColor->x * growth + pOptionalBackdropColor->x * (1.0f - growth);
+        color.y = pOptionalMainColor->y * growth + pOptionalBackdropColor->y * (1.0f - growth);
+        color.z = pOptionalMainColor->z * growth + pOptionalBackdropColor->z * (1.0f - growth);
+        color.w = 1.0f;
+        float grown_circle_radius = circle_radius*(1.0f + growth);
+        int num_segments = (int)(base_num_segments*grown_circle_radius);
+        if (num_segments<4) num_segments=4;
+        window->DrawList->AddCircleFilled(ImVec2(pos.x+2.f*circle_radius + indicatorRadiusPixels*(1.0f+sinx),
+                                                 pos.y+2.f*circle_radius + indicatorRadiusPixels*(1.0f+cosx)),
+                                                 grown_circle_radius,
+                                                 GetColorU32(color),num_segments);
+    }
+}
+
+// Posted by @zfedoran here: https://github.com/ocornut/imgui/issues/1901
+// Sligthly modified to provide default behaviour with default args
+void ImGui::LoadingIndicatorCircle2(const char* label,float indicatorRadiusFactor, float indicatorRadiusThicknessFactor, const ImVec4* pOptionalColor)
+{
+    ImGuiWindow* window = GetCurrentWindow();
+    if (window->SkipItems)
+        return;
+
+    ImGuiContext& g = *GImGui;
+    const ImGuiStyle& style = g.Style;
+    const ImGuiID id = window->GetID(label);
+
+    if (indicatorRadiusFactor<=0.f) indicatorRadiusFactor = 1.f;
+    if (indicatorRadiusThicknessFactor<=0.f) indicatorRadiusThicknessFactor = 1.f;
+    if (!pOptionalColor)    pOptionalColor = &style.Colors[ImGuiCol_Button];
+    const ImU32 color = GetColorU32(*pOptionalColor);
+
+    const float lineHeight = GetTextLineHeight(); // or GetTextLineHeight() or GetTextLineHeightWithSpacing() ?
+    float indicatorRadiusPixels = indicatorRadiusFactor*lineHeight*0.5f;
+    float indicatorThicknessPixels = indicatorRadiusThicknessFactor*indicatorRadiusPixels*0.6f;
+    if (indicatorThicknessPixels>indicatorThicknessPixels*0.4f) indicatorThicknessPixels=indicatorThicknessPixels*0.4f;
+    indicatorRadiusPixels-=indicatorThicknessPixels;
+
+    ImVec2 pos = window->DC.CursorPos;
+    ImVec2 size(indicatorRadiusPixels*2.f, (indicatorRadiusPixels + style.FramePadding.y)*2.f);
+
+    const ImRect bb(pos, ImVec2(pos.x + size.x, pos.y + size.y));
+    ItemSize(bb, style.FramePadding.y);
+    if (!ItemAdd(bb, id))
+        return;
+
+    // Render
+    window->DrawList->PathClear();
+
+
+
+    //int num_segments = indicatorRadiusPixels/8.f;
+    //if (num_segments<4) num_segments=4;
+
+    int num_segments = 30;
+
+    int start = abs(ImSin(g.Time*1.8f)*(num_segments-5));
+
+    const float a_min = IM_PI*2.0f * ((float)start) / (float)num_segments;
+    const float a_max = IM_PI*2.0f * ((float)num_segments-3) / (float)num_segments;
+
+    const ImVec2 centre = ImVec2(pos.x+indicatorRadiusPixels, pos.y+indicatorRadiusPixels+style.FramePadding.y);
+
+    for (int i = 0; i < num_segments; i++) {
+        const float a = a_min + ((float)i / (float)num_segments) * (a_max - a_min);
+        window->DrawList->PathLineTo(ImVec2(centre.x + ImCos(a+g.Time*8) * indicatorRadiusPixels,
+                                            centre.y + ImSin(a+g.Time*8) * indicatorRadiusPixels));
+    }
+
+    window->DrawList->PathStroke(color, false, indicatorThicknessPixels);
+}
+
+int ImGui::PlotEx(ImGuiPlotType plot_type, const char* label, float (*values_getter)(void* data, int idx), void* data, int values_count, int values_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 frame_size, bool b_tooltops, bool b_comband)
+{
+    ImGuiContext& g = *GImGui;
+    ImGuiWindow* window = GetCurrentWindow();
+    if (window->SkipItems)
+        return -1;
+
+    const ImGuiStyle& style = g.Style;
+    const ImGuiID id = window->GetID(label);
+
+    const ImVec2 label_size = CalcTextSize(label, NULL, true);
+    if (frame_size.x == 0.0f)
+        frame_size.x = CalcItemWidth();
+    if (frame_size.y == 0.0f)
+        frame_size.y = label_size.y + (style.FramePadding.y * 2);
+
+    const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + frame_size);
+    const ImRect inner_bb(frame_bb.Min + style.FramePadding, frame_bb.Max - style.FramePadding);
+    const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0));
+    ItemSize(total_bb, style.FramePadding.y);
+    if (!ItemAdd(total_bb, 0, &frame_bb))
+        return -1;
+    const bool hovered = b_tooltops && ItemHoverable(frame_bb, id); // Modify By Dicky
+
+    // Determine scale from values if not specified
+    if (scale_min == FLT_MAX || scale_max == FLT_MAX)
+    {
+        float v_min = FLT_MAX;
+        float v_max = -FLT_MAX;
+        for (int i = 0; i < values_count; i++)
+        {
+            const float v = values_getter(data, i);
+            if (v != v) // Ignore NaN values
+                continue;
+            v_min = ImMin(v_min, v);
+            v_max = ImMax(v_max, v);
+        }
+        if (scale_min == FLT_MAX)
+            scale_min = v_min;
+        if (scale_max == FLT_MAX)
+            scale_max = v_max;
+    }
+
+    RenderFrame(frame_bb.Min, frame_bb.Max, GetColorU32(ImGuiCol_FrameBg), true, style.FrameRounding);
+
+    const int values_count_min = (plot_type == ImGuiPlotType_Lines) ? 2 : 1;
+    int idx_hovered = -1;
+    if (values_count >= values_count_min)
+    {
+        int res_w = ImMin((int)frame_size.x, values_count) + ((plot_type == ImGuiPlotType_Lines) ? -1 : 0);
+        int item_count = values_count + ((plot_type == ImGuiPlotType_Lines) ? -1 : 0);
+
+        // Tooltip on hover
+        if (hovered && inner_bb.Contains(g.IO.MousePos))
+        {
+            const float t = ImClamp((g.IO.MousePos.x - inner_bb.Min.x) / (inner_bb.Max.x - inner_bb.Min.x), 0.0f, 0.9999f);
+            const int v_idx = (int)(t * item_count);
+            IM_ASSERT(v_idx >= 0 && v_idx < values_count);
+
+            const float v0 = values_getter(data, (v_idx + values_offset) % values_count);
+            const float v1 = values_getter(data, (v_idx + 1 + values_offset) % values_count);
+            if (plot_type == ImGuiPlotType_Lines)
+                SetTooltip("%d: %8.4g\n%d: %8.4g", v_idx, v0, v_idx + 1, v1);
+            else if (plot_type == ImGuiPlotType_Histogram)
+                SetTooltip("%d: %8.4g", v_idx, v0);
+            idx_hovered = v_idx;
+        }
+
+        const float t_step = 1.0f / (float)res_w;
+        const float inv_scale = (scale_min == scale_max) ? 0.0f : (1.0f / (scale_max - scale_min));
+
+        float v0 = values_getter(data, (0 + values_offset) % values_count);
+        float t0 = 0.0f;
+        ImVec2 tp0 = ImVec2( t0, 1.0f - ImSaturate((v0 - scale_min) * inv_scale) );                       // Point in the normalized space of our target rectangle
+        float histogram_zero_line_t = (scale_min * scale_max < 0.0f) ? (1 + scale_min * inv_scale) : (scale_min < 0.0f ? 0.0f : 1.0f);   // Where does the zero line stands
+
+        const ImU32 col_base = GetColorU32((plot_type == ImGuiPlotType_Lines) ? ImGuiCol_PlotLines : ImGuiCol_PlotHistogram);
+        const ImU32 col_hovered = GetColorU32((plot_type == ImGuiPlotType_Lines) ? ImGuiCol_PlotLinesHovered : ImGuiCol_PlotHistogramHovered);
+
+        for (int n = 0; n < res_w; n++)
+        {
+            const float t1 = t0 + t_step;
+            // Modify By Dicky
+            int v1_idx = (int)(t0 * item_count + 0.5f);
+            //IM_ASSERT(v1_idx >= 0 && v1_idx < values_count);
+            if (v1_idx < 0) v1_idx = 0;
+            if (v1_idx > values_count) v1_idx = values_count;
+            // Modify By Dicky end
+            const float v1 = values_getter(data, (v1_idx + values_offset + 1) % values_count);
+            const ImVec2 tp1 = ImVec2( t1, 1.0f - ImSaturate((v1 - scale_min) * inv_scale) );
+
+            // NB: Draw calls are merged together by the DrawList system. Still, we should render our batch are lower level to save a bit of CPU.
+            ImVec2 pos0 = ImLerp(inner_bb.Min, inner_bb.Max, tp0);
+            ImVec2 pos1 = ImLerp(inner_bb.Min, inner_bb.Max, (plot_type == ImGuiPlotType_Lines) ? tp1 : ImVec2(tp1.x, histogram_zero_line_t));
+            if (plot_type == ImGuiPlotType_Lines)
+            {
+                window->DrawList->AddLine(pos0, pos1, idx_hovered == v1_idx ? col_hovered : col_base);
+                // Add By Dicky
+                if (b_comband)
+                {
+                    ImVec2 _pos1 = ImLerp(inner_bb.Min, inner_bb.Max, ImVec2(tp1.x, histogram_zero_line_t));
+                    if (_pos1.x >= pos0.x + 2.0f)
+                        _pos1.x -= 1.0f;
+                    window->DrawList->AddRectFilled(pos0, _pos1, idx_hovered == v1_idx ? GetColorU32(ImGuiCol_PlotHistogramHovered) : GetColorU32(ImGuiCol_PlotHistogram));
+                }
+                // Add By Dicky end
+            }
+            else if (plot_type == ImGuiPlotType_Histogram)
+            {
+                if (pos1.x >= pos0.x + 2.0f)
+                    pos1.x -= 1.0f;
+                window->DrawList->AddRectFilled(pos0, pos1, idx_hovered == v1_idx ? col_hovered : col_base);
+            }
+
+            t0 = t1;
+            tp0 = tp1;
+        }
+    }
+
+    // Text overlay
+    if (overlay_text)
+        RenderTextClipped(ImVec2(frame_bb.Min.x, frame_bb.Min.y + style.FramePadding.y), frame_bb.Max, overlay_text, NULL, NULL, ImVec2(0.5f, 0.0f));
+
+    if (label_size.x > 0.0f)
+        RenderText(ImVec2(frame_bb.Max.x + style.ItemInnerSpacing.x, inner_bb.Min.y), label);
+
+    // Return hovered index or -1 if none are hovered.
+    // This is currently not exposed in the public API because we need a larger redesign of the whole thing, but in the short-term we are making it available in PlotEx().
+    return idx_hovered;
+}
+
+struct ImGuiPlotArrayGetterData
+{
+    const float* Values;
+    int Stride;
+
+    ImGuiPlotArrayGetterData(const float* values, int stride) { Values = values; Stride = stride; }
+};
+
+static float Plot_ArrayGetter(void* data, int idx)
+{
+    ImGuiPlotArrayGetterData* plot_data = (ImGuiPlotArrayGetterData*)data;
+    const float v = *(const float*)(const void*)((const unsigned char*)plot_data->Values + (size_t)idx * plot_data->Stride);
+    return v;
+}
+
+void ImGui::PlotLines(const char* label, const float* values, int values_count, int values_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 graph_size, int stride, bool b_tooltips, bool b_comband)
+{
+    ImGuiPlotArrayGetterData data(values, stride);
+    PlotEx(ImGuiPlotType_Lines, label, &Plot_ArrayGetter, (void*)&data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, b_tooltips, b_comband);
+}
+
+void ImGui::PlotLines(const char* label, float (*values_getter)(void* data, int idx), void* data, int values_count, int values_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 graph_size, bool b_tooltips, bool b_comband)
+{
+    PlotEx(ImGuiPlotType_Lines, label, values_getter, data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, b_tooltips, b_comband);
+}
+
+static bool IsRootOfOpenMenuSet()
+{
+    ImGuiContext& g = *GImGui;
+    ImGuiWindow* window = g.CurrentWindow;
+    if ((g.OpenPopupStack.Size <= g.BeginPopupStack.Size) || (window->Flags & ImGuiWindowFlags_ChildMenu))
+        return false;
+
+    // Initially we used 'OpenParentId' to differentiate multiple menu sets from each others (e.g. inside menu bar vs loose menu items) based on parent ID.
+    // This would however prevent the use of e.g. PuhsID() user code submitting menus.
+    // Previously this worked between popup and a first child menu because the first child menu always had the _ChildWindow flag,
+    // making  hovering on parent popup possible while first child menu was focused - but this was generally a bug with other side effects.
+    // Instead we don't treat Popup specifically (in order to consistently support menu features in them), maybe the first child menu of a Popup
+    // doesn't have the _ChildWindow flag, and we rely on this IsRootOfOpenMenuSet() check to allow hovering between root window/popup and first chilld menu.
+    const ImGuiPopupData* upper_popup = &g.OpenPopupStack[g.BeginPopupStack.Size];
+    return (/*upper_popup->OpenParentId == window->IDStack.back() &&*/ upper_popup->Window && (upper_popup->Window->Flags & ImGuiWindowFlags_ChildMenu));
+}
+
+bool ImGui::MenuItemEx(const char* label, const char* icon, const char* shortcut, bool selected, bool enabled, const char* subscript)
+{
+    ImGuiWindow* window = GetCurrentWindow();
+    if (window->SkipItems)
+        return false;
+
+    ImGuiContext& g = *GImGui;
+    ImGuiStyle& style = g.Style;
+    ImVec2 pos = window->DC.CursorPos;
+    ImVec2 label_size = CalcTextSize(label, NULL, true);
+
+    const bool menuset_is_open = IsRootOfOpenMenuSet();
+    ImGuiWindow* backed_nav_window = g.NavWindow;
+    if (menuset_is_open)
+        g.NavWindow = window;
+
+    // We've been using the equivalent of ImGuiSelectableFlags_SetNavIdOnHover on all Selectable() since early Nav system days (commit 43ee5d73),
+    // but I am unsure whether this should be kept at all. For now moved it to be an opt-in feature used by menus only.
+    bool pressed;
+    PushID(label);
+    if (!enabled)
+        BeginDisabled();
+
+    const ImGuiSelectableFlags selectable_flags = ImGuiSelectableFlags_SelectOnRelease | ImGuiSelectableFlags_SetNavIdOnHover;
+    const ImGuiMenuColumns* offsets = &window->DC.MenuColumns;
+    if (window->DC.LayoutType == ImGuiLayoutType_Horizontal)
+    {
+        // Mimic the exact layout spacing of BeginMenu() to allow MenuItem() inside a menu bar, which is a little misleading but may be useful
+        // Note that in this situation: we don't render the shortcut, we render a highlight instead of the selected tick mark.
+        float w = label_size.x;
+        window->DC.CursorPos.x += IM_FLOOR(style.ItemSpacing.x * 0.5f);
+        ImVec2 text_pos(window->DC.CursorPos.x + offsets->OffsetLabel, window->DC.CursorPos.y + window->DC.CurrLineTextBaseOffset);
+        PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(style.ItemSpacing.x * 2.0f, style.ItemSpacing.y));
+        pressed = Selectable("", selected, selectable_flags, ImVec2(w, 0.0f));
+        PopStyleVar();
+        RenderText(text_pos, label);
+        window->DC.CursorPos.x += IM_FLOOR(style.ItemSpacing.x * (-1.0f + 0.5f)); // -1 spacing to compensate the spacing added when Selectable() did a SameLine(). It would also work to call SameLine() ourselves after the PopStyleVar().
+    }
+    else
+    {
+        // Menu item inside a vertical menu
+        // (In a typical menu window where all items are BeginMenu() or MenuItem() calls, extra_w will always be 0.0f.
+        //  Only when they are other items sticking out we're going to add spacing, yet only register minimum width into the layout system.
+        float icon_w = (icon && icon[0]) ? CalcTextSize(icon, NULL).x : 0.0f;
+        float shortcut_w = (shortcut && shortcut[0]) ? CalcTextSize(shortcut, NULL).x : 0.0f;
+        float checkmark_w = IM_FLOOR(g.FontSize * 1.20f);
+        float min_w = window->DC.MenuColumns.DeclColumns(icon_w, label_size.x, shortcut_w, checkmark_w); // Feedback for next frame
+        float stretch_w = ImMax(0.0f, GetContentRegionAvail().x - min_w);
+        pressed = Selectable("", false, selectable_flags | ImGuiSelectableFlags_SpanAvailWidth, ImVec2(min_w, 0.0f));
+        RenderText(pos + ImVec2(offsets->OffsetLabel, 0.0f), label);
+        if (icon_w > 0.0f)
+            RenderText(pos + ImVec2(offsets->OffsetIcon, 0.0f), icon);
+        if (shortcut_w > 0.0f)
+        {
+            PushStyleColor(ImGuiCol_Text, style.Colors[ImGuiCol_TextDisabled]);
+            RenderText(pos + ImVec2(offsets->OffsetShortcut + stretch_w, 0.0f), shortcut, NULL, false);
+            PopStyleColor();
+        }
+        if (subscript)
+            RenderText(pos + ImVec2(offsets->OffsetMark + stretch_w + g.FontSize * 0.40f, g.FontSize * 0.134f * 0.5f), subscript, NULL);
+        else if (selected)
+            RenderCheckMark(window->DrawList, pos + ImVec2(offsets->OffsetMark + stretch_w + g.FontSize * 0.40f, g.FontSize * 0.134f * 0.5f), GetColorU32(ImGuiCol_Text), g.FontSize  * 0.866f);
+    }
+    IMGUI_TEST_ENGINE_ITEM_INFO(g.LastItemData.ID, label, g.LastItemData.StatusFlags | ImGuiItemStatusFlags_Checkable | (selected ? ImGuiItemStatusFlags_Checked : 0));
+    if (!enabled)
+        EndDisabled();
+    PopID();
+    if (menuset_is_open)
+        g.NavWindow = backed_nav_window;
+
+    return pressed;
+}
+
+bool ImGui::MenuItem(const char* label, const char* shortcut, bool selected, bool enabled, const char* subscript)
+{
+    return MenuItemEx(label, NULL, shortcut, selected, enabled, subscript);
 }

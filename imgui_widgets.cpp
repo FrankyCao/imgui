@@ -39,6 +39,7 @@ Index of this file:
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 #include "imgui_internal.h"
+#include "imgui_helper.h" // add by dicky for power save
 
 // System includes
 #include <ctype.h>      // toupper
@@ -3518,15 +3519,6 @@ bool ImGui::InputInt(const char* label, int* v, int step, int step_fast, ImGuiIn
     return InputScalar(label, ImGuiDataType_S32, (void*)v, (void*)(step > 0 ? &step : NULL), (void*)(step_fast > 0 ? &step_fast : NULL), format, flags);
 }
 
-// Add By Dicky
-bool ImGui::InputInt64(const char* label, int64_t* v, int step, int step_fast, ImGuiInputTextFlags flags)
-{
-    // Hexadecimal input provided as a convenience but the flag name is awkward. Typically you'd use InputText() to parse your own data, if you want to handle prefixes.
-    const char* format = (flags & ImGuiInputTextFlags_CharsHexadecimal) ? "%16X" : "%lld";
-    return InputScalar(label, ImGuiDataType_S64, (void*)v, (void*)(step > 0 ? &step : NULL), (void*)(step_fast > 0 ? &step_fast : NULL), format, flags);
-}
-// Add By Dicky end
-
 bool ImGui::InputInt2(const char* label, int v[2], ImGuiInputTextFlags flags)
 {
     return InputScalarN(label, ImGuiDataType_S32, v, 2, NULL, NULL, "%d", flags);
@@ -6474,8 +6466,7 @@ bool ImGui::ListBox(const char* label, int* current_item, bool (*items_getter)(v
 // - others https://github.com/ocornut/imgui/wiki/Useful-Extensions
 //-------------------------------------------------------------------------
 
-// Modify By Dicky
-int ImGui::PlotEx(ImGuiPlotType plot_type, const char* label, float (*values_getter)(void* data, int idx), void* data, int values_count, int values_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 frame_size, bool b_tooltops, bool b_comband)
+int ImGui::PlotEx(ImGuiPlotType plot_type, const char* label, float (*values_getter)(void* data, int idx), void* data, int values_count, int values_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 frame_size)
 {
     ImGuiContext& g = *GImGui;
     ImGuiWindow* window = GetCurrentWindow();
@@ -6497,7 +6488,7 @@ int ImGui::PlotEx(ImGuiPlotType plot_type, const char* label, float (*values_get
     ItemSize(total_bb, style.FramePadding.y);
     if (!ItemAdd(total_bb, 0, &frame_bb))
         return -1;
-    const bool hovered = b_tooltops && ItemHoverable(frame_bb, id); // Modify By Dicky
+    const bool hovered = ItemHoverable(frame_bb, id);
 
     // Determine scale from values if not specified
     if (scale_min == FLT_MAX || scale_max == FLT_MAX)
@@ -6557,12 +6548,8 @@ int ImGui::PlotEx(ImGuiPlotType plot_type, const char* label, float (*values_get
         for (int n = 0; n < res_w; n++)
         {
             const float t1 = t0 + t_step;
-            // Modify By Dicky
-            int v1_idx = (int)(t0 * item_count + 0.5f);
-            //IM_ASSERT(v1_idx >= 0 && v1_idx < values_count);
-            if (v1_idx < 0) v1_idx = 0;
-            if (v1_idx > values_count) v1_idx = values_count;
-            // Modify By Dicky end
+            const int v1_idx = (int)(t0 * item_count + 0.5f);
+            IM_ASSERT(v1_idx >= 0 && v1_idx < values_count);
             const float v1 = values_getter(data, (v1_idx + values_offset + 1) % values_count);
             const ImVec2 tp1 = ImVec2( t1, 1.0f - ImSaturate((v1 - scale_min) * inv_scale) );
 
@@ -6572,15 +6559,6 @@ int ImGui::PlotEx(ImGuiPlotType plot_type, const char* label, float (*values_get
             if (plot_type == ImGuiPlotType_Lines)
             {
                 window->DrawList->AddLine(pos0, pos1, idx_hovered == v1_idx ? col_hovered : col_base);
-                // Add By Dicky
-                if (b_comband)
-                {
-                    ImVec2 _pos1 = ImLerp(inner_bb.Min, inner_bb.Max, ImVec2(tp1.x, histogram_zero_line_t));
-                    if (_pos1.x >= pos0.x + 2.0f)
-                        _pos1.x -= 1.0f;
-                    window->DrawList->AddRectFilled(pos0, _pos1, idx_hovered == v1_idx ? GetColorU32(ImGuiCol_PlotHistogramHovered) : GetColorU32(ImGuiCol_PlotHistogram));
-                }
-                // Add By Dicky end
             }
             else if (plot_type == ImGuiPlotType_Histogram)
             {
@@ -6621,18 +6599,16 @@ static float Plot_ArrayGetter(void* data, int idx)
     return v;
 }
 
-// Modify By Dicky
-void ImGui::PlotLines(const char* label, const float* values, int values_count, int values_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 graph_size, int stride, bool b_tooltips, bool b_comband)
+void ImGui::PlotLines(const char* label, const float* values, int values_count, int values_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 graph_size, int stride)
 {
     ImGuiPlotArrayGetterData data(values, stride);
-    PlotEx(ImGuiPlotType_Lines, label, &Plot_ArrayGetter, (void*)&data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, b_tooltips, b_comband);
+    PlotEx(ImGuiPlotType_Lines, label, &Plot_ArrayGetter, (void*)&data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size);
 }
 
-void ImGui::PlotLines(const char* label, float (*values_getter)(void* data, int idx), void* data, int values_count, int values_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 graph_size, bool b_tooltips, bool b_comband)
+void ImGui::PlotLines(const char* label, float (*values_getter)(void* data, int idx), void* data, int values_count, int values_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 graph_size)
 {
-    PlotEx(ImGuiPlotType_Lines, label, values_getter, data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, b_tooltips, b_comband);
+    PlotEx(ImGuiPlotType_Lines, label, values_getter, data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size);
 }
-// Modify By Dicky
 
 void ImGui::PlotHistogram(const char* label, const float* values, int values_count, int values_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 graph_size, int stride)
 {
@@ -7104,8 +7080,7 @@ void ImGui::EndMenu()
     EndPopup();
 }
 
-// Modify By Dicky
-bool ImGui::MenuItemEx(const char* label, const char* icon, const char* shortcut, bool selected, bool enabled, const char* subscript)
+bool ImGui::MenuItemEx(const char* label, const char* icon, const char* shortcut, bool selected, bool enabled)
 {
     ImGuiWindow* window = GetCurrentWindow();
     if (window->SkipItems)
@@ -7163,12 +7138,8 @@ bool ImGui::MenuItemEx(const char* label, const char* icon, const char* shortcut
             RenderText(pos + ImVec2(offsets->OffsetShortcut + stretch_w, 0.0f), shortcut, NULL, false);
             PopStyleColor();
         }
-// Modify By Dicky
-        if (subscript)
-            RenderText(pos + ImVec2(offsets->OffsetMark + stretch_w + g.FontSize * 0.40f, g.FontSize * 0.134f * 0.5f), subscript, NULL);
-        else if (selected)
+        if (selected)
             RenderCheckMark(window->DrawList, pos + ImVec2(offsets->OffsetMark + stretch_w + g.FontSize * 0.40f, g.FontSize * 0.134f * 0.5f), GetColorU32(ImGuiCol_Text), g.FontSize  * 0.866f);
-// Modify By Dicky end
     }
     IMGUI_TEST_ENGINE_ITEM_INFO(g.LastItemData.ID, label, g.LastItemData.StatusFlags | ImGuiItemStatusFlags_Checkable | (selected ? ImGuiItemStatusFlags_Checked : 0));
     if (!enabled)
@@ -7180,17 +7151,10 @@ bool ImGui::MenuItemEx(const char* label, const char* icon, const char* shortcut
     return pressed;
 }
 
-// Add By Dicky
-bool ImGui::MenuItem(const char* label, const char* shortcut, bool selected, bool enabled, const char* subscript)
-{
-    return MenuItemEx(label, NULL, shortcut, selected, enabled, subscript);
-}
-
 bool ImGui::MenuItem(const char* label, const char* shortcut, bool selected, bool enabled)
 {
-    return MenuItemEx(label, NULL, shortcut, selected, enabled, nullptr);
+    return MenuItemEx(label, NULL, shortcut, selected, enabled);
 }
-// Add By Dicky end
 
 bool ImGui::MenuItem(const char* label, const char* shortcut, bool* p_selected, bool enabled)
 {
@@ -8461,117 +8425,5 @@ void ImGui::TabItemLabelAndCloseButton(ImDrawList* draw_list, const ImRect& bb, 
         *out_just_closed = close_button_pressed;
 }
 
-
-// add By Dicky
-// Posted by @alexsr here: https://github.com/ocornut/imgui/issues/1901
-// Sligthly modified to provide default behaviour with default args
-void ImGui::LoadingIndicatorCircle(const char* label, float indicatorRadiusFactor,
-                                   const ImVec4* pOptionalMainColor, const ImVec4* pOptionalBackdropColor,
-                                   int circle_count,const float speed)
-{
-    ImGuiWindow* window = GetCurrentWindow();
-    if (window->SkipItems) {
-        return;
-    }
-
-    ImGuiContext& g = *GImGui;
-    const ImGuiID id = window->GetID(label);
-    const ImGuiStyle& style = GetStyle();
-
-    if (circle_count<=0) circle_count = 12;
-    if (indicatorRadiusFactor<=0.f) indicatorRadiusFactor = 1.f;
-    if (!pOptionalMainColor)        pOptionalMainColor = &style.Colors[ImGuiCol_Button];
-    if (!pOptionalBackdropColor)    pOptionalBackdropColor = &style.Colors[ImGuiCol_ButtonHovered];
-
-    const float lineHeight = GetTextLineHeight(); // or GetTextLineHeight() or GetTextLineHeightWithSpacing() ?
-    float indicatorRadiusPixels = indicatorRadiusFactor*lineHeight*0.5f;
-
-    const ImVec2 pos = window->DC.CursorPos;
-    const float circle_radius = indicatorRadiusPixels / 8.f;
-    indicatorRadiusPixels-= 2.0f*circle_radius;
-    const ImRect bb(pos, ImVec2(pos.x + indicatorRadiusPixels*2.f+4.f*circle_radius,
-                                pos.y + indicatorRadiusPixels*2.f+4.f*circle_radius));
-    ItemSize(bb, style.FramePadding.y);
-    if (!ItemAdd(bb, id)) {
-        return;
-    }
-    const float base_num_segments = circle_radius*1.f;
-    const double t = g.Time;
-    const float degree_offset = 2.0f * IM_PI / circle_count;
-    for (int i = 0; i < circle_count; ++i) {
-        const float sinx = -ImSin(degree_offset * i);
-        const float cosx = ImCos(degree_offset * i);
-        const float growth = ImMax(0.0f, ImSin((float)(t*(double)(speed*3.0f)-(double)(i*degree_offset))));
-        ImVec4 color;
-        color.x = pOptionalMainColor->x * growth + pOptionalBackdropColor->x * (1.0f - growth);
-        color.y = pOptionalMainColor->y * growth + pOptionalBackdropColor->y * (1.0f - growth);
-        color.z = pOptionalMainColor->z * growth + pOptionalBackdropColor->z * (1.0f - growth);
-        color.w = 1.0f;
-        float grown_circle_radius = circle_radius*(1.0f + growth);
-        int num_segments = (int)(base_num_segments*grown_circle_radius);
-        if (num_segments<4) num_segments=4;
-        window->DrawList->AddCircleFilled(ImVec2(pos.x+2.f*circle_radius + indicatorRadiusPixels*(1.0f+sinx),
-                                                 pos.y+2.f*circle_radius + indicatorRadiusPixels*(1.0f+cosx)),
-                                                 grown_circle_radius,
-                                                 GetColorU32(color),num_segments);
-    }
-}
-
-// Posted by @zfedoran here: https://github.com/ocornut/imgui/issues/1901
-// Sligthly modified to provide default behaviour with default args
-void ImGui::LoadingIndicatorCircle2(const char* label,float indicatorRadiusFactor, float indicatorRadiusThicknessFactor, const ImVec4* pOptionalColor) {
-    ImGuiWindow* window = GetCurrentWindow();
-    if (window->SkipItems)
-        return;
-
-    ImGuiContext& g = *GImGui;
-    const ImGuiStyle& style = g.Style;
-    const ImGuiID id = window->GetID(label);
-
-    if (indicatorRadiusFactor<=0.f) indicatorRadiusFactor = 1.f;
-    if (indicatorRadiusThicknessFactor<=0.f) indicatorRadiusThicknessFactor = 1.f;
-    if (!pOptionalColor)    pOptionalColor = &style.Colors[ImGuiCol_Button];
-    const ImU32 color = GetColorU32(*pOptionalColor);
-
-    const float lineHeight = GetTextLineHeight(); // or GetTextLineHeight() or GetTextLineHeightWithSpacing() ?
-    float indicatorRadiusPixels = indicatorRadiusFactor*lineHeight*0.5f;
-    float indicatorThicknessPixels = indicatorRadiusThicknessFactor*indicatorRadiusPixels*0.6f;
-    if (indicatorThicknessPixels>indicatorThicknessPixels*0.4f) indicatorThicknessPixels=indicatorThicknessPixels*0.4f;
-    indicatorRadiusPixels-=indicatorThicknessPixels;
-
-    ImVec2 pos = window->DC.CursorPos;
-    ImVec2 size(indicatorRadiusPixels*2.f, (indicatorRadiusPixels + style.FramePadding.y)*2.f);
-
-    const ImRect bb(pos, ImVec2(pos.x + size.x, pos.y + size.y));
-    ItemSize(bb, style.FramePadding.y);
-    if (!ItemAdd(bb, id))
-        return;
-
-    // Render
-    window->DrawList->PathClear();
-
-
-
-    //int num_segments = indicatorRadiusPixels/8.f;
-    //if (num_segments<4) num_segments=4;
-
-    int num_segments = 30;
-
-    int start = abs(ImSin(g.Time*1.8f)*(num_segments-5));
-
-    const float a_min = IM_PI*2.0f * ((float)start) / (float)num_segments;
-    const float a_max = IM_PI*2.0f * ((float)num_segments-3) / (float)num_segments;
-
-    const ImVec2 centre = ImVec2(pos.x+indicatorRadiusPixels, pos.y+indicatorRadiusPixels+style.FramePadding.y);
-
-    for (int i = 0; i < num_segments; i++) {
-        const float a = a_min + ((float)i / (float)num_segments) * (a_max - a_min);
-        window->DrawList->PathLineTo(ImVec2(centre.x + ImCos(a+g.Time*8) * indicatorRadiusPixels,
-                                            centre.y + ImSin(a+g.Time*8) * indicatorRadiusPixels));
-    }
-
-    window->DrawList->PathStroke(color, false, indicatorThicknessPixels);
-}
-// add By Dicky end
 
 #endif // #ifndef IMGUI_DISABLE

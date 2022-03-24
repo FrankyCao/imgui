@@ -306,16 +306,6 @@ namespace ImGui
     IMGUI_API void          Render();                                   // ends the Dear ImGui frame, finalize the draw data. You can then get call GetDrawData().
     IMGUI_API ImDrawData*   GetDrawData();                              // valid after Render() and until the next call to NewFrame(). this is what you have to render.
 
-    // Power saving mode add By Dicky
-    // Disabled by default; enabled by setting ImGuiConfigFlags_EnablePowerSavingMode or ImGuiConfigFlags_EnableLowRefreshMode in ImGuiIO.ConfigFlags.
-    // Requires platform binding support.
-    // When enabled and supported, ImGui will wait for input events before starting new frames, instead of continuously polling, thereby helping to reduce power consumption.
-    // It will wake up periodically if a widget is animating (e.g. blinking InputText cursor). You can control this maximum wake-up timeout using SetMaxWaitBeforeNextFrame(), for example when your application is playing an animation.
-    // This wake-up/timeout event is disabled, and ImGui will wait for an input event, as long as the window is known, for sure, to be hidden. This depends on the platform binding, and does not work in all cases (e.g. if the window is in a logical/system 'visible' state, but currently sitting behind another, non-transparent window).
-    IMGUI_API double        GetEventWaitingTime();                      // in seconds; note that it can be zero (in which case you might want to peek/poll) or infinity (in which case you may have to use a non-timeout event waiting method).
-    IMGUI_API void          SetMaxWaitBeforeNextFrame(double time);     // in seconds
-    // Add By Dicky end
-
     // Demo, Debug, Information
     IMGUI_API void          ShowDemoWindow(bool* p_open = NULL);        // create Demo window. demonstrate most ImGui features. call this to learn about the library! try to make it always available in your application!
     IMGUI_API void          ShowMetricsWindow(bool* p_open = NULL);     // create Metrics/Debugger window. display Dear ImGui internals: windows, draw commands, various internal state, etc.
@@ -608,9 +598,6 @@ namespace ImGui
     IMGUI_API bool          InputFloat3(const char* label, float v[3], const char* format = "%.3f", ImGuiInputTextFlags flags = 0);
     IMGUI_API bool          InputFloat4(const char* label, float v[4], const char* format = "%.3f", ImGuiInputTextFlags flags = 0);
     IMGUI_API bool          InputInt(const char* label, int* v, int step = 1, int step_fast = 100, ImGuiInputTextFlags flags = 0);
-    // Add By Dicky
-    IMGUI_API bool          InputInt64(const char* label, int64_t* v, int step = 1, int step_fast = 100, ImGuiInputTextFlags flags = 0);
-    // Add By Dicky end
     IMGUI_API bool          InputInt2(const char* label, int v[2], ImGuiInputTextFlags flags = 0);
     IMGUI_API bool          InputInt3(const char* label, int v[3], ImGuiInputTextFlags flags = 0);
     IMGUI_API bool          InputInt4(const char* label, int v[4], ImGuiInputTextFlags flags = 0);
@@ -665,11 +652,10 @@ namespace ImGui
     IMGUI_API bool          ListBox(const char* label, int* current_item, const char* const items[], int items_count, int height_in_items = -1);
     IMGUI_API bool          ListBox(const char* label, int* current_item, bool (*items_getter)(void* data, int idx, const char** out_text), void* data, int items_count, int height_in_items = -1);
 
-    // Widgets: Data Plotting Modify By Dicky
+    // Widgets: Data Plotting
     // - Consider using ImPlot (https://github.com/epezent/implot) which is much better!
-    IMGUI_API void          PlotLines(const char* label, const float* values, int values_count, int values_offset = 0, const char* overlay_text = NULL, float scale_min = FLT_MAX, float scale_max = FLT_MAX, ImVec2 graph_size = ImVec2(0, 0), int stride = sizeof(float), bool b_tooltips = true, bool b_comband = false);
-    IMGUI_API void          PlotLines(const char* label, float(*values_getter)(void* data, int idx), void* data, int values_count, int values_offset = 0, const char* overlay_text = NULL, float scale_min = FLT_MAX, float scale_max = FLT_MAX, ImVec2 graph_size = ImVec2(0, 0), bool b_tooltips = true, bool b_comband = false);
-    // Modify By Dicky end
+    IMGUI_API void          PlotLines(const char* label, const float* values, int values_count, int values_offset = 0, const char* overlay_text = NULL, float scale_min = FLT_MAX, float scale_max = FLT_MAX, ImVec2 graph_size = ImVec2(0, 0), int stride = sizeof(float));
+    IMGUI_API void          PlotLines(const char* label, float(*values_getter)(void* data, int idx), void* data, int values_count, int values_offset = 0, const char* overlay_text = NULL, float scale_min = FLT_MAX, float scale_max = FLT_MAX, ImVec2 graph_size = ImVec2(0, 0));
     IMGUI_API void          PlotHistogram(const char* label, const float* values, int values_count, int values_offset = 0, const char* overlay_text = NULL, float scale_min = FLT_MAX, float scale_max = FLT_MAX, ImVec2 graph_size = ImVec2(0, 0), int stride = sizeof(float));
     IMGUI_API void          PlotHistogram(const char* label, float(*values_getter)(void* data, int idx), void* data, int values_count, int values_offset = 0, const char* overlay_text = NULL, float scale_min = FLT_MAX, float scale_max = FLT_MAX, ImVec2 graph_size = ImVec2(0, 0));
 
@@ -691,9 +677,6 @@ namespace ImGui
     IMGUI_API void          EndMainMenuBar();                                                   // only call EndMainMenuBar() if BeginMainMenuBar() returns true!
     IMGUI_API bool          BeginMenu(const char* label, bool enabled = true);                  // create a sub-menu entry. only call EndMenu() if this returns true!
     IMGUI_API void          EndMenu();                                                          // only call EndMenu() if BeginMenu() returns true!
-    // Add By Dicky
-    IMGUI_API bool          MenuItem(const char* label, const char* shortcut, bool selected, bool enabled, const char* subscript);  
-    // Add By Dicky end
     IMGUI_API bool          MenuItem(const char* label, const char* shortcut = NULL, bool selected = false, bool enabled = true);  // return true when activated.
     IMGUI_API bool          MenuItem(const char* label, const char* shortcut, bool* p_selected, bool enabled = true);              // return true when activated + toggle (*p_selected) if p_selected != NULL
 
@@ -703,10 +686,6 @@ namespace ImGui
     IMGUI_API void          EndTooltip();
     IMGUI_API void          SetTooltip(const char* fmt, ...) IM_FMTARGS(1);                     // set a text-only tooltip, typically use with ImGui::IsItemHovered(). override any previous call to SetTooltip().
     IMGUI_API void          SetTooltipV(const char* fmt, va_list args) IM_FMTLIST(1);
-    // add by Dicky
-    IMGUI_API void          ShowTooltipOnHover(const char* fmt, ...) IM_FMTARGS(1);
-    IMGUI_API void          ShowTooltipOnHoverV(const char* fmt, va_list args) IM_FMTLIST(1);
-    // add by Dicky end
 
     // Popups, Modals
     //  - They block normal mouse hovering detection (and therefore most mouse interactions) behind them.
@@ -2726,12 +2705,6 @@ struct ImDrawList
     IMGUI_API void  AddBezierCubic(const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, ImU32 col, float thickness, int num_segments = 0); // Cubic Bezier (4 control points)
     IMGUI_API void  AddBezierQuadratic(const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, ImU32 col, float thickness, int num_segments = 0);               // Quadratic Bezier (3 control points)
 
-    // Add By Dicky
-    IMGUI_API void  AddLineDashed(const ImVec2& a, const ImVec2& b, ImU32 col, float thickness = 1.0f, unsigned int segments = 10, unsigned int on_segments = 1, unsigned int off_segments = 1);
-    IMGUI_API void  AddCircleDashed(const ImVec2& centre, float radius, ImU32 col, int num_segments = 12, float thickness = 1.0f, int on_segments = 1, int off_segments = 1);
-    IMGUI_API void  PathArcToDashedAndStroke(const ImVec2& centre, float radius, float a_min, float a_max, ImU32 col, float thickness = 1.0f, int num_segments = 10, int on_segments = 1, int off_segments = 1);
-    // Add By Dicky end
-
     // Image primitives
     // - Read FAQ to understand what ImTextureID is.
     // - "p_min" and "p_max" represent the upper-left and lower-right corners of the rectangle.
@@ -3370,14 +3343,5 @@ enum ImDrawCornerFlags_
 #if IMGUI_ICONS
 #include "icons/icons.h"
 #endif
-
-namespace ImGui
-{
-    IMGUI_API double            get_current_time();
-    IMGUI_API uint32_t          get_current_time_msec();
-    IMGUI_API uint64_t          get_current_time_usec();
-    IMGUI_API void              sleep(float seconds);
-    IMGUI_API void              sleep(int ms_seconds);
-} // namespace ImGui
 // add By Dicky end
 #endif // #ifndef IMGUI_DISABLE

@@ -152,8 +152,9 @@ struct ImGuiWindowSettings;         // Storage for a window .ini settings (we ke
 typedef int ImGuiDataAuthority;         // -> enum ImGuiDataAuthority_      // Enum: for storing the source authority (dock node vs window) of a field
 typedef int ImGuiLayoutType;            // -> enum ImGuiLayoutType_         // Enum: Horizontal or vertical
 typedef int ImGuiActivateFlags;         // -> enum ImGuiActivateFlags_      // Flags: for navigation/focus function (will be for ActivateItem() later)
-//  Add By Dicky
+// Add By Dicky
 typedef int ImGuiLayoutItemType;        // -> enum ImGuiLayoutItemType_     // Enum: Item or Spring
+// Add By Dicky end
 typedef int ImGuiItemFlags;             // -> enum ImGuiItemFlags_          // Flags: for PushItemFlag()
 typedef int ImGuiItemStatusFlags;       // -> enum ImGuiItemStatusFlags_    // Flags: for DC.LastItemStatusFlags
 typedef int ImGuiOldColumnFlags;        // -> enum ImGuiOldColumnFlags_     // Flags: for BeginColumns()
@@ -2970,8 +2971,7 @@ namespace ImGui
     // Menus
     IMGUI_API bool          BeginViewportSideBar(const char* name, ImGuiViewport* viewport, ImGuiDir dir, float size, ImGuiWindowFlags window_flags);
     IMGUI_API bool          BeginMenuEx(const char* label, const char* icon, bool enabled = true);
-    // Menus Modify by Dicky
-    IMGUI_API bool          MenuItemEx(const char* label, const char* icon, const char* shortcut = NULL, bool selected = false, bool enabled = true, const char* subscript = nullptr);
+    IMGUI_API bool          MenuItemEx(const char* label, const char* icon, const char* shortcut = NULL, bool selected = false, bool enabled = true);
 
     // Combos
     IMGUI_API bool          BeginComboPopup(ImGuiID popup_id, const ImRect& bb, ImGuiComboFlags flags);
@@ -3245,9 +3245,8 @@ namespace ImGui
     IMGUI_API void          ColorEditOptionsPopup(const float* col, ImGuiColorEditFlags flags);
     IMGUI_API void          ColorPickerOptionsPopup(const float* ref_col, ImGuiColorEditFlags flags);
 
-    // Plot modify by Dicky
-    IMGUI_API int           PlotEx(ImGuiPlotType plot_type, const char* label, float (*values_getter)(void* data, int idx), void* data, int values_count, int values_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 frame_size, bool b_tooltops = true, bool b_comband = false);
-    // Plot modify by Dicky end
+    // Plot
+    IMGUI_API int           PlotEx(ImGuiPlotType plot_type, const char* label, float (*values_getter)(void* data, int idx), void* data, int values_count, int values_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 frame_size);
 
     // Shade functions (write over already created vertices)
     IMGUI_API void          ShadeVertsLinearColorGradientKeepAlpha(ImDrawList* draw_list, int vert_start_idx, int vert_end_idx, ImVec2 gradient_p0, ImVec2 gradient_p1, ImU32 col0, ImU32 col1);
@@ -3282,17 +3281,6 @@ namespace ImGui
     IMGUI_API void          DebugNodeViewport(ImGuiViewportP* viewport);
     IMGUI_API void          DebugRenderViewportThumbnail(ImDrawList* draw_list, ImGuiViewportP* viewport, const ImRect& bb);
 
-    // add By Dicky
-    // Posted by @alexsr here: https://github.com/ocornut/imgui/issues/1901
-    // Sligthly modified to provide default behaviour with default args
-    IMGUI_API void          LoadingIndicatorCircle(const char* label, float indicatorRadiusFactor=1.f,
-                                   const ImVec4* pOptionalMainColor=NULL, const ImVec4* pOptionalBackdropColor=NULL,
-                                   int circle_count=8, const float speed=1.f);
-
-    // Posted by @zfedoran here: https://github.com/ocornut/imgui/issues/1901
-    // Sligthly modified to provide default behaviour with default args
-    IMGUI_API void          LoadingIndicatorCircle2(const char* label, float indicatorRadiusFactor=1.f, float indicatorRadiusThicknessFactor=1.f, const ImVec4* pOptionalColor=NULL);
-    // add By Dicky end
 } // namespace ImGui
 
 

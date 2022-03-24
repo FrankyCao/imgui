@@ -2,6 +2,7 @@
 #undef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
+#include <imgui_helper.h>
 //-----------------------------------------------------------------------------------------------------------------
 #include "imgui_extra_widget.h"
 
@@ -124,7 +125,7 @@ void ShowExtraWidgetDemoWindow()
 
         ImGui::TreePop();
     }
-    if (ImGui::TreeNode("Extended ProgressBar"))
+    if (ImGui::TreeNode("Extended ProgressBar and Indicator"))
     {
         const float time = ((float)(((unsigned int) (ImGui::GetTime() * 1000.f)) % 50000) - 25000.f) / 25000.f;
         float progress=(time > 0 ? time : -time);
@@ -134,6 +135,29 @@ void ShowExtraWidgetDemoWindow()
         ImGui::ProgressBar("", 500 + progress * 1000, 500, 1500, "%4.0f (absolute value in [500,1500] and fixed bar size)", ImVec2(150, -1));
         ImGui::ProgressBar("", 500 + progress * 1000, 500, 1500, "%3.0f%% (same as above, but with percentage and new colors)", ImVec2(150, -1), ImVec4(0.7, 0.7, 1, 1),ImVec4(0.05, 0.15, 0.5, 0.8),ImVec4(0.8, 0.8, 0,1));
         
+        // LoadingIndicatorCircle
+        ImGui::Separator();
+        ImGui::Text("LoadingIndicatorCircle(...) from https://github.com/ocornut/imgui/issues/1901");
+        ImGui::Separator();
+        ImGui::TextUnformatted("Test 1:");ImGui::SameLine();
+        ImGui::LoadingIndicatorCircle("MyLIC1");ImGui::SameLine();
+        ImGui::TextUnformatted("Test 2:");ImGui::SameLine();
+        ImGui::LoadingIndicatorCircle("MyLIC2",1.f,&ImGui::GetStyle().Colors[ImGuiCol_Header],&ImGui::GetStyle().Colors[ImGuiCol_HeaderHovered]);
+        ImGui::AlignTextToFramePadding();ImGui::TextUnformatted("Test 3:");ImGui::SameLine();ImGui::LoadingIndicatorCircle("MyLIC3",2.0f);
+        ImGui::AlignTextToFramePadding();ImGui::TextUnformatted("Test 4:");ImGui::SameLine();ImGui::LoadingIndicatorCircle("MyLIC4",4.0f,&ImGui::GetStyle().Colors[ImGuiCol_Header],&ImGui::GetStyle().Colors[ImGuiCol_HeaderHovered],12,2.f);
+        ImGui::Separator();
+
+        // LoadingIndicatorCircle2
+        ImGui::Separator();
+        ImGui::Text("LoadingIndicatorCircle2(...) from https://github.com/ocornut/imgui/issues/1901");
+        ImGui::Separator();
+        ImGui::TextUnformatted("Test 1:");ImGui::SameLine();
+        ImGui::LoadingIndicatorCircle2("MyLIC21");ImGui::SameLine();
+        ImGui::TextUnformatted("Test 2:");ImGui::SameLine();
+        ImGui::LoadingIndicatorCircle2("MyLIC22",1.f,1.5f,&ImGui::GetStyle().Colors[ImGuiCol_Header]);
+        ImGui::AlignTextToFramePadding();ImGui::TextUnformatted("Test 3:");ImGui::SameLine();ImGui::LoadingIndicatorCircle2("MyLIC23",2.0f);
+        ImGui::AlignTextToFramePadding();ImGui::TextUnformatted("Test 4:");ImGui::SameLine();ImGui::LoadingIndicatorCircle2("MyLIC24",4.0f,1.f,&ImGui::GetStyle().Colors[ImGuiCol_Header]);
+
         ImGui::TreePop();
     }
 	if (ImGui::TreeNode("Color Bands"))

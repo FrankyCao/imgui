@@ -47,6 +47,7 @@
 #include <cstring>      // memcpy
 #include <math.h>       // isinf needed by Dicky
 #include "imgui.h"
+#include "imgui_helper.h" // for power save by Dicky
 #include "imgui_impl_allegro5.h"
 
 // Allegro

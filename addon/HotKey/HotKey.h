@@ -53,9 +53,10 @@ To help you integrate in your app, you can get a text (like "Ctrl + O") to integ
 static void GetHotKeyLib(unsigned int functionKeys, char* buffer, size_t bufferSize);
 */
 
-#include "imgui.h"
+#include <imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
+#include <imgui_helper.h>
 
 #if IMGUI_SDL2
 #include <SDL.h>

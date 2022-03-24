@@ -822,6 +822,7 @@ CODE
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 #include "imgui_internal.h"
+#include "imgui_helper.h" // for get_current_time bu Dicky
 
 // System includes
 #include <ctype.h>      // toupper
@@ -4447,33 +4448,6 @@ ImGuiKeyModFlags ImGui::GetMergedKeyModFlags()
     if (g.IO.KeySuper)  { key_mod_flags |= ImGuiKeyModFlags_Super; }
     return key_mod_flags;
 }
-
-// Add By Dicky for Power Save
-double ImGui::GetEventWaitingTime()
-{
-    ImGuiContext& g = *GImGui;
-
-    if (g.IO.ConfigFlags & ImGuiConfigFlags_EnableLowRefreshMode)
-    {
-        double current_time = get_current_time();
-        double deltaTime = g.WallClock > 0 ? current_time - g.WallClock : g.MaxWaitBeforeNextFrame;
-        double delta = g.MaxWaitBeforeNextFrame - deltaTime;
-        return ImMax(0.0, delta);
-    }
-
-    if ((g.IO.ConfigFlags & ImGuiConfigFlags_EnablePowerSavingMode) && g.IO.FrameCountSinceLastInput > 2)
-        return ImMax(0.0, g.MaxWaitBeforeNextFrame);
-
-    return 0.0;
-}
-
-void ImGui::SetMaxWaitBeforeNextFrame(double time)
-{
-    ImGuiContext& g = *GImGui;
-
-    g.MaxWaitBeforeNextFrame = ImMin(g.MaxWaitBeforeNextFrame, time);
-}
-// Add By Dicky end
 
 void ImGui::NewFrame()
 {
@@ -9746,26 +9720,6 @@ void ImGui::SetTooltip(const char* fmt, ...)
     SetTooltipV(fmt, args);
     va_end(args);
 }
-
-// add By Dicky
-void ImGui::ShowTooltipOnHoverV(const char* fmt, va_list args)
-{
-    if (ImGui::IsItemHovered())
-    {
-        ImGui::BeginTooltip();
-        ImGui::TextV(fmt, args);
-        ImGui::EndTooltip();
-    }
-}
-
-void ImGui::ShowTooltipOnHover(const char* fmt, ...)
-{
-    va_list args;
-    va_start(args, fmt);
-    ShowTooltipOnHoverV(fmt, args);
-    va_end(args);
-}
-// add By Dicky end
 
 //-----------------------------------------------------------------------------
 // [SECTION] POPUPS
@@ -19696,81 +19650,6 @@ void ImGui::UpdateDebugToolStackQueries() {}
 #ifdef IMGUI_INCLUDE_IMGUI_USER_INL
 #include "imgui_user.inl"
 #endif
-
-//-----------------------------------------------------------------------------
-// BanchMark utils Add By Dicky
-#ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#else // _WIN32
-#include <sys/time.h>
-#endif // _WIN32
-#include <thread>
-
-double ImGui::get_current_time()
-{
-#ifdef _WIN32
-    LARGE_INTEGER freq;
-    LARGE_INTEGER pc;
-    QueryPerformanceFrequency(&freq);
-    QueryPerformanceCounter(&pc);
-    return (double)pc.QuadPart / ((double)freq.QuadPart + 1e-10);
-#else  // _WIN32
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    return tv.tv_sec + tv.tv_usec / 1000000.0;
-#endif // _WIN32
-}
-
-uint32_t ImGui::get_current_time_msec()
-{
-#ifdef _WIN32
-    LARGE_INTEGER freq;
-    LARGE_INTEGER pc;
-    QueryPerformanceFrequency(&freq);
-    QueryPerformanceCounter(&pc);
-    return pc.QuadPart * 1000.0 / freq.QuadPart;
-#else
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    return ((uint32_t)tv.tv_sec * 1000 + (uint32_t)tv.tv_usec / 1000);
-#endif
-}
-
-uint64_t ImGui::get_current_time_usec()
-{
-#ifdef _WIN32
-    LARGE_INTEGER freq;
-    LARGE_INTEGER pc;
-    QueryPerformanceFrequency(&freq);
-    QueryPerformanceCounter(&pc);
-    return pc.QuadPart * 1000000.0 / freq.QuadPart;
-#else
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    return ((uint64_t)tv.tv_sec * 1000000 + (uint64_t)tv.tv_usec);
-#endif
-}
-
-void ImGui::sleep(float seconds)
-{
-    IM_ASSERT(seconds >= 0 && !isinf(seconds));
-    const int waiting_time_ms = seconds * 1000;
-    if (waiting_time_ms == 0)
-        std::this_thread::yield();
-    else
-        std::this_thread::sleep_for(std::chrono::milliseconds(waiting_time_ms));
-}
-
-void ImGui::sleep(int ms_seconds)
-{
-    IM_ASSERT(ms_seconds >= 0);
-    if (ms_seconds == 0)
-        std::this_thread::yield();
-    else
-        std::this_thread::sleep_for(std::chrono::milliseconds(ms_seconds));
-}
-// Add By Dicky
 
 //-----------------------------------------------------------------------------
 

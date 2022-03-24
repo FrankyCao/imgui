@@ -22,6 +22,7 @@
 #include <windowsx.h> // GET_X_LPARAM(), GET_Y_LPARAM()
 #include <tchar.h>
 #include <dwmapi.h>
+#include "imgui_helper.h" // for power save by Dicky
 #include <math.h> // isinf needed By Dicky
 
 // Configuration flags to add in your imconfig.h file:

@@ -57,6 +57,7 @@
 
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
+#include "imgui_helper.h" // power save by Dicky
 #include <math.h> // isinf needed by Dicky
 
 // Clang warnings with -Weverything
