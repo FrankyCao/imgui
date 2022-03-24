@@ -64,7 +64,7 @@ struct ImGui_ImplOpenGL2_Data
     GLuint       GlVersion;     // add by Dicky
     GLuint       FontTexture;
 
-    ImGui_ImplOpenGL2_Data() { memset(this, 0, sizeof(*this)); }
+    ImGui_ImplOpenGL2_Data() { memset((void*)this, 0, sizeof(*this)); }
 };
 
 // Backend data stored in io.BackendRendererUserData to allow support for multiple Dear ImGui contexts

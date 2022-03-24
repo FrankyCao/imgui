@@ -27,8 +27,6 @@
 #include "imgui.h"
 #include "imgui_impl_android.h"
 #include <time.h>
-#include <map>
-#include <queue>
 #include <android/native_window.h>
 #include <android/input.h>
 #include <android/keycodes.h>

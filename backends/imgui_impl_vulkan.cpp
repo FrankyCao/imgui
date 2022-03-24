@@ -135,7 +135,7 @@ struct ImGui_ImplVulkan_Data
 
     ImGui_ImplVulkan_Data()
     {
-        memset(this, 0, sizeof(*this));
+        memset((void*)this, 0, sizeof(*this));
         FontTexture = new ImTextureVK("Font Texture"); // Add by Dicky
         BufferMemoryAlignment = 256;
     }
