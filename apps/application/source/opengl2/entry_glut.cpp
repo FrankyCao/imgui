@@ -1,4 +1,5 @@
 #include "imgui.h"
+#include "imgui_helper.h"
 #include "imgui_impl_glut.h"
 #include "imgui_impl_opengl2.h"
 #ifdef __APPLE__

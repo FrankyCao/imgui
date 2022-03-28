@@ -7,6 +7,7 @@
 #include <vector>
 #include <mutex>
 #include "imgui.h"
+#include "imgui_helper.h"
 #include "imgui_impl_vulkan.h"
 #include "imgui_impl_win32.h"
 #include "application.h"
