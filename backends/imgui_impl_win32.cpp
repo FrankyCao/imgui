@@ -872,6 +872,14 @@ static void ImGui_ImplWin32_GetWin32StyleFromViewportFlags(ImGuiViewportFlags fl
 
     if (flags & ImGuiViewportFlags_TopMost)
         *out_ex_style |= WS_EX_TOPMOST;
+
+    // Add By Dicky for full screen
+    if (flags & ImGuiViewportFlags_FullScreen)
+    {
+        *out_style |= WS_MAXIMIZE | WS_BORDER;
+        *out_ex_style |= WS_EX_TOPMOST;
+    }
+    // Add By Dicky end
 }
 
 static void ImGui_ImplWin32_CreateWindow(ImGuiViewport* viewport)

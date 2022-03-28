@@ -13040,6 +13040,10 @@ ImGuiViewportP* ImGui::AddUpdateViewport(ImGuiWindow* window, ImGuiID id, const 
             flags |= ImGuiViewportFlags_NoInputs;
         if (window->Flags & ImGuiWindowFlags_NoFocusOnAppearing)
             flags |= ImGuiViewportFlags_NoFocusOnAppearing;
+        // add by Dicky
+        if (window->Flags & ImGuiWindowFlags_FullScreen)
+            flags |= ImGuiViewportFlags_FullScreen;
+        // add by Dicky end
     }
 
     ImGuiViewportP* viewport = (ImGuiViewportP*)FindViewportByID(id);
