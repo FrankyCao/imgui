@@ -747,7 +747,11 @@ static void ImGui_ImplSDL2_CreateWindow(ImGuiViewport* viewport)
     sdl_flags |= (viewport->Flags & ImGuiViewportFlags_TopMost) ? SDL_WINDOW_ALWAYS_ON_TOP : 0;
 #endif
     // Add By Dicky for full screen
-    sdl_flags |= (viewport->Flags & ImGuiViewportFlags_FullScreen) ? SDL_WINDOW_FULLSCREEN : 0;
+#if defined(_WIN32)
+    sdl_flags |= (viewport->Flags & ImGuiViewportFlags_FullScreen) ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0;
+#else
+    sdl_flags |= (viewport->Flags & ImGuiViewportFlags_FullScreen) ? SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_MAXIMIZED: 0;
+#endif
     // Add By Dicky end
     vd->Window = SDL_CreateWindow("No Title Yet", (int)viewport->Pos.x, (int)viewport->Pos.y, (int)viewport->Size.x, (int)viewport->Size.y, sdl_flags);
     vd->WindowOwned = true;
