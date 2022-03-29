@@ -18,6 +18,7 @@ layout (push_constant) uniform parameter \n\
 } p; \
 "
 
+/*
 #define SHADER_MAIN \
 " \n\
 void main() \n\
@@ -37,6 +38,44 @@ void main() \n\
     atomicAdd(histogram_int32_data[bid], 1); \n\
     //atomicAdd(histogram_int32_data[aid], 1); \n\
     memoryBarrierBuffer(); \n\
+} \
+"
+*/
+
+#define SHADER_MAIN \
+" \n\
+shared int data_sharedR[256]; \n\
+shared int data_sharedG[256]; \n\
+shared int data_sharedB[256]; \n\
+shared int data_sharedA[256]; \n\
+void main() \n\
+{ \n\
+    ivec2 uv = ivec2(gl_GlobalInvocationID.xy); \n\
+    int tid = int(gl_LocalInvocationIndex); \n\
+    data_sharedR[tid] = 0; \n\
+    data_sharedG[tid] = 0; \n\
+    data_sharedB[tid] = 0; \n\
+    data_sharedA[tid] = 0; \n\
+    if(uv.x >= p.w || uv.y >= p.h) \n\
+        return; \n\
+    memoryBarrierShared(); \n\
+    barrier(); \n\
+    sfpvec4 rgba = load_rgba(uv.x, uv.y, p.w, p.cstep, p.in_format, p.in_type); \n\
+    ivec4 irgba = ivec4(rgba * sfp(255.0f)); \n\
+    atomicAdd(data_sharedR[irgba.r], 1); \n\
+    atomicAdd(data_sharedG[irgba.g], 1); \n\
+    atomicAdd(data_sharedB[irgba.b], 1); \n\
+    atomicAdd(data_sharedA[irgba.a], 1); \n\
+    memoryBarrierShared(); \n\
+    barrier(); \n\
+    uint rid = tid + 0 * p.out_cstep; \n\
+    uint gid = tid + 1 * p.out_cstep; \n\
+    uint bid = tid + 2 * p.out_cstep; \n\
+    uint aid = tid + 3 * p.out_cstep; \n\
+    atomicAdd(histogram_int32_data[rid], data_sharedR[tid]); \n\
+    atomicAdd(histogram_int32_data[gid], data_sharedG[tid]); \n\
+    atomicAdd(histogram_int32_data[bid], data_sharedB[tid]); \n\
+    atomicAdd(histogram_int32_data[aid], data_sharedA[tid]); \n\
 } \
 "
 
