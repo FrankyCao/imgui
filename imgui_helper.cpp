@@ -772,6 +772,19 @@ void Text(int fntIndex, const char *fmt,...)    {
     va_end(args);
 }
 
+void TextComplex(const char * str, float scale, ImVec4 text_color, float outline_w, ImVec4 outline_color, ImVec2 shadow_offset, ImVec4 shadow_color) {
+    ImGui::SetWindowFontScale(scale);
+    ImGui::PushStyleVar(ImGuiStyleVar_TexGlyphOutlineWidth, outline_w);
+    ImGui::PushStyleVar(ImGuiStyleVar_TexGlyphShadowOffset, shadow_offset);
+    ImGui::PushStyleColor(ImGuiCol_Text, text_color);
+    ImGui::PushStyleColor(ImGuiCol_TexGlyphOutline, outline_color);
+    ImGui::PushStyleColor(ImGuiCol_TexGlyphShadow, shadow_color);
+    ImGui::TextUnformatted(str);
+    ImGui::PopStyleColor(3);
+    ImGui::PopStyleVar(2);
+    ImGui::SetWindowFontScale(1.0);
+}
+
 bool GetTexCoordsFromGlyph(unsigned short glyph, ImVec2 &uv0, ImVec2 &uv1) {
     if (!GImGui->Font) return false;
     const ImFontGlyph* g = GImGui->Font->FindGlyph(glyph);

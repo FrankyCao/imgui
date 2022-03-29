@@ -52,7 +52,7 @@ IMGUI_API void TextColoredV(int fntIndex,const ImVec4& col, const char* fmt, va_
 IMGUI_API void TextColored(int fntIndex,const ImVec4& col, const char* fmt, ...) IM_FMTARGS(3);
 IMGUI_API void TextV(int fntIndex,const char* fmt, va_list args);
 IMGUI_API void Text(int fntIndex,const char* fmt, ...) IM_FMTARGS(2);
-
+IMGUI_API void TextComplex(const char * str, float scale, ImVec4 text_color, float outline_w, ImVec4 outline_color, ImVec2 shadow_offset, ImVec4 shadow_color);
 // Handy if we want to use ImGui::Image(...) or ImGui::ImageButton(...) with a glyph
 IMGUI_API bool GetTexCoordsFromGlyph(unsigned short glyph,ImVec2& uv0,ImVec2& uv1);
 // Returns the height of the main menu based on the current font and style
