@@ -35,7 +35,7 @@ int DIR_Iterate(std::string directory, std::vector<std::string>& filesAbsolutePa
     DIR* dir = opendir(directory.c_str());
     if ( dir == NULL )
     {
-        std::cout << directory << " is not a directory or not exist!" << std::endl;
+        //std::cout << directory << " is not a directory or not exist!" << std::endl;
         return -1;
     }
     
