@@ -57,6 +57,9 @@ extern PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR vkGetPhysicalDeviceSurfaceC
 extern PFN_vkGetPhysicalDeviceSurfaceFormatsKHR vkGetPhysicalDeviceSurfaceFormatsKHR;
 extern PFN_vkGetPhysicalDeviceSurfacePresentModesKHR vkGetPhysicalDeviceSurfacePresentModesKHR;
 
+// VK_NV_cooperative_matrix
+extern PFN_vkGetPhysicalDeviceCooperativeMatrixPropertiesNV vkGetPhysicalDeviceCooperativeMatrixPropertiesNV;
+
 // get info
 VKSHADER_API int get_gpu_count();
 VKSHADER_API int get_default_gpu_index();
@@ -144,6 +147,10 @@ public:
     // ycbcr conversion feature
     bool support_ycbcr_conversion() const;
 
+    // cooperative matrix feature
+    bool support_cooperative_matrix() const;
+    bool support_cooperative_matrix_16_8_8() const;
+
     // extension capability
     int support_VK_KHR_8bit_storage() const;
     int support_VK_KHR_16bit_storage() const;
@@ -166,6 +173,7 @@ public:
     int support_VK_EXT_descriptor_indexing() const;
     int support_VK_EXT_memory_budget() const;
     int support_VK_EXT_queue_family_foreign() const;
+    int support_VK_NV_cooperative_matrix() const;
 
 private:
     GpuInfo(const GpuInfo&);
