@@ -2165,8 +2165,8 @@ ImFont* ImFontAtlas::AddFontDefault(const ImFontConfig* font_cfg_template)
     ImFontConfig font_cfg = font_cfg_template ? *font_cfg_template : ImFontConfig();
     if (!font_cfg_template)
     {
-        font_cfg.OversampleH = 1;
-        font_cfg.OversampleV = 1;
+        font_cfg.OversampleH = 2;
+        font_cfg.OversampleV = 2;
         font_cfg.PixelSnapH = true;
     }
     if (font_cfg.SizePixels <= 0.0f)
