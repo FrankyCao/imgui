@@ -2173,20 +2173,20 @@ ImFont* ImFontAtlas::AddFontDefault(const ImFontConfig* font_cfg_template)
         font_cfg.SizePixels = font_size * 1.0f;
     font_cfg.EllipsisChar = (ImWchar)0x0085;
     font_cfg.GlyphOffset.y = 1.0f * IM_FLOOR(font_cfg.SizePixels / font_size);  // Add +1 offset per 16 units
-#if IMGUI_FONT_HEI
+#if IMGUI_FONT_SARASA
     {
-        ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "等宽黑体, %dpx", (int)font_cfg.SizePixels);
-        ImFont* cfont = AddFontFromMemoryCompressedBase85TTF(mono_hei_compressed_data_base85, font_cfg.SizePixels, &font_cfg, GetGlyphRangesChineseFull());
+        ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "等宽粗黑, %dpx", (int)font_cfg.SizePixels);
+        ImFont* cfont = AddFontFromMemoryCompressedBase85TTF(mono_sarasa_compressed_data_base85, font_cfg.SizePixels, &font_cfg, GetGlyphRangesChineseFull());
         if (font == nullptr) font = cfont;
 #if IMGUI_ICONS
         ImGui::LoadInternalIcons(this);
 #endif
     }
 #endif
-#if IMGUI_FONT_SARASA
+#if IMGUI_FONT_HEI
     {
-        ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "等宽粗黑, %dpx", (int)font_cfg.SizePixels);
-        ImFont* cfont = AddFontFromMemoryCompressedBase85TTF(mono_sarasa_compressed_data_base85, font_cfg.SizePixels, &font_cfg, GetGlyphRangesChineseFull());
+        ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "等宽黑体, %dpx", (int)font_cfg.SizePixels);
+        ImFont* cfont = AddFontFromMemoryCompressedBase85TTF(mono_hei_compressed_data_base85, font_cfg.SizePixels, &font_cfg, GetGlyphRangesChineseFull());
         if (font == nullptr) font = cfont;
 #if IMGUI_ICONS
         ImGui::LoadInternalIcons(this);
