@@ -36,7 +36,7 @@ void main() \n\
         uv.x - p.x_offset < p.w && uv.y - p.y_offset < p.h) \n\
     { \n\
         sfpvec4 rgba_src = load_rgba(uv.x - p.x_offset, uv.y - p.y_offset, p.w, p.cstep, p.in_format, p.in_type); \n\
-        result = sfpvec4(mix(rgba_dst.rgb, rgba_src.rgb, rgba_src.a * sfp(p.alpha)), rgba_dst.a); \n\
+        result = sfpvec4(mix(rgba_dst.rgb, rgba_src.rgb, rgba_src.a * sfp(p.alpha)), sfp(1.0)); \n\
     } \n\
     else \n\
     { \n\

@@ -75,10 +75,10 @@ void CopyTo_vulkan::copyTo(const ImMat& src, ImMat& dst, int x, int y, float alp
         return;
     }
 
-    if (src.dims != dst.dims || src.color_space != dst.color_space || src.color_range != dst.color_range)
-        return;
+    //if (src.dims != dst.dims || src.color_space != dst.color_space || src.color_range != dst.color_range)
+    //    return;
 
-    if (x >= dst.w || y >= dst.h || x <= -src.w || y <= -src.h)
+    if (x >= src.w || y >= src.h || x <= -src.w || y <= -src.h)
         return;
 
     VkMat dst_gpu;
