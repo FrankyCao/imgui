@@ -114,12 +114,12 @@ static void ImVulkanTestWindow(const char* name, bool* p_open, ImGuiWindowFlags 
                                 std::to_string(VK_VERSION_PATCH(api_version));
         std::string device_name = vkdev->info.device_name();
         uint32_t gpu_memory_budget = vkdev->get_heap_budget();
-        ImGui::Text("%uMB", gpu_memory_budget);
+        uint32_t gpu_memory_usage = vkdev->get_heap_usage();
         ImGui::Text("Device[%d]", i);
         ImGui::Text("Driver:%s", driver_ver.c_str());
         ImGui::Text("   API:%s", api_ver.c_str());
         ImGui::Text("  Name:%s", device_name.c_str());
-        ImGui::Text("Memory:%uMB", gpu_memory_budget);
+        ImGui::Text("Memory:%uMB/%uMB", gpu_memory_usage, gpu_memory_budget);
         ImGui::Text("Device Type:%s", device_type == 0 ? "Discrete" : device_type == 1 ? "Integrated" : device_type == 2 ? "Virtual" : "CPU");
         std::string buffon_label = "Perf Test##" + std::to_string(i);
         if (ImGui::Button(buffon_label.c_str(), ImVec2(120, 20)))

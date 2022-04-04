@@ -243,6 +243,9 @@ public:
     // current gpu heap memory budget in MB
     uint32_t get_heap_budget() const;
 
+    // current gpu heap memory usage in MB
+    uint32_t get_heap_usage() const;
+
     // get current device index
     int get_device_index() const { return device_number; }
 
