@@ -28,7 +28,7 @@ layout (push_constant) uniform parameter \n\
 void main() \n\
 { \n\
     ivec2 uv = ivec2(gl_GlobalInvocationID.xy); \n\
-    if (uv.x >= p.w || uv.y >= p.h) \n\
+    if (uv.x >= p.out_w || uv.y >= p.out_h) \n\
         return; \n\
     sfpvec4 result; \n\
     sfpvec4 rgba_dst = load_dst_rgba(uv.x, uv.y, p.out_w, p.out_cstep, p.out_format, p.out_type); \n\
