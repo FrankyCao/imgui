@@ -61,6 +61,7 @@ endmacro()
 
 if(WIN32) 
     add_definitions(-D_CRT_SECURE_NO_WARNINGS) 
+    set(CMAKE_COLOR_MAKEFILE OFF CACHE BOOL "Disable Windows color Makefile by Force" FORCE)
 endif() 
 
 SET(SDK_CONFIG_DIR ${PROJECT_SOURCE_DIR}/config/)

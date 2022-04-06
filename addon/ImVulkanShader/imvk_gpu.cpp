@@ -2849,8 +2849,11 @@ uint32_t VulkanDevice::get_heap_budget() const
     memoryProperties.pNext = &memoryBudgetProperties;
 
     vkGetPhysicalDeviceMemoryProperties2KHR(info.physical_device(), &memoryProperties);
-
+#ifdef _WIN32
+    return device_local_heap_size;
+#else
     return memoryBudgetProperties.heapBudget[device_local_heap_index] / 1024 / 1024;
+#endif
 }
 
 uint32_t VulkanDevice::get_heap_usage() const
