@@ -167,6 +167,9 @@ typedef struct ImTextureVK
     VkDeviceMemory textureImageMemory = VK_NULL_HANDLE;
     VkImageView textureView = VK_NULL_HANDLE;
     VkSampler textureSampler = VK_NULL_HANDLE;
+    int textureWidth = 0;
+    int textureHeight = 0;
+    int textureChannels = 0;
     bool extra_image = false;
     bool mark_to_release = false;
     std::string name;
@@ -188,9 +191,9 @@ IMGUI_IMPL_API std::string  ImGui_ImplVulkan_GetApiVersion();
 IMGUI_IMPL_API std::string  ImGui_ImplVulkan_GetDrvVersion();
 IMGUI_IMPL_API ImTextureID  ImGui_ImplVulkan_CreateTexture(const void * pixels, int width, int height);
 IMGUI_IMPL_API ImTextureID  ImGui_ImplVulkan_CreateTexture(VkBuffer buffer, size_t buffer_offset, int width, int height);
-IMGUI_IMPL_API void         ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, const void * pixels, int width, int height);
-IMGUI_IMPL_API void         ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, VkBuffer stagingBuffer, size_t buffer_offset, int width, int height);
-IMGUI_IMPL_API void         ImGui_ImplVulkan_SaveTexture(ImTextureVk texture, int width, int height, std::string path); // Add By Dicky
+IMGUI_IMPL_API void         ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, const void * pixels);
+IMGUI_IMPL_API void         ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, VkBuffer stagingBuffer, size_t buffer_offset);
+IMGUI_IMPL_API void         ImGui_ImplVulkan_SaveTexture(ImTextureVk texture, std::string path); // Add By Dicky
 IMGUI_IMPL_API void         ImGui_ImplVulkan_DestroyTexture(ImTextureVk * texture);
 IMGUI_IMPL_API ImGui_ImplVulkan_InitInfo* ImGui_ImplVulkan_GetInitInfo();
 // add By Dicky end

@@ -2022,6 +2022,10 @@ ImTextureID ImGui_ImplVulkan_CreateTexture(const void * pixels, int width, int h
     VkCommandPool commandPool = VK_NULL_HANDLE;
     VkDeviceSize imageSize = width * height * 4;
     ImTextureVk texture = new ImTextureVK("Texture From CPU");
+    texture->textureWidth = width;
+    texture->textureHeight = height;
+    texture->textureChannels = 4;
+
     // create staging buffer
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
@@ -2082,6 +2086,9 @@ ImTextureID ImGui_ImplVulkan_CreateTexture(VkBuffer buffer, size_t buffer_offset
     VkCommandPool commandPool = VK_NULL_HANDLE;
     ImTextureVk texture = new ImTextureVK("Texture From GPU");
     VkDeviceSize imageSize = width * height * 4;
+    texture->textureWidth = width;
+    texture->textureHeight = height;
+    texture->textureChannels = 4;
 
     createImage(v, width,height,VK_FORMAT_R8G8B8A8_UNORM,
                 VK_IMAGE_TILING_OPTIMAL,
@@ -2114,7 +2121,7 @@ ImTextureID ImGui_ImplVulkan_CreateTexture(VkBuffer buffer, size_t buffer_offset
     return (ImTextureID)texture;
 }
 
-void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, VkBuffer stagingBuffer, size_t buffer_offset, int width, int height)
+void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, VkBuffer stagingBuffer, size_t buffer_offset)
 {
     ImTextureVk texture = (ImTextureVk)textureid;
     if (!texture) return;
@@ -2122,7 +2129,7 @@ void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, VkBuffer stagingBuffe
     if (!bd) return;
     ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
     if (!v || !v->PhysicalDevice) return;
-    VkDeviceSize imageSize = width * height * 4;
+    VkDeviceSize imageSize = texture->textureWidth * texture->textureHeight * texture->textureChannels;
     
     // create staging buffer
     VkCommandPool commandPool = VK_NULL_HANDLE;
@@ -2140,7 +2147,7 @@ void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, VkBuffer stagingBuffe
     //                    VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, 
     //                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     copyBufferToImage(v, commandPool, stagingBuffer, buffer_offset, texture->textureImage, 
-                    static_cast<uint32_t>(width), static_cast<uint32_t>(height));
+                    static_cast<uint32_t>(texture->textureWidth), static_cast<uint32_t>(texture->textureHeight));
     //transitionImageLayout(v, commandPool, texture->textureImage, 
     //                    VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 
     //                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
@@ -2148,7 +2155,7 @@ void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, VkBuffer stagingBuffe
     vkDestroyCommandPool(v->Device, commandPool, nullptr);
 }
 
-void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, const void * pixels, int width, int height)
+void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, const void * pixels)
 {
     ImTextureVk texture = (ImTextureVk)textureid;
     if (!texture) return;
@@ -2157,7 +2164,7 @@ void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, const void * pixels, 
     ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
     if (!v || !v->PhysicalDevice) return;
 
-    VkDeviceSize imageSize = width * height * 4;
+    VkDeviceSize imageSize = texture->textureWidth * texture->textureHeight * texture->textureChannels;
     
     // create staging buffer
     VkBuffer stagingBuffer;
@@ -2188,7 +2195,7 @@ void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, const void * pixels, 
     //                    VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, 
     //                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     copyBufferToImage(v, commandPool, stagingBuffer, 0, texture->textureImage, 
-                    static_cast<uint32_t>(width), static_cast<uint32_t>(height));
+                    static_cast<uint32_t>(texture->textureWidth), static_cast<uint32_t>(texture->textureHeight));
     //transitionImageLayout(v, commandPool, texture->textureImage, 
     //                    VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 
     //                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
@@ -2198,7 +2205,7 @@ void ImGui_ImplVulkan_UpdateTexture(ImTextureID textureid, const void * pixels, 
     vkDestroyCommandPool(v->Device, commandPool, nullptr);
 }
 
-void ImGui_ImplVulkan_SaveTexture(ImTextureVk texture, int width, int height, std::string path)
+void ImGui_ImplVulkan_SaveTexture(ImTextureVk texture, std::string path)
 {
     if (!texture) return;
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
@@ -2206,7 +2213,7 @@ void ImGui_ImplVulkan_SaveTexture(ImTextureVk texture, int width, int height, st
     ImGui_ImplVulkan_InitInfo* v = bd->VulkanInitInfo;
     if (!v || !v->PhysicalDevice) return;
 
-    VkDeviceSize imageSize = width * height * 4;
+    VkDeviceSize imageSize = texture->textureWidth * texture->textureHeight * texture->textureChannels;
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
     VkCommandPool commandPool = VK_NULL_HANDLE;
@@ -2227,7 +2234,7 @@ void ImGui_ImplVulkan_SaveTexture(ImTextureVk texture, int width, int height, st
     //                    VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, 
     //                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     copyImageToBuffer(v, commandPool, stagingBuffer, texture->textureImage, 
-                    static_cast<uint32_t>(width), static_cast<uint32_t>(height));
+                    static_cast<uint32_t>(texture->textureWidth), static_cast<uint32_t>(texture->textureHeight));
     void* data;
     vkMapMemory(v->Device, stagingBufferMemory, 0, imageSize, 0, &data);
     if (!data)
@@ -2242,16 +2249,16 @@ void ImGui_ImplVulkan_SaveTexture(ImTextureVk texture, int width, int height, st
         if (!file_surfix.empty())
         {
             if (file_surfix.compare("png") == 0 || file_surfix.compare("PNG") == 0)
-                stbi_write_png(path.c_str(), width, height, 4, data, width * 4);
+                stbi_write_png(path.c_str(), texture->textureWidth, texture->textureHeight, 4, data, texture->textureWidth * 4);
             else if (file_surfix.compare("jpg") == 0 || file_surfix.compare("JPG") == 0 ||
                     file_surfix.compare("jpeg") == 0 || file_surfix.compare("JPEG") == 0)
-                stbi_write_jpg(path.c_str(), width, height, 4, data, width * 4);
+                stbi_write_jpg(path.c_str(), texture->textureWidth, texture->textureHeight, 4, data, texture->textureWidth * 4);
             else if (file_surfix.compare("bmp") == 0 || file_surfix.compare("BMP") == 0)
-                stbi_write_bmp(path.c_str(), width, height, 4, data);
+                stbi_write_bmp(path.c_str(), texture->textureWidth, texture->textureHeight, 4, data);
             else if (file_surfix.compare("tga") == 0 || file_surfix.compare("TGA") == 0)
-                stbi_write_tga(path.c_str(), width, height, 4, data);
+                stbi_write_tga(path.c_str(), texture->textureWidth, texture->textureHeight, 4, data);
             //else if (file_surfix.compare("hdr") == 0 || file_surfix.compare("HDR") == 0)
-            //    stbi_write_hdr(path.c_str(), width, height, 4, data); // HDR only support float
+            //    stbi_write_hdr(path.c_str(), texture->textureWidth, texture->textureHeight, 4, data); // HDR only support float
         }
     }
 

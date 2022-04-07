@@ -269,9 +269,9 @@ void ImGenerateOrUpdateTexture(ImTextureID& imtexid,int width,int height,int cha
         return;
     }
     if (is_vulkan)
-        ImGui_ImplVulkan_UpdateTexture(imtexid, (VkBuffer)pixels, offset, width, height);
+        ImGui_ImplVulkan_UpdateTexture(imtexid, (VkBuffer)pixels, offset);
     else
-        ImGui_ImplVulkan_UpdateTexture(imtexid, pixels, width, height);
+        ImGui_ImplVulkan_UpdateTexture(imtexid, pixels);
 #elif IMGUI_RENDERING_DX11
     auto textureID = (ID3D11ShaderResourceView *)imtexid;
     if (textureID)
@@ -311,13 +311,6 @@ void ImGenerateOrUpdateTexture(ImTextureID& imtexid,int width,int height,int cha
     }
     texid->UnlockRect(0);
 #elif IMGUI_OPENGL
-#if IMGUI_VULKAN_SHADER
-    if (is_vulkan)
-    {
-        // TODO::Dicky need transfer data from vulkan to GL
-        return;
-    }
-#endif
     glEnable(GL_TEXTURE_2D);
     GLint last_texture = 0;
     glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture);
@@ -394,6 +387,13 @@ void ImGenerateOrUpdateTexture(ImTextureID& imtexid,int width,int height,int cha
     }
 #   endif //IMIMPL_USE_ARB_TEXTURE_COMPRESSION_TO_COMPRESS_FONT_TEXTURE
 
+#if IMGUI_VULKAN_SHADER
+    if (is_vulkan)
+    {
+        // TODO::Dicky need more good method from vk memory to gl
+    }
+    else
+#endif
     glTexImage2D(GL_TEXTURE_2D, 0, ifmt, width, height, 0, fmt, GL_UNSIGNED_BYTE, potImageBuffer ? potImageBuffer : pixels);
 
 #   ifdef IMIMPL_USE_ARB_TEXTURE_COMPRESSION_TO_COMPRESS_FONT_TEXTURE
@@ -626,12 +626,10 @@ bool ImTextureToFile(ImTextureID texture, std::string path)
     auto textureIt = ImFindTexture(texture);
     if (textureIt == g_Textures.end())
         return false;
-    int width = textureIt->Width;
-    int height = textureIt->Height;
 #if IMGUI_RENDERING_VULKAN
     if (textureIt->TextureID)
     {
-        ImGui_ImplVulkan_SaveTexture(textureIt->TextureID, width, height, path);
+        ImGui_ImplVulkan_SaveTexture(textureIt->TextureID, path);
         return true;
     }
 #endif
