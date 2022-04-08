@@ -3406,6 +3406,26 @@ void ImGui::ImDrawListAddCircleDashed(ImDrawList *dl, const ImVec2& centre, floa
     ImDrawListPathArcToDashedAndStroke(dl, centre, radius-0.5f, 0.0f, a_max, col, thickness, num_segments, on_segments, off_segments);
 }
 
+void ImGui::ImDrawListAddImageRotate(ImDrawList *dl, ImTextureID tex_id, ImVec2 pos, ImVec2 size, float angle, ImU32 board_col)
+{
+    int rotation_start_index = dl->VtxBuffer.Size;
+    dl->AddImage(tex_id, pos, pos + size);
+    if (angle != 0)
+    {
+        float rad = M_PI / 180.0 * (90.0 - angle);
+        ImVec2 l(FLT_MAX, FLT_MAX), u(-FLT_MAX, -FLT_MAX); // bounds
+        auto& buf = dl->VtxBuffer;
+        float s = sin(rad), c = cos(rad);
+        for (int i = rotation_start_index; i < buf.Size; i++)
+            l = ImMin(l, buf[i].pos), u = ImMax(u, buf[i].pos);
+        ImVec2 center = ImVec2((l.x + u.x) / 2, (l.y + u.y) / 2);
+        center = ImRotate(center, s, c) - center;
+        
+        for (int i = rotation_start_index; i < buf.Size; i++)
+            buf[i].pos = ImRotate(buf[i].pos, s, c) - center;
+    }
+}
+
 // Vertical Text
 ImVec2 ImGui::ImCalcVerticalTextSize(const char* text, const char* text_end, bool hide_text_after_double_hash, float wrap_width)
 {
