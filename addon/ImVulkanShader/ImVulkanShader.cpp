@@ -33,7 +33,6 @@ void ImVulkanVkMatToImMat(const VkMat &src, ImMat &dst)
     const VulkanDevice* vkdev = allocator->vkdev;
     opt.blob_vkallocator = vkdev->acquire_blob_allocator();
     opt.staging_vkallocator = vkdev->acquire_staging_allocator();
-    dst.create_like(src);
     VkCompute cmd(vkdev);
     cmd.record_clone(src, dst, opt);
     cmd.submit_and_wait();

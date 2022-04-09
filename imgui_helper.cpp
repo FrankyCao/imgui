@@ -648,12 +648,12 @@ void ImMatToTexture(ImGui::ImMat mat, ImTextureID& texture)
     if (mat.device == ImDataDevice::IM_DD_VULKAN)
     {
         ImGui::VkMat vkmat = mat;
-#if !IMGUI_RENDERING_VULKAN
+#if IMGUI_RENDERING_VULKAN
+        ImGui::ImGenerateOrUpdateTexture(texture, vkmat.w, vkmat.h, vkmat.c, vkmat.buffer_offset(), (const unsigned char *)vkmat.buffer());
+#else
         ImGui::ImMat cpu_mat;
         ImGui::ImVulkanVkMatToImMat(vkmat, cpu_mat);
         ImGui::ImGenerateOrUpdateTexture(texture, cpu_mat.w, cpu_mat.h, cpu_mat.c, (const unsigned char *)cpu_mat.data);
-#else
-        ImGui::ImGenerateOrUpdateTexture(texture, vkmat.w, vkmat.h, vkmat.c, vkmat.buffer_offset(), (const unsigned char *)vkmat.buffer());
 #endif
     }
 #endif

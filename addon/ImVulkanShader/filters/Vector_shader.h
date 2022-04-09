@@ -91,6 +91,39 @@ SHADER_RGBA_TO_HSL
 SHADER_MAIN
 ;
 
+
+#define SHADER_ZERO_PARAM \
+" \n\
+layout (push_constant) uniform parameter \n\
+{ \n\
+    int w; \n\
+    int h; \n\
+    int cstep; \n\
+} p; \
+"
+
+#define SHADER_ZERO_MAIN \
+" \n\
+void main() \n\
+{ \n\
+    int gx = int(gl_GlobalInvocationID.x); \n\
+    int gy = int(gl_GlobalInvocationID.y); \n\
+    if (gx >= p.w || gy >= p.h) \n\
+        return; \n\
+    int in_offset = gy * p.w + gx; \n\
+    alpha_blob_data[in_offset] = 0; \n\
+} \
+"
+
+static const char Zero_data[] =
+SHADER_HEADER
+SHADER_ZERO_PARAM
+R"(
+layout (binding = 0) restrict buffer alpha_blob { int alpha_blob_data[]; };
+)"
+SHADER_ZERO_MAIN
+;
+
 // merge shader
 #define SHADER_MERGE_PARAM \
 " \n\

@@ -59,6 +59,41 @@ SHADER_LOAD_RGBA
 SHADER_MAIN
 ;
 
+#define PARAM_ZERO \
+" \n\
+layout (push_constant) uniform parameter \n\
+{ \n\
+    int w; \n\
+    int h; \n\
+    int cstep; \n\
+} p;\
+"
+
+#define ZERO_MAIN \
+" \n\
+void main() \n\
+{ \n\
+    int gx = int(gl_GlobalInvocationID.x); \n\
+    int gy = int(gl_GlobalInvocationID.y); \n\
+    if (gx >= p.w || gy >= p.h) \n\
+        return; \n\
+    ivec4 in_offset = (gy * p.w + gx) * p.cstep + ivec4(0, 1, 2, 3); \n\
+    waveform_int32_data[in_offset.r] = 0; \n\
+    waveform_int32_data[in_offset.g] = 0; \n\
+    waveform_int32_data[in_offset.b] = 0; \n\
+    waveform_int32_data[in_offset.a] = 0; \n\
+} \
+"
+
+static const char Zero_data[] =
+SHADER_HEADER
+PARAM_ZERO
+R"(
+layout (binding = 0) restrict buffer waveform_int32  { int waveform_int32_data[]; };
+)"
+ZERO_MAIN
+;
+
 #define PARAM_CONV \
 " \n\
 layout (push_constant) uniform parameter \n\

@@ -18,6 +18,7 @@ private:
     ImGui::Option opt;
     ImGui::VkCompute * cmd          {nullptr};
     ImGui::Pipeline* pipe           {nullptr};
+    ImGui::Pipeline* pipe_zero      {nullptr};
     ImGui::Pipeline* pipe_conv      {nullptr};
 
 private:

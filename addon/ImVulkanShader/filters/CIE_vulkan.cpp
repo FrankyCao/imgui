@@ -1055,7 +1055,7 @@ CIE_vulkan::CIE_vulkan(int gpu)
     if (ImGui::compile_spirv_module(CIE_set_data, opt, spirv_data) == 0)
     {
         pipe_set = new ImGui::Pipeline(vkdev);
-        pipe_set->set_optimal_local_size_xyz(16, 16, 1);
+        pipe_set->set_optimal_local_size_xyz(8, 8, 1);
         pipe_set->create(spirv_data.data(), spirv_data.size() * 4, specializations);
         spirv_data.clear();
     }
@@ -1071,7 +1071,7 @@ CIE_vulkan::CIE_vulkan(int gpu)
     if (ImGui::compile_spirv_module(CIE_merge_data, opt, spirv_data) == 0)
     {
         pipe_merge = new ImGui::Pipeline(vkdev);
-        pipe_merge->set_optimal_local_size_xyz(16, 16, 1);
+        pipe_merge->set_optimal_local_size_xyz(8, 8, 1);
         pipe_merge->create(spirv_data.data(), spirv_data.size() * 4, specializations);
         spirv_data.clear();
     }

@@ -18,14 +18,21 @@ Histogram_vulkan::Histogram_vulkan(int gpu)
     if (compile_spirv_module(Histogram_data, opt, spirv_data) == 0)
     {
         pipe = new Pipeline(vkdev);
-        pipe->set_optimal_local_size_xyz(1, 256, 1);
+        pipe->set_optimal_local_size_xyz(1, 1024, 1);
         pipe->create(spirv_data.data(), spirv_data.size() * 4, specializations);
+        spirv_data.clear();
+    }
+    if (compile_spirv_module(Zero_data, opt, spirv_data) == 0)
+    {
+        pipe_zero = new Pipeline(vkdev);
+        pipe_zero->set_optimal_local_size_xyz(8, 1, 1);
+        pipe_zero->create(spirv_data.data(), spirv_data.size() * 4, specializations);
         spirv_data.clear();
     }
     if (compile_spirv_module(ConvInt2Float_data, opt, spirv_data) == 0)
     {
         pipe_conv = new Pipeline(vkdev);
-        pipe_conv->set_optimal_local_size_xyz(16, 16, 1);
+        pipe_conv->set_optimal_local_size_xyz(8, 1, 1);
         pipe_conv->create(spirv_data.data(), spirv_data.size() * 4, specializations);
         spirv_data.clear();
     }
@@ -37,6 +44,7 @@ Histogram_vulkan::~Histogram_vulkan()
     if (vkdev)
     {
         if (pipe) { delete pipe; pipe = nullptr; }
+        if (pipe_zero) { delete pipe_zero; pipe_zero = nullptr; }
         if (pipe_conv) { delete pipe_conv; pipe_conv = nullptr; }
         if (cmd) { delete cmd; cmd = nullptr; }
         if (opt.blob_vkallocator) { vkdev->reclaim_blob_allocator(opt.blob_vkallocator); opt.blob_vkallocator = nullptr; }
@@ -46,10 +54,16 @@ Histogram_vulkan::~Histogram_vulkan()
 
 void Histogram_vulkan::upload_param(const ImGui::VkMat& src, ImGui::VkMat& dst, float scale, bool log_view)
 {
-    ImGui::ImMat dst_cpu;
-    dst_cpu.create_type(dst.w, dst.h, dst.c, IM_DT_INT32);
     ImGui::VkMat dst_gpu_int32;
-    cmd->record_clone(dst_cpu, dst_gpu_int32, opt);
+    dst_gpu_int32.create_type(dst.w, dst.h, dst.c, IM_DT_INT32, opt.blob_vkallocator);
+    std::vector<VkMat> zero_bindings(1);
+    zero_bindings[0] = dst_gpu_int32;
+    std::vector<vk_constant_type> zero_constants(3);
+    zero_constants[0].i = dst_gpu_int32.w;
+    zero_constants[1].i = dst_gpu_int32.h;
+    zero_constants[2].i = dst_gpu_int32.c;
+    cmd->record_pipeline(pipe_zero, zero_bindings, zero_constants, dst_gpu_int32);
+
     std::vector<VkMat> bindings(5);
     if      (src.type == IM_DT_INT8)     bindings[0] = src;
     else if (src.type == IM_DT_INT16)    bindings[1] = src;
@@ -84,7 +98,7 @@ void Histogram_vulkan::upload_param(const ImGui::VkMat& src, ImGui::VkMat& dst, 
 
 void Histogram_vulkan::scope(const ImGui::ImMat& src, ImGui::ImMat& dst, int level, float scale, bool log_view)
 {
-    if (!vkdev || !pipe || !pipe_conv || !cmd)
+    if (!vkdev || !pipe || !pipe_zero || !pipe_conv || !cmd)
     {
         return;
     }

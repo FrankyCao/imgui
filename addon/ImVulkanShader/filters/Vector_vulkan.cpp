@@ -18,15 +18,23 @@ Vector_vulkan::Vector_vulkan(int gpu)
     if (compile_spirv_module(Vector_data, opt, spirv_data) == 0)
     {
         pipe = new Pipeline(vkdev);
-        pipe->set_optimal_local_size_xyz(1, 512, 1);
+        pipe->set_optimal_local_size_xyz(1, 256, 1);
         pipe->create(spirv_data.data(), spirv_data.size() * 4, specializations);
+        spirv_data.clear();
+    }
+    
+    if (compile_spirv_module(Zero_data, opt, spirv_data) == 0)
+    {
+        pipe_zero = new Pipeline(vkdev);
+        pipe_zero->set_optimal_local_size_xyz(8, 8, 1);
+        pipe_zero->create(spirv_data.data(), spirv_data.size() * 4, specializations);
         spirv_data.clear();
     }
 
     if (ImGui::compile_spirv_module(Vector_merge_data, opt, spirv_data) == 0)
     {
         pipe_merge = new ImGui::Pipeline(vkdev);
-        pipe_merge->set_optimal_local_size_xyz(16, 16, 1);
+        pipe_merge->set_optimal_local_size_xyz(8, 8, 1);
         pipe_merge->create(spirv_data.data(), spirv_data.size() * 4, specializations);
         spirv_data.clear();
     }
@@ -38,6 +46,7 @@ Vector_vulkan::~Vector_vulkan()
     if (vkdev)
     {
         if (pipe) { delete pipe; pipe = nullptr; }
+        if (pipe_zero) { delete pipe_zero; pipe_zero = nullptr; }
         if (pipe_merge) { delete pipe_merge; pipe_merge = nullptr; }
         if (cmd) { delete cmd; cmd = nullptr; }
         if (opt.blob_vkallocator) { vkdev->reclaim_blob_allocator(opt.blob_vkallocator); opt.blob_vkallocator = nullptr; }
@@ -47,11 +56,17 @@ Vector_vulkan::~Vector_vulkan()
 
 void Vector_vulkan::upload_param(const ImGui::VkMat& src, ImGui::VkMat& dst, float intensity)
 {
-    ImGui::ImMat buffer_cpu;
-    buffer_cpu.create_type(size, size, 1, IM_DT_INT32);
     ImGui::VkMat buffer_gpu;
-    cmd->record_upload(buffer_cpu, buffer_gpu, opt);
+    buffer_gpu.create_type(size, size, 1, IM_DT_INT32, opt.blob_vkallocator);
 
+    std::vector<VkMat> zero_bindings(1);
+    zero_bindings[0] = buffer_gpu;
+    std::vector<vk_constant_type> zero_constants(3);
+    zero_constants[0].i = buffer_gpu.w;
+    zero_constants[1].i = buffer_gpu.h;
+    zero_constants[2].i = buffer_gpu.c;
+    cmd->record_pipeline(pipe_zero, zero_bindings, zero_constants, buffer_gpu);
+    
     std::vector<ImGui::VkMat> bindings(5);
     if      (src.type == IM_DT_INT8)     bindings[0] = src;
     else if (src.type == IM_DT_INT16)    bindings[1] = src;
@@ -93,7 +108,7 @@ void Vector_vulkan::upload_param(const ImGui::VkMat& src, ImGui::VkMat& dst, flo
 
 void Vector_vulkan::scope(const ImGui::ImMat& src, ImGui::ImMat& dst, float intensity)
 {
-    if (!vkdev || !pipe || !pipe_merge || !cmd)
+    if (!vkdev || !pipe || !pipe_zero || !pipe_merge || !cmd)
     {
         return;
     }
