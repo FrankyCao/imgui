@@ -195,17 +195,24 @@ void show_file_dialog_demo_window(ImGuiFileDialog * dlg, bool * open)
 		static ImGuiFileDialogFlags flags = ImGuiFileDialogFlags_ConfirmOverwrite;
 		ImGui::Text("ImGuiFileDialog Flags : ");
 		ImGui::Indent();
-		ImGui::Text("Commons :");
-		RadioButtonLabeled_BitWize<ImGuiFileDialogFlags>("Overwrite", "Overwrite verifcation before dialog closing", &flags, ImGuiFileDialogFlags_ConfirmOverwrite);
-		ImGui::SameLine();
-		RadioButtonLabeled_BitWize<ImGuiFileDialogFlags>("Hide Hidden Files", "Hide Hidden Files", &flags, ImGuiFileDialogFlags_DontShowHiddenFiles);
-		
-		ImGui::Text("Hide Column by default : (saved in imgui.ini, \n\tso defined when the inmgui.ini is not existing)");
-		RadioButtonLabeled_BitWize<ImGuiFileDialogFlags>("Hide Column Type", "Hide Column file type by default", &flags, ImGuiFileDialogFlags_HideColumnType);
-		ImGui::SameLine();
-		RadioButtonLabeled_BitWize<ImGuiFileDialogFlags>("Hide Column Size", "Hide Column file Size by default", &flags, ImGuiFileDialogFlags_HideColumnSize);
-		ImGui::SameLine();
-		RadioButtonLabeled_BitWize<ImGuiFileDialogFlags>("Hide Column Date", "Hide Column file Date by default", &flags, ImGuiFileDialogFlags_HideColumnDate);
+		{
+			ImGui::Text("Commons :");
+			RadioButtonLabeled_BitWize<ImGuiFileDialogFlags>("Overwrite", "Overwrite verifcation before dialog closing", &flags, ImGuiFileDialogFlags_ConfirmOverwrite);
+			ImGui::SameLine();
+			RadioButtonLabeled_BitWize<ImGuiFileDialogFlags>("Hide Hidden Files", "Hide Hidden Files", &flags, ImGuiFileDialogFlags_DontShowHiddenFiles);
+			ImGui::SameLine();
+			RadioButtonLabeled_BitWize<ImGuiFileDialogFlags>("Disable Directory Creation", "Disable Directory Creation button in dialog", &flags, ImGuiFileDialogFlags_DisableCreateDirectoryButton);
+
+			ImGui::Text("Hide Column by default : (saved in imgui.ini, \n\tso defined when the inmgui.ini is not existing)");
+			RadioButtonLabeled_BitWize<ImGuiFileDialogFlags>("Hide Column Type", "Hide Column file type by default", &flags, ImGuiFileDialogFlags_HideColumnType);
+			ImGui::SameLine();
+			RadioButtonLabeled_BitWize<ImGuiFileDialogFlags>("Hide Column Size", "Hide Column file Size by default", &flags, ImGuiFileDialogFlags_HideColumnSize);
+			ImGui::SameLine();
+			RadioButtonLabeled_BitWize<ImGuiFileDialogFlags>("Hide Column Date", "Hide Column file Date by default", &flags, ImGuiFileDialogFlags_HideColumnDate);
+
+			RadioButtonLabeled_BitWize<ImGuiFileDialogFlags>("Case Insensitive Extentions", "will not take into account the case of file extentions",
+				&flags, ImGuiFileDialogFlags_CaseInsensitiveExtention);
+		}
 		ImGui::Unindent();
 
 		ImGui::Text("Singleton acces :");
@@ -279,27 +286,33 @@ void show_file_dialog_demo_window(ImGuiFileDialog * dlg, bool * open)
 				dlg->OpenModal("ChooseFileDlgKey",	ICON_IGFD_SAVE " Choose a File", filters, ".", "", 1, IGFDUserDatas("SaveFile"), ImGuiFileDialogFlags_ConfirmOverwrite);
 		}
 
-/*
-		ImGui::Text("Other Instance (multi dialog demo) :");
 		if (ImGui::Button(ICON_IGFD_FOLDER_OPEN " Open Directory Dialog"))
 		{
 			// let filters be null for open directory chooser
 			if (standardDialogMode)
-				fileDialog2.OpenDialog("ChooseDirDlgKey",
+				dlg->OpenDialog("ChooseDirDlgKey",
 					ICON_IGFD_FOLDER_OPEN " Choose a Directory", nullptr, ".", 1, nullptr, flags);
 			else
-				fileDialog2.OpenModal("ChooseDirDlgKey",
+				dlg->OpenModal("ChooseDirDlgKey",
 					ICON_IGFD_FOLDER_OPEN " Choose a Directory", nullptr, ".", 1, nullptr, flags);
 		}
 		if (ImGui::Button(ICON_IGFD_FOLDER_OPEN " Open Directory Dialog with selection of 5 items"))
 		{
 			// set filters be null for open directory chooser
 			if (standardDialogMode)
-				fileDialog2.OpenDialog("ChooseDirDlgKey", ICON_IGFD_FOLDER_OPEN " Choose a Directory", nullptr, ".", "", 5, nullptr, flags);
+				dlg->OpenDialog("ChooseDirDlgKey", ICON_IGFD_FOLDER_OPEN " Choose a Directory", nullptr, ".", "", 5, nullptr, flags);
 			else
-				fileDialog2.OpenModal("ChooseDirDlgKey", ICON_IGFD_FOLDER_OPEN " Choose a Directory", nullptr, ".", "", 5, nullptr, flags);
+				dlg->OpenModal("ChooseDirDlgKey", ICON_IGFD_FOLDER_OPEN " Choose a Directory", nullptr, ".", "", 5, nullptr, flags);
 		}
-*/
+
+        if (ImGui::Button(ICON_IGFD_FOLDER_OPEN " Embedded Dialog demo"))
+		{
+            dlg->OpenDialog("embedded", "Select File", ".*", "", -1, nullptr, 
+					ImGuiFileDialogFlags_NoDialog | 
+					ImGuiFileDialogFlags_DisableBookmarkMode | 
+					ImGuiFileDialogFlags_DisableCreateDirectoryButton | 
+					ImGuiFileDialogFlags_ReadOnlyFileNameField);
+        }
 
 		ImGui::Separator();
 
@@ -318,8 +331,48 @@ void show_file_dialog_demo_window(ImGuiFileDialog * dlg, bool * open)
 		// minSize => 0,0
 		// maxSize => FLT_MAX, FLT_MAX (defined is float.h)
 
-		if (dlg->Display("ChooseFileDlgKey",
-			ImGuiWindowFlags_NoCollapse, minSize, maxSize))
+        if (dlg->Display("embedded", ImGuiWindowFlags_NoCollapse, ImVec2(0,0), ImVec2(0,350)))
+		{
+			if (dlg->IsOk())
+			{
+				filePathName = dlg->GetFilePathName();
+				filePath = dlg->GetCurrentPath();
+				filter = dlg->GetCurrentFilter();
+				// here convert from string because a string was passed as a userDatas, but it can be what you want
+				if (dlg->GetUserDatas())
+					userDatas = std::string((const char*)dlg->GetUserDatas());
+				auto sel = dlg->GetSelection(); // multiselection
+				selection.clear();
+				for (auto s : sel)
+				{
+					selection.emplace_back(s.first, s.second);
+				}
+				// action
+			}
+			dlg->Close();
+		}
+
+		if (dlg->Display("ChooseFileDlgKey", ImGuiWindowFlags_NoCollapse, minSize, maxSize))
+		{
+			if (dlg->IsOk())
+			{
+				filePathName = dlg->GetFilePathName();
+				filePath = dlg->GetCurrentPath();
+				filter = dlg->GetCurrentFilter();
+				// here convert from string because a string was passed as a userDatas, but it can be what you want
+				if (dlg->GetUserDatas())
+					userDatas = std::string((const char*)dlg->GetUserDatas());
+				auto sel = dlg->GetSelection(); // multiselection
+				selection.clear();
+				for (auto s : sel)
+				{
+					selection.emplace_back(s.first, s.second);
+				}
+				// action
+			}
+			dlg->Close();
+		}
+        if (dlg->Display("ChooseDirDlgKey", ImGuiWindowFlags_NoCollapse, minSize, maxSize))
 		{
 			if (dlg->IsOk())
 			{

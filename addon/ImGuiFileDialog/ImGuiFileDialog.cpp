@@ -665,6 +665,7 @@ namespace IGFD
 		return res;
 	}
 #endif // USE_STD_FILESYSTEM
+
 	void IGFD::Utils::AppendToBuffer(char* vBuffer, size_t vBufferLen, const std::string& vStr)
 	{
 		std::string st = vStr;
@@ -698,6 +699,17 @@ namespace IGFD
 	{
 		ResetBuffer(vBuffer);
 		AppendToBuffer(vBuffer, vBufferLen, vStr);
+	}
+
+	std::string IGFD::Utils::LowerCaseString(const std::string& vString)
+	{
+		auto str = vString;
+
+		// convert to lower case
+		for (char& c : str)
+			c = (char)std::tolower(c);
+
+		return str;
 	}
 
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -769,9 +781,18 @@ namespace IGFD
 		return filter.empty() && collectionfilters.empty();
 	}
 
-	bool IGFD::FilterManager::FilterInfos::exist(const std::string& vFilter) const
+	bool IGFD::FilterManager::FilterInfos::exist(const std::string& vFilter, bool vIsCaseInsensitive) const
 	{
-		return filter == vFilter || (collectionfilters.find(vFilter) != collectionfilters.end());
+		if (vIsCaseInsensitive)
+		{
+			auto _filter = Utils::LowerCaseString(vFilter);
+			return
+				filter_optimized == _filter ||
+				(collectionfilters_optimized.find(_filter) != collectionfilters_optimized.end());
+		}
+		return 
+			filter == vFilter || 
+			(collectionfilters.find(vFilter) != collectionfilters.end());
 	}
 
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -803,6 +824,7 @@ namespace IGFD
 				if (puDLGFilters[p] == '{') // {
 				{
 					infos.filter = puDLGFilters.substr(lp, p - lp);
+					infos.filter_optimized = Utils::LowerCaseString(infos.filter);
 					p++;
 					lp = puDLGFilters.find('}', p);
 					if (lp != nan)
@@ -811,15 +833,8 @@ namespace IGFD
 						auto arr = IGFD::Utils::SplitStringToVector(fs, ',', false);
 						for (auto a : arr)
 						{
-							// modify by Dicky for ignore case
-							auto low_case = a;
-							std::transform(low_case.begin(), low_case.end(), low_case.begin(), [](unsigned char c){ return std::tolower(c); });
-							auto up_case = a;
-							std::transform(up_case.begin(), up_case.end(), up_case.begin(), [](unsigned char c){ return std::toupper(c); });
-							infos.collectionfilters.emplace(low_case);
-							if (up_case.compare(low_case) != 0)
-								infos.collectionfilters.emplace(up_case);
-							// modify by Dicky end
+							infos.collectionfilters.emplace(a);
+							infos.collectionfilters_optimized.emplace(Utils::LowerCaseString(a));
 						}
 					}
 					p = lp + 1;
@@ -827,6 +842,7 @@ namespace IGFD
 				else // ,
 				{
 					infos.filter = puDLGFilters.substr(lp, p - lp);
+					infos.filter_optimized = Utils::LowerCaseString(infos.filter);
 					p++;
 				}
 
@@ -1073,14 +1089,14 @@ namespace IGFD
 		prFilesStyle.clear();
 	}
 		
-	bool IGFD::FilterManager::IsCoveredByFilters(const std::string& vTag) const
+	bool IGFD::FilterManager::IsCoveredByFilters(const std::string& vTag, bool vIsCaseInsensitive) const
 	{
 		if (!puDLGFilters.empty() && !prSelectedFilter.empty())
 		{
 			// check if current file extention is covered by current filter
 			// we do that here, for avoid doing that during filelist display
 			// for better fps
-			if (prSelectedFilter.exist(vTag) || prSelectedFilter.filter == ".*")
+			if (prSelectedFilter.exist(vTag, vIsCaseInsensitive) || prSelectedFilter.filter == ".*")
 			{
 				return true;
 			}
@@ -1424,22 +1440,13 @@ namespace IGFD
 		prPathList.clear();
 	}
 
-	std::string IGFD::FileManager::prOptimizeFilenameForSearchOperations(const std::string& vFileNameExt)
-	{
-		auto fileNameExt = vFileNameExt;
-		// convert to lower case
-		for (char& c : fileNameExt)
-			c = (char)std::tolower(c);
-		return fileNameExt;
-	}
-
 	void IGFD::FileManager::AddFile(const FileDialogInternal& vFileDialogInternal, const std::string& vPath, const std::string& vFileName, const FileType& vFileType)
 	{
 		auto infos = std::make_shared<FileInfos>();
 
 		infos->filePath = vPath;
 		infos->fileNameExt = vFileName;
-		infos->fileNameExt_optimized = prOptimizeFilenameForSearchOperations(infos->fileNameExt);
+		infos->fileNameExt_optimized = Utils::LowerCaseString(infos->fileNameExt);
 		infos->fileType = vFileType;
 
 		if (infos->fileNameExt.empty() || (infos->fileNameExt == "." && !vFileDialogInternal.puFilterManager.puDLGFilters.empty())) return; // filename empty or filename is the current dir '.' //-V807
@@ -1456,7 +1463,8 @@ namespace IGFD
 				infos->fileExt = infos->fileNameExt.substr(lpt);
 			}
 
-			if (!vFileDialogInternal.puFilterManager.IsCoveredByFilters(infos->fileExt))
+			if (!vFileDialogInternal.puFilterManager.IsCoveredByFilters(infos->fileExt, 
+				(vFileDialogInternal.puDLGflags & ImGuiFileDialogFlags_CaseInsensitiveExtention) != 0))
 			{
 				return;
 			}
@@ -1477,7 +1485,7 @@ namespace IGFD
 
 		infos->filePath = vPath;
 		infos->fileNameExt = vFileName;
-		infos->fileNameExt_optimized = prOptimizeFilenameForSearchOperations(infos->fileNameExt);
+		infos->fileNameExt_optimized = Utils::LowerCaseString(infos->fileNameExt);
 		infos->fileType = vFileType;
 
 		if (infos->fileNameExt.empty() || (infos->fileNameExt == "." && !vFileDialogInternal.puFilterManager.puDLGFilters.empty())) return; // filename empty or filename is the current dir '.' //-V807
@@ -1494,7 +1502,8 @@ namespace IGFD
 				infos->fileExt = infos->fileNameExt.substr(lpt);
 			}
 
-			if (!vFileDialogInternal.puFilterManager.IsCoveredByFilters(infos->fileExt))
+			if (!vFileDialogInternal.puFilterManager.IsCoveredByFilters(infos->fileExt,
+				(vFileDialogInternal.puDLGflags & ImGuiFileDialogFlags_CaseInsensitiveExtention) != 0))
 			{
 				return;
 			}
@@ -1562,24 +1571,24 @@ namespace IGFD
 					switch (ent->d_type)
 					{
 					case DT_DIR:
-						fileType.SetContent(FileType::Directory); break;
+						fileType.SetContent(FileType::ContentType::Directory); break;
 					case DT_REG:
-						fileType.SetContent(FileType::File); break;
+						fileType.SetContent(FileType::ContentType::File); break;
 					case DT_LNK:
 					{
 						fileType.SetSymLink(true);
-						fileType.SetContent(FileType::LinkToUnknown); // by default if we can't figure out the target type.
+						fileType.SetContent(FileType::ContentType::LinkToUnknown); // by default if we can't figure out the target type.
 						struct stat statInfos = {};
 						int result = stat((path + PATH_SEP + ent->d_name).c_str(), &statInfos);
 						if (result == 0)
 						{
 							if (statInfos.st_mode & S_IFREG)
 							{
-								fileType.SetContent(FileType::File);
+								fileType.SetContent(FileType::ContentType::File);
 							}
 							else if (statInfos.st_mode & S_IFDIR)
 							{
-								fileType.SetContent(FileType::Directory);
+								fileType.SetContent(FileType::ContentType::Directory);
 							}
 						}
 						break;
@@ -1661,7 +1670,7 @@ namespace IGFD
 					if (ent->d_type == DT_DIR)
 					{
 						auto fileNameExt = ent->d_name;
-						AddPath(vFileDialogInternal, path, fileNameExt, FileType(FileType::Directory, false));
+						AddPath(vFileDialogInternal, path, fileNameExt, FileType(FileType::ContentType::Directory, false));
 					}
 				}
 
@@ -1701,8 +1710,8 @@ namespace IGFD
 			{
 				auto info = std::make_shared<FileInfos>();
 				info->fileNameExt = drive;
-				info->fileNameExt_optimized = prOptimizeFilenameForSearchOperations(drive);
-				info->fileType.SetContent(FileType::Directory);
+				info->fileNameExt_optimized = Utils::LowerCaseString(drive);
+				info->fileType.SetContent(FileType::ContentType::Directory);
 
 				if (!info->fileNameExt.empty())
 				{
@@ -2742,6 +2751,10 @@ namespace IGFD
 					prThumbnailFileDatasToGetMutex.unlock();
 				}
 			}
+			else
+			{
+				std::this_thread::sleep_for(std::chrono::milliseconds(500));
+			}
 		}
 	}
 
@@ -3528,9 +3541,17 @@ namespace IGFD
         SetFileStyle(IGFD_FileStyleByExtention, ".xls",  ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA5_FILE_EXCEL);
         SetFileStyle(IGFD_FileStyleByExtention, ".xlsx", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA5_FILE_EXCEL);
         SetFileStyle(IGFD_FileStyleByExtention, ".pdf",  ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA5_FILE_PDF);
-        SetFileStyle(IGFD_FileStyleByTypeDir,   nullptr, ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_IGFD_FOLDER);
+        SetFileStyle(IGFD_FileStyleByExtention, ".mp3", ImVec4(0.15f, 0.15f, 0.75f, 0.9f), ICON_FA4_FILE_AUDIO_O);
+        SetFileStyle(IGFD_FileStyleByExtention, ".aac", ImVec4(0.15f, 0.15f, 0.75f, 0.9f), ICON_FA4_FILE_AUDIO_O);
+        SetFileStyle(IGFD_FileStyleByExtention, ".ac3", ImVec4(0.15f, 0.15f, 0.75f, 0.9f), ICON_FA4_FILE_AUDIO_O);
+        SetFileStyle(IGFD_FileStyleByExtention, ".wav", ImVec4(0.15f, 0.15f, 0.75f, 0.9f), ICON_FA4_FILE_AUDIO_O);
+        SetFileStyle(IGFD_FileStyleByExtention, ".tta", ImVec4(0.15f, 0.15f, 0.75f, 0.9f), ICON_FA4_FILE_AUDIO_O);
+        SetFileStyle(IGFD_FileStyleByExtention, ".ogg", ImVec4(0.15f, 0.15f, 0.75f, 0.9f), ICON_FA4_FILE_AUDIO_O);
+	    //SetFileStyle(IGFD_FileStyleByTypeFile, nullptr, ImVec4(0.2f, 0.2f, 0.2f, 0.9f), ICON_IGFD_FILE); // for all link files
+	    SetFileStyle(IGFD_FileStyleByTypeDir | IGFD_FileStyleByTypeLink, nullptr, ImVec4(0.2f, 0.2f, 0.2f, 0.9f), ICON_IGFD_FOLDER); // for all link dirs
+	    //SetFileStyle(IGFD_FileStyleByTypeFile | IGFD_FileStyleByTypeLink, nullptr, ImVec4(0.2f, 0.2f, 0.2f, 0.9f), ICON_IGFD_FILE); // for all link files
         SetFileStyle(IGFD_FileStyleByTypeDir | IGFD_FileStyleByContainedInFullName, ".git", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_IGFD_BOOKMARK);
-	    SetFileStyle(IGFD_FileStyleByTypeFile | IGFD_FileStyleByContainedInFullName, ".git", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_IGFD_SAVE);
+        //SetFileStyle(IGFD_FileStyleByTypeFile | IGFD_FileStyleByContainedInFullName, ".git", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_IGFD_SAVE);
 #endif
         SetFileStyle(IGFD_FileStyleByExtention, ".gif", ImVec4(0.0f, 0.5f, 0.5f, 0.9f), "[GIF]"); // add an text for a filter type
 	}
@@ -3565,9 +3586,17 @@ namespace IGFD
         SetFileStyle(IGFD_FileStyleByExtention, ".xls", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_EXCEL);
         SetFileStyle(IGFD_FileStyleByExtention, ".xlsx", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_EXCEL);
         SetFileStyle(IGFD_FileStyleByExtention, ".pdf", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_PDF);
-        SetFileStyle(IGFD_FileStyleByTypeDir,   nullptr, ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FOLDER);
+        SetFileStyle(IGFD_FileStyleByExtention, ".mp3", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_AUDIO_O);
+        SetFileStyle(IGFD_FileStyleByExtention, ".aac", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_AUDIO_O);
+        SetFileStyle(IGFD_FileStyleByExtention, ".ac3", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_AUDIO_O);
+        SetFileStyle(IGFD_FileStyleByExtention, ".wav", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_AUDIO_O);
+        SetFileStyle(IGFD_FileStyleByExtention, ".ogg", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_AUDIO_O);
+        SetFileStyle(IGFD_FileStyleByExtention, ".tta", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_AUDIO_O);
+	    //SetFileStyle(IGFD_FileStyleByTypeFile, nullptr, ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE); // for all link files
+	    SetFileStyle(IGFD_FileStyleByTypeDir | IGFD_FileStyleByTypeLink, nullptr, ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FOLDER); // for all link dirs
+	    //SetFileStyle(IGFD_FileStyleByTypeFile | IGFD_FileStyleByTypeLink, nullptr, ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE); // for all link files
         SetFileStyle(IGFD_FileStyleByTypeDir | IGFD_FileStyleByContainedInFullName, ".git", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_BOOKMARK);
-	    SetFileStyle(IGFD_FileStyleByTypeFile | IGFD_FileStyleByContainedInFullName, ".git", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_SAVE);
+        //SetFileStyle(IGFD_FileStyleByTypeFile | IGFD_FileStyleByContainedInFullName, ".git", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_SAVE);
 #endif
         SetFileStyle(IGFD_FileStyleByExtention, ".gif", ImVec4(0.0f, 1.0f, 0.5f, 0.9f), "[GIF]"); // add an text for a filter type
 	}
