@@ -351,7 +351,7 @@ void main() \n\
 { \n\
     int gx = int(gl_GlobalInvocationID.x); \n\
     int gy = int(gl_GlobalInvocationID.y); \n\
-    if (gx >= p.w || gy >= p.h) \n\
+    if (gx >= p.out_w || gy >= p.out_h) \n\
         return; \n\
     sfpvec3 rgb; \n\
     if (p.resize == 1) \n\
