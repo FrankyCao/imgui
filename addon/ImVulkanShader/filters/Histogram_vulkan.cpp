@@ -18,7 +18,7 @@ Histogram_vulkan::Histogram_vulkan(int gpu)
     if (compile_spirv_module(Histogram_data, opt, spirv_data) == 0)
     {
         pipe = new Pipeline(vkdev);
-        pipe->set_optimal_local_size_xyz(1, 1024, 1);
+        pipe->set_optimal_local_size_xyz(1, 512, 1);
         pipe->create(spirv_data.data(), spirv_data.size() * 4, specializations);
         spirv_data.clear();
     }
