@@ -67,7 +67,7 @@ ColorConvert_vulkan::~ColorConvert_vulkan()
     }
 }
 
-bool ColorConvert_vulkan::ConvertColorFormat(const ImMat& srcMat, ImMat& dstMat)
+bool ColorConvert_vulkan::ConvertColorFormat(const ImMat& srcMat, ImMat& dstMat, ImInterpolateMode type)
 {
     if (dstMat.color_format < IM_CF_BGR)
     {
@@ -111,9 +111,11 @@ bool ColorConvert_vulkan::ConvertColorFormat(const ImMat& srcMat, ImMat& dstMat)
 
     // prepare destination vulkan mat
     VkMat dstVkMat;
+    int dst_width = dstMat.w > 0 ? dstMat.w : srcMat.w;
+    int dst_height = dstMat.h > 0 ? dstMat.h : srcMat.h;
     if (dstMat.device == IM_DD_VULKAN)
     {
-        dstVkMat.create_type(srcMat.w, srcMat.h, GetChannelCountByColorFormat(dstMat.color_format), dstMat.type, opt.blob_vkallocator);
+        dstVkMat.create_type(dst_width, dst_height, GetChannelCountByColorFormat(dstMat.color_format), dstMat.type, opt.blob_vkallocator);
         dstVkMat.color_format = dstMat.color_format;
         dstVkMat.color_range = dstMat.color_range;
         dstVkMat.color_space = srcMat.color_space;
@@ -122,7 +124,7 @@ bool ColorConvert_vulkan::ConvertColorFormat(const ImMat& srcMat, ImMat& dstMat)
     else
     {
         ImMat tmp;
-        tmp.create_type(srcMat.w, srcMat.h, GetChannelCountByColorFormat(dstMat.color_format), dstMat.type);
+        tmp.create_type(dst_width, dst_height, GetChannelCountByColorFormat(dstMat.color_format), dstMat.type);
         tmp.color_format = dstMat.color_format;
         tmp.color_range = dstMat.color_range;
         tmp.color_space = srcMat.color_space;
@@ -130,7 +132,7 @@ bool ColorConvert_vulkan::ConvertColorFormat(const ImMat& srcMat, ImMat& dstMat)
         dstVkMat.create_like(dstMat, opt.blob_vkallocator);
     }
 
-    if (!UploadParam(srcVkMat, dstVkMat))
+    if (!UploadParam(srcVkMat, dstVkMat, type))
         return false;
 
     if (dstMat.device == IM_DD_CPU)
@@ -147,10 +149,13 @@ bool ColorConvert_vulkan::ConvertColorFormat(const ImMat& srcMat, ImMat& dstMat)
     return true;
 }
 
-bool ColorConvert_vulkan::UploadParam(const VkMat& src, VkMat& dst)
+bool ColorConvert_vulkan::UploadParam(const VkMat& src, VkMat& dst, ImInterpolateMode type)
 {
     int srcClrCatg = GetColorFormatCategory(src.color_format);
     int dstClrCatg = GetColorFormatCategory(dst.color_format);
+    bool resize = false;
+    if (dst.w != 0 && dst.h != 0 && (dst.w != src.w || dst.h != src.h))
+        resize = true;
     if (srcClrCatg < 0 || dstClrCatg < 0)
     {
         std::ostringstream oss;
@@ -209,7 +214,7 @@ bool ColorConvert_vulkan::UploadParam(const VkMat& src, VkMat& dst)
         else if (src.type == IM_DT_FLOAT32) bindings[7] = src;
         bindings[8] = vkCscCoefs;
 
-        std::vector<vk_constant_type> constants(10);
+        std::vector<vk_constant_type> constants(15);
         constants[0].i = src.w;
         constants[1].i = src.h;
         constants[2].i = dst.c;
@@ -218,8 +223,13 @@ bool ColorConvert_vulkan::UploadParam(const VkMat& src, VkMat& dst)
         constants[5].i = src.color_space;
         constants[6].i = src.color_range;
         constants[7].f = (float)((1 << bitDepth) - 1);
-        constants[8].i = dst.color_format;
-        constants[9].i = dst.type;
+        constants[8].i = dst.w;
+        constants[9].i = dst.h;
+        constants[10].i = dst.c;
+        constants[11].i = dst.color_format;
+        constants[12].i = dst.type;
+        constants[13].i = resize ? 1 : 0;
+        constants[14].i = type;
 
         cmd->record_pipeline(pipeline_yuv_rgb, bindings, constants, dst);
     }

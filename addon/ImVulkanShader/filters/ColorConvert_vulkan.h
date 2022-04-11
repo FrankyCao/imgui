@@ -11,7 +11,7 @@ public:
     ColorConvert_vulkan(int gpu = -1);
     ~ColorConvert_vulkan();
 
-    bool ConvertColorFormat(const ImMat& srcMat, ImMat& dstMat);
+    bool ConvertColorFormat(const ImMat& srcMat, ImMat& dstMat, ImInterpolateMode type = IM_INTERPOLATE_BICUBIC);
     std::string GetError() const { return mErrMsg; }
 
     virtual void YUV2RGBA(const ImMat& im_YUV, ImMat & im_RGB, ImColorFormat color_format, ImColorSpace color_space, ImColorRange color_range, int video_depth, int video_shift) const;
@@ -34,7 +34,7 @@ private:
     void upload_param(const VkMat& Im, VkMat& dst, ImColorSpace color_space, ImColorRange color_range, int video_depth, int video_shift) const;
     void upload_param(const VkMat& Im, VkMat& dst) const;
 
-    bool UploadParam(const VkMat& src, VkMat& dst);
+    bool UploadParam(const VkMat& src, VkMat& dst, ImInterpolateMode type);
 
     std::string mErrMsg;
 };
