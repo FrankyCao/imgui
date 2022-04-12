@@ -3,7 +3,7 @@
 #include <string.h>
 #include <vulkan/vulkan.h>
 
-#include "SPIRV/GlslangToSpv.h"
+#include "glslang/SPIRV/GlslangToSpv.h"
 #include "glslang/Public/ShaderLang.h"
 
 #include "imvk_command.h"
