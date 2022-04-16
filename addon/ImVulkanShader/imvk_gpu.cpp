@@ -1677,7 +1677,7 @@ int VulkanDevicePrivate::create_dummy_buffer_image()
     dummy_buffer.create(1, 4u, dummy_allocator);
     dummy_image.create(1, 4u, dummy_allocator);
 #if __APPLE__
-    if (vkdev->info.vendor_id() != 0x8086)
+    if (vkdev->info.type() == 0)
         dummy_image_readonly.create(1, 4u, dummy_allocator);
 #else
     dummy_image_readonly.create(1, 4u, dummy_allocator);
@@ -1688,7 +1688,7 @@ int VulkanDevicePrivate::create_dummy_buffer_image()
     cmd.record_dummy(dummy_buffer);
     cmd.record_dummy(dummy_image);
 #if __APPLE__
-    if (vkdev->info.vendor_id() != 0x8086)
+    if (vkdev->info.type() == 0)
         cmd.record_dummy_readonly(dummy_image_readonly);
 #else
     cmd.record_dummy_readonly(dummy_image_readonly);
@@ -1704,7 +1704,7 @@ void VulkanDevicePrivate::destroy_dummy_buffer_image()
     dummy_buffer.release();
     dummy_image.release();
 #if __APPLE__
-    if (vkdev->info.vendor_id() != 0x8086)
+    if (vkdev->info.type() == 0)
         dummy_image_readonly.release();
 #else
     dummy_image_readonly.release();
@@ -2761,7 +2761,7 @@ VkImageMat VulkanDevice::get_dummy_image() const
 VkImageMat VulkanDevice::get_dummy_image_readonly() const
 {
 #if __APPLE__
-    if (info.vendor_id() == 0x8086)
+    if (info.type() != 0)
         return d->dummy_image;
 #endif
     return d->dummy_image_readonly;
@@ -3713,6 +3713,10 @@ int compile_spirv_module(const char* comp_data, int comp_data_size, const Option
         custom_defines.push_back(std::make_pair("ImVulkan_shader_local_memory", "1"));
     }
 
+#if __APPLE__
+    custom_defines.push_back(std::make_pair("ImVulkan_moltenvk", "1"));
+#endif
+
     std::string preamble;
     std::vector<std::string> processes;
 
@@ -3755,7 +3759,7 @@ int compile_spirv_module(const char* comp_data, int comp_data_size, const Option
         TBuiltInResource resources = get_default_TBuiltInResource();
         EShMessages messages = (EShMessages)(EShMsgSpvRules | EShMsgVulkanRules | EShMsgSuppressWarnings | EShMsgDebugInfo | EShMsgCascadingErrors);
 
-        bool pr = s.parse(&resources, 100, false, messages);
+        bool pr = s.parse(&resources, 100, ENoProfile, false, false, messages);
         if (!pr)
         {
             fprintf(stderr, "vkshader compile spir-v module failed\n");
