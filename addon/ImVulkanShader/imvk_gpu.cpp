@@ -1032,7 +1032,7 @@ int create_gpu_instance()
 #endif
 
         // mali
-        // t760 = 0x13b5 0x7500001
+        // t760 = 0x13b5 0x7500001 / 0x7501000
         // t860 = 0x13b5 0x8602000
         // t880 = 0x13b5 0x8800020
         // g31  = 0x13b5 0x70930000
@@ -1082,6 +1082,7 @@ int create_gpu_instance()
 
         if (physicalDeviceProperties.vendorID == 0x13b5
                 && (physicalDeviceProperties.deviceID == 0x7500001
+                    || physicalDeviceProperties.deviceID == 0x7501000
                     || physicalDeviceProperties.deviceID == 0x8602000
                     || physicalDeviceProperties.deviceID == 0x8800020
                     || physicalDeviceProperties.deviceID == 0x70930000
