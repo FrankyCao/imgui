@@ -38,10 +38,12 @@ SOFTWARE.
 #include <ctime>
 #include <sys/stat.h>
 #include <cstdio>
+#include <cerrno>
 
 // this option need c++17
 #ifdef USE_STD_FILESYSTEM
 	#include <filesystem>
+	#include <exception>
 #endif // USE_STD_FILESYSTEM
 
 #ifdef __EMSCRIPTEN__
@@ -527,6 +529,51 @@ namespace IGFD
 		return res;
 	}
 
+	bool IGFD::Utils::IsDirectoryCanBeOpened(const std::string& name)
+	{
+		bool bExists = false;
+
+		if (!name.empty())
+		{
+#ifdef USE_STD_FILESYSTEM
+			namespace fs = std::filesystem;
+#ifdef _IGFD_WIN_
+			std::wstring wname = IGFD::Utils::utf8_decode(name.c_str());
+			fs::path pathName = fs::path(wname);
+#else // _IGFD_WIN_
+			fs::path pathName = fs::path(name);
+#endif // _IGFD_WIN_
+			try
+			{
+				// interesting, in the case of a protected dir or for any reason the dir cant be opened
+				// this func will work but will say nothing more . not like the dirent version
+				bExists = fs::is_directory(pathName);
+				// test if can be opened, this function can thrown an exception if there is an issue with this dir
+				// here, the dir_iter is need else not exception is thrown.. 
+				const auto dir_iter = std::filesystem::directory_iterator(pathName);
+				(void)dir_iter; // for avoid unused warnings
+			}
+			catch (std::exception /*ex*/)
+			{
+				// fail so this dir cant be opened
+				bExists = false;
+			}
+#else
+			DIR* pDir = nullptr;
+			// interesting, in the case of a protected dir or for any reason the dir cant be opened
+			// this func will fail
+			pDir = opendir(name.c_str());
+			if (pDir != nullptr)
+			{
+				bExists = true;
+				(void)closedir(pDir);
+			}
+#endif // USE_STD_FILESYSTEM
+		}
+
+		return bExists;    // this is not a directory!
+	}
+
 	bool IGFD::Utils::IsDirectoryExist(const std::string& name)
 	{
 		bool bExists = false;
@@ -545,10 +592,22 @@ namespace IGFD
 #else
 			DIR* pDir = nullptr;
 			pDir = opendir(name.c_str());
-			if (pDir != nullptr)
+			if (pDir)
 			{
+				bExists = true; 
+				closedir(pDir);
+			}
+			else if (ENOENT == errno) 
+			{
+				/* Directory does not exist. */
+				//bExists = false;
+			}
+			else 
+			{
+				/* opendir() failed for some other reason. 
+				   like if a dir is protected, or not accessable with user right
+				*/
 				bExists = true;
-				(void)closedir(pDir);
 			}
 #endif // USE_STD_FILESYSTEM
 		}
@@ -1546,7 +1605,7 @@ namespace IGFD
 					fileType.SetSymLink(file.is_symlink());
 					fileType.SetContent(FileType::ContentType::LinkToUnknown);
 				}
-				
+
 				if (file.is_directory()) { fileType.SetContent(FileType::ContentType::Directory); } // directory or symlink to directory
 				else if (file.is_regular_file()) { fileType.SetContent(FileType::ContentType::File); }
 
@@ -1639,7 +1698,7 @@ namespace IGFD
 #ifdef USE_STD_FILESYSTEM
 			const std::filesystem::path fspath(path);
 			const auto dir_iter = std::filesystem::directory_iterator(fspath);
-			FileType fstype = FileType(FileType::Directory, std::filesystem::is_symlink(std::filesystem::status(fspath)));
+			FileType fstype = FileType(FileType::ContentType::Directory, std::filesystem::is_symlink(std::filesystem::status(fspath)));
 			AddPath(vFileDialogInternal, path, "..", fstype);
 			for (const auto& file : dir_iter)
 			{
@@ -1647,11 +1706,11 @@ namespace IGFD
 				if (file.is_symlink())
 				{
 					fileType.SetSymLink(file.is_symlink());
-					fileType.SetContent(FileType::LinkToUnknown);
+					fileType.SetContent(FileType::ContentType::LinkToUnknown);
 				}
 				if (file.is_directory())
 				{
-					fileType.SetContent(FileType::Directory);
+					fileType.SetContent(FileType::ContentType::Directory);
 					auto fileNameExt = file.path().filename().string();
 					AddPath(vFileDialogInternal, path, fileNameExt, fileType);
 				}
@@ -2151,8 +2210,9 @@ namespace IGFD
 					newPath = prCurrentPath + std::string(1u, PATH_SEP) + vInfos->fileNameExt;
 			}
 
-			if (IGFD::Utils::IsDirectoryExist(newPath))
+			if (IGFD::Utils::IsDirectoryCanBeOpened(newPath))
 			{
+
 				if (puShowDrives)
 				{
 					prCurrentPath = vInfos->fileNameExt;
@@ -5495,13 +5555,16 @@ IMGUIFILEDIALOG_API char* IGFD_GetFilePathName(ImGuiFileDialog* vContext)
 		if (!s.empty())
 		{
 			size_t siz = s.size() + 1U;
-			res = new char[siz];
+			res = (char*)malloc(siz);
+			if (res)
+			{
 #ifndef _MSC_VER
-			strncpy(res, s.c_str(), siz);
+				strncpy(res, s.c_str(), siz);
 #else // _MSC_VER
-			strncpy_s(res, siz, s.c_str(), siz);
+				strncpy_s(res, siz, s.c_str(), siz);
 #endif // _MSC_VER
-			res[siz - 1U] = '\0';
+				res[siz - 1U] = '\0';
+			}
 		}
 	}
 
@@ -5518,13 +5581,16 @@ IMGUIFILEDIALOG_API char* IGFD_GetCurrentFileName(ImGuiFileDialog* vContext)
 		if (!s.empty())
 		{
 			size_t siz = s.size() + 1U;
-			res = new char[siz];
+			res = (char*)malloc(siz);
+			if (res)
+			{
 #ifndef _MSC_VER
-			strncpy(res, s.c_str(), siz);
+				strncpy(res, s.c_str(), siz);
 #else // _MSC_VER
-			strncpy_s(res, siz, s.c_str(), siz);
+				strncpy_s(res, siz, s.c_str(), siz);
 #endif // _MSC_VER
-			res[siz - 1U] = '\0';
+				res[siz - 1U] = '\0';
+			}
 		}
 	}
 
@@ -5541,13 +5607,16 @@ IMGUIFILEDIALOG_API char* IGFD_GetCurrentPath(ImGuiFileDialog* vContext)
 		if (!s.empty())
 		{
 			size_t siz = s.size() + 1U;
-			res = new char[siz];
+			res = (char*)malloc(siz);
+			if (res)
+			{
 #ifndef _MSC_VER
-			strncpy(res, s.c_str(), siz);
+				strncpy(res, s.c_str(), siz);
 #else // _MSC_VER
-			strncpy_s(res, siz, s.c_str(), siz);
+				strncpy_s(res, siz, s.c_str(), siz);
 #endif // _MSC_VER
-			res[siz - 1U] = '\0';
+				res[siz - 1U] = '\0';
+			}
 		}
 	}
 
@@ -5564,13 +5633,16 @@ IMGUIFILEDIALOG_API char* IGFD_GetCurrentFilter(ImGuiFileDialog* vContext)
 		if (!s.empty())
 		{
 			size_t siz = s.size() + 1U;
-			res = new char[siz];
+			res = (char*)malloc(siz);
+			if (res)
+			{
 #ifndef _MSC_VER
-			strncpy(res, s.c_str(), siz);
+				strncpy(res, s.c_str(), siz);
 #else // _MSC_VER
-			strncpy_s(res, siz, s.c_str(), siz);
+				strncpy_s(res, siz, s.c_str(), siz);
 #endif // _MSC_VER
-			res[siz - 1U] = '\0';
+				res[siz - 1U] = '\0';
+			}
 		}
 	}
 
@@ -5606,22 +5678,25 @@ IMGUIFILEDIALOG_API void IGFD_SetFileStyle2(ImGuiFileDialog* vContext,
 }
 
 IMGUIFILEDIALOG_API bool IGFD_GetFileStyle(ImGuiFileDialog* vContext,
-	IGFD_FileStyleFlags vFlags, const char* vCriteria, ImVec4* vOutColor, char** vOutIcon, ImFont** vOutFont)
+	IGFD_FileStyleFlags vFlags, const char* vCriteria, ImVec4* vOutColor, char** vOutIconText, ImFont** vOutFont)
 {
 	if (vContext)
 	{
 		std::string icon;
 		bool res = vContext->GetFileStyle(vFlags, vCriteria, vOutColor, &icon, vOutFont);
-		if (!icon.empty() && vOutIcon)
+		if (!icon.empty() && vOutIconText)
 		{
 			size_t siz = icon.size() + 1U;
-			*vOutIcon = new char[siz];
+			*vOutIconText = (char*)malloc(siz);
+			if (*vOutIconText)
+			{
 #ifndef _MSC_VER
-			strncpy(*vOutIcon, icon.c_str(), siz);
+				strncpy(*vOutIconText, icon.c_str(), siz);
 #else // _MSC_VER
-			strncpy_s(*vOutIcon, siz, icon.c_str(), siz);
+				strncpy_s(*vOutIconText, siz, icon.c_str(), siz);
 #endif // _MSC_VER
-			(*vOutIcon)[siz - 1U] = '\0';
+				(*vOutIconText)[siz - 1U] = '\0';
+			}
 		}
 		return res;
 	}
@@ -5666,13 +5741,16 @@ IMGUIFILEDIALOG_API char* IGFD_SerializeBookmarks(ImGuiFileDialog* vContext)
 		if (!s.empty())
 		{
 			size_t siz = s.size() + 1U;
-			res = new char[siz];
+			res = (char*)malloc(siz);
+			if (res)
+			{
 #ifndef _MSC_VER
-			strncpy(res, s.c_str(), siz);
+				strncpy(res, s.c_str(), siz);
 #else // _MSC_VER
-			strncpy_s(res, siz, s.c_str(), siz);
+				strncpy_s(res, siz, s.c_str(), siz);
 #endif // _MSC_VER
-			res[siz - 1U] = '\0';
+				res[siz - 1U] = '\0';
+			}
 		}
 	}
 
