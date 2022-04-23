@@ -111,7 +111,7 @@ struct ImGui_ImplSDL2_Data
     bool            MouseCanUseGlobalState;
     bool            UseVulkan;
 
-    ImGui_ImplSDL2_Data()   { memset(this, 0, sizeof(*this)); }
+    ImGui_ImplSDL2_Data()   { memset((void*)this, 0, sizeof(*this)); }
 };
 
 // Backend data stored in io.BackendPlatformUserData to allow support for multiple Dear ImGui contexts
