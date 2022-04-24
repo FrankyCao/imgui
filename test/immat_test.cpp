@@ -75,32 +75,35 @@ int main(int argc, char ** argv)
 {
     int width = 4;
     int height = 4;
-    int channel = 3;
-    ImGui::ImMat MatrixA;
-    MatrixA.create_type(width, height, channel, IM_DT_FLOAT32);
-    print_mat("MatrixA", MatrixA);
+    int channel = 1;
+    ImGui::ImMat A;
+    A.create_type(width, height, channel, IM_DT_FLOAT32);
+    print_mat("A", A);
 
-    for (int z = 0; z < MatrixA.c; z++)
+    A.eye(1e-1);
+    print_mat("A.eye", A);
+
+    for (int z = 0; z < A.c; z++)
     {
-        for (int y = 0; y < MatrixA.h; y++)
+        for (int y = 0; y < A.h; y++)
         {
-            for (int x = 0; x < MatrixA.w; x++)
+            for (int x = 0; x < A.w; x++)
             {
-                MatrixA.at<float>(x,y,z) = y * MatrixA.w + x + 1;
+                A.at<float>(x,y,z) = y * A.w + x + 1;
             }
         }
     }
 
-    print_mat("MatrixA", MatrixA);
+    print_mat("new A", A);
 
-    auto t = MatrixA.t();
-    print_mat("MatrixA.t", t);
+    auto t = A.t();
+    print_mat("A.t", t);
 
-    ImGui::ImMat dot_mat = MatrixA * t;
-    print_mat("MatrixA *  MatrixA.t", dot_mat);
+    ImGui::ImMat dot_mat = A * t;
+    print_mat("A *  A.t", dot_mat);
 
-    ImGui::ImMat add_mat = MatrixA / 2.0f;
-    print_mat("MatrixA / 2", add_mat);
+    ImGui::ImMat add_mat = A / 2.0f;
+    print_mat("A / 2", add_mat);
 
     return 0;
 }

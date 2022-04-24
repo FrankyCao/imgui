@@ -334,16 +334,16 @@ public:
     // set all
     template<typename T> void fill(T v);
     // scalar add
-    template<typename T> ImMat& operator+ (T v);
+    template<typename T> ImMat operator+ (T v);
     template<typename T> ImMat& operator+= (T v);
     // scalar sub
-    template<typename T> ImMat& operator- (T v);
+    template<typename T> ImMat operator- (T v);
     template<typename T> ImMat& operator-= (T v);
     // scalar mul
-    template<typename T> ImMat& operator* (T v);
+    template<typename T> ImMat operator* (T v);
     template<typename T> ImMat& operator*= (T v);
     // scalar div
-    template<typename T> ImMat& operator/ (T v);
+    template<typename T> ImMat operator/ (T v);
     template<typename T> ImMat& operator/= (T v);
     // deep copy
     ImMat clone(Allocator* allocator = 0) const;
@@ -357,7 +357,13 @@ public:
     ImMat reshape(int w, int h, int c, Allocator* allocator = 0) const;
     // transpose
     ImMat t() const;
-    // dot
+    // eye
+    template<typename T> ImMat& eye(T scale = 1);
+    // mat add
+    ImMat operator+(const ImMat& mat);
+    // mat sub
+    ImMat operator-(const ImMat& mat);
+    // mat mul(dot)
     ImMat operator*(const ImMat& mat);
     // release
     void release();
@@ -1300,14 +1306,19 @@ inline void ImMat::fill(T _v)
 
 // scalar add
 template<typename T> 
-inline ImMat& ImMat::operator+ (T v)
+inline ImMat ImMat::operator+ (T v)
 {
+    ImMat m;
+    m.create_like(*this);
+    if (!m.data)
+        return m;
     T* ptr = (T*)data;
+    T* dptr = (T*)m.data;
     for (int i = 0; i < total(); i++)
     {
-        ptr[i] += v;
+        dptr[i] = ptr[i] + v;
     }
-    return *this;
+    return m;
 }
 template<typename T> 
 inline ImMat& ImMat::operator+=(T v)
@@ -1321,14 +1332,19 @@ inline ImMat& ImMat::operator+=(T v)
 }
 // scalar sub
 template<typename T> 
-inline ImMat& ImMat::operator- (T v)
+inline ImMat ImMat::operator- (T v)
 {
+    ImMat m;
+    m.create_like(*this);
+    if (!m.data)
+        return m;
     T* ptr = (T*)data;
+    T* dptr = (T*)m.data;
     for (int i = 0; i < total(); i++)
     {
-        ptr[i] -= v;
+        dptr[i] = ptr[i] - v;
     }
-    return *this;
+    return m;
 }
 template<typename T> 
 inline ImMat& ImMat::operator-=(T v)
@@ -1342,14 +1358,19 @@ inline ImMat& ImMat::operator-=(T v)
 }
 // scalar mul
 template<typename T> 
-inline ImMat& ImMat::operator* (T v)
+inline ImMat ImMat::operator* (T v)
 {
+    ImMat m;
+    m.create_like(*this);
+    if (!m.data)
+        return m;
     T* ptr = (T*)data;
+    T* dptr = (T*)m.data;
     for (int i = 0; i < total(); i++)
     {
-        ptr[i] *= v;
+        dptr[i] = ptr[i] * v;
     }
-    return *this;
+    return m;
 }
 template<typename T> 
 inline ImMat& ImMat::operator*=(T v)
@@ -1363,14 +1384,21 @@ inline ImMat& ImMat::operator*=(T v)
 }
 // scalar div
 template<typename T> 
-inline ImMat& ImMat::operator/ (T v)
+inline ImMat ImMat::operator/ (T v)
 {
+    ImMat m;
+    m.create_like(*this);
+    if (!m.data)
+        return m;
+    if (v == 0)
+        return m;
     T* ptr = (T*)data;
+    T* dptr = (T*)m.data;
     for (int i = 0; i < total(); i++)
     {
-        ptr[i] /= v;
+        dptr[i] = ptr[i] / v;
     }
-    return *this;
+    return m;
 }
 template<typename T> 
 inline ImMat& ImMat::operator/=(T v)
@@ -1556,6 +1584,7 @@ inline ImMat ImMat::reshape(int _w, int _h, int _c, Allocator* _allocator) const
 inline ImMat ImMat::t() const
 {
     assert(device == IM_DD_CPU);
+    assert(total() > 0);
     if (dims == 1)
     {
         ImMat m;
@@ -1625,7 +1654,244 @@ inline ImMat ImMat::t() const
     return ImMat();
 }
 
-// mat mul
+// eye
+template<typename T> 
+inline ImMat& ImMat::eye(T scale)
+{
+    assert(device == IM_DD_CPU);
+    assert(total() > 0);
+    if (dims == 1)
+    {
+        switch (type)
+        {
+            case IM_DT_INT8:    this->at< int8_t>(0) = scale; break;
+            case IM_DT_INT16:   this->at<int16_t>(0) = scale; break;
+            case IM_DT_INT32:   this->at<int32_t>(0) = scale; break;
+            case IM_DT_INT64:   this->at<int64_t>(0) = scale; break;
+            case IM_DT_FLOAT32: this->at<float>  (0) = scale; break;
+            case IM_DT_FLOAT64: this->at<double> (0) = scale; break;
+            default: break;
+        }
+    }
+    else if (dims == 2)
+    {
+        for (int _h = 0; _h < h; _h++)
+        {
+            for (int _w = 0; _w < w; _w++)
+            {
+                if (_w == _h)
+                {
+                    switch (type)
+                    {
+                        case IM_DT_INT8:    this->at< int8_t>(_w, _h) = scale; break;
+                        case IM_DT_INT16:   this->at<int16_t>(_w, _h) = scale; break;
+                        case IM_DT_INT32:   this->at<int32_t>(_w, _h) = scale; break;
+                        case IM_DT_INT64:   this->at<int64_t>(_w, _h) = scale; break;
+                        case IM_DT_FLOAT32: this->at<float>  (_w, _h) = scale; break;
+                        case IM_DT_FLOAT64: this->at<double> (_w, _h) = scale; break;
+                        default: break;
+                    }
+                }
+            }
+        }
+    }
+    else if (dims == 3)
+    {
+        for (int _c = 0; _c < c; _c++)
+        {
+            for (int _h = 0; _h < h; _h++)
+            {
+                for (int _w = 0; _w < w; _w++)
+                {
+                    if (_w == _h)
+                    {
+                        switch (type)
+                        {
+                            case IM_DT_INT8:    this->at< int8_t>(_w, _h, _c) = scale; break;
+                            case IM_DT_INT16:   this->at<int16_t>(_w, _h, _c) = scale; break;
+                            case IM_DT_INT32:   this->at<int32_t>(_w, _h, _c) = scale; break;
+                            case IM_DT_INT64:   this->at<int64_t>(_w, _h, _c) = scale; break;
+                            case IM_DT_FLOAT32: this->at<float>  (_w, _h, _c) = scale; break;
+                            case IM_DT_FLOAT64: this->at<double> (_w, _h, _c) = scale; break;
+                            default: break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return *this;
+}
+
+// mat add
+inline ImMat ImMat::operator+(const ImMat& mat)
+{
+    assert(device == IM_DD_CPU);
+    assert(w == mat.w);
+    assert(h == mat.h);
+    assert(c == mat.c);
+    assert(type == mat.type);
+    if (dims == 1)
+    {
+        int l = w != 0 ? w : h;
+        ImMat m;
+        m.create_type(l, type, allocator);
+        if (!m.data)
+            return m;
+        for (int _l = 0; _l < l; _l++)
+        {
+            switch (type)
+            {
+                case IM_DT_INT8:    m.at<int8_t> (_l) = this->at<int8_t> (_l) + mat.at<int8_t> (_l); break;
+                case IM_DT_INT16:   m.at<int16_t>(_l) = this->at<int16_t>(_l) + mat.at<int16_t>(_l); break;
+                case IM_DT_INT32:   m.at<int32_t>(_l) = this->at<int32_t>(_l) + mat.at<int32_t>(_l); break;
+                case IM_DT_INT64:   m.at<int64_t>(_l) = this->at<int64_t>(_l) + mat.at<int64_t>(_l); break;
+                case IM_DT_FLOAT32: m.at<float>  (_l) = this->at<float>  (_l) + mat.at<float>  (_l); break;
+                case IM_DT_FLOAT64: m.at<double> (_l) = this->at<double> (_l) + mat.at<double> (_l); break;
+                default: break;
+            }
+        }
+        return m;
+    }
+    else if (dims == 2)
+    {
+        ImMat m;
+        m.create_type(w, h, type, allocator);
+        if (!m.data)
+            return m;
+        for (int _h = 0; _h < h; _h++)
+        {
+            for (int _w = 0; _w < w; _w++)
+            {
+                switch (type)
+                {
+                    case IM_DT_INT8:    m.at<int8_t> (_w, _h) = this->at<int8_t> (_w, _h) + mat.at<int8_t> (_w, _h); break;
+                    case IM_DT_INT16:   m.at<int16_t>(_w, _h) = this->at<int16_t>(_w, _h) + mat.at<int16_t>(_w, _h); break;
+                    case IM_DT_INT32:   m.at<int32_t>(_w, _h) = this->at<int32_t>(_w, _h) + mat.at<int32_t>(_w, _h); break;
+                    case IM_DT_INT64:   m.at<int64_t>(_w, _h) = this->at<int64_t>(_w, _h) + mat.at<int64_t>(_w, _h); break;
+                    case IM_DT_FLOAT32: m.at<float>  (_w, _h) = this->at<float>  (_w, _h) + mat.at<float>  (_w, _h); break;
+                    case IM_DT_FLOAT64: m.at<double> (_w, _h) = this->at<double> (_w, _h) + mat.at<double> (_w, _h); break;
+                    default: break;
+                }
+            }
+        }
+        return m;
+    }
+    else if (dims == 3)
+    {
+        ImMat m;
+        m.create_type(h, mat.w, c, type, allocator);
+        if (!m.data)
+            return m;
+        for (int _c = 0; _c < c; _c++)
+        {
+            for (int _h = 0; _h < m.h; _h++)
+            {
+                for (int _w = 0; _w < m.w; _w++)
+                {
+                    switch (type)
+                    {
+                        case IM_DT_INT8:    m.at<int8_t> (_w, _h, _c) += this->at<int8_t> (_w, _h, _c) + mat.at<int8_t> (_w, _h, _c); break;
+                        case IM_DT_INT16:   m.at<int16_t>(_w, _h, _c) += this->at<int16_t>(_w, _h, _c) + mat.at<int16_t>(_w, _h, _c); break;
+                        case IM_DT_INT32:   m.at<int32_t>(_w, _h, _c) += this->at<int32_t>(_w, _h, _c) + mat.at<int32_t>(_w, _h, _c); break;
+                        case IM_DT_INT64:   m.at<int64_t>(_w, _h, _c) += this->at<int64_t>(_w, _h, _c) + mat.at<int64_t>(_w, _h, _c); break;
+                        case IM_DT_FLOAT32: m.at<float>  (_w, _h, _c) += this->at<float>  (_w, _h, _c) + mat.at<float>  (_w, _h, _c); break;
+                        case IM_DT_FLOAT64: m.at<double> (_w, _h, _c) += this->at<double> (_w, _h, _c) + mat.at<double> (_w, _h, _c); break;
+                        default: break;
+                    }
+                }
+            }
+        }
+        return m;
+    }
+    return *this;
+}
+
+// mat sub
+inline ImMat ImMat::operator-(const ImMat& mat)
+{
+    assert(device == IM_DD_CPU);
+    assert(w == mat.w);
+    assert(h == mat.h);
+    assert(c == mat.c);
+    assert(type == mat.type);
+    if (dims == 1)
+    {
+        int l = w != 0 ? w : h;
+        ImMat m;
+        m.create_type(l, type, allocator);
+        if (!m.data)
+            return m;
+        for (int _l = 0; _l < l; _l++)
+        {
+            switch (type)
+            {
+                case IM_DT_INT8:    m.at<int8_t> (_l) = this->at<int8_t> (_l) - mat.at<int8_t> (_l); break;
+                case IM_DT_INT16:   m.at<int16_t>(_l) = this->at<int16_t>(_l) - mat.at<int16_t>(_l); break;
+                case IM_DT_INT32:   m.at<int32_t>(_l) = this->at<int32_t>(_l) - mat.at<int32_t>(_l); break;
+                case IM_DT_INT64:   m.at<int64_t>(_l) = this->at<int64_t>(_l) - mat.at<int64_t>(_l); break;
+                case IM_DT_FLOAT32: m.at<float>  (_l) = this->at<float>  (_l) - mat.at<float>  (_l); break;
+                case IM_DT_FLOAT64: m.at<double> (_l) = this->at<double> (_l) - mat.at<double> (_l); break;
+                default: break;
+            }
+        }
+        return m;
+    }
+    else if (dims == 2)
+    {
+        ImMat m;
+        m.create_type(w, h, type, allocator);
+        if (!m.data)
+            return m;
+        for (int _h = 0; _h < h; _h++)
+        {
+            for (int _w = 0; _w < w; _w++)
+            {
+                switch (type)
+                {
+                    case IM_DT_INT8:    m.at<int8_t> (_w, _h) = this->at<int8_t> (_w, _h) - mat.at<int8_t> (_w, _h); break;
+                    case IM_DT_INT16:   m.at<int16_t>(_w, _h) = this->at<int16_t>(_w, _h) - mat.at<int16_t>(_w, _h); break;
+                    case IM_DT_INT32:   m.at<int32_t>(_w, _h) = this->at<int32_t>(_w, _h) - mat.at<int32_t>(_w, _h); break;
+                    case IM_DT_INT64:   m.at<int64_t>(_w, _h) = this->at<int64_t>(_w, _h) - mat.at<int64_t>(_w, _h); break;
+                    case IM_DT_FLOAT32: m.at<float>  (_w, _h) = this->at<float>  (_w, _h) - mat.at<float>  (_w, _h); break;
+                    case IM_DT_FLOAT64: m.at<double> (_w, _h) = this->at<double> (_w, _h) - mat.at<double> (_w, _h); break;
+                    default: break;
+                }
+            }
+        }
+        return m;
+    }
+    else if (dims == 3)
+    {
+        ImMat m;
+        m.create_type(h, mat.w, c, type, allocator);
+        if (!m.data)
+            return m;
+        for (int _c = 0; _c < c; _c++)
+        {
+            for (int _h = 0; _h < m.h; _h++)
+            {
+                for (int _w = 0; _w < m.w; _w++)
+                {
+                    switch (type)
+                    {
+                        case IM_DT_INT8:    m.at<int8_t> (_w, _h, _c) += this->at<int8_t> (_w, _h, _c) - mat.at<int8_t> (_w, _h, _c); break;
+                        case IM_DT_INT16:   m.at<int16_t>(_w, _h, _c) += this->at<int16_t>(_w, _h, _c) - mat.at<int16_t>(_w, _h, _c); break;
+                        case IM_DT_INT32:   m.at<int32_t>(_w, _h, _c) += this->at<int32_t>(_w, _h, _c) - mat.at<int32_t>(_w, _h, _c); break;
+                        case IM_DT_INT64:   m.at<int64_t>(_w, _h, _c) += this->at<int64_t>(_w, _h, _c) - mat.at<int64_t>(_w, _h, _c); break;
+                        case IM_DT_FLOAT32: m.at<float>  (_w, _h, _c) += this->at<float>  (_w, _h, _c) - mat.at<float>  (_w, _h, _c); break;
+                        case IM_DT_FLOAT64: m.at<double> (_w, _h, _c) += this->at<double> (_w, _h, _c) - mat.at<double> (_w, _h, _c); break;
+                        default: break;
+                    }
+                }
+            }
+        }
+        return m;
+    }
+    return *this;
+}
+
+// mat mul(dot)
 inline ImMat ImMat::operator*(const ImMat& mat)
 {
     assert(device == IM_DD_CPU);
