@@ -1207,6 +1207,17 @@ target_link_libraries(
 )
 endif(IMGUI_BUILD_EXAMPLE AND IMGUI_VULKAN_SHADER)
 
+if (IMGUI_BUILD_EXAMPLE)
+add_executable(
+    immat_test
+    test/immat_test.cpp
+)
+target_link_libraries(
+    immat_test
+    imgui
+)
+endif(IMGUI_BUILD_EXAMPLE)
+
 get_directory_property(hasParent PARENT_DIRECTORY)
 if(hasParent)
     set(IMGUI_LIBRARYS imgui ${LINK_LIBS} PARENT_SCOPE )
