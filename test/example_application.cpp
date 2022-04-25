@@ -201,6 +201,7 @@ public:
     bool show_file_dialog_window = false;
     bool show_markdown_window = false;
     bool show_widget_window = false;
+    bool show_kalman_window = false;
     bool show_text_editor_window = false;
     bool show_tab_window = false;
    
@@ -356,6 +357,7 @@ bool Application_Frame(void* handle, bool app_will_quit)
         ImGui::Checkbox("Memory Edit Window", &example->mem_edit.Open);
         ImGui::Checkbox("Show Markdown Window", &example->show_markdown_window);
         ImGui::Checkbox("Show Extra Widget Window", &example->show_widget_window);
+        ImGui::Checkbox("Show Kalman Window", &example->show_kalman_window);
         ImGui::Checkbox("Show Text Edit Window", &example->show_text_editor_window);
         ImGui::Checkbox("Show Tab Window", &example->show_tab_window);
 
@@ -444,6 +446,15 @@ bool Application_Frame(void* handle, bool app_will_quit)
         ImGui::SetNextWindowSize(ImVec2(1024, 768), ImGuiCond_FirstUseEver);
         ImGui::Begin("Extra Widget", &example->show_widget_window);
         ImGui::ShowExtraWidgetDemoWindow();
+        ImGui::End();
+    }
+
+    // Show Kalman Window
+    if (example->show_kalman_window)
+    {
+        ImGui::SetNextWindowSize(ImVec2(1024, 768), ImGuiCond_FirstUseEver);
+        ImGui::Begin("Kalman Demo", &example->show_kalman_window);
+        ImGui::ShowImKalmanDemoWindow();
         ImGui::End();
     }
 

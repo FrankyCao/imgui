@@ -73,28 +73,31 @@ static void print_mat(std::string name, ImGui::ImMat & mat)
 
 int main(int argc, char ** argv)
 {
-    int width = 4;
-    int height = 4;
-    int channel = 1;
-    ImGui::ImMat A;
-    A.create_type(width, height, channel, IM_DT_FLOAT32);
-    print_mat("A", A);
+    ImGui::ImMat A, B, C;
+    A.create_type(4, 4, IM_DT_FLOAT32);
+    B.create_type(4, 4, IM_DT_FLOAT32);
 
-    A.eye(1e-1);
-    print_mat("A.eye", A);
-
-    for (int z = 0; z < A.c; z++)
+    for (int y = 0; y < A.h; y++)
     {
-        for (int y = 0; y < A.h; y++)
+        for (int x = 0; x < A.w; x++)
         {
-            for (int x = 0; x < A.w; x++)
-            {
-                A.at<float>(x,y,z) = y * A.w + x + 1;
-            }
+            A.at<float>(x,y) += y * A.w + x + 1;
         }
     }
 
-    print_mat("new A", A);
+    for (int y = 0; y < B.h; y++)
+    {
+        for (int x = 0; x < B.w; x++)
+        {
+            B.at<float>(x,y) = y * B.w + x + 1;
+        }
+    }
+
+    print_mat("A", A);
+    print_mat("B", B);
+
+    C = A * B;
+    print_mat("C", C);
 
     auto t = A.t();
     print_mat("A.t", t);
@@ -104,6 +107,15 @@ int main(int argc, char ** argv)
 
     ImGui::ImMat add_mat = A / 2.0f;
     print_mat("A / 2", add_mat);
+
+    auto n = A.randn<float>(0.f, 5.f);
+    print_mat("A.randn", n);
+
+    auto _det = n.det<float>();
+    std::cout << "A.randn.i.det=" << _det << std::endl;
+
+    auto i = n.inv<float>();
+    print_mat("A.randn.i", n);
 
     return 0;
 }

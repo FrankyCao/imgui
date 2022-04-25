@@ -3004,3 +3004,52 @@ void ImGui::SetMaxWaitBeforeNextFrame(double time)
 
     g.MaxWaitBeforeNextFrame = ImMin(g.MaxWaitBeforeNextFrame, time);
 }
+
+// Kalman class
+ImGui::ImKalman::ImKalman(int state_size,int mea_size)
+{
+    transitionMatrix.create_type(state_size, state_size, IM_DT_FLOAT32);
+    measurementMatrix.create_type(state_size, mea_size, IM_DT_FLOAT32);
+    processNoiseCov.create_type(state_size, state_size, IM_DT_FLOAT32);
+    measurementNoiseCov.create_type(mea_size, mea_size, IM_DT_FLOAT32);
+    errorCovPre.create_type(state_size, state_size, IM_DT_FLOAT32);
+    errorCovPost.create_type(state_size, state_size, IM_DT_FLOAT32);
+    statePost.create_type(1, state_size, IM_DT_FLOAT32);
+    statePre.create_type(1, state_size, IM_DT_FLOAT32);
+    K.create_type(mea_size, state_size, IM_DT_FLOAT32);
+
+    measurementMatrix.eye(1.f);     // 观测矩阵的初始化
+    processNoiseCov.eye(1e-5);      // 模型本身噪声协方差矩阵初始化
+    measurementNoiseCov.eye(1e-1);  // 测量噪声的协方差矩阵初始化
+    errorCovPost.eye(1.f);          // 转移噪声修正矩阵初始化
+    statePost.randn(0.f, 5.0f);     // kalaman状态估计修正矩阵初始化
+    transitionMatrix.eye(1.f);      // 状态转移矩阵/增益矩阵的初始化
+    for (int x = 0; x < state_size; x++)
+    {
+        for (int y = 0; y < state_size; y++)
+        {
+            if (x > y && (x - state_size / 2 == y || y + state_size / 2 == x))
+                transitionMatrix.at<float>(x, y) = 1.f;
+        }
+    }
+}
+
+void ImGui::ImKalman::covariance(float noise_covariance, float measurement_noise_covariance)
+{
+    processNoiseCov.eye(noise_covariance);
+    measurementNoiseCov.eye(measurement_noise_covariance);
+}
+
+ImGui::ImMat& ImGui::ImKalman::predicted()
+{
+    statePre    = transitionMatrix * statePost;
+    errorCovPre = transitionMatrix * errorCovPost * transitionMatrix.t() + processNoiseCov;
+    return statePost;
+}
+
+void ImGui::ImKalman::update(ImMat& Y)
+{
+    K            = errorCovPre * measurementMatrix.t() * ((measurementMatrix * errorCovPre * measurementMatrix.t() + measurementNoiseCov).inv<float>());
+    statePost    = statePre    + K * (Y - measurementMatrix * statePre);
+    errorCovPost = errorCovPre - K * measurementMatrix * errorCovPre;
+}

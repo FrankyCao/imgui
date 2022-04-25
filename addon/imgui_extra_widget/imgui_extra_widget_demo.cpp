@@ -395,4 +395,49 @@ void ShowExtraWidgetDemoWindow()
         ImGui::TreePop();
     }
 }
+
+void ShowImKalmanDemoWindow()
+{
+    ImGuiIO& io = ImGui::GetIO();
+    int64_t t1, t2, predicted_time, update_time;
+    int state_size = 4;
+    int measurement_size   = 2;
+    static int noise_covariance_pow = 5;
+    static int measurement_noise_covariance_pow = 1;
+    static ImKalman kalman(state_size, measurement_size);
+    static ImMat measurement;
+    measurement.create_type(1, measurement_size, IM_DT_FLOAT32);
+
+    //1.kalman previous state
+    ImVec2 statePt = ImVec2(kalman.statePre.at<float>(0, 0), kalman.statePre.at<float>(0, 1));
+    //2.kalman prediction
+    t1 = ImGui::get_current_time_usec();
+    ImMat prediction  = kalman.predicted();
+    t2 = ImGui::get_current_time_usec();
+    predicted_time = t2 - t1;
+    ImVec2 predictPt = ImVec2(prediction.at<float>(0, 0), prediction.at<float>(0, 1));
+    //3. kalman update
+    measurement.at<float>(0, 0) = io.MousePos.x;
+    measurement.at<float>(0, 1) = io.MousePos.y;
+    t1 = ImGui::get_current_time_usec();
+    kalman.update(measurement);
+    t2 = ImGui::get_current_time_usec();
+    update_time = t2 - t1;
+
+    ImDrawList* drawList = ImGui::GetWindowDrawList();
+    drawList->AddCircle(statePt, 3, IM_COL32(255,0,0,255));
+    drawList->AddCircle(predictPt, 3, IM_COL32(0,255,0,255));
+    drawList->AddCircle(io.MousePos, 3, IM_COL32(255,255,255,255));
+
+    ImGui::Text("Predicted time: %lldus", predicted_time);
+    ImGui::Text("   Update time: %lldus", update_time);
+    if (ImGui::SliderInt("noise covariance pow", &noise_covariance_pow, 1, 5))
+    {
+        kalman.covariance(1.f / (pow(10, noise_covariance_pow)), 1.f / (pow(10, measurement_noise_covariance_pow)));
+    }
+    if (ImGui::SliderInt("measurement noise covariance pow", &measurement_noise_covariance_pow, 1, 5))
+    {
+        kalman.covariance(1.f / (pow(10, noise_covariance_pow)), 1.f / (pow(10, measurement_noise_covariance_pow)));
+    }
+}
 } // namespace ImGui
