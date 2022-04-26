@@ -96,26 +96,67 @@ int main(int argc, char ** argv)
     print_mat("A", A);
     print_mat("B", B);
 
-    C = A * B;
-    print_mat("C", C);
+    // scalar math
+    C = B + 2.f;
+    print_mat("C=B+2", C);
 
+    B += 2.f;
+    print_mat("B+=2", B);
+
+    C = B - 2.f;
+    print_mat("C=B-2", C);
+
+    B -= 2.f;
+    print_mat("B-=2", B);
+
+    C = A * 2.0f;
+    print_mat("C=A*2", C);
+
+    A *= 2.0f;
+    print_mat("A*=2", A);
+
+    C = A / 2.0f;
+    print_mat("C=A/2", C);
+
+    A /= 2.0f;
+    print_mat("A/=2", A);
+
+    // mat math
+    C = A + B;
+    print_mat("C=A+B", C);
+
+    A += B;
+    print_mat("A+=B", A);
+
+    C = A - B;
+    print_mat("C=A-B", C);
+
+    A -= B;
+    print_mat("A-=B", A);
+
+    C = A * B;
+    print_mat("C=A*B", C);
+
+    A *= B;
+    print_mat("A*=B", A);
+
+    // mat tranform
     auto t = A.t();
     print_mat("A.t", t);
 
-    ImGui::ImMat dot_mat = A * t;
-    print_mat("A *  A.t", dot_mat);
-
-    ImGui::ImMat add_mat = A / 2.0f;
-    print_mat("A / 2", add_mat);
+    // mat setting
+    auto e = A.eye(1.f);
+    print_mat("A.eye", e);
 
     auto n = A.randn<float>(0.f, 5.f);
     print_mat("A.randn", n);
 
+    // mat matrix math
     auto _det = n.det<float>();
     std::cout << "A.randn.i.det=" << _det << std::endl;
 
-    auto i = n.inv<float>();
-    print_mat("A.randn.i", n);
+    C = n.inv<float>();
+    print_mat("C=A.randn.i", C);
 
     return 0;
 }
