@@ -372,7 +372,7 @@ public:
     // mat sub
     ImMat operator-(const ImMat& mat);
     ImMat& operator-=(const ImMat& mat);
-    // mat mul dims = 2 only
+    // mat dot mul dims = 2 only
     ImMat operator*(const ImMat& mat);
     ImMat& operator*=(const ImMat& mat);
     
@@ -2015,7 +2015,7 @@ inline ImMat& ImMat::operator-=(const ImMat& mat)
     return *this;
 }
 
-// mat mul
+// mat dot mul
 inline ImMat ImMat::operator*(const ImMat& mat)
 {
     assert(device == IM_DD_CPU);
