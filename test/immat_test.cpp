@@ -16,6 +16,7 @@ static void print_mat(std::string name, ImGui::ImMat & mat)
                 case IM_DT_INT64:   std::cout << mat.at<int64_t>(w) << " "; break;
                 case IM_DT_FLOAT32: std::cout << mat.at<float>  (w) << " "; break;
                 case IM_DT_FLOAT64: std::cout << mat.at<double> (w) << " "; break;
+                case IM_DT_FLOAT16: std::cout << im_float16_to_float32(mat.at<uint16_t>  (w)) << " "; break;
                 default: break;
             }
         }
@@ -35,6 +36,7 @@ static void print_mat(std::string name, ImGui::ImMat & mat)
                     case IM_DT_INT64:   std::cout << mat.at<int64_t>(w, h) << " "; break;
                     case IM_DT_FLOAT32: std::cout << mat.at<float>  (w, h) << " "; break;
                     case IM_DT_FLOAT64: std::cout << mat.at<double> (w, h) << " "; break;
+                    case IM_DT_FLOAT16: std::cout << im_float16_to_float32(mat.at<uint16_t>  (w, h)) << " "; break;
                     default: break;
                 }
             }
@@ -59,6 +61,7 @@ static void print_mat(std::string name, ImGui::ImMat & mat)
                         case IM_DT_INT64:   std::cout << mat.at<int64_t>(w, h, c) << " "; break;
                         case IM_DT_FLOAT32: std::cout << mat.at<float>  (w, h, c) << " "; break;
                         case IM_DT_FLOAT64: std::cout << mat.at<double> (w, h, c) << " "; break;
+                        case IM_DT_FLOAT16: std::cout << im_float16_to_float32(mat.at<uint16_t>  (w, h, c)) << " "; break;
                         default: break;
                     }
                 }
@@ -73,9 +76,11 @@ static void print_mat(std::string name, ImGui::ImMat & mat)
 
 int main(int argc, char ** argv)
 {
+    int mw = 3;
+    int mh = 3;
     ImGui::ImMat A, B, C;
-    A.create_type(4, 4, IM_DT_FLOAT32);
-    B.create_type(4, 4, IM_DT_FLOAT32);
+    A.create_type(mw, mh, IM_DT_FLOAT32);
+    B.create_type(mw, mh, IM_DT_FLOAT32);
 
     for (int y = 0; y < A.h; y++)
     {
@@ -152,11 +157,89 @@ int main(int argc, char ** argv)
     print_mat("A.randn", n);
 
     // mat matrix math
-    auto _det = n.det<float>();
-    std::cout << "A.randn.i.det=" << _det << std::endl;
-
     C = n.inv<float>();
     print_mat("C=A.randn.i", C);
+
+    // fp16
+    ImGui::ImMat A16, B16, C16;
+    A16.create_type(mw, mh, IM_DT_FLOAT16);
+    B16.create_type(mw, mh, IM_DT_FLOAT16);
+    for (int y = 0; y < A16.h; y++)
+    {
+        for (int x = 0; x < A16.w; x++)
+        {
+            A16.at<uint16_t>(x,y) = im_float32_to_float16(y * A16.w + x + 1);
+        }
+    }
+    for (int y = 0; y < B16.h; y++)
+    {
+        for (int x = 0; x < B16.w; x++)
+        {
+            B16.at<uint16_t>(x,y) = im_float32_to_float16(y * B16.w + x + 1);
+        }
+    }
+
+    print_mat("A16", A16);
+    print_mat("B16", B16);
+
+    // fp16 scalar math
+    C16 = B16 + 2.f;
+    print_mat("C16=B16+2", C16);
+
+    B16 += 2.f;
+    print_mat("B16+=2", B16);
+
+    C16 = B16 - 2.f;
+    print_mat("C16=B16-2", C16);
+
+    B16 -= 2.f;
+    print_mat("B16-=2", B16);
+
+    C16 = A16 * 2.0f;
+    print_mat("C16=A16*2", C16);
+
+    A16 *= 2.0f;
+    print_mat("A16*=2", A16);
+
+    C16 = A16 / 2.0f;
+    print_mat("C16=A16/2", C16);
+
+    A16 /= 2.0f;
+    print_mat("A16/=2", A16);
+
+    // mat math
+    C16 = A16 + B16;
+    print_mat("C16=A16+B16", C16);
+
+    A16 += B16;
+    print_mat("A16+=B16", A16);
+
+    C16 = A16 - B16;
+    print_mat("C16=A16-B16", C16);
+
+    A16 -= B16;
+    print_mat("A16-=B16", A16);
+
+    C16 = A16 * B16;
+    print_mat("C16=A16*B16", C16);
+
+    A16 *= B16;
+    print_mat("A16*=B16", A16);
+
+    // mat tranform
+    auto t16 = A16.t();
+    print_mat("A16.t", t16);
+
+    // mat setting
+    auto e16 = A16.eye(1.f);
+    print_mat("A16.eye", e16);
+
+    auto n16 = A16.randn<float>(0.f, 5.f);
+    print_mat("A16.randn", n16);
+
+    // mat matrix math
+    //C16 = n16.inv<float>();
+    //print_mat("C16=A16.randn.i", C16);
 
     return 0;
 }

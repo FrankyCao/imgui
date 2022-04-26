@@ -111,6 +111,135 @@ inline void Im_FastFree(void* ptr)
     }
 }
 
+//////////////////////////////////////////////////
+//  fp16 functions
+/////////////////////////////////////////////////
+static inline unsigned short im_float32_to_float16(float value)
+{
+    // 1 : 8 : 23
+    union
+    {
+        unsigned int u;
+        float f;
+    } tmp;
+
+    tmp.f = value;
+
+    // 1 : 8 : 23
+    unsigned short sign = (tmp.u & 0x80000000) >> 31;
+    unsigned short exponent = (tmp.u & 0x7F800000) >> 23;
+    unsigned int significand = tmp.u & 0x7FFFFF;
+
+    // 1 : 5 : 10
+    unsigned short fp16;
+    if (exponent == 0)
+    {
+        // zero or denormal, always underflow
+        fp16 = (sign << 15) | (0x00 << 10) | 0x00;
+    }
+    else if (exponent == 0xFF)
+    {
+        // infinity or NaN
+        fp16 = (sign << 15) | (0x1F << 10) | (significand ? 0x200 : 0x00);
+    }
+    else
+    {
+        // normalized
+        short newexp = exponent + (-127 + 15);
+        if (newexp >= 31)
+        {
+            // overflow, return infinity
+            fp16 = (sign << 15) | (0x1F << 10) | 0x00;
+        }
+        else if (newexp <= 0)
+        {
+            // Some normal fp32 cannot be expressed as normal fp16
+            fp16 = (sign << 15) | (0x00 << 10) | 0x00;
+        }
+        else
+        {
+            // normal fp16
+            fp16 = (sign << 15) | (newexp << 10) | (significand >> 13);
+        }
+    }
+
+    return fp16;
+}
+
+static inline float im_float16_to_float32(unsigned short value)
+{
+    // 1 : 5 : 10
+    unsigned short sign = (value & 0x8000) >> 15;
+    unsigned short exponent = (value & 0x7c00) >> 10;
+    unsigned short significand = value & 0x03FF;
+
+    // 1 : 8 : 23
+    union
+    {
+        unsigned int u;
+        float f;
+    } tmp;
+    if (exponent == 0)
+    {
+        if (significand == 0)
+        {
+            // zero
+            tmp.u = (sign << 31);
+        }
+        else
+        {
+            // denormal
+            exponent = 0;
+            // find non-zero bit
+            while ((significand & 0x200) == 0)
+            {
+                significand <<= 1;
+                exponent++;
+            }
+            significand <<= 1;
+            significand &= 0x3FF;
+            tmp.u = (sign << 31) | ((-exponent + (-15 + 127)) << 23) | (significand << 13);
+        }
+    }
+    else if (exponent == 0x1F)
+    {
+        // infinity or NaN
+        tmp.u = (sign << 31) | (0xFF << 23) | (significand << 13);
+    }
+    else
+    {
+        // normalized
+        tmp.u = (sign << 31) | ((exponent + (-15 + 127)) << 23) | (significand << 13);
+    }
+
+    return tmp.f;
+}
+
+static inline unsigned short im_float32_to_bfloat16(float value)
+{
+    // 16 : 16
+    union
+    {
+        unsigned int u;
+        float f;
+    } tmp;
+    tmp.f = value;
+    return tmp.u >> 16;
+}
+
+static inline float im_bfloat16_to_float32(unsigned short value)
+{
+    // 16 : 16
+    union
+    {
+        unsigned int u;
+        float f;
+    } tmp;
+    tmp.u = value << 16;
+    return tmp.f;
+}
+
+
 ////////////////////////////////////////////////////////////////////
 // Type define
 enum ImDataType {
@@ -360,8 +489,6 @@ public:
     ImMat t() const;
     // eye
     template<typename T> ImMat& eye(T scale);
-    // determinant dims = 2 only
-    template<typename T> T det() const;
     // invert dim = 2 only
     template<typename T> ImMat inv() const;
     // rand
@@ -1521,6 +1648,7 @@ inline ImMat ImMat::t() const
                     case IM_DT_INT64:   m.at<int64_t>(_h, _w) = this->at<int64_t>(_w, _h); break;
                     case IM_DT_FLOAT32: m.at<float>  (_h, _w) = this->at<float>  (_w, _h); break;
                     case IM_DT_FLOAT64: m.at<double> (_h, _w) = this->at<double> (_w, _h); break;
+                    case IM_DT_FLOAT16: m.at<int16_t>(_h, _w) = this->at<int16_t>(_w, _h); break;
                     default: break;
                 }
             }
@@ -1548,6 +1676,7 @@ inline ImMat ImMat::t() const
                         case IM_DT_INT64:   m.at<int64_t>(_h, _w, _c) = this->at<int64_t>(_w, _h, _c); break;
                         case IM_DT_FLOAT32: m.at<float>  (_h, _w, _c) = this->at<float>  (_w, _h, _c); break;
                         case IM_DT_FLOAT64: m.at<double> (_h, _w, _c) = this->at<double> (_w, _h, _c); break;
+                        case IM_DT_FLOAT16: m.at<int16_t>(_h, _w, _c) = this->at<int16_t>(_w, _h, _c); break;
                         default: break;
                     }
                 }
@@ -1556,32 +1685,6 @@ inline ImMat ImMat::t() const
         return m;
     }
     return ImMat();
-}
-
-// determinant
-template<typename T>
-T ImMat::det() const
-{
-    T sum = 0;
-    assert(device == IM_DD_CPU && dims == 2);
-    if (w == 1) sum = this->at<T>(0, 0);
-	else if (w == 2) sum = this->at<T>(0, 0) * this->at<T>(1, 1) - this->at<T>(0, 1) * this->at<T>(1, 0);
-    else
-    {
-        for (int k = 0; k < w; k++)
-        {
-            ImGui::ImMat M;
-            M.create_type(w - 1, h - 1, type);
-            for (int i = 0; i < w - 1; i++)
-            {
-                for (int j = 0; j < w - 1; j++) M.at<T>(i, j) = this->at<T>(i + 1, j < k ? j : j + 1);
-            }
-            if (this->at<T>(0, k) != 0)
-                sum += this->at<T>(0, k) * M.det<T>() * (((2 + k) % 2) ? -1 : 1);
-        }
-    }
-
-    return sum;
 }
 
 // invert
@@ -1665,6 +1768,7 @@ inline ImMat& ImMat::eye(T scale)
             case IM_DT_INT64:   this->at<int64_t>(0) = scale; break;
             case IM_DT_FLOAT32: this->at<float>  (0) = scale; break;
             case IM_DT_FLOAT64: this->at<double> (0) = scale; break;
+            case IM_DT_FLOAT16: this->at<uint16_t>(0) = im_float32_to_float16(scale); break;
             default: break;
         }
     }
@@ -1682,6 +1786,7 @@ inline ImMat& ImMat::eye(T scale)
                     case IM_DT_INT64:   this->at<int64_t>(_w, _h) = _w == _h ? scale : 0; break;
                     case IM_DT_FLOAT32: this->at<float>  (_w, _h) = _w == _h ? scale : 0; break;
                     case IM_DT_FLOAT64: this->at<double> (_w, _h) = _w == _h ? scale : 0; break;
+                    case IM_DT_FLOAT16: this->at<uint16_t>(_w, _h)= _w == _h ? im_float32_to_float16(scale) : 0; break;
                     default: break;
                 }
             }
@@ -1703,6 +1808,7 @@ inline ImMat& ImMat::eye(T scale)
                         case IM_DT_INT64:   this->at<int64_t>(_w, _h, _c) = _w == _h ? scale : 0; break;
                         case IM_DT_FLOAT32: this->at<float>  (_w, _h, _c) = _w == _h ? scale : 0; break;
                         case IM_DT_FLOAT64: this->at<double> (_w, _h, _c) = _w == _h ? scale : 0; break;
+                        case IM_DT_FLOAT16: this->at<uint16_t>(_w, _h, _c)= _w == _h ? im_float32_to_float16(scale) : 0; break;
                         default: break;
                     }
                 }
@@ -1723,10 +1829,21 @@ inline ImMat& ImMat::randn(T mean, T stddev)
     std::default_random_engine gen(seed);
     std::normal_distribution<T> dis(mean, stddev);
 
-    T * data_ptr = (T *)data;
+    //T * data_ptr = (T *)data;
     for (int i = 0; i < total(); i++)
     {
-        data_ptr[i] = dis(gen);
+        //data_ptr[i] = dis(gen);
+        switch (type)
+        {
+            case IM_DT_INT8:    { ((int8_t *) this->data)[i] = (int8_t)dis(gen); } break;
+            case IM_DT_INT16:   { ((int16_t *)this->data)[i] = (int16_t)dis(gen); } break; 
+            case IM_DT_INT32:   { ((int32_t *)this->data)[i] = (int32_t)dis(gen); } break; 
+            case IM_DT_INT64:   { ((int64_t *)this->data)[i] = (int64_t)dis(gen); } break; 
+            case IM_DT_FLOAT32: { ((float *)  this->data)[i] = (float)dis(gen); } break; 
+            case IM_DT_FLOAT64: { ((double *) this->data)[i] = (double)dis(gen); } break;
+            case IM_DT_FLOAT16: { ((uint16_t *)this->data)[i]= im_float32_to_float16((float)dis(gen)); } break;
+            default: break;
+        }
     }
     return *this;
 }
@@ -1748,9 +1865,10 @@ inline ImMat ImMat::operator+ (T v)
             case IM_DT_INT8:    { ((int8_t *) m.data)[i] = ((int8_t *) this->data)[i] + static_cast<int8_t> (v); } break;
             case IM_DT_INT16:   { ((int16_t *)m.data)[i] = ((int16_t *)this->data)[i] + static_cast<int16_t>(v); } break; 
             case IM_DT_INT32:   { ((int32_t *)m.data)[i] = ((int32_t *)this->data)[i] + static_cast<int32_t>(v); } break; 
-            case IM_DT_INT64:   { ((int64_t *)m.data)[i] = ((int64_t *)this->data)[i] + static_cast<int64_t>(v); } break; 
+            case IM_DT_INT64:   { ((int64_t *)m.data)[i] = ((int64_t *)this->data)[i] + static_cast<int64_t>(v); } break;
             case IM_DT_FLOAT32: { ((float *)  m.data)[i] = ((float *)  this->data)[i] + static_cast<float>  (v); } break; 
-            case IM_DT_FLOAT64: { ((double *) m.data)[i] = ((double *) this->data)[i] + static_cast<double> (v); } break; 
+            case IM_DT_FLOAT64: { ((double *) m.data)[i] = ((double *) this->data)[i] + static_cast<double> (v); } break;
+            case IM_DT_FLOAT16: { ((uint16_t *)m.data)[i]= im_float32_to_float16(im_float16_to_float32(((unsigned short *)this->data)[i]) + static_cast<float>(v)); } break;
             default: break;
         }
     }
@@ -1769,7 +1887,8 @@ inline ImMat& ImMat::operator+=(T v)
             case IM_DT_INT32:   { ((int32_t *)this->data)[i] = ((int32_t *)this->data)[i] + static_cast<int32_t>(v); } break; 
             case IM_DT_INT64:   { ((int64_t *)this->data)[i] = ((int64_t *)this->data)[i] + static_cast<int64_t>(v); } break; 
             case IM_DT_FLOAT32: { ((float *)  this->data)[i] = ((float *)  this->data)[i] + static_cast<float>  (v); } break; 
-            case IM_DT_FLOAT64: { ((double *) this->data)[i] = ((double *) this->data)[i] + static_cast<double> (v); } break; 
+            case IM_DT_FLOAT64: { ((double *) this->data)[i] = ((double *) this->data)[i] + static_cast<double> (v); } break;
+            case IM_DT_FLOAT16: { ((uint16_t *)this->data)[i]= im_float32_to_float16(im_float16_to_float32(((unsigned short *)this->data)[i]) + static_cast<float>(v)); } break;
             default: break;
         }
     }
@@ -1794,7 +1913,8 @@ inline ImMat ImMat::operator- (T v)
             case IM_DT_INT32:   { ((int32_t *)m.data)[i] = ((int32_t *)this->data)[i] - static_cast<int32_t>(v); } break; 
             case IM_DT_INT64:   { ((int64_t *)m.data)[i] = ((int64_t *)this->data)[i] - static_cast<int64_t>(v); } break; 
             case IM_DT_FLOAT32: { ((float *)  m.data)[i] = ((float *)  this->data)[i] - static_cast<float>  (v); } break; 
-            case IM_DT_FLOAT64: { ((double *) m.data)[i] = ((double *) this->data)[i] - static_cast<double> (v); } break; 
+            case IM_DT_FLOAT64: { ((double *) m.data)[i] = ((double *) this->data)[i] - static_cast<double> (v); } break;
+            case IM_DT_FLOAT16: { ((uint16_t *)m.data)[i]= im_float32_to_float16(im_float16_to_float32(((unsigned short *)this->data)[i]) - static_cast<float>(v)); } break;
             default: break;
         }
     }
@@ -1815,7 +1935,8 @@ inline ImMat& ImMat::operator-=(T v)
             case IM_DT_INT32:   { ((int32_t *)this->data)[i] = ((int32_t *)this->data)[i] - static_cast<int32_t>(v); } break; 
             case IM_DT_INT64:   { ((int64_t *)this->data)[i] = ((int64_t *)this->data)[i] - static_cast<int64_t>(v); } break; 
             case IM_DT_FLOAT32: { ((float *)  this->data)[i] = ((float *)  this->data)[i] - static_cast<float>  (v); } break; 
-            case IM_DT_FLOAT64: { ((double *) this->data)[i] = ((double *) this->data)[i] - static_cast<double> (v); } break; 
+            case IM_DT_FLOAT64: { ((double *) this->data)[i] = ((double *) this->data)[i] - static_cast<double> (v); } break;
+            case IM_DT_FLOAT16: { ((uint16_t *)this->data)[i]= im_float32_to_float16(im_float16_to_float32(((unsigned short *)this->data)[i]) - static_cast<float>(v)); } break;
             default: break;
         }
     }
@@ -1841,7 +1962,8 @@ inline ImMat ImMat::operator* (T v)
             case IM_DT_INT32:   { ((int32_t *)m.data)[i] = ((int32_t *)this->data)[i] * static_cast<int32_t>(v); } break; 
             case IM_DT_INT64:   { ((int64_t *)m.data)[i] = ((int64_t *)this->data)[i] * static_cast<int64_t>(v); } break; 
             case IM_DT_FLOAT32: { ((float *)  m.data)[i] = ((float *)  this->data)[i] * static_cast<float>  (v); } break; 
-            case IM_DT_FLOAT64: { ((double *) m.data)[i] = ((double *) this->data)[i] * static_cast<double> (v); } break; 
+            case IM_DT_FLOAT64: { ((double *) m.data)[i] = ((double *) this->data)[i] * static_cast<double> (v); } break;
+            case IM_DT_FLOAT16: { ((uint16_t *)m.data)[i]= im_float32_to_float16(im_float16_to_float32(((unsigned short *)this->data)[i]) * static_cast<float>(v)); } break;
             default: break;
         }
     }
@@ -1863,6 +1985,7 @@ inline ImMat& ImMat::operator*=(T v)
             case IM_DT_INT64:   { ((int64_t *)this->data)[i] = ((int64_t *)this->data)[i] * static_cast<int64_t>(v); } break; 
             case IM_DT_FLOAT32: { ((float *)  this->data)[i] = ((float *)  this->data)[i] * static_cast<float>  (v); } break; 
             case IM_DT_FLOAT64: { ((double *) this->data)[i] = ((double *) this->data)[i] * static_cast<double> (v); } break; 
+            case IM_DT_FLOAT16: { ((uint16_t *)this->data)[i]= im_float32_to_float16(im_float16_to_float32(((unsigned short *)this->data)[i]) * static_cast<float>(v)); } break;
             default: break;
         }
     }
@@ -1889,6 +2012,7 @@ inline ImMat ImMat::operator/ (T v)
             case IM_DT_INT64:   { if (static_cast<int64_t>(v) != 0) ((int64_t *)m.data)[i] = ((int64_t *)this->data)[i] / static_cast<int64_t>(v); } break; 
             case IM_DT_FLOAT32: { if (static_cast<float>  (v) != 0) ((float *)  m.data)[i] = ((float *)  this->data)[i] / static_cast<float>  (v); } break; 
             case IM_DT_FLOAT64: { if (static_cast<double> (v) != 0) ((double *) m.data)[i] = ((double *) this->data)[i] / static_cast<double> (v); } break; 
+            case IM_DT_FLOAT16: { if (static_cast<float>  (v) != 0) ((uint16_t *)m.data)[i]= im_float32_to_float16(im_float16_to_float32(((unsigned short *)this->data)[i]) / static_cast<float>(v)); } break;
             default: break;
         }
     }
@@ -1910,6 +2034,7 @@ inline ImMat& ImMat::operator/=(T v)
             case IM_DT_INT64:   { if (static_cast<int64_t>(v) != 0) ((int64_t *)this->data)[i] = ((int64_t *)this->data)[i] / static_cast<int64_t>(v); } break; 
             case IM_DT_FLOAT32: { if (static_cast<float>  (v) != 0) ((float *)  this->data)[i] = ((float *)  this->data)[i] / static_cast<float>  (v); } break; 
             case IM_DT_FLOAT64: { if (static_cast<double> (v) != 0) ((double *) this->data)[i] = ((double *) this->data)[i] / static_cast<double> (v); } break; 
+            case IM_DT_FLOAT16: { if (static_cast<float>  (v) != 0) ((uint16_t *)this->data)[i]= im_float32_to_float16(im_float16_to_float32(((unsigned short *)this->data)[i]) / static_cast<float>(v)); } break;
             default: break;
         }
     }
@@ -1937,6 +2062,8 @@ inline ImMat ImMat::operator+(const ImMat& mat)
             case IM_DT_INT64:   { ((int64_t *)m.data)[i] = ((int64_t *)this->data)[i] + ((int64_t *)mat.data)[i]; } break; 
             case IM_DT_FLOAT32: { ((float *)m.data)[i]   = ((float *)  this->data)[i] + ((float *)  mat.data)[i]; } break; 
             case IM_DT_FLOAT64: { ((double *)m.data)[i]  = ((double *) this->data)[i] + ((double *) mat.data)[i]; } break; 
+            case IM_DT_FLOAT16: { ((uint16_t *)m.data)[i]= im_float32_to_float16(im_float16_to_float32(((unsigned short *)this->data)[i]) + 
+                                                                                 im_float16_to_float32(((unsigned short *)mat.data)[i])); } break;
             default: break;
         }
     }
@@ -1960,6 +2087,8 @@ inline ImMat& ImMat::operator+=(const ImMat& mat)
             case IM_DT_INT64:   { ((int64_t *)this->data)[i] = ((int64_t *)this->data)[i] + ((int64_t *)mat.data)[i]; } break; 
             case IM_DT_FLOAT32: { ((float *)  this->data)[i] = ((float *)  this->data)[i] + ((float *)  mat.data)[i]; } break; 
             case IM_DT_FLOAT64: { ((double *) this->data)[i] = ((double *) this->data)[i] + ((double *) mat.data)[i]; } break; 
+            case IM_DT_FLOAT16: { ((uint16_t *)this->data)[i]= im_float32_to_float16(im_float16_to_float32(((unsigned short *)this->data)[i]) + 
+                                                                                     im_float16_to_float32(((unsigned short *)mat.data)[i])); } break;
             default: break;
         }
     }
@@ -1986,6 +2115,8 @@ inline ImMat ImMat::operator-(const ImMat& mat)
             case IM_DT_INT64:   { ((int64_t *)m.data)[i] = ((int64_t *)this->data)[i] - ((int64_t *)mat.data)[i]; } break; 
             case IM_DT_FLOAT32: { ((float *)m.data)[i]   = ((float *)this->data)[i]   - ((float *)mat.data)  [i]; } break; 
             case IM_DT_FLOAT64: { ((double *)m.data)[i]  = ((double *)this->data)[i]  - ((double *)mat.data) [i]; } break; 
+            case IM_DT_FLOAT16: { ((uint16_t *)m.data)[i]= im_float32_to_float16(im_float16_to_float32(((unsigned short *)this->data)[i]) - 
+                                                                                 im_float16_to_float32(((unsigned short *)mat.data)[i])); } break;
             default: break;
         }
     }
@@ -2009,6 +2140,8 @@ inline ImMat& ImMat::operator-=(const ImMat& mat)
             case IM_DT_INT64:   { ((int64_t *)this->data)[i] = ((int64_t *)this->data)[i] - ((int64_t *)mat.data)[i]; } break; 
             case IM_DT_FLOAT32: { ((float *)  this->data)[i] = ((float *)this->data)[i]   - ((float *)  mat.data)[i]; } break; 
             case IM_DT_FLOAT64: { ((double *) this->data)[i] = ((double *)this->data)[i]  - ((double *) mat.data)[i]; } break; 
+            case IM_DT_FLOAT16: { ((uint16_t *)this->data)[i]= im_float32_to_float16(im_float16_to_float32(((unsigned short *)this->data)[i]) - 
+                                                                                     im_float16_to_float32(((unsigned short *)mat.data)[i])); } break;
             default: break;
         }
     }
@@ -2039,6 +2172,10 @@ inline ImMat ImMat::operator*(const ImMat& mat)
                     case IM_DT_INT64:   m.at<int64_t>(j, i) += this->at<int64_t>(k, i) * mat.at<int64_t>(j, k); break;
                     case IM_DT_FLOAT32: m.at<float>  (j, i) += this->at<float>  (k, i) * mat.at<float>  (j, k); break;
                     case IM_DT_FLOAT64: m.at<double> (j, i) += this->at<double> (k, i) * mat.at<double> (j, k); break;
+                    case IM_DT_FLOAT16: m.at<uint16_t>(j, i) = im_float32_to_float16(
+                                                                im_float16_to_float32(m.at<uint16_t>(j, i)) + 
+                                                                im_float16_to_float32(this->at<uint16_t>(k, i)) *
+                                                                im_float16_to_float32(mat.at<uint16_t> (j, k))); break;
                     default: break;
                 }
             }
@@ -2070,6 +2207,10 @@ inline ImMat& ImMat::operator*=(const ImMat& mat)
                     case IM_DT_INT64:   this->at<int64_t>(j, i) += m.at<int64_t>(k, i) * mat.at<int64_t>(j, k); break;
                     case IM_DT_FLOAT32: this->at<float>  (j, i) += m.at<float>  (k, i) * mat.at<float>  (j, k); break;
                     case IM_DT_FLOAT64: this->at<double> (j, i) += m.at<double> (k, i) * mat.at<double> (j, k); break;
+                    case IM_DT_FLOAT16: this->at<uint16_t>(j, i) = im_float32_to_float16(
+                                                                    im_float16_to_float32(this->at<uint16_t>(j, i)) + 
+                                                                    im_float16_to_float32(m.at<uint16_t>(k, i)) *
+                                                                    im_float16_to_float32(mat.at<uint16_t> (j, k))); break;
                     default: break;
                 }
             }
