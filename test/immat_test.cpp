@@ -76,8 +76,8 @@ static void print_mat(std::string name, ImGui::ImMat & mat)
 
 int main(int argc, char ** argv)
 {
-    int mw = 3;
-    int mh = 3;
+    int mw = 4;
+    int mh = 4;
     ImGui::ImMat A, B, C;
     A.create_type(mw, mh, IM_DT_FLOAT32);
     B.create_type(mw, mh, IM_DT_FLOAT32);
@@ -144,6 +144,9 @@ int main(int argc, char ** argv)
 
     A *= B;
     print_mat("A*=B", A);
+
+    C = A.clip(200, 500);
+    print_mat("C=A.clip(200,500)", C);
 
     // mat tranform
     auto t = A.t();
@@ -225,6 +228,9 @@ int main(int argc, char ** argv)
 
     A16 *= B16;
     print_mat("A16*=B16", A16);
+
+    C16 = A16.clip(200, 500);
+    print_mat("C16=A16.clip(200,500)", C16);
 
     // mat tranform
     auto t16 = A16.t();

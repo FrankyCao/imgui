@@ -493,6 +493,8 @@ public:
     template<typename T> ImMat inv() const;
     // rand
     template<typename T> ImMat& randn(T mean, T stddev);
+    // clip
+    template<typename T> ImMat& clip(T v_min, T v_max);
     // mat add
     ImMat operator+(const ImMat& mat);
     ImMat& operator+=(const ImMat& mat);
@@ -1829,10 +1831,8 @@ inline ImMat& ImMat::randn(T mean, T stddev)
     std::default_random_engine gen(seed);
     std::normal_distribution<T> dis(mean, stddev);
 
-    //T * data_ptr = (T *)data;
     for (int i = 0; i < total(); i++)
     {
-        //data_ptr[i] = dis(gen);
         switch (type)
         {
             case IM_DT_INT8:    { ((int8_t *) this->data)[i] = (int8_t)dis(gen); } break;
@@ -1842,6 +1842,35 @@ inline ImMat& ImMat::randn(T mean, T stddev)
             case IM_DT_FLOAT32: { ((float *)  this->data)[i] = (float)dis(gen); } break; 
             case IM_DT_FLOAT64: { ((double *) this->data)[i] = (double)dis(gen); } break;
             case IM_DT_FLOAT16: { ((uint16_t *)this->data)[i]= im_float32_to_float16((float)dis(gen)); } break;
+            default: break;
+        }
+    }
+    return *this;
+}
+
+// clip
+template<typename T> ImMat& ImMat::clip(T v_min, T v_max)
+{
+    assert(device == IM_DD_CPU);
+    assert(total() > 0);
+    for (int i = 0; i < total(); i++)
+    {
+        switch (type)
+        {
+            case IM_DT_INT8:    {   if (((int8_t *) this->data)[i] < (int8_t)  v_min) ((int8_t *) this->data)[i] = (int8_t) v_min;
+                                    if (((int8_t *) this->data)[i] > (int8_t)  v_max) ((int8_t *) this->data)[i] = (int8_t) v_max; } break;
+            case IM_DT_INT16:   {   if (((int16_t *)this->data)[i] < (int16_t) v_min) ((int16_t *)this->data)[i]= (int16_t) v_min;
+                                    if (((int16_t *)this->data)[i] > (int16_t) v_max) ((int16_t *)this->data)[i]= (int16_t) v_max; } break; 
+            case IM_DT_INT32:   {   if (((int32_t *)this->data)[i] < (int32_t) v_min) ((int32_t *)this->data)[i]= (int32_t) v_min;
+                                    if (((int32_t *)this->data)[i] > (int32_t) v_max) ((int32_t *)this->data)[i]= (int32_t) v_max; } break; 
+            case IM_DT_INT64:   {   if (((int64_t *)this->data)[i] < (int64_t) v_min) ((int64_t *)this->data)[i]= (int64_t) v_min;
+                                    if (((int64_t *)this->data)[i] > (int64_t) v_max) ((int64_t *)this->data)[i]= (int64_t) v_max; } break; 
+            case IM_DT_FLOAT32: {   if (((float *)  this->data)[i] < (float)   v_min) ((float *)  this->data)[i]= (float)   v_min;
+                                    if (((float *)  this->data)[i] > (float)   v_max) ((float *)  this->data)[i]= (float)   v_max; } break; 
+            case IM_DT_FLOAT64: {   if (((double *) this->data)[i] < (double)  v_min) ((double *) this->data)[i]= (double)  v_min;
+                                    if (((double *) this->data)[i] > (double)  v_max) ((double *) this->data)[i]= (double)  v_max; } break;
+            case IM_DT_FLOAT16: {   if (im_float16_to_float32(((uint16_t *)this->data)[i]) < (float)v_min) ((uint16_t *)this->data)[i] = im_float32_to_float16((float)v_min);
+                                    if (im_float16_to_float32(((uint16_t *)this->data)[i]) > (float)v_max) ((uint16_t *)this->data)[i] = im_float32_to_float16((float)v_max); } break;
             default: break;
         }
     }
