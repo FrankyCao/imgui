@@ -4495,6 +4495,30 @@ namespace IGFD
 				// nav system, selectable cause open directory or select directory
 				if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_NavEnableKeyboard)
 				{
+                    // Modify By Dicky aways using double click to chooser
+					if (fdi.puDLGDirectoryMode) // directory chooser
+					{
+						if (ImGui::IsMouseDoubleClicked(0))
+						{
+							fdi.puPathClicked = fdi.SelectDirectory(vInfos);
+						}
+						else
+						{
+							fdi.SelectFileName(prFileDialogInternal, vInfos);
+						}
+					}
+					else
+					{
+						if (ImGui::IsMouseDoubleClicked(0))
+						{
+                            fdi.puPathClicked = fdi.SelectDirectory(vInfos);
+						}
+						else
+						{
+                            fdi.SelectFileName(prFileDialogInternal, vInfos);
+						}
+					}
+                    /*
 					// little fix for get back the mouse behavior in nav system
 					if (ImGui::IsMouseDoubleClicked(0)) // 0 -> left mouse button double click
 					{
@@ -4508,6 +4532,8 @@ namespace IGFD
 					{
 						fdi.puPathClicked = fdi.SelectDirectory(vInfos);
 					}
+                    */
+                    // Modify By Dicky end
 				}
 				else // no nav system => classic behavior
 				{
