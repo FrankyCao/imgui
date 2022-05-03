@@ -145,7 +145,7 @@ bool ImGui::SliderBehaviorKnobT(const ImRect& bb, ImGuiID id, ImGuiDataType data
         }
         else if (g.ActiveIdSource == ImGuiInputSource_Nav)
         {
-            const ImVec2 delta2 = GetNavInputAmount2d(ImGuiNavDirSourceFlags_Keyboard | ImGuiNavDirSourceFlags_PadDPad, ImGuiInputReadMode_RepeatFast, 0.0f, 0.0f);
+            const ImVec2 delta2 = GetNavInputAmount2d(ImGuiNavDirSourceFlags_Keyboard | ImGuiNavDirSourceFlags_PadDPad, ImGuiNavReadMode_RepeatFast, 0.0f, 0.0f);
             float delta = (axis == ImGuiAxis_X) ? delta2.x : -delta2.y;
             if (g.NavActivatePressedId == id && !g.ActiveIdIsJustActivated)
             {
