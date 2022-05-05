@@ -3613,7 +3613,7 @@ namespace IGFD
         //SetTypeInfos(std::to_string('d'), ImVec4(0.0f, 0.0f, 0.0f, 0.9f), ICON_FK_FOLDER);
         //SetTypeInfos(std::to_string('l'), ImVec4(0.5f, 0.5f, 1.0f, 0.9f), ICON_FK_EXTERNAL_LINK);
         // set format color and icons
-        SetFileStyle(IGFD_FileStyleByExtention, ".txt", ImVec4(0.0f, 0.0f, 0.0f, 0.9f), ICON_FA4_FILE_TEXT_O);
+        SetFileStyle(IGFD_FileStyleByExtention, ".txt", ImVec4(0.0f, 0.0f, 0.0f, 0.9f), ICON_FA5_FILE);
         SetFileStyle(IGFD_FileStyleByExtention, ".cpp", ImVec4(0.5f, 0.5f, 0.0f, 0.9f), ICON_FA5_FILE_CODE);
         SetFileStyle(IGFD_FileStyleByExtention, ".h", ImVec4(0.0f, 0.15f, 0.15f, 0.9f), ICON_FA5_FILE_CODE);
         SetFileStyle(IGFD_FileStyleByExtention, ".hpp", ImVec4(0.0f, 0.0f, 0.5f, 0.9f), ICON_FA5_FILE_CODE);
@@ -3622,11 +3622,11 @@ namespace IGFD
         SetFileStyle(IGFD_FileStyleByExtention, ".bmp", ImVec4(0.0f, 0.5f, 0.5f, 0.9f), ICON_IGFD_FILE_PIC);
         SetFileStyle(IGFD_FileStyleByExtention, ".jpg", ImVec4(0.0f, 0.5f, 0.5f, 0.9f), ICON_IGFD_FILE_PIC);
         SetFileStyle(IGFD_FileStyleByExtention, ".jpeg", ImVec4(0.0f, 0.5f, 0.5f, 0.9f), ICON_IGFD_FILE_PIC);
-        SetFileStyle(IGFD_FileStyleByExtention, ".mp4", ImVec4(0.15f, 0.15f, 0.75f, 0.9f), ICON_FA4_FILE_VIDEO_O);
-        SetFileStyle(IGFD_FileStyleByExtention, ".ts", ImVec4(0.15f, 0.15f, 0.75f, 0.9f), ICON_FA4_FILE_VIDEO_O);
-        SetFileStyle(IGFD_FileStyleByExtention, ".mkv", ImVec4(0.15f, 0.15f, 0.75f, 0.9f), ICON_FA4_FILE_VIDEO_O);
-        SetFileStyle(IGFD_FileStyleByExtention, ".mov", ImVec4(0.15f, 0.15f, 0.75f, 0.9f), ICON_FA4_FILE_VIDEO_O);
-        SetFileStyle(IGFD_FileStyleByExtention, ".webm", ImVec4(0.15f, 0.15f, 0.75f, 0.9f), ICON_FA4_FILE_VIDEO_O);
+        SetFileStyle(IGFD_FileStyleByExtention, ".mp4", ImVec4(0.15f, 0.15f, 0.75f, 0.9f), ICON_FA5_FILE_VIDEO);
+        SetFileStyle(IGFD_FileStyleByExtention, ".ts", ImVec4(0.15f, 0.15f, 0.75f, 0.9f), ICON_FA5_FILE_VIDEO);
+        SetFileStyle(IGFD_FileStyleByExtention, ".mkv", ImVec4(0.15f, 0.15f, 0.75f, 0.9f), ICON_FA5_FILE_VIDEO);
+        SetFileStyle(IGFD_FileStyleByExtention, ".mov", ImVec4(0.15f, 0.15f, 0.75f, 0.9f), ICON_FA5_FILE_VIDEO);
+        SetFileStyle(IGFD_FileStyleByExtention, ".webm", ImVec4(0.15f, 0.15f, 0.75f, 0.9f), ICON_FA5_FILE_VIDEO);
         SetFileStyle(IGFD_FileStyleByExtention, ".ttf", ImVec4(0.15f, 0.75f, 0.15f, 0.9f), ICON_FK_FONT);
         SetFileStyle(IGFD_FileStyleByExtention, ".doc", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA5_FILE_WORD);
         SetFileStyle(IGFD_FileStyleByExtention, ".docx", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA5_FILE_WORD);
@@ -3635,12 +3635,12 @@ namespace IGFD
         SetFileStyle(IGFD_FileStyleByExtention, ".xls",  ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA5_FILE_EXCEL);
         SetFileStyle(IGFD_FileStyleByExtention, ".xlsx", ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA5_FILE_EXCEL);
         SetFileStyle(IGFD_FileStyleByExtention, ".pdf",  ImVec4(0.15f, 0.15f, 0.15f, 0.9f), ICON_FA5_FILE_PDF);
-        SetFileStyle(IGFD_FileStyleByExtention, ".mp3", ImVec4(0.15f, 0.15f, 0.75f, 0.9f), ICON_FA4_FILE_AUDIO_O);
-        SetFileStyle(IGFD_FileStyleByExtention, ".aac", ImVec4(0.15f, 0.15f, 0.75f, 0.9f), ICON_FA4_FILE_AUDIO_O);
-        SetFileStyle(IGFD_FileStyleByExtention, ".ac3", ImVec4(0.15f, 0.15f, 0.75f, 0.9f), ICON_FA4_FILE_AUDIO_O);
-        SetFileStyle(IGFD_FileStyleByExtention, ".wav", ImVec4(0.15f, 0.15f, 0.75f, 0.9f), ICON_FA4_FILE_AUDIO_O);
-        SetFileStyle(IGFD_FileStyleByExtention, ".tta", ImVec4(0.15f, 0.15f, 0.75f, 0.9f), ICON_FA4_FILE_AUDIO_O);
-        SetFileStyle(IGFD_FileStyleByExtention, ".ogg", ImVec4(0.15f, 0.15f, 0.75f, 0.9f), ICON_FA4_FILE_AUDIO_O);
+        SetFileStyle(IGFD_FileStyleByExtention, ".mp3", ImVec4(0.15f, 0.15f, 0.75f, 0.9f), ICON_FA5_FILE_AUDIO);
+        SetFileStyle(IGFD_FileStyleByExtention, ".aac", ImVec4(0.15f, 0.15f, 0.75f, 0.9f), ICON_FA5_FILE_AUDIO);
+        SetFileStyle(IGFD_FileStyleByExtention, ".ac3", ImVec4(0.15f, 0.15f, 0.75f, 0.9f), ICON_FA5_FILE_AUDIO);
+        SetFileStyle(IGFD_FileStyleByExtention, ".wav", ImVec4(0.15f, 0.15f, 0.75f, 0.9f), ICON_FA5_FILE_AUDIO);
+        SetFileStyle(IGFD_FileStyleByExtention, ".tta", ImVec4(0.15f, 0.15f, 0.75f, 0.9f), ICON_FA5_FILE_AUDIO);
+        SetFileStyle(IGFD_FileStyleByExtention, ".ogg", ImVec4(0.15f, 0.15f, 0.75f, 0.9f), ICON_FA5_FILE_AUDIO);
 	    //SetFileStyle(IGFD_FileStyleByTypeFile, nullptr, ImVec4(0.2f, 0.2f, 0.2f, 0.9f), ICON_IGFD_FILE); // for all link files
 	    SetFileStyle(IGFD_FileStyleByTypeDir | IGFD_FileStyleByTypeLink, nullptr, ImVec4(0.2f, 0.2f, 0.2f, 0.9f), ICON_IGFD_FOLDER); // for all link dirs
 	    //SetFileStyle(IGFD_FileStyleByTypeFile | IGFD_FileStyleByTypeLink, nullptr, ImVec4(0.2f, 0.2f, 0.2f, 0.9f), ICON_IGFD_FILE); // for all link files
@@ -3658,7 +3658,7 @@ namespace IGFD
         //SetTypeInfos(std::to_string('d'), ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FK_FOLDER);
         //SetTypeInfos(std::to_string('l'), ImVec4(0.5f, 0.5f, 1.0f, 0.9f), ICON_FK_EXTERNAL_LINK);
         // set format color and icons
-        SetFileStyle(IGFD_FileStyleByExtention, ".txt", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_TEXT_O);
+        SetFileStyle(IGFD_FileStyleByExtention, ".txt", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE);
         SetFileStyle(IGFD_FileStyleByExtention, ".cpp", ImVec4(1.0f, 1.0f, 0.0f, 0.9f), ICON_FA5_FILE_CODE);
         SetFileStyle(IGFD_FileStyleByExtention, ".h", ImVec4(0.0f, 1.0f, 0.0f, 0.9f), ICON_FA5_FILE_CODE);
         SetFileStyle(IGFD_FileStyleByExtention, ".hpp", ImVec4(0.0f, 0.0f, 1.0f, 0.9f), ICON_FA5_FILE_CODE);
@@ -3667,11 +3667,11 @@ namespace IGFD
         SetFileStyle(IGFD_FileStyleByExtention, ".bmp", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC);
         SetFileStyle(IGFD_FileStyleByExtention, ".jpg", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC);
         SetFileStyle(IGFD_FileStyleByExtention, ".jpeg", ImVec4(0.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE_PIC);
-        SetFileStyle(IGFD_FileStyleByExtention, ".mp4", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
-        SetFileStyle(IGFD_FileStyleByExtention, ".ts", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
-        SetFileStyle(IGFD_FileStyleByExtention, ".mkv", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
-        SetFileStyle(IGFD_FileStyleByExtention, ".mov", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
-        SetFileStyle(IGFD_FileStyleByExtention, ".webm", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_VIDEO_O);
+        SetFileStyle(IGFD_FileStyleByExtention, ".mp4", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_VIDEO);
+        SetFileStyle(IGFD_FileStyleByExtention, ".ts", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_VIDEO);
+        SetFileStyle(IGFD_FileStyleByExtention, ".mkv", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_VIDEO);
+        SetFileStyle(IGFD_FileStyleByExtention, ".mov", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_VIDEO);
+        SetFileStyle(IGFD_FileStyleByExtention, ".webm", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_VIDEO);
         SetFileStyle(IGFD_FileStyleByExtention, ".ttf", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FK_FONT);
         SetFileStyle(IGFD_FileStyleByExtention, ".doc", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_WORD);
         SetFileStyle(IGFD_FileStyleByExtention, ".docx", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_WORD);
@@ -3680,12 +3680,12 @@ namespace IGFD
         SetFileStyle(IGFD_FileStyleByExtention, ".xls", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_EXCEL);
         SetFileStyle(IGFD_FileStyleByExtention, ".xlsx", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_EXCEL);
         SetFileStyle(IGFD_FileStyleByExtention, ".pdf", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_PDF);
-        SetFileStyle(IGFD_FileStyleByExtention, ".mp3", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_AUDIO_O);
-        SetFileStyle(IGFD_FileStyleByExtention, ".aac", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_AUDIO_O);
-        SetFileStyle(IGFD_FileStyleByExtention, ".ac3", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_AUDIO_O);
-        SetFileStyle(IGFD_FileStyleByExtention, ".wav", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_AUDIO_O);
-        SetFileStyle(IGFD_FileStyleByExtention, ".ogg", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_AUDIO_O);
-        SetFileStyle(IGFD_FileStyleByExtention, ".tta", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA4_FILE_AUDIO_O);
+        SetFileStyle(IGFD_FileStyleByExtention, ".mp3", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_AUDIO);
+        SetFileStyle(IGFD_FileStyleByExtention, ".aac", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_AUDIO);
+        SetFileStyle(IGFD_FileStyleByExtention, ".ac3", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_AUDIO);
+        SetFileStyle(IGFD_FileStyleByExtention, ".wav", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_AUDIO);
+        SetFileStyle(IGFD_FileStyleByExtention, ".ogg", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_AUDIO);
+        SetFileStyle(IGFD_FileStyleByExtention, ".tta", ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_FA5_FILE_AUDIO);
 	    //SetFileStyle(IGFD_FileStyleByTypeFile, nullptr, ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE); // for all link files
 	    SetFileStyle(IGFD_FileStyleByTypeDir | IGFD_FileStyleByTypeLink, nullptr, ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FOLDER); // for all link dirs
 	    //SetFileStyle(IGFD_FileStyleByTypeFile | IGFD_FileStyleByTypeLink, nullptr, ImVec4(1.0f, 1.0f, 1.0f, 0.9f), ICON_IGFD_FILE); // for all link files
