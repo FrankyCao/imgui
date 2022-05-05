@@ -430,7 +430,7 @@ bool Application_Frame(void* handle, bool app_will_quit)
         example->mdConfig.linkCallback =         example->LinkCallback;
         example->mdConfig.tooltipCallback =      NULL;
         example->mdConfig.imageCallback =        example->ImageCallback;
-        example->mdConfig.linkIcon =             ICON_FA5_LINK;
+        example->mdConfig.linkIcon =             ICON_FA_LINK;
         example->mdConfig.headingFormats[0] =    { io.Fonts->Fonts[0], true };
         example->mdConfig.headingFormats[1] =    { io.Fonts->Fonts.size() > 1 ? io.Fonts->Fonts[1] : nullptr, true };
         example->mdConfig.headingFormats[2] =    { io.Fonts->Fonts.size() > 2 ? io.Fonts->Fonts[2] : nullptr, false };

@@ -30,10 +30,10 @@ bool ImGui::LoadInternalIcons(ImFontAtlas* atlas)
     static const ImWchar fab_icons_ranges[] = { ICON_MIN_FAB, ICON_MAX_FAB, 0 };
 	atlas->AddFontFromMemoryCompressedBase85TTF(fa_brands_compressed_data_base85, icons_size, &icons_config, fab_icons_ranges);
 
-    // Awesome 5 Icons
-    static const ImWchar fa5_icons_ranges[] = { ICON_MIN_FA5, ICON_MAX_FA5, 0 };
-	atlas->AddFontFromMemoryCompressedBase85TTF(fa_regular_compressed_data_base85, icons_size, &icons_config, fa5_icons_ranges);
-    atlas->AddFontFromMemoryCompressedBase85TTF(fa_solid_compressed_data_base85, icons_size, &icons_config, fa5_icons_ranges);
+    // Awesome Icons
+    static const ImWchar fa_icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+	atlas->AddFontFromMemoryCompressedBase85TTF(fa_regular_compressed_data_base85, icons_size, &icons_config, fa_icons_ranges);
+    atlas->AddFontFromMemoryCompressedBase85TTF(fa_solid_compressed_data_base85, icons_size, &icons_config, fa_icons_ranges);
 
     // Fork Awesome Icons
     static const ImWchar fk_icons_ranges[] = { ICON_MIN_FK, ICON_MAX_FK, 0 };
