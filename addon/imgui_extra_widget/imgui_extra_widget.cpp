@@ -862,6 +862,63 @@ bool ImGui::BulletToggleButton(const char* label, bool* v, ImVec2 &pos, ImVec2 &
     return valueChange;
 }
 
+// RotateButton
+bool ImGui::RotateButton(const char* label, const ImVec2& size_arg, int rotate)
+{
+    int flags = ImGuiButtonFlags_None;
+    ImGuiWindow* window = GetCurrentWindow();
+    if (window->SkipItems)
+        return false;
+
+    ImGuiContext& g = *GImGui;
+    ImDrawList *draw_list = ImGui::GetWindowDrawList();
+    const ImGuiStyle& style = g.Style;
+    const ImGuiID id = window->GetID(label);
+    const ImVec2 label_size = CalcTextSize(label, NULL, true);
+
+    ImVec2 pos = window->DC.CursorPos;
+    if ((flags & ImGuiButtonFlags_AlignTextBaseLine) && style.FramePadding.y < window->DC.CurrLineTextBaseOffset) // Try to vertically align buttons that are smaller/have no padding so that text baseline matches (bit hacky, since it shouldn't be a flag)
+        pos.y += window->DC.CurrLineTextBaseOffset - style.FramePadding.y;
+    // TODO::Dicky Calc item size need check rotate
+    ImVec2 size = CalcItemSize(size_arg, label_size.x + style.FramePadding.x * 2.0f, label_size.y + style.FramePadding.y * 2.0f);
+
+    const ImRect bb(pos, pos + size);
+    ItemSize(size, style.FramePadding.y);
+    if (!ItemAdd(bb, id))
+        return false;
+
+    if (g.LastItemData.InFlags & ImGuiItemFlags_ButtonRepeat)
+        flags |= ImGuiButtonFlags_Repeat;
+
+    bool hovered, held;
+    bool pressed = ButtonBehavior(bb, id, &hovered, &held, flags);
+
+    // Render
+    const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
+    RenderNavHighlight(bb, id);
+    RenderFrame(bb.Min, bb.Max, col, true, style.FrameRounding);
+
+    if (g.LogEnabled)
+        LogSetNextTextDecoration("[", "]");
+    
+    int rotation_start_index = draw_list->VtxBuffer.Size;
+    RenderTextClipped(bb.Min + style.FramePadding, bb.Max - style.FramePadding, label, NULL, &label_size, style.ButtonTextAlign, &bb);
+    if (rotate != 90)
+    {
+        float rad = M_PI / 180 * (90 - rotate);
+        ImVec2 l(FLT_MAX, FLT_MAX), u(-FLT_MAX, -FLT_MAX); // bounds
+        auto& buf = draw_list->VtxBuffer;
+        float s = sin(rad), c = cos(rad);
+        for (int i = rotation_start_index; i < buf.Size; i++)
+            l = ImMin(l, buf[i].pos), u = ImMax(u, buf[i].pos);
+        ImVec2 center = ImVec2((l.x + u.x) / 2, (l.y + u.y) / 2);
+        center = ImRotate(center, s, c) - center;
+        for (int i = rotation_start_index; i < buf.Size; i++)
+            buf[i].pos = ImRotate(buf[i].pos, s, c) - center;
+    }
+    return pressed;
+}
+
 // Input with int64
 bool ImGui::InputInt64(const char* label, int64_t* v, int step, int step_fast, ImGuiInputTextFlags flags)
 {
