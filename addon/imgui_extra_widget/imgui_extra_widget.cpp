@@ -4201,9 +4201,9 @@ void ImGui::Piano::draw(ImVec2 size)
     ImGui::BeginGroup();
     ImDrawList *draw_list = ImGui::GetWindowDrawList();
     ImVec2 p = ImGui::GetCursorScreenPos();
-    int key_width = size.x / KEY_NUM;
-    int white_key_height = size.y;
-    int black_key_height = size.y * 3 / 5;
+    float key_width = size.x / KEY_NUM;
+    float white_key_height = size.y;
+    float black_key_height = size.y * 3.f / 5.f;
     int cur_key = 21;
     for (int key = 0; key < KEY_NUM; key++)
     {
