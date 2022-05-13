@@ -4137,3 +4137,139 @@ bool ImGui::MenuItem(const char* label, const char* shortcut, bool selected, boo
 {
     return MenuItemEx(label, NULL, shortcut, selected, enabled, subscript);
 }
+
+void ImGui::ProgressBarPanning(float fraction, const ImVec2& size_arg)
+{
+    ImGuiWindow* window = GetCurrentWindow();
+    if (window->SkipItems)
+        return;
+
+    ImGuiContext& g = *GImGui;
+    const ImGuiStyle& style = g.Style;
+
+    ImVec2 pos = window->DC.CursorPos;
+    ImVec2 size = CalcItemSize(size_arg, CalcItemWidth(), g.FontSize + style.FramePadding.y * 2.0f);
+    ImRect bb(pos, pos + size);
+    ItemSize(size, style.FramePadding.y);
+    if (!ItemAdd(bb, 0))
+        return;
+
+    // Render
+    RenderFrame(bb.Min, bb.Max, GetColorU32(ImGuiCol_FrameBg), true, style.FrameRounding);
+    
+    // center line
+    ImVec2 cpt1 = bb.Min + ImVec2(size.x / 2.f, 0);
+    ImVec2 cpt2 = bb.Min + ImVec2(size.x / 2.f, size.y);
+    window->DrawList->AddLine(cpt1, cpt2, IM_COL32_WHITE);
+
+    if (fraction > 0)
+    {
+        ImVec2 pt1 = bb.Min + ImVec2(size.x / 2.f, 0); // center top
+        ImVec2 pt2 = bb.Min + ImVec2(size.x * (0.5f + fraction), size.y);
+        window->DrawList->AddRectFilled(pt1, pt2, GetColorU32(ImGuiCol_PlotHistogram), style.FrameRounding);
+    }
+    else if (fraction < 0)
+    {
+        ImVec2 pt1 = bb.Min + ImVec2(size.x * (0.5f + fraction), 0);
+        ImVec2 pt2 = bb.Min + ImVec2(size.x / 2.f, size.y); // center bottom
+        window->DrawList->AddRectFilled(pt1, pt2, GetColorU32(ImGuiCol_PlotHistogram), style.FrameRounding);
+    }
+}
+
+#define KEY_NUM 66
+static inline bool has_black(int key) 
+{
+    return (!((key - 1) % 7 == 0 || (key - 1) % 7 == 3) && key != KEY_NUM - 1);
+}
+
+void ImGui::Piano::up(int key)
+{
+    key_states[key] = 0;
+}
+
+void ImGui::Piano::down(int key, int velocity)
+{
+    key_states[key] = velocity;
+}
+
+void ImGui::Piano::draw(ImVec2 size)
+{
+    ImU32 Black = IM_COL32(0, 0, 0, 255);
+    ImU32 White = IM_COL32(255, 255, 255, 255);
+    ImU32 EventWhite = IM_COL32(0,255,0,255);
+    ImU32 EventBlack = IM_COL32(255,0,0,255);
+    ImGui::BeginGroup();
+    ImDrawList *draw_list = ImGui::GetWindowDrawList();
+    ImVec2 p = ImGui::GetCursorScreenPos();
+    int key_width = size.x / KEY_NUM;
+    int white_key_height = size.y;
+    int black_key_height = size.y * 3 / 5;
+    int cur_key = 21;
+    for (int key = 0; key < KEY_NUM; key++)
+    {
+        ImU32 col = White;
+        if (key_states[cur_key])
+        {
+            col = EventWhite;
+        }
+        draw_list->AddRectFilled(
+                ImVec2(p.x + key * key_width, p.y),
+                ImVec2(p.x + key * key_width + key_width, p.y + white_key_height),
+                col, 2, ImDrawCornerFlags_All);
+        draw_list->AddRect(
+                ImVec2(p.x + key * key_width, p.y),
+                ImVec2(p.x + key * key_width + key_width, p.y + white_key_height),
+                Black, 2, ImDrawCornerFlags_All);
+        cur_key++;
+        if (has_black(key))
+        {
+            cur_key++;
+        }
+    }
+    cur_key = 22;
+    for (int key = 0; key < KEY_NUM; key++)
+    {
+        if (has_black(key))
+        {
+            ImU32 col = Black;
+            if (key_states[cur_key])
+            {
+                col = EventBlack;
+            }
+            draw_list->AddRectFilled(
+                    ImVec2(p.x + key * key_width + key_width * 3 / 4, p.y),
+                    ImVec2(p.x + key * key_width + key_width * 5 / 4 + 1, p.y + black_key_height),
+                    col, 2, ImDrawCornerFlags_All);
+            draw_list->AddRect(
+                    ImVec2(p.x + key * key_width + key_width * 3 / 4, p.y),
+                    ImVec2(p.x + key * key_width + key_width * 5 / 4 + 1, p.y + black_key_height),
+                    Black, 2, ImDrawCornerFlags_All);
+
+            cur_key += 2;
+        } 
+        else
+        {
+            cur_key++;
+        }
+    }
+    ImGui::InvisibleButton("##keyboard", size);
+    ImGui::EndGroup();
+}
+
+std::vector<int> ImGui::Piano::current_notes()
+{
+    std::vector<int> result{};
+    for (int i = 0; i < 256; i++)
+    {
+        if (key_states[i])
+        {
+            result.push_back(i);
+        }
+    }
+    return result;
+}
+
+void ImGui::Piano::reset()
+{
+    memset(key_states, 0, sizeof(key_states));
+}

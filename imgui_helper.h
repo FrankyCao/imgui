@@ -392,9 +392,6 @@ public:
 namespace ImGuiHelper {
 typedef ImGui::FieldType FieldType;
 
-#ifndef NO_IMGUIHELPER_SERIALIZATION
-
-#ifndef NO_IMGUIHELPER_SERIALIZATION_LOAD
 IMGUI_API bool GetFileContent(const char* filePath,ImVector<char>& contentOut,bool clearContentOutBeforeUsage=true,const char* modes="rb",bool appendTrailingZeroIfModesIsNotBinary=true);
 IMGUI_API bool FileExists(const char* filePath);
 
@@ -427,9 +424,7 @@ protected:
     void operator=(const Deserializer&) {}
     Deserializer(const Deserializer&) {}
 };
-#endif //NO_IMGUIHELPER_SERIALIZATION_LOAD
 
-#ifndef NO_IMGUIHELPER_SERIALIZATION_SAVE
 IMGUI_API bool SetFileContent(const char *filePath, const unsigned char* content, int contentSize,const char* modes="wb");
 
 class ISerializable;
@@ -473,8 +468,6 @@ protected:
     Serializer(const Serializer&) {}
 
 };
-#endif //NO_IMGUIHELPER_SERIALIZATION_SAVE
-#endif //NO_IMGUIHELPER_SERIALIZATION
 
 // Optional String Helper methods:
 // "destText" must be released with ImGui::MemFree(destText). It should always work.
@@ -488,6 +481,9 @@ IMGUI_API int StringAppend(ImVector<char>& v,const char* fmt, ...);
 
 // ImGui Theme generator
 IMGUI_API void ThemeGenerator(const char* name, bool* p_open = NULL, ImGuiWindowFlags flags = 0);
+
+// File traversal
+IMGUI_API int GetAbsoluteFiles(std::string directory, std::vector<std::string>& filesAbsolutePath, std::vector<std::string>& filesname, bool surfix = true, bool recurrence = true, bool sort = true);
 } // ImGuiHelper
 
 #ifndef NO_IMGUIKNOWNCOLOR_DEFINITIONS

@@ -2,6 +2,7 @@
 #define IMGUI_WIDGET_H
 
 #include <functional>
+#include <vector>
 #include <imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
@@ -72,6 +73,9 @@ IMGUI_API bool ColoredButton(const char* label, const ImVec2& size, ImU32 text_c
 // It does not need any ID.
 IMGUI_API float ProgressBar(const char* optionalPrefixText,float value,const float minValue=0.f,const float maxValue=1.f,const char* format="%1.0f%%",const ImVec2& sizeOfBarWithoutTextInPixels=ImVec2(-1,-1),
                 const ImVec4& colorLeft=ImVec4(0,1,0,0.8),const ImVec4& colorRight=ImVec4(0,0.4,0,0.8),const ImVec4& colorBorder=ImVec4(0.25,0.25,1.0,1));
+
+// ProgressBar with 0 as center
+IMGUI_API void ProgressBarPanning(float fraction, const ImVec2& size_arg = ImVec2(-FLT_MIN, 0));
 
 // new PlotEx
 IMGUI_API int   PlotEx(ImGuiPlotType plot_type, const char* label, float (*values_getter)(void* data, int idx), void* data, int values_count, int values_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 frame_size, bool b_tooltops = true, bool b_comband = false);
@@ -352,5 +356,18 @@ IMGUI_API void      LoadingIndicatorCircle(const char* label, float indicatorRad
 // Posted by @zfedoran here: https://github.com/ocornut/imgui/issues/1901
 // Sligthly modified to provide default behaviour with default args
 IMGUI_API void      LoadingIndicatorCircle2(const char* label, float indicatorRadiusFactor=1.f, float indicatorRadiusThicknessFactor=1.f, const ImVec4* pOptionalColor=NULL);
+} // namespace ImGui
+
+namespace ImGui
+{
+class Piano {
+    int key_states[256] = {0};
+public:
+    void up(int key);
+    void draw(ImVec2 size);
+    void down(int key, int velocity);
+    std::vector<int> current_notes();
+    void reset();
+};
 } // namespace ImGui
 #endif // IMGUI_WIDGET_H

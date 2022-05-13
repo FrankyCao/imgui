@@ -243,22 +243,18 @@ IMGUI_API static void LightenBackground(TabLabelStyle& style=TabLabelStyle::Get(
 IMGUI_API static void DarkenBackground(TabLabelStyle& style=TabLabelStyle::Get(),float amount=0.15f);
 
 
-#if (defined(IMGUIHELPER_H_) && !defined(NO_IMGUIHELPER_SERIALIZATION))
-#ifndef NO_IMGUIHELPER_SERIALIZATION_SAVE
+#if (defined(IMGUIHELPER_H_))
 IMGUI_API static bool Save(const TabLabelStyle& style,ImGuiHelper::Serializer& s);
 static inline bool Save(const TabLabelStyle &style, const char *filename)    {
     ImGuiHelper::Serializer s(filename);
     return Save(style,s);
 }
-#endif //NO_IMGUIHELPER_SERIALIZATION_SAVE
-#ifndef NO_IMGUIHELPER_SERIALIZATION_LOAD
 IMGUI_API static bool Load(TabLabelStyle& style, ImGuiHelper::Deserializer& d, const char ** pOptionalBufferStart=NULL);
 static inline bool Load(TabLabelStyle& style,const char* filename) {
     ImGuiHelper::Deserializer d(filename);
     return Load(style,d);
 }
-#endif //NO_IMGUIHELPER_SERIALIZATION_LOAD
-#endif //NO_IMGUIHELPER_SERIALIZATION
+#endif //IMGUIHELPER_H_
 
 
 // Gets the default style instance (same as TabLabelStyle::style)
@@ -505,21 +501,17 @@ mutable void* userPtr;
 static ImGuiWindowFlags ExtraWindowFlags;
 
 //-------------------------------------------------------------------------------
-#       if (defined(IMGUIHELPER_H_) && !defined(NO_IMGUIHELPER_SERIALIZATION))
-#       ifndef NO_IMGUIHELPER_SERIALIZATION_SAVE
+#       if (defined(IMGUIHELPER_H_))
 public:
         IMGUI_API bool save(ImGuiHelper::Serializer& s);
         IMGUI_API bool save(const char* filename);
         IMGUI_API static int Save(const char* filename,TabWindow* pTabWindows,int numTabWindows);   // returns the number of saved TabWindows
-#       endif //NO_IMGUIHELPER_SERIALIZATION_SAVE
-#       ifndef NO_IMGUIHELPER_SERIALIZATION_LOAD
 public:
         IMGUI_API bool load(ImGuiHelper::Deserializer& d,const char ** pOptionalBufferStart=NULL);
         IMGUI_API bool load(const char* filename);
         IMGUI_API static int Load(const char* filename,TabWindow* pTabWindows,int numTabWindows);   // returns the number of loaded TabWindows
         IMGUI_API static inline void Clear(TabWindow* pTabWindows,int numTabWindows) {for (int i=0;i<numTabWindows;i++) pTabWindows[i].clear();}
-#       endif //NO_IMGUIHELPER_SERIALIZATION_LOAD
-#       endif //NO_IMGUIHELPER_SERIALIZATION
+#       endif //IMGUIHELPER_H_
 //--------------------------------------------------------------------------------
 
 protected:
@@ -560,16 +552,12 @@ IMGUI_API float CalcVerticalTabLabelsWidth();
 
 // Untested attempt to provide serialization for ImGui::TabLabels(...) or ImGui::TabLabelsVertical(...): only "selectedIndex" and "pOptionalItemOrdering" are serialized.
 //-------------------------------------------------------------------------------
-#   if (defined(IMGUIHELPER_H_) && !defined(NO_IMGUIHELPER_SERIALIZATION))
-#       ifndef NO_IMGUIHELPER_SERIALIZATION_SAVE
+#   if (defined(IMGUIHELPER_H_))
         IMGUI_API bool TabLabelsSave(ImGuiHelper::Serializer& s,int selectedIndex,const int* pOptionalItemOrdering=NULL,int numTabs=0);
         IMGUI_API bool TabLabelsSave(const char* filename,int selectedIndex,const int* pOptionalItemOrdering=NULL,int numTabs=0);
-#       endif //NO_IMGUIHELPER_SERIALIZATION_SAVE
-#       ifndef NO_IMGUIHELPER_SERIALIZATION_LOAD
         IMGUI_API bool TabLabelsLoad(ImGuiHelper::Deserializer& d,int* pSelectedIndex,int* pOptionalItemOrdering=NULL,int numTabs=0,const char ** pOptionalBufferStart=NULL);
         IMGUI_API bool TabLabelsLoad(const char* filename,int* pSelectedIndex,int* pOptionalItemOrdering=NULL,int numTabs=0);
-#       endif //NO_IMGUIHELPER_SERIALIZATION_LOAD
-#   endif //NO_IMGUIHELPER_SERIALIZATION
+#   endif //IMGUIHELPER_H_
 //--------------------------------------------------------------------------------
 
 #if IMGUI_BUILD_EXAMPLE
@@ -577,6 +565,5 @@ IMGUI_API void          ShowAddonsTabWindow();
 #endif
 
 } // namespace ImGui
-
 
 #endif //IMGUITABWINDOW_H_

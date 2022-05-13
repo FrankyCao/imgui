@@ -5,7 +5,7 @@
 #include <imgui_internal.h>
 #include <imgui_extra_widget.h>
 //-----------------------------------------------------------------------------------------------------------------
-
+#include <imgui_helper.h>
 #include "ImGuiTabWindow.h"
 
 
@@ -396,8 +396,7 @@ static const char* DefaultTabLabelStyleNames[ImGuiTabLabelStyle_Count]={"Default
 const char** GetDefaultTabLabelStyleNames() {return &DefaultTabLabelStyleNames[0];}
 
 
-#if (defined(IMGUIHELPER_H_) && !defined(NO_IMGUIHELPER_SERIALIZATION))
-#ifndef NO_IMGUIHELPER_SERIALIZATION_SAVE
+#if (defined(IMGUIHELPER_H_))
 bool TabLabelStyle::Save(const TabLabelStyle &style, ImGuiHelper::Serializer& s) {
     if (!s.isValid()) return false;
 
@@ -427,8 +426,7 @@ bool TabLabelStyle::Save(const TabLabelStyle &style, ImGuiHelper::Serializer& s)
 
     return true;
 }
-#endif //NO_IMGUIHELPER_SERIALIZATION_SAVE
-#ifndef NO_IMGUIHELPER_SERIALIZATION_LOAD
+
 static bool TabLabelStyleParser(ImGuiHelper::FieldType ft,int /*numArrayElements*/,void* pValue,const char* name,void* userPtr)    {
     TabLabelStyle& s = *((TabLabelStyle*) userPtr);
     ImVec4& tmp = *((ImVec4*) pValue);  // we cast it soon to float for now...
@@ -456,11 +454,11 @@ static bool TabLabelStyleParser(ImGuiHelper::FieldType ft,int /*numArrayElements
 	if (strcmp(name,"tabWindowLabelBackgroundColor")==0)		    s.tabWindowLabelBackgroundColor = ImColor(tmp);
 	else if (strcmp(name,"tabWindowSplitterColor")==0)		    s.tabWindowSplitterColor = ImColor(tmp);
 	else {
-	    for (int i=0;i<TabLabelStyle::Col_TabLabel_Count;i++)  {
-		if (strcmp(name,TabLabelStyle::ColorNames[i])==0)	    {
-		    s.colors[i] = ImColor(tmp);break;
-		}
-	    }
+        for (int i=0;i<TabLabelStyle::Col_TabLabel_Count;i++)  {
+            if (strcmp(name,TabLabelStyle::ColorNames[i])==0)	    {
+                s.colors[i] = ImColor(tmp);break;
+            }
+        }
 	}
     break;
     default:
@@ -476,8 +474,7 @@ bool TabLabelStyle::Load(TabLabelStyle &style,ImGuiHelper::Deserializer& d, cons
     if (pOptionalBufferStart) *pOptionalBufferStart=amount;
     return true;
 }
-#endif //NO_IMGUIHELPER_SERIALIZATION_LOAD
-#endif //NO_IMGUIHELPER_SERIALIZATION
+#endif //IMGUIHELPER_H_
 
 const TabLabelStyle& TabLabelStyle::GetMergedWithWindowAlpha()    {
     // Actually here I'm just using GImGui->Style.Alpha.
@@ -959,8 +956,7 @@ struct TabWindowNode  {
 
     void render(const ImVec2& windowSize,struct MyTabWindowHelperStruct *ptr);
 
-#if (defined(IMGUIHELPER_H_) && !defined(NO_IMGUIHELPER_SERIALIZATION))
-#ifndef NO_IMGUIHELPER_SERIALIZATION_SAVE
+#if (defined(IMGUIHELPER_H_))
     void serialize(ImGuiHelper::Serializer& s,TabWindow* tabWindow) {
         if (name) s.save(name,"name");
         s.save(&splitterPerc,"splitterPerc");
@@ -987,8 +983,7 @@ struct TabWindowNode  {
             }
         }
     }
-#endif //NO_IMGUIHELPER_SERIALIZATION_SAVE
-#ifndef NO_IMGUIHELPER_SERIALIZATION_LOAD
+
     struct ParseCallbackStruct {
         TabWindowNode* node;
         bool isLeafNode;
@@ -1061,8 +1056,7 @@ struct TabWindowNode  {
         IM_ASSERT(this->tabs.size()>0 ? this->isLeafNode() : true);
         IM_ASSERT(!this->isLeafNode() ? this->tabs.size()==0 : true);
     }
-#endif //NO_IMGUIHELPER_SERIALIZATION_LOAD
-#endif //NO_IMGUIHELPER_SERIALIZATION
+#endif //IMGUIHELPER_H_
 
 };
 
@@ -2226,8 +2220,7 @@ bool TabWindow::startCloseAllDialog(ImVector<TabWindow::TabLabel *> *ptabs, bool
 
 
 //-------------------------------------------------------------------------------
-#if (defined(IMGUIHELPER_H_) && !defined(NO_IMGUIHELPER_SERIALIZATION))
-#ifndef NO_IMGUIHELPER_SERIALIZATION_SAVE
+#if (defined(IMGUIHELPER_H_))
 bool TabWindow::save(ImGuiHelper::Serializer &s)    {
     if (!s.isValid()) return false;
     mainNode->serialize(s,this);
@@ -2246,8 +2239,7 @@ int TabWindow::Save(const char *filename, TabWindow *pTabWindows, int numTabWind
     }
     return ok;
 }
-#endif //NO_IMGUIHELPER_SERIALIZATION_SAVE
-#ifndef NO_IMGUIHELPER_SERIALIZATION_LOAD
+
 bool TabWindow::load(ImGuiHelper::Deserializer &d, const char **pOptionalBufferStart) {
     if (!d.isValid()) return false;
     this->clear();      // Well, shouldn't we ask for modified unclosed tab labels here ?
@@ -2279,8 +2271,7 @@ int TabWindow::Load(const char *filename, TabWindow *pTabWindows, int numTabWind
     }
     return ok;
 }
-#endif //NO_IMGUIHELPER_SERIALIZATION_LOAD
-#endif //NO_IMGUIHELPER_SERIALIZATION
+#endif //IMGUIHELPER_H_
 //--------------------------------------------------------------------------------
 
 TabWindow::TabLabel *TabWindow::createTabLabel(const char *label, const char *tooltip, bool closable, bool draggable, void *userPtr, const char *userText, int userInt, int ImGuiWindowFlagsForContent) {
@@ -2563,8 +2554,7 @@ bool TabLabels(int numTabs, const char** tabLabels, int& selectedIndex, const ch
 }
 
 //-------------------------------------------------------------------------------
-#   if (defined(IMGUIHELPER_H_) && !defined(NO_IMGUIHELPER_SERIALIZATION))
-#       ifndef NO_IMGUIHELPER_SERIALIZATION_SAVE
+#   if (defined(IMGUIHELPER_H_))
         bool TabLabelsSave(ImGuiHelper::Serializer& s,int selectedIndex,const int* pOptionalItemOrdering,int numTabs)   {
             if (!s.isValid()) return false;
             if (numTabs<0 || !pOptionalItemOrdering) numTabs=0;
@@ -2580,8 +2570,7 @@ bool TabLabels(int numTabs, const char** tabLabels, int& selectedIndex, const ch
             ImGuiHelper::Serializer s(filename);
             return TabLabelsSave(s,selectedIndex,pOptionalItemOrdering,numTabs);
         }
-#       endif //NO_IMGUIHELPER_SERIALIZATION_SAVE
-#       ifndef NO_IMGUIHELPER_SERIALIZATION_LOAD
+
         struct TabLabelsParser {
             int* pSelectedIndex;int* pOptionalItemOrdering;int numTabs,numSavedTabs,cnt;
             TabLabelsParser(int* _pSelectedIndex,int* _pOptionalItemOrdering,int _numTabs) : pSelectedIndex(_pSelectedIndex),pOptionalItemOrdering(_pOptionalItemOrdering),numTabs(_numTabs),numSavedTabs(0),cnt(0) {}
@@ -2615,8 +2604,7 @@ bool TabLabels(int numTabs, const char** tabLabels, int& selectedIndex, const ch
             ImGuiHelper::Deserializer d(filename);
             return TabLabelsLoad(d,pSelectedIndex,pOptionalItemOrdering,numTabs);
         }
-#       endif //NO_IMGUIHELPER_SERIALIZATION_LOAD
-#   endif //NO_IMGUIHELPER_SERIALIZATION
+#   endif //IMGUIHELPER_H_
 //--------------------------------------------------------------------------------
 
 

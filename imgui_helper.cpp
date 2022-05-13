@@ -95,6 +95,31 @@ using namespace gl;
 #   endif
 #endif //alloca
 
+#if defined(__WIN32__) || defined(WIN32) || defined(_WIN32) || \
+	defined(__WIN64__) || defined(WIN64) || defined(_WIN64) || defined(_MSC_VER)
+	#define stat _stat
+	#define stricmp _stricmp
+	#include <cctype>
+	// this option need c++17
+	// Modify By Dicky
+		#include <Windows.h>
+		#include <dirent_portable.h> // directly open the dirent file attached to this lib
+	// Modify By Dicky end
+	#define PATH_SEP '\\'
+	#ifndef PATH_MAX
+		#define PATH_MAX 260
+	#endif // PATH_MAX
+#elif defined(__linux__) || defined(__FreeBSD__) || defined(__DragonFly__) || \
+	defined(__NetBSD__) || defined(__APPLE__) || defined (__EMSCRIPTEN__)
+	#define stricmp strcasecmp
+	#include <sys/types.h>
+	// this option need c++17
+	#ifndef USE_STD_FILESYSTEM
+		#include <dirent.h> 
+	#endif // USE_STD_FILESYSTEM
+	#define PATH_SEP '/'
+#endif
+
 #if IMGUI_RENDERING_VULKAN
 #include <imgui_impl_vulkan.h>
 #endif
@@ -1242,7 +1267,6 @@ void Grid::End()
 }
 } // namespace Imgui
 
-#ifndef NO_IMGUIHELPER_SERIALIZATION
 #include <stdio.h>  // FILE
 namespace ImGuiHelper   {
 
@@ -1250,7 +1274,6 @@ static const char* FieldTypeNames[ImGui::FT_COUNT+1] = {"INT","UNSIGNED","FLOAT"
 static const char* FieldTypeFormats[ImGui::FT_COUNT]={"%d","%u","%f","%f","%s","%d","%d","%f","%s","%s"};
 static const char* FieldTypeFormatsWithCustomPrecision[ImGui::FT_COUNT]={"%.*d","%*u","%.*f","%.*f","%*s","%*d","%*d","%.*f","%*s","%*s"};
 
-#ifndef NO_IMGUIHELPER_SERIALIZATION_LOAD
 void Deserializer::clear() {
     if (f_data) ImGui::MemFree(f_data);
     f_data = NULL;f_size=0;
@@ -1533,8 +1556,7 @@ bool FileExists(const char *filePath)   {
     fclose(f);f=NULL;
     return true;
 }
-#endif //NO_IMGUIHELPER_SERIALIZATION_LOAD
-#ifndef NO_IMGUIHELPER_SERIALIZATION_SAVE
+
 bool SetFileContent(const char *filePath, const unsigned char* content, int contentSize,const char* modes)	{
     if (!filePath || !content) return false;
     FILE* f;
@@ -1753,8 +1775,6 @@ bool Serializer::saveCustomFieldTypeHeader(const char* name, int numTextLines) {
     return true;
 }
 
-#endif //NO_IMGUIHELPER_SERIALIZATION_SAVE
-
 void StringSet(char *&destText, const char *text, bool allowNullDestText) {
     if (destText) {ImGui::MemFree(destText);destText=NULL;}
     const char e = '\0';
@@ -1940,8 +1960,68 @@ void ThemeGenerator(const char* name, bool* p_open, ImGuiWindowFlags flags)
     }
     ImGui::End();
 }
+
+int GetAbsoluteFiles(std::string directory, std::vector<std::string>& filesAbsolutePath, std::vector<std::string>& filesname, bool surfix, bool recurrence, bool sort)
+{
+	DIR* dir = opendir(directory.c_str());
+	if ( dir == NULL )
+	{
+		//std::cout << directory << " is not a directory or not exist!" << std::endl;
+		return -1;
+	}
+	struct dirent* d_ent = NULL;
+	char dot[3] = ".";
+	char dotdot[6] = "..";
+	
+	while ( (d_ent = readdir(dir)) != NULL )
+	{
+		if ( (strcmp(d_ent->d_name, dot) != 0)
+			&& (strcmp(d_ent->d_name, dotdot) != 0) )
+		{
+			if ( d_ent->d_type == DT_DIR)
+			{
+                if (recurrence)
+                {
+                    std::string newDirectory = directory + std::string("/") + std::string(d_ent->d_name);
+                    if( directory[directory.length()-1] == '/')
+                    {
+                        newDirectory = directory + std::string(d_ent->d_name);
+                    }
+                    if ( -1 == GetAbsoluteFiles(newDirectory, filesAbsolutePath, filesname, surfix) )
+                    {
+                        return -1;
+                    }
+                }
+			}
+			else
+			{
+				if (d_ent->d_name[0] == '.')
+					continue;
+				std::string absolutePath = directory + std::string("/") + std::string(d_ent->d_name);
+				if( directory[directory.length()-1] == '/')
+				{
+					absolutePath = directory + std::string(d_ent->d_name);
+				}
+				filesAbsolutePath.push_back(absolutePath);
+				if (!surfix)
+				{
+					char * pos = strchr(d_ent->d_name, '.');
+					*pos = '\0';
+				}
+				filesname.push_back(d_ent->d_name);
+			}
+		}
+	}
+	closedir(dir);
+    if (sort)
+    {
+        std::sort(filesAbsolutePath.begin(), filesAbsolutePath.end());
+        std::sort(filesname.begin(), filesname.end());
+    }
+	return 0;
+}
+
 } //namespace ImGuiHelper
-#endif //NO_IMGUIHELPER_SERIALIZATION
 
 namespace base64 
 {
