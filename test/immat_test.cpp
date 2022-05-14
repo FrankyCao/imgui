@@ -247,5 +247,23 @@ int main(int argc, char ** argv)
     //C16 = n16.inv<float>();
     //print_mat("C16=A16.randn.i", C16);
 
+    // test mat draw
+    ImGui::ImMat D;
+    D.create_type(256, 256, 4, IM_DT_INT8);
+    D.fill(0);
+    D.elempack = 4;
+    float cx = D.w * 0.5f, cy = D.h * 0.5f;
+    for (int j = 0; j < 5; j++) 
+    {
+        float r1 = 255 * (j + 0.5f) * 0.085f;
+        float r2 = 255 * (j + 1.5f) * 0.085f;
+        float t = j * M_PI / 64.0f, r = (j + 1) * 0.5f;
+        for (int i = 1; i <= 64; i++, t += 2.0f * M_PI / 64.0f)
+        {
+            float ct = cosf(t), st = sinf(t);
+            D.draw_line(cx + r1 * ct, cy - r1 * st, cx + r2 * ct, cy - r2 * st, 2, (int8_t)255, (int8_t)255, (int8_t)255, (int8_t)255);
+        }
+    }
+
     return 0;
 }

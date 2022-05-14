@@ -155,7 +155,12 @@ public:
     Example() 
     {
         // load file dialog resource
+#ifdef DEFAULT_CONFIG_PATH
         std::string bookmark_path = std::string(DEFAULT_CONFIG_PATH) + "bookmark.ini";
+#else
+        std::string bookmark_path = "bookmark.ini";
+#endif
+
         prepare_file_dialog_demo_window(&filedialog, bookmark_path.c_str());
 
         // init memory edit
@@ -174,7 +179,11 @@ public:
             free(data); 
 
         // Store file dialog bookmark
+#ifdef DEFAULT_CONFIG_PATH
         std::string bookmark_path = std::string(DEFAULT_CONFIG_PATH) + "bookmark.ini";
+#else
+        std::string bookmark_path = "bookmark.ini";
+#endif
         end_file_dialog_demo_window(&filedialog, bookmark_path.c_str());
         if (ImageTexture) { ImGui::ImDestroyTexture(ImageTexture); ImageTexture = 0; }
     }
@@ -223,7 +232,11 @@ public:
 
 std::string Example::get_file_contents(const char *filename)
 {
+#ifdef DEFAULT_DOCUMENT_PATH
     std::string file_path = std::string(DEFAULT_DOCUMENT_PATH) + std::string(filename);
+#else
+    std::string file_path = std::string(filename);
+#endif
     std::ifstream infile(file_path, std::ios::in | std::ios::binary);
     if (infile.is_open())
     {
@@ -292,7 +305,11 @@ void Example::ExampleMarkdownFormatCallback( const ImGui::MarkdownFormatInfo& ma
     }
 }
 
+#ifdef DEFAULT_CONFIG_PATH
 static std::string ini_file = std::string(DEFAULT_CONFIG_PATH) + "Application_Example.ini";
+#else
+static std::string ini_file = "Application_Example.ini";
+#endif
 
 void Application_GetWindowProperties(ApplicationWindowProperty& property)
 {

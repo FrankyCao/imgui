@@ -332,10 +332,21 @@ enum ImInterpolateMode {
 #define IM_ISYUV(a)    (a == IM_CF_YUV420 || a == IM_CF_YUV422 || a == IM_CF_YUV444 || a == IM_CF_YUVA || a == IM_CF_NV12 || a == IM_CF_P010LE)
 #define IM_ISALPHA(a)  (a == IM_CF_ABGR || a == IM_CF_ARGB || a == IM_CF_YUVA)
 
+template<typename T> 
+static inline T CLAMP(T v, T mn, T mx) { return (v < mn) ? mn : (v > mx) ? mx : v; }
+
 typedef struct Rational{
     int num; ///< Numerator
     int den; ///< Denominator
 } Rational;
+
+enum Ordination {
+    ORD_NCWH = 0,
+    ORD_NWHC,
+    ORD_NCHW,
+    ORD_NHWC,
+    ORD_NUM
+};
 
 ////////////////////////////////////////////////////////////////////
 
@@ -504,6 +515,17 @@ public:
     // mat dot mul dims = 2 only
     ImMat operator*(const ImMat& mat);
     ImMat& operator*=(const ImMat& mat);
+    // some draw function only support 2/3 dims
+    // mat default ordination is ncwh
+    // if need using nwhc then we need set elempack as elemsize * c
+    template<typename T>
+    void get_pixel(int x, int y, T& r, T& g, T& b, T& a);
+    template<typename T>
+    void draw_dot(int x, int y, T r, T g = 0, T b = 0, T a = 0);
+    template<typename T>
+    void draw_line(int x1, int y1, int x2, int y2, float t, T r, T g = 0, T b = 0, T a = 0);
+    template<typename T>
+    void alpha_blend(int x, int y, float alpha, T r, T g = 0, T b = 0, T a = 0);
     
     // release
     void release();
@@ -680,6 +702,9 @@ public:
     // flags, see define IM_MAT_FLAGS_XXX
     int flags;
 
+    // ordination, see enum Ordination, default is NCWH
+    Ordination ord;
+
 protected:
     virtual void allocate_buffer();
 
@@ -732,6 +757,7 @@ inline ImMat::ImMat()
     color_range = IM_CR_FULL_RANGE;
     flags = IM_MAT_FLAGS_NONE;
     depth = 32;
+    ord = ORD_NCWH;
     rate = {0, 0};
 }
 
@@ -782,6 +808,7 @@ inline ImMat::ImMat(const ImMat& m)
     flags = m.flags;
     rate = m.rate;
     depth = m.depth;
+    ord = m.ord;
 
     if (refcount && !refcount->addref())
     {
@@ -802,6 +829,7 @@ inline ImMat::ImMat(int _w, void* _data, size_t _elemsize, Allocator* _allocator
     color_range = IM_CR_FULL_RANGE;
     flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
+    ord = ORD_NCWH;
     depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 }
 
@@ -815,6 +843,7 @@ inline ImMat::ImMat(int _w, int _h, void* _data, size_t _elemsize, Allocator* _a
     color_range = IM_CR_FULL_RANGE;
     flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
+    ord = ORD_NCWH;
     depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 }
 
@@ -828,6 +857,7 @@ inline ImMat::ImMat(int _w, int _h, int _c, void* _data, size_t _elemsize, Alloc
     color_range = IM_CR_FULL_RANGE;
     flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
+    ord = ORD_NCWH;
     depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 }
 
@@ -841,6 +871,7 @@ inline ImMat::ImMat(int _w, void* _data, size_t _elemsize, int _elempack, Alloca
     color_range = IM_CR_FULL_RANGE;
     flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
+    ord = ORD_NCWH;
     depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 }
 
@@ -854,6 +885,7 @@ inline ImMat::ImMat(int _w, int _h, void* _data, size_t _elemsize, int _elempack
     color_range = IM_CR_FULL_RANGE;
     flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
+    ord = ORD_NCWH;
     depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 }
 
@@ -867,6 +899,7 @@ inline ImMat::ImMat(int _w, int _h, int _c, void* _data, size_t _elemsize, int _
     color_range = IM_CR_FULL_RANGE;
     flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
+    ord = _elempack == _elemsize * _c ?  ORD_NWHC : ORD_NCWH;
     depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
 }
 
@@ -906,6 +939,7 @@ inline ImMat& ImMat::operator=(const ImMat& m)
     flags = m.flags;
     rate = m.rate;
     depth = m.depth;
+    ord = m.ord;
 
     device = m.device;
     device_number = m.device_number;
@@ -949,7 +983,10 @@ inline void ImMat::create(int _w, size_t _elemsize, Allocator* _allocator)
     color_range = IM_CR_FULL_RANGE;
     flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
+    ord = ORD_NCWH;
     depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
+    time_stamp = NAN;
+    duration = NAN;
 
     cstep = w;
 
@@ -978,7 +1015,10 @@ inline void ImMat::create(int _w, int _h, size_t _elemsize, Allocator* _allocato
     color_range = IM_CR_FULL_RANGE;
     flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
+    ord = ORD_NCWH;
     depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
+    time_stamp = NAN;
+    duration = NAN;
 
     cstep = (size_t)w * h;
 
@@ -1007,7 +1047,10 @@ inline void ImMat::create(int _w, int _h, int _c, size_t _elemsize, Allocator* _
     color_range = IM_CR_FULL_RANGE;
     flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
+    ord = ORD_NCWH;
     depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
+    time_stamp = NAN;
+    duration = NAN;
 
     cstep = Im_AlignSize((size_t)w * h * elemsize, 16) / elemsize;
 
@@ -1036,7 +1079,10 @@ inline void ImMat::create(int _w, size_t _elemsize, int _elempack, Allocator* _a
     color_range = IM_CR_FULL_RANGE;
     flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
+    ord = ORD_NCWH;
     depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
+    time_stamp = NAN;
+    duration = NAN;
 
     cstep = w;
 
@@ -1065,7 +1111,10 @@ inline void ImMat::create(int _w, int _h, size_t _elemsize, int _elempack, Alloc
     color_range = IM_CR_FULL_RANGE;
     flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
+    ord = ORD_NCWH;
     depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
+    time_stamp = NAN;
+    duration = NAN;
 
     cstep = (size_t)w * h;
 
@@ -1094,7 +1143,10 @@ inline void ImMat::create(int _w, int _h, int _c, size_t _elemsize, int _elempac
     color_range = IM_CR_FULL_RANGE;
     flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
+    ord = _elempack == _elemsize * _c ?  ORD_NWHC : ORD_NCWH;
     depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
+    time_stamp = NAN;
+    duration = NAN;
 
     cstep = Im_AlignSize((size_t)w * h * elemsize, 16) / elemsize;
 
@@ -1125,6 +1177,7 @@ inline void ImMat::create_type(int _w, ImDataType _t, Allocator* _allocator)
     color_range = IM_CR_FULL_RANGE;
     flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
+    ord = ORD_NCWH;
     time_stamp = NAN;
     duration = NAN;
     depth = IM_DEPTH(_t);
@@ -1156,6 +1209,7 @@ inline void ImMat::create_type(int _w, int _h, ImDataType _t, Allocator* _alloca
     color_range = IM_CR_FULL_RANGE;
     flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
+    ord = ORD_NCWH;
     time_stamp = NAN;
     duration = NAN;
     depth = IM_DEPTH(_t);
@@ -1187,6 +1241,7 @@ inline void ImMat::create_type(int _w, int _h, int _c, ImDataType _t, Allocator*
     color_range = IM_CR_FULL_RANGE;
     flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
+    ord = ORD_NCWH;
     time_stamp = NAN;
     duration = NAN;
     depth = IM_DEPTH(_t);
@@ -1219,6 +1274,7 @@ inline void ImMat::create_type(int _w, void* _data, ImDataType _t, Allocator* _a
     color_range = IM_CR_FULL_RANGE;
     flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
+    ord = ORD_NCWH;
     time_stamp = NAN;
     duration = NAN;
     depth = IM_DEPTH(_t);
@@ -1249,6 +1305,7 @@ inline void ImMat::create_type(int _w, int _h, void* _data, ImDataType _t, Alloc
     color_range = IM_CR_FULL_RANGE;
     flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
+    ord = ORD_NCWH;
     time_stamp = NAN;
     duration = NAN;
     depth = IM_DEPTH(_t);
@@ -1279,6 +1336,7 @@ inline void ImMat::create_type(int _w, int _h, int _c, void* _data, ImDataType _
     color_range = IM_CR_FULL_RANGE;
     flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
+    ord = ORD_NCWH;
     time_stamp = NAN;
     duration = NAN;
     depth = IM_DEPTH(_t);
@@ -1300,6 +1358,7 @@ inline void ImMat::create_like(const ImMat& m, Allocator* _allocator)
     color_range = m.color_range;
     flags = m.flags;
     rate = m.rate;
+    ord = m.ord;
     depth = m.depth;
     time_stamp = m.time_stamp;
     duration = m.duration;
@@ -1333,6 +1392,7 @@ inline void ImMat::release()
     color_range = IM_CR_FULL_RANGE;
     flags = IM_MAT_FLAGS_NONE;
     rate = {0, 0};
+    ord = ORD_NCWH;
     depth = 32;
     time_stamp = NAN;
     duration = NAN;
@@ -1480,6 +1540,7 @@ inline ImMat ImMat::clone(Allocator* _allocator) const
     m.flags = flags;
     m.depth = depth;
     m.rate = rate;
+    m.ord = ord;
     return m;
 }
 
@@ -1524,6 +1585,7 @@ inline ImMat ImMat::reshape(int _w, Allocator* _allocator) const
     m.duration = duration;
     m.flags = flags;
     m.rate = rate;
+    m.ord = ord;
 
     return m;
 }
@@ -1563,6 +1625,7 @@ inline ImMat ImMat::reshape(int _w, int _h, Allocator* _allocator) const
     m.duration = duration;
     m.flags = flags;
     m.rate = rate;
+    m.ord = ord;
 
     return m;
 }
@@ -1610,6 +1673,7 @@ inline ImMat ImMat::reshape(int _w, int _h, int _c, Allocator* _allocator) const
     m.duration = duration;
     m.flags = flags;
     m.rate = rate;
+    m.ord = ord;
 
     return m;
 }
@@ -1903,6 +1967,7 @@ inline ImMat ImMat::operator+ (T v)
     }
     return m;
 }
+
 template<typename T> 
 inline ImMat& ImMat::operator+=(T v)
 {
@@ -1923,6 +1988,7 @@ inline ImMat& ImMat::operator+=(T v)
     }
     return *this;
 }
+
 // scalar sub
 template<typename T> 
 inline ImMat ImMat::operator- (T v)
@@ -1950,6 +2016,7 @@ inline ImMat ImMat::operator- (T v)
 
     return m;
 }
+
 template<typename T> 
 inline ImMat& ImMat::operator-=(T v)
 {
@@ -1972,6 +2039,7 @@ inline ImMat& ImMat::operator-=(T v)
 
     return *this;
 }
+
 // scalar mul
 template<typename T> 
 inline ImMat ImMat::operator* (T v)
@@ -1999,6 +2067,7 @@ inline ImMat ImMat::operator* (T v)
 
     return m;
 }
+
 template<typename T> 
 inline ImMat& ImMat::operator*=(T v)
 {
@@ -2021,6 +2090,7 @@ inline ImMat& ImMat::operator*=(T v)
 
     return *this;
 }
+
 // scalar div
 template<typename T> 
 inline ImMat ImMat::operator/ (T v)
@@ -2048,6 +2118,7 @@ inline ImMat ImMat::operator/ (T v)
 
     return m;
 }
+
 template<typename T> 
 inline ImMat& ImMat::operator/=(T v)
 {
@@ -2246,6 +2317,82 @@ inline ImMat& ImMat::operator*=(const ImMat& mat)
         }
     }
     return *this;
+}
+
+template<typename T>
+inline void ImMat::get_pixel(int x, int y, T& r, T& g, T& b, T& a)
+{
+    assert(dims == 2 || dims == 3);
+    assert(x >= 0 && x < w);
+    assert(y >= 0 && y < h);
+    if (dims == 2)
+    {
+        r = at<T>(x, y);
+        return;
+    }
+    if (c > 0) r = at<T>(x, y, 0);
+    if (c > 1) g = at<T>(x, y, 1);
+    if (c > 2) b = at<T>(x, y, 2);
+    if (c > 3) a = at<T>(x, y, 3);
+}
+
+template<typename T>
+inline void ImMat::draw_dot(int x, int y, T r, T g, T b, T a)
+{
+    assert(dims == 2 || dims == 3);
+    assert(x >= 0 && x < w);
+    assert(y >= 0 && y < h);
+    if (dims == 2)
+    {
+        at<T>(x, y) = (r + g + b) / 3;
+        return;
+    }
+    if (c > 0) at<T>(x, y, 0) = r;
+    if (c > 1) at<T>(x, y, 1) = g;
+    if (c > 2) at<T>(x, y, 2) = b;
+    if (c > 3) at<T>(x, y, 3) = a;
+}
+
+template<typename T>
+inline void ImMat::alpha_blend(int x, int y, float alpha, T r, T g, T b, T a)
+{
+    assert(dims == 2 || dims == 3);
+    if (dims == 2)
+    {
+        at<T>(x, y) = (T)(at<T>(x, y) * (1 - alpha) + r * alpha);
+        return;
+    }
+    if (c > 0) at<T>(x, y, 0) = (T)(at<T>(x, y, 0) * (1 - alpha) + r * alpha);
+    if (c > 1) at<T>(x, y, 1) = (T)(at<T>(x, y, 1) * (1 - alpha) + g * alpha);
+    if (c > 2) at<T>(x, y, 2) = (T)(at<T>(x, y, 2) * (1 - alpha) + b * alpha);
+    if (c > 3) at<T>(x, y, 3) = a;
+}
+
+template<typename T>
+inline void ImMat::draw_line(int x1, int y1, int x2, int y2, float t, T r, T g, T b, T a)
+{
+    assert(x1 >= 0 && x1 < w);
+    assert(x2 >= 0 && x2 < w);
+    assert(y1 >= 0 && y1 < h);
+    assert(y2 >= 0 && y2 < h);
+
+    int _x0 = CLAMP((int)floorf(fminf((float)x1, (float)x2) - t), 0, w);
+    int _x1 = CLAMP((int) ceilf(fmaxf((float)x1, (float)x2) + t), 0, w);
+    int _y0 = CLAMP((int)floorf(fminf((float)y1, (float)y2) - t), 0, h);
+    int _y1 = CLAMP((int) ceilf(fmaxf((float)y1, (float)y2) + t), 0, h);
+    for (int y = _y0; y <= _y1; y++)
+    {
+        for (int x = _x0; x <= _x1; x++)
+        {
+            // capsuleSDF
+            float pax = x - x1, pay = y - y1, bax = x2 - x1, bay = y2 - y1;
+            float h = CLAMP((pax * bax + pay * bay) / (bax * bax + bay * bay), 0.0f, 1.0f);
+            float dx = pax - bax * h, dy = pay - bay * h;
+            float sdf = sqrtf(dx * dx + dy * dy) - t;
+            float alpha = CLAMP(0.5f - sdf, 0.f, 1.f);
+            alpha_blend(x, y, alpha, r, g, b, a);
+        }
+    }
 }
 
 } // namespace ImGui 

@@ -232,7 +232,12 @@ inline void VkMat::create(int _w, size_t _elemsize, VkAllocator* _allocator)
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
+    flags = IM_MAT_FLAGS_NONE;
+    rate = {0, 0};
+    ord = ORD_NCWH;
     depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
+    time_stamp = NAN;
+    duration = NAN;
 
     cstep = w;
 
@@ -261,7 +266,12 @@ inline void VkMat::create(int _w, int _h, size_t _elemsize, VkAllocator* _alloca
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
+    flags = IM_MAT_FLAGS_NONE;
+    rate = {0, 0};
+    ord = ORD_NCWH;
     depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
+    time_stamp = NAN;
+    duration = NAN;
 
     cstep = (size_t)w * h;
 
@@ -290,7 +300,12 @@ inline void VkMat::create(int _w, int _h, int _c, size_t _elemsize, VkAllocator*
     color_space = IM_CS_SRGB;
     color_format = c == 1 ? IM_CF_GRAY : c == 3 ? IM_CF_BGR : IM_CF_ABGR;
     color_range = IM_CR_FULL_RANGE;
+    flags = IM_MAT_FLAGS_NONE;
+    rate = {0, 0};
+    ord = ORD_NCWH;
     depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
+    time_stamp = NAN;
+    duration = NAN;
 
     cstep = Im_AlignSize((size_t)w * h * elemsize, 16) / elemsize;
 
@@ -319,7 +334,12 @@ inline void VkMat::create(int _w, size_t _elemsize, int _elempack, VkAllocator* 
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
+    flags = IM_MAT_FLAGS_NONE;
+    rate = {0, 0};
+    ord = ORD_NCWH;
     depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
+    time_stamp = NAN;
+    duration = NAN;
 
     cstep = w;
 
@@ -348,7 +368,12 @@ inline void VkMat::create(int _w, int _h, size_t _elemsize, int _elempack, VkAll
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
+    flags = IM_MAT_FLAGS_NONE;
+    rate = {0, 0};
+    ord = ORD_NCWH;
     depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
+    time_stamp = NAN;
+    duration = NAN;
 
     cstep = (size_t)w * h;
 
@@ -377,7 +402,12 @@ inline void VkMat::create(int _w, int _h, int _c, size_t _elemsize, int _elempac
     color_space = IM_CS_SRGB;
     color_format = c == 1 ? IM_CF_GRAY : c == 3 ? IM_CF_BGR : IM_CF_ABGR;
     color_range = IM_CR_FULL_RANGE;
+    flags = IM_MAT_FLAGS_NONE;
+    rate = {0, 0};
+    ord = _elempack == _elemsize * _c ?  ORD_NWHC : ORD_NCWH;
     depth = _elemsize == 1 ? 8 : _elemsize == 2 ? 16 : 32;
+    time_stamp = NAN;
+    duration = NAN;
 
     cstep = Im_AlignSize((size_t)w * h * elemsize, 16) / elemsize;
 
@@ -408,6 +438,11 @@ inline void VkMat::create_type(int _w, ImDataType _t, VkAllocator* _allocator)
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
+    flags = IM_MAT_FLAGS_NONE;
+    rate = {0, 0};
+    ord = ORD_NCWH;
+    time_stamp = NAN;
+    duration = NAN;
     depth = IM_DEPTH(_t);
 
     if (total() > 0)
@@ -437,6 +472,11 @@ inline void VkMat::create_type(int _w, int _h, ImDataType _t, VkAllocator* _allo
     color_space = IM_CS_SRGB;
     color_format = IM_CF_GRAY;
     color_range = IM_CR_FULL_RANGE;
+    flags = IM_MAT_FLAGS_NONE;
+    rate = {0, 0};
+    ord = ORD_NCWH;
+    time_stamp = NAN;
+    duration = NAN;
     depth = IM_DEPTH(_t);
 
     if (total() > 0)
@@ -466,6 +506,11 @@ inline void VkMat::create_type(int _w, int _h, int _c, ImDataType _t, VkAllocato
     color_space = IM_CS_SRGB;
     color_format = c == 1 ? IM_CF_GRAY : c == 3 ? IM_CF_BGR : IM_CF_ABGR;
     color_range = IM_CR_FULL_RANGE;
+    flags = IM_MAT_FLAGS_NONE;
+    rate = {0, 0};
+    ord = ORD_NCWH;
+    time_stamp = NAN;
+    duration = NAN;
     depth = IM_DEPTH(_t);
 
     if (total() > 0)
@@ -487,6 +532,9 @@ inline void VkMat::create_like(const ImMat& m, VkAllocator* _allocator)
     color_space = m.color_space;
     color_format = m.color_format;
     color_range = m.color_range;
+    flags = m.flags;
+    rate = m.rate;
+    ord = m.ord;
     time_stamp = m.time_stamp;
     duration = m.duration;
     depth = m.depth;
@@ -507,6 +555,9 @@ inline void VkMat::create_like(const VkMat& m, VkAllocator* _allocator)
     color_space = m.color_space;
     color_format = m.color_format;
     color_range = m.color_range;
+    flags = m.flags;
+    rate = m.rate;
+    ord = m.ord;
     time_stamp = m.time_stamp;
     duration = m.duration;
     depth = m.depth;
