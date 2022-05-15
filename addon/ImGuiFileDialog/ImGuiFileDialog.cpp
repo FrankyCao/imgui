@@ -4347,6 +4347,13 @@ namespace IGFD
 		auto& fdFile = prFileDialogInternal.puFileManager;
 		if (prFileDialogInternal.puCanWeContinue && strlen(fdFile.puFileNameBuffer))
 		{
+            // add by dicky for embedded mode no button
+            if ((prFileDialogInternal.puDLGflags & ImGuiFileDialogFlags_NoDialog) &&
+                (prFileDialogInternal.puDLGflags & ImGuiFileDialogFlags_NoButton))
+            {
+				return prFileDialogInternal.puIsOk;
+            }
+            // add by dicky end
 			if (IMGUI_BUTTON(okButtonString "##validationdialog", ImVec2(okButtonWidth, 0.0f)) || prFileDialogInternal.puIsOk)
 			{
 				prFileDialogInternal.puIsOk = true;
@@ -4364,6 +4371,13 @@ namespace IGFD
 
 	bool IGFD::FileDialog::prDrawCancelButton()
 	{
+        // add by dicky for embedded mode no button
+        if ((prFileDialogInternal.puDLGflags & ImGuiFileDialogFlags_NoDialog) &&
+            (prFileDialogInternal.puDLGflags & ImGuiFileDialogFlags_NoButton))
+        {
+			return false;
+        }
+        // add by dicky end
 		if (IMGUI_BUTTON(cancelButtonString "##validationdialog", ImVec2(cancelButtonWidth, 0.0f)) ||
 			prFileDialogInternal.puNeedToExitDialog) // dialog exit asked
 		{

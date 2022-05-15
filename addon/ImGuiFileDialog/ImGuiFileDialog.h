@@ -836,7 +836,9 @@ enum ImGuiFileDialogFlags_
 #ifdef USE_BOOKMARK
 	ImGuiFileDialogFlags_DisableBookmarkMode			= (1 << 10),	// disable the bookmark mode
 	// show bookmark when open dialog add by Dicky
-	ImGuiFileDialogFlags_ShowBookmark = (1 << 11),
+	ImGuiFileDialogFlags_ShowBookmark                   = (1 << 11),    // show bookmark at openning
+    ImGuiFileDialogFlags_NoButton                       = (1 << 12),    // dont't show ok/cancel button, it will using embedded mode
+    // add by dicky end
 #endif // USE_BOOKMARK
 	ImGuiFileDialogFlags_Default = ImGuiFileDialogFlags_ConfirmOverwrite
 };
