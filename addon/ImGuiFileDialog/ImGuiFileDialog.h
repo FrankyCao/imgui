@@ -838,6 +838,7 @@ enum ImGuiFileDialogFlags_
 	// show bookmark when open dialog add by Dicky
 	ImGuiFileDialogFlags_ShowBookmark                   = (1 << 11),    // show bookmark at openning
     ImGuiFileDialogFlags_NoButton                       = (1 << 12),    // dont't show ok/cancel button, it will using embedded mode
+    ImGuiFileDialogFlags_PathDecompositionShort         = (1 << 13),    // show Path Decomposition only current and parents
     // add by dicky end
 #endif // USE_BOOKMARK
 	ImGuiFileDialogFlags_Default = ImGuiFileDialogFlags_ConfirmOverwrite

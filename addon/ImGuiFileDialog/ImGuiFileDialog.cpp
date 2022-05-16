@@ -2440,8 +2440,25 @@ namespace IGFD
 			else
 			{
 				int _id = 0;
-				for (auto itPathDecomp = prCurrentPathDecomposition.begin();
-					itPathDecomp != prCurrentPathDecomposition.end(); ++itPathDecomp)
+                // Modify By Dicky
+                std::vector<std::string>::iterator begin = prCurrentPathDecomposition.begin();
+                std::vector<std::string>::iterator end = prCurrentPathDecomposition.end();
+                if (vFileDialogInternal.puDLGflags & ImGuiFileDialogFlags_PathDecompositionShort)
+                {
+                    begin = end;
+                    if (begin != prCurrentPathDecomposition.begin())
+                        begin --;
+                    if (begin != prCurrentPathDecomposition.begin())
+                        begin --;
+                    if (begin != prCurrentPathDecomposition.begin())
+                    {
+                        ImGui::TextUnformatted("<-");
+                        ImGui::SameLine();
+                    }
+                }
+                // Modify By Dicky end
+				for (auto itPathDecomp = begin/*prCurrentPathDecomposition.begin() */;          // Modify By Dicky
+					itPathDecomp != end/*prCurrentPathDecomposition.end()*/; ++itPathDecomp)    // Modify By Dicky
 				{
 					if (itPathDecomp != prCurrentPathDecomposition.begin())
 					{
