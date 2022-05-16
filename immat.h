@@ -348,6 +348,28 @@ enum Ordination {
     ORD_NUM
 };
 
+struct ImPoint
+{
+    float                                   x, y;
+    constexpr ImPoint()                      : x(0.0f), y(0.0f) { }
+    constexpr ImPoint(float _x, float _y)    : x(_x), y(_y) { }
+    float  operator[] (size_t idx) const    { assert(idx <= 1); return (&x)[idx]; }
+    float& operator[] (size_t idx)          { assert(idx <= 1); return (&x)[idx]; }
+    bool operator==(const ImPoint& d) const          { return x == d.x && y == d.y; }
+    bool operator==(const ImPoint& d)                { return x == d.x && y == d.y; }
+    bool operator!=(const ImPoint& d) const          { return x != d.x || y != d.y; }
+};
+
+struct ImPixel
+{
+    float r, g, b, a;
+    constexpr ImPixel() : r(0.0f), g(0.0f), b(0.0f), a(0.0f) { }
+    constexpr ImPixel(float _r, float _g, float _b, float _a)  : r(_r), g(_g), b(_b), a(_a) { }
+    bool operator==(const ImPixel& d) const          { return r == d.r && g == d.g && b == d.b && a == d.a; }
+    bool operator==(const ImPixel& d)                { return r == d.r && g == d.g && b == d.b && a == d.a; }
+    bool operator!=(const ImPixel& d) const          { return r != d.r || g != d.g || b != d.b || a != d.a; }
+    bool operator!=(const ImPixel& d)                { return r != d.r || g != d.g || b != d.b || a != d.a; }
+};
 ////////////////////////////////////////////////////////////////////
 
 namespace ImGui
@@ -515,17 +537,17 @@ public:
     // mat dot mul dims = 2 only
     ImMat operator*(const ImMat& mat);
     ImMat& operator*=(const ImMat& mat);
-    // some draw function only support 2/3 dims
+    // some draw function only support 3 dims
     // mat default ordination is ncwh
     // if need using nwhc then we need set elempack as elemsize * c
-    template<typename T>
-    void get_pixel(int x, int y, T& r, T& g, T& b, T& a);
-    template<typename T>
-    void draw_dot(int x, int y, T r, T g = 0, T b = 0, T a = 0);
-    template<typename T>
-    void draw_line(int x1, int y1, int x2, int y2, float t, T r, T g = 0, T b = 0, T a = 0);
-    template<typename T>
-    void alpha_blend(int x, int y, float alpha, T r, T g = 0, T b = 0, T a = 0);
+    void clean(ImPixel color);
+    void get_pixel(int x, int y, ImPixel& color);
+    void get_pixel(ImPoint p, ImPixel& color);
+    void draw_dot(int x, int y, ImPixel color);
+    void draw_dot(ImPoint p, ImPixel color);
+    void alphablend(int x, int y, float alpha, ImPixel color);
+    void draw_line(float x1, float y1, float x2, float y2, float t, ImPixel color);
+    void draw_line(ImPoint p1, ImPoint p2, float t, ImPixel color);
     
     // release
     void release();
@@ -2319,80 +2341,273 @@ inline ImMat& ImMat::operator*=(const ImMat& mat)
     return *this;
 }
 
-template<typename T>
-inline void ImMat::get_pixel(int x, int y, T& r, T& g, T& b, T& a)
+inline void ImMat::clean(ImPixel color)
 {
-    assert(dims == 2 || dims == 3);
+    assert(dims == 3);
+    assert(c > 0);
+    assert(data);
+    switch (type)
+    {
+        case IM_DT_INT8:
+        {
+            uint8_t s_buf[4] = {(uint8_t)(color.r * UINT8_MAX), 
+                                (uint8_t)(color.g * UINT8_MAX),
+                                (uint8_t)(color.b * UINT8_MAX),
+                                (uint8_t)(color.a * UINT8_MAX)};
+            for (int i = 0; i < total() / c; i++)
+            {
+                memcpy((uint8_t*)data + i * elemsize * c, s_buf, c * elemsize);
+            }
+        }
+        break;
+        case IM_DT_INT16:
+        {
+            uint16_t s_buf[4] = {(uint16_t)(color.r * UINT16_MAX), 
+                                 (uint16_t)(color.g * UINT16_MAX),
+                                 (uint16_t)(color.b * UINT16_MAX),
+                                 (uint16_t)(color.a * UINT16_MAX)};
+            for (int i = 0; i < total() / c; i++)
+            {
+                memcpy((uint8_t*)data + i * elemsize * c, s_buf, c * elemsize);
+            }
+        }
+        break;
+        case IM_DT_INT32:
+        {
+            uint32_t s_buf[4] = {(uint32_t)(color.r * UINT32_MAX), 
+                                 (uint32_t)(color.g * UINT32_MAX),
+                                 (uint32_t)(color.b * UINT32_MAX),
+                                 (uint32_t)(color.a * UINT32_MAX)};
+            for (int i = 0; i < total() / c; i++)
+            {
+                memcpy((uint8_t*)data + i * elemsize * c, s_buf, c * elemsize);
+            }
+        }
+        break;
+        case IM_DT_INT64:
+        {
+            uint64_t s_buf[4] = {(uint64_t)(color.r * UINT64_MAX), 
+                                 (uint64_t)(color.g * UINT64_MAX),
+                                 (uint64_t)(color.b * UINT64_MAX),
+                                 (uint64_t)(color.a * UINT64_MAX)};
+            for (int i = 0; i < total() / c; i++)
+            {
+                memcpy((uint8_t*)data + i * elemsize * c, s_buf, c * elemsize);
+            }
+        }
+        break;
+        case IM_DT_FLOAT32:
+        {
+            float s_buf[4] = {color.r, color.g, color.b, color.a};
+            for (int i = 0; i < total() / c; i++)
+            {
+                memcpy((uint8_t*)data + i * elemsize * c, s_buf, c * elemsize);
+            }
+        }
+        break;
+        case IM_DT_FLOAT64:
+        {
+            double s_buf[4] = {(double)color.r, (double)color.g, (double)color.b, (double)color.a};
+            for (int i = 0; i < total() / c; i++)
+            {
+                memcpy((uint8_t*)data + i * elemsize * c, s_buf, c * elemsize);
+            }
+        }
+        break;
+        case IM_DT_FLOAT16:
+        // TODO::Dicky
+        break;
+        default: break;
+    }
+}
+
+inline void ImMat::get_pixel(int x, int y, ImPixel& color)
+{
+    assert(dims == 3);
     assert(x >= 0 && x < w);
     assert(y >= 0 && y < h);
-    if (dims == 2)
+    switch (type)
     {
-        r = at<T>(x, y);
-        return;
+        case IM_DT_INT8:
+            if (c > 0) color.r = (float)at<uint8_t>(x, y, 0) / UINT8_MAX;
+            if (c > 1) color.g = (float)at<uint8_t>(x, y, 1) / UINT8_MAX;
+            if (c > 2) color.b = (float)at<uint8_t>(x, y, 2) / UINT8_MAX;
+            if (c > 3) color.a = (float)at<uint8_t>(x, y, 3) / UINT8_MAX;
+        break;
+        case IM_DT_INT16:
+            if (c > 0) color.r = (float)at<uint16_t>(x, y, 0) / UINT16_MAX;
+            if (c > 1) color.g = (float)at<uint16_t>(x, y, 1) / UINT16_MAX;
+            if (c > 2) color.b = (float)at<uint16_t>(x, y, 2) / UINT16_MAX;
+            if (c > 3) color.a = (float)at<uint16_t>(x, y, 3) / UINT16_MAX;
+        break;
+        case IM_DT_INT32:
+            if (c > 0) color.r = (float)at<uint32_t>(x, y, 0) / UINT32_MAX;
+            if (c > 1) color.g = (float)at<uint32_t>(x, y, 1) / UINT32_MAX;
+            if (c > 2) color.b = (float)at<uint32_t>(x, y, 2) / UINT32_MAX;
+            if (c > 3) color.a = (float)at<uint32_t>(x, y, 3) / UINT32_MAX;
+        break;
+        case IM_DT_INT64:
+            if (c > 0) color.r = (float)at<uint64_t>(x, y, 0) / UINT64_MAX;
+            if (c > 1) color.g = (float)at<uint64_t>(x, y, 1) / UINT64_MAX;
+            if (c > 2) color.b = (float)at<uint64_t>(x, y, 2) / UINT64_MAX;
+            if (c > 3) color.a = (float)at<uint64_t>(x, y, 3) / UINT64_MAX;
+        break;
+        case IM_DT_FLOAT16:
+            // TODO::Dicky
+        break;
+        case IM_DT_FLOAT32:
+            if (c > 0) color.r = at<float>(x, y, 0);
+            if (c > 1) color.g = at<float>(x, y, 1);
+            if (c > 2) color.b = at<float>(x, y, 2);
+            if (c > 3) color.a = at<float>(x, y, 3);
+        break;
+        case IM_DT_FLOAT64:
+            if (c > 0) color.r = (float)at<double>(x, y, 0);
+            if (c > 1) color.g = (float)at<double>(x, y, 1);
+            if (c > 2) color.b = (float)at<double>(x, y, 2);
+            if (c > 3) color.a = (float)at<double>(x, y, 3);
+        break;
+        default: break;
     }
-    if (c > 0) r = at<T>(x, y, 0);
-    if (c > 1) g = at<T>(x, y, 1);
-    if (c > 2) b = at<T>(x, y, 2);
-    if (c > 3) a = at<T>(x, y, 3);
 }
 
-template<typename T>
-inline void ImMat::draw_dot(int x, int y, T r, T g, T b, T a)
+inline void ImMat::get_pixel(ImPoint p, ImPixel& color)
 {
-    assert(dims == 2 || dims == 3);
+    get_pixel((int)p.x, (int)p.y, color);
+}
+
+inline void ImMat::draw_dot(int x, int y, ImPixel color)
+{
+    assert(dims == 3);
     assert(x >= 0 && x < w);
     assert(y >= 0 && y < h);
-    if (dims == 2)
+    switch (type)
     {
-        at<T>(x, y) = (r + g + b) / 3;
-        return;
+        case IM_DT_INT8:
+            if (c > 0) at<uint8_t>(x, y, 0) = color.r * UINT8_MAX;
+            if (c > 1) at<uint8_t>(x, y, 1) = color.g * UINT8_MAX;
+            if (c > 2) at<uint8_t>(x, y, 2) = color.b * UINT8_MAX;
+            if (c > 3) at<uint8_t>(x, y, 3) = color.a * UINT8_MAX;
+        break;
+        case IM_DT_INT16:
+            if (c > 0) at<uint16_t>(x, y, 0) = color.r * UINT16_MAX;
+            if (c > 1) at<uint16_t>(x, y, 1) = color.g * UINT16_MAX;
+            if (c > 2) at<uint16_t>(x, y, 2) = color.b * UINT16_MAX;
+            if (c > 3) at<uint16_t>(x, y, 3) = color.a * UINT16_MAX;
+        break;
+        case IM_DT_INT32:
+            if (c > 0) at<uint32_t>(x, y, 0) = color.r * UINT32_MAX;
+            if (c > 1) at<uint32_t>(x, y, 1) = color.g * UINT32_MAX;
+            if (c > 2) at<uint32_t>(x, y, 2) = color.b * UINT32_MAX;
+            if (c > 3) at<uint32_t>(x, y, 3) = color.a * UINT32_MAX;
+        break;
+        case IM_DT_INT64:
+            if (c > 0) at<uint64_t>(x, y, 0) = color.r * UINT64_MAX;
+            if (c > 1) at<uint64_t>(x, y, 1) = color.g * UINT64_MAX;
+            if (c > 2) at<uint64_t>(x, y, 2) = color.b * UINT64_MAX;
+            if (c > 3) at<uint64_t>(x, y, 3) = color.a * UINT64_MAX;
+        break;
+        case IM_DT_FLOAT16:
+            // TODO::Dicky
+        break;
+        case IM_DT_FLOAT32:
+            if (c > 0) at<float>(x, y, 0) = color.r;
+            if (c > 1) at<float>(x, y, 1) = color.g;
+            if (c > 2) at<float>(x, y, 2) = color.b;
+            if (c > 3) at<float>(x, y, 3) = color.a;
+        break;
+        case IM_DT_FLOAT64:
+            if (c > 0) at<double>(x, y, 0) = (double)color.r;
+            if (c > 1) at<double>(x, y, 1) = (double)color.g;
+            if (c > 2) at<double>(x, y, 2) = (double)color.b;
+            if (c > 3) at<double>(x, y, 3) = (double)color.a;
+        break;
+        default: break;
     }
-    if (c > 0) at<T>(x, y, 0) = r;
-    if (c > 1) at<T>(x, y, 1) = g;
-    if (c > 2) at<T>(x, y, 2) = b;
-    if (c > 3) at<T>(x, y, 3) = a;
 }
 
-template<typename T>
-inline void ImMat::alpha_blend(int x, int y, float alpha, T r, T g, T b, T a)
+inline void ImMat::draw_dot(ImPoint p, ImPixel color)
 {
-    assert(dims == 2 || dims == 3);
-    if (dims == 2)
-    {
-        at<T>(x, y) = (T)(at<T>(x, y) * (1 - alpha) + r * alpha);
-        return;
-    }
-    if (c > 0) at<T>(x, y, 0) = (T)(at<T>(x, y, 0) * (1 - alpha) + r * alpha);
-    if (c > 1) at<T>(x, y, 1) = (T)(at<T>(x, y, 1) * (1 - alpha) + g * alpha);
-    if (c > 2) at<T>(x, y, 2) = (T)(at<T>(x, y, 2) * (1 - alpha) + b * alpha);
-    if (c > 3) at<T>(x, y, 3) = a;
+    draw_dot((int)p.x, (int)p.y, color);
 }
 
-template<typename T>
-inline void ImMat::draw_line(int x1, int y1, int x2, int y2, float t, T r, T g, T b, T a)
+inline void ImMat::alphablend(int x, int y, float alpha, ImPixel color)
 {
+    switch (type)
+    {
+        case IM_DT_INT8:
+            if (c > 0) at<uint8_t>(x, y, 0) = at<uint8_t>(x, y, 0) * (1 - alpha) + color.r * alpha * UINT8_MAX;
+            if (c > 1) at<uint8_t>(x, y, 1) = at<uint8_t>(x, y, 1) * (1 - alpha) + color.g * alpha * UINT8_MAX;
+            if (c > 2) at<uint8_t>(x, y, 2) = at<uint8_t>(x, y, 2) * (1 - alpha) + color.b * alpha * UINT8_MAX;
+            if (c > 3) at<uint8_t>(x, y, 3) = (uint8_t)(color.a * UINT8_MAX);
+        break;
+        case IM_DT_INT16:
+            if (c > 0) at<uint16_t>(x, y, 0) = at<uint16_t>(x, y, 0) * (1 - alpha) + color.r * alpha * UINT16_MAX;
+            if (c > 1) at<uint16_t>(x, y, 1) = at<uint16_t>(x, y, 1) * (1 - alpha) + color.g * alpha * UINT16_MAX;
+            if (c > 2) at<uint16_t>(x, y, 2) = at<uint16_t>(x, y, 2) * (1 - alpha) + color.b * alpha * UINT16_MAX;
+            if (c > 3) at<uint16_t>(x, y, 3) = (uint16_t)(color.a * UINT16_MAX);
+        break;
+        case IM_DT_INT32:
+            if (c > 0) at<uint32_t>(x, y, 0) = at<uint32_t>(x, y, 0) * (1 - alpha) + color.r * alpha * UINT32_MAX;
+            if (c > 1) at<uint32_t>(x, y, 1) = at<uint32_t>(x, y, 1) * (1 - alpha) + color.g * alpha * UINT32_MAX;
+            if (c > 2) at<uint32_t>(x, y, 2) = at<uint32_t>(x, y, 2) * (1 - alpha) + color.b * alpha * UINT32_MAX;
+            if (c > 3) at<uint32_t>(x, y, 3) = (uint32_t)(color.a * UINT32_MAX);
+        break;
+        case IM_DT_INT64:
+            if (c > 0) at<uint64_t>(x, y, 0) = at<uint64_t>(x, y, 0) * (1 - alpha) + color.r * alpha * UINT64_MAX;
+            if (c > 1) at<uint64_t>(x, y, 1) = at<uint64_t>(x, y, 1) * (1 - alpha) + color.g * alpha * UINT64_MAX;
+            if (c > 2) at<uint64_t>(x, y, 2) = at<uint64_t>(x, y, 2) * (1 - alpha) + color.b * alpha * UINT64_MAX;
+            if (c > 3) at<uint64_t>(x, y, 3) = (uint64_t)(color.a * UINT64_MAX);
+        break;
+        case IM_DT_FLOAT16:
+            // TODO::Dicky
+        break;
+        case IM_DT_FLOAT32:
+            if (c > 0) at<float>(x, y, 0) = at<float>(x, y, 0) * (1 - alpha) + color.r * alpha;
+            if (c > 1) at<float>(x, y, 1) = at<float>(x, y, 1) * (1 - alpha) + color.g * alpha;
+            if (c > 2) at<float>(x, y, 2) = at<float>(x, y, 2) * (1 - alpha) + color.b * alpha;
+            if (c > 3) at<float>(x, y, 3) = color.a;
+        break;
+        case IM_DT_FLOAT64:
+            if (c > 0) at<double>(x, y, 0) = at<double>(x, y, 0) * (1 - alpha) + color.r * alpha;
+            if (c > 1) at<double>(x, y, 1) = at<double>(x, y, 1) * (1 - alpha) + color.g * alpha;
+            if (c > 2) at<double>(x, y, 2) = at<double>(x, y, 2) * (1 - alpha) + color.b * alpha;
+            if (c > 3) at<double>(x, y, 3) = (double)color.a;
+        break;
+        default: break;
+    }
+}
+
+inline void ImMat::draw_line(float x1, float y1, float x2, float y2, float t, ImPixel color)
+{
+    assert(dims == 3);
     assert(x1 >= 0 && x1 < w);
     assert(x2 >= 0 && x2 < w);
     assert(y1 >= 0 && y1 < h);
     assert(y2 >= 0 && y2 < h);
 
-    int _x0 = CLAMP((int)floorf(fminf((float)x1, (float)x2) - t), 0, w);
-    int _x1 = CLAMP((int) ceilf(fmaxf((float)x1, (float)x2) + t), 0, w);
-    int _y0 = CLAMP((int)floorf(fminf((float)y1, (float)y2) - t), 0, h);
-    int _y1 = CLAMP((int) ceilf(fmaxf((float)y1, (float)y2) + t), 0, h);
+    int _x0 = CLAMP((int)floorf(fminf(x1, x2) - t), 0, w - 1);
+    int _x1 = CLAMP((int) ceilf(fmaxf(x1, x2) + t), 0, w - 1);
+    int _y0 = CLAMP((int)floorf(fminf(y1, y2) - t), 0, h - 1);
+    int _y1 = CLAMP((int) ceilf(fmaxf(y1, y2) + t), 0, h - 1);
     for (int y = _y0; y <= _y1; y++)
     {
         for (int x = _x0; x <= _x1; x++)
         {
             // capsuleSDF
-            float pax = x - x1, pay = y - y1, bax = x2 - x1, bay = y2 - y1;
-            float h = CLAMP((pax * bax + pay * bay) / (bax * bax + bay * bay), 0.0f, 1.0f);
-            float dx = pax - bax * h, dy = pay - bay * h;
+            float pax = (float)x - x1, pay = (float)y - y1, bax = x2 - x1, bay = y2 - y1;
+            float _h = CLAMP((pax * bax + pay * bay) / (bax * bax + bay * bay), 0.0f, 1.0f);
+            float dx = pax - bax * _h, dy = pay - bay * _h;
             float sdf = sqrtf(dx * dx + dy * dy) - t;
             float alpha = CLAMP(0.5f - sdf, 0.f, 1.f);
-            alpha_blend(x, y, alpha, r, g, b, a);
+            alphablend(x, y, alpha, color);
         }
     }
+}
+
+inline void ImMat::draw_line(ImPoint p1, ImPoint p2, float t, ImPixel color)
+{
+    draw_line(p1.x, p1.y, p2.x, p2.y, t, color);
 }
 
 } // namespace ImGui 
