@@ -548,6 +548,10 @@ public:
     void alphablend(int x, int y, float alpha, ImPixel color);
     void draw_line(float x1, float y1, float x2, float y2, float t, ImPixel color);
     void draw_line(ImPoint p1, ImPoint p2, float t, ImPixel color);
+    void draw_circle(float x, float y, float r, ImPixel color);
+    void draw_circle(ImPoint p, float r, ImPixel color);
+    void draw_circle(float x, float y, float r, float t, ImPixel color);
+    void draw_circle(ImPoint p, float r, float t, ImPixel color);
     
     // release
     void release();
@@ -2479,8 +2483,10 @@ inline void ImMat::get_pixel(ImPoint p, ImPixel& color)
 inline void ImMat::draw_dot(int x, int y, ImPixel color)
 {
     assert(dims == 3);
-    assert(x >= 0 && x < w);
-    assert(y >= 0 && y < h);
+    //assert(x >= 0 && x < w);
+    //assert(y >= 0 && y < h);
+    if (x < 0 || x >= w || y < 0 || y >= h)
+        return;
     switch (type)
     {
         case IM_DT_INT8:
@@ -2608,6 +2614,70 @@ inline void ImMat::draw_line(float x1, float y1, float x2, float y2, float t, Im
 inline void ImMat::draw_line(ImPoint p1, ImPoint p2, float t, ImPixel color)
 {
     draw_line(p1.x, p1.y, p2.x, p2.y, t, color);
+}
+
+inline void ImMat::draw_circle(float x1, float y1, float r, ImPixel color)
+{
+    // Bresenham circle
+    float x = 0, y = r;
+	float p = 3 - (2 * r);
+	while (x <= y)
+	{
+        draw_dot(x1 + x, y1 + y, color);
+        draw_dot(x1 - x, y1 + y, color);
+        draw_dot(x1 + x, y1 - y, color);
+        draw_dot(x1 - x, y1 - y, color);
+        draw_dot(x1 + y, y1 + x, color);
+		draw_dot(x1 + y, y1 - x, color);
+		draw_dot(x1 - y, y1 + x, color);
+		draw_dot(x1 - y, y1 - x, color);
+		x = x + 1;
+		if (p < 0)
+			p = p + 4 * x + 6;
+		else
+		{
+			p = p + 4 * (x - y) + 10;
+			y = y - 1;
+        }
+    }
+}
+
+inline void ImMat::draw_circle(ImPoint p, float r, ImPixel color)
+{
+    draw_circle(p.x, p.y, r, color);
+}
+
+inline void ImMat::draw_circle(float x1, float y1, float r, float t, ImPixel color)
+{
+    float perimeter = 2 * M_PI * r;
+    int num_segments = perimeter / 8 / t;
+    const float a_max = (M_PI * 2.0f) * ((float)num_segments - 1.0f) / (float)num_segments;
+    const float a_min = 0;
+    float x, y, x0, y0, _x, _y;
+    num_segments--;
+    for (int i = 0; i <= num_segments; i++)
+    {
+        const float a = a_min + ((float)i / (float)num_segments) * (a_max - a_min);
+        x = x1 + cos(a) * r;
+        y = y1 + sin(a) * r;
+        if (i == 0)
+        {
+            x0 = _x = x;
+            y0 = _y = y;
+        }
+        else
+        {
+            draw_line(_x, _y, x, y, t, color);
+            _x = x;
+            _y = y;
+        }
+    }
+    draw_line(x, y, x0, y0, t, color);
+}
+
+inline void ImMat::draw_circle(ImPoint p, float r, float t, ImPixel color)
+{
+    draw_circle(p.x, p.y, r, t, color);
 }
 
 } // namespace ImGui 

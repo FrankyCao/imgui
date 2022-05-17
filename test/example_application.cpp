@@ -172,6 +172,8 @@ public:
         color_bar(image, 0, 0, 255, 191);
         gray_bar(image, 0, 192, 255, 255, 13);
         ImageTexture = ImGui::ImCreateTexture(image.data, image.w, image.h);
+        // init draw mat
+        draw_mat.clean(ImPixel(0.f, 0.f, 0.f, 1.f));
     };
     ~Example() 
     {
@@ -186,6 +188,7 @@ public:
 #endif
         end_file_dialog_demo_window(&filedialog, bookmark_path.c_str());
         if (ImageTexture) { ImGui::ImDestroyTexture(ImageTexture); ImageTexture = 0; }
+        if (DrawMatTexture) { ImGui::ImDestroyTexture(DrawMatTexture); DrawMatTexture = 0; }
     }
 
 public:
@@ -210,12 +213,13 @@ public:
     bool show_file_dialog_window = false;
     bool show_markdown_window = false;
     bool show_widget_window = false;
+    bool show_mat_draw_window = false;
     bool show_kalman_window = false;
     bool show_text_editor_window = false;
     bool show_tab_window = false;
-   
-public:
 
+public:
+    void DrawLineDemo();
     std::string get_file_contents(const char *filename);
     static ImGui::MarkdownImageData ImageCallback( ImGui::MarkdownLinkCallbackData data_ );
     static void LinkCallback( ImGui::MarkdownLinkCallbackData data_ );
@@ -227,7 +231,9 @@ public:
 #endif
 public:
     ImGui::ImMat image {ImGui::ImMat(256, 256, 4, 1u, 4)};
+    ImGui::ImMat draw_mat {ImGui::ImMat(512, 512, 4, 1u, 4)};
     ImTextureID ImageTexture = 0;
+    ImTextureID DrawMatTexture = 0;
 };
 
 std::string Example::get_file_contents(const char *filename)
@@ -245,7 +251,39 @@ std::string Example::get_file_contents(const char *filename)
         infile.close();
         return(contents.str());
     }
-    throw(errno);
+    else
+    {
+        std::string test = 
+            "Syntax Tests For imgui_markdown\n"
+            "Test - Headers\n"
+            "# Header 1\n"
+            "Paragraph\n"
+            "## Header 2\n"
+            "Paragraph\n"
+            "### Header 3\n"
+            "Paragraph\n"
+            "Test - Emphasis\n"
+            "*Emphasis with stars*\n"
+            "_Emphasis with underscores_\n"
+            "**Strong emphasis with stars**\n"
+            "__Strong emphasis with underscores__\n"
+            "_*_\n"
+            "**_**\n"
+            "Test - Emphasis In List\n"
+            "  * *List emphasis with stars*\n"
+            "    * *Sublist with emphasis*\n"
+            "    * Sublist without emphasis\n"
+            "    * **Sublist** with *some* emphasis\n"
+            "  * _List emphasis with underscores_\n"
+            "Test - Emphasis In Indented Paragraph\n"
+            "  *Indented emphasis with stars*\n"
+            "    *Double indent with emphasis*\n"
+            "    Double indent without emphasis\n"
+            "    **Double indent** with *some* emphasis\n"
+            "  _Indented emphasis with underscores_\n"
+            ;
+        return test;
+    }
 }
 
 ImGui::MarkdownImageData Example::ImageCallback( ImGui::MarkdownLinkCallbackData data_ )
@@ -303,6 +341,53 @@ void Example::ExampleMarkdownFormatCallback( const ImGui::MarkdownFormatInfo& ma
             break;
         }
     }
+}
+
+void Example::DrawLineDemo()
+{
+    float t = (float)ImGui::GetTime();
+    float h = abs(sin(t * 0.2));
+    float s = abs(sin(t * 0.1)) * 0.5 + 0.4;
+    float h2 = abs(sin(t * 0.4));
+    ImVec4 base_color = ImVec4(0.f, 0.f, 0.f, 1.f);
+    ImVec4 light_color = ImVec4(0.f, 0.f, 0.f, 1.f);
+    ImGui::ColorConvertHSVtoRGB(h, s, 0.5f, base_color.x, base_color.y, base_color.z);
+    ImGui::ColorConvertHSVtoRGB(h2, s, 0.5f, light_color.x, light_color.y, light_color.z);
+    static float arc = 0.0;
+    draw_mat.clean(ImPixel(0.f, 0.f, 0.f, 1.f));
+    arc += 2 * M_PI / 64 / 32;
+    if (arc > 2 * M_PI / 64) arc = 0;
+    float cx = draw_mat.w * 0.5f, cy = draw_mat.h * 0.5f;
+    ImPixel line_color(base_color.x, base_color.y, base_color.z, 1.f);
+    ImPixel circle_color(light_color.x, light_color.y, light_color.z, 1.f);
+
+    // draw line test
+    for (int j = 0; j < 5; j++) 
+    {
+        float r1 = fminf(draw_mat.w, draw_mat.h) * (j + 0.5f) * 0.085f;
+        float r2 = fminf(draw_mat.w, draw_mat.h) * (j + 1.5f) * 0.085f;
+        float t = j * M_PI / 64.0f, r = (j + 1) * 0.5f;
+        for (int i = 1; i <= 64; i++, t += 2.0f * M_PI / 64.0f)
+        {
+            float ct = cosf(t + arc), st = sinf(t + arc);
+            draw_mat.draw_line(ImPoint(cx + r1 * ct, cy - r1 * st), ImPoint(cx + r2 * ct, cy - r2 * st), r, line_color);
+        }
+    }
+
+    // draw circle test(smooth) 
+    for (int j = 0; j < 5; j++)
+    {
+        float r = fminf(draw_mat.w, draw_mat.h) * (j + 1.5f) * 0.085f + 1;
+        float t = (j + 1) * 0.5f;
+        draw_mat.draw_circle(draw_mat.w / 2, draw_mat.h / 2, r, t, circle_color);
+    }
+
+    // draw circle test
+    draw_mat.draw_circle(draw_mat.w / 2, draw_mat.h / 2, draw_mat.w / 2 - 1, ImPixel(1.0, 1.0, 1.0, 1.0));
+
+    ImGui::ImMatToTexture(draw_mat, DrawMatTexture);
+    ImGui::Image(DrawMatTexture, ImVec2(draw_mat.w, draw_mat.h));
+
 }
 
 #ifdef DEFAULT_CONFIG_PATH
@@ -375,6 +460,7 @@ bool Application_Frame(void* handle, bool app_will_quit)
         ImGui::Checkbox("Show Markdown Window", &example->show_markdown_window);
         ImGui::Checkbox("Show Extra Widget Window", &example->show_widget_window);
         ImGui::Checkbox("Show Kalman Window", &example->show_kalman_window);
+        ImGui::Checkbox("Show ImMat Draw Window", &example->show_mat_draw_window);
         ImGui::Checkbox("Show Text Edit Window", &example->show_text_editor_window);
         ImGui::Checkbox("Show Tab Window", &example->show_tab_window);
 
@@ -472,6 +558,15 @@ bool Application_Frame(void* handle, bool app_will_quit)
         ImGui::SetNextWindowSize(ImVec2(1024, 768), ImGuiCond_FirstUseEver);
         ImGui::Begin("Kalman Demo", &example->show_kalman_window);
         ImGui::ShowImKalmanDemoWindow();
+        ImGui::End();
+    }
+
+    // Show ImMat line demo
+    if (example->show_mat_draw_window)
+    {
+        ImGui::SetNextWindowSize(ImVec2(512, 512), ImGuiCond_FirstUseEver);
+        ImGui::Begin("ImMat draw Demo", &example->show_mat_draw_window);
+        example->DrawLineDemo();
         ImGui::End();
     }
 
