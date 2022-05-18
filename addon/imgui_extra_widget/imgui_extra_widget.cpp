@@ -3908,7 +3908,7 @@ int ImGui::PlotEx(ImGuiPlotType plot_type, const char* label, float (*values_get
     ItemSize(total_bb, style.FramePadding.y);
     if (!ItemAdd(total_bb, 0, &frame_bb))
         return -1;
-    const bool hovered = b_tooltops && ItemHoverable(frame_bb, id); // Modify By Dicky
+    const bool hovered = b_tooltops /*&& ItemHoverable(frame_bb, id)*/; // Modify By Dicky
 
     // Determine scale from values if not specified
     if (scale_min == FLT_MAX || scale_max == FLT_MAX)
@@ -3938,6 +3938,9 @@ int ImGui::PlotEx(ImGuiPlotType plot_type, const char* label, float (*values_get
         int res_w = ImMin((int)frame_size.x, values_count) + ((plot_type == ImGuiPlotType_Lines) ? -1 : 0);
         int item_count = values_count + ((plot_type == ImGuiPlotType_Lines) ? -1 : 0);
 
+        const ImU32 col_base = GetColorU32((plot_type == ImGuiPlotType_Lines) ? ImGuiCol_PlotLines : ImGuiCol_PlotHistogram);
+        const ImU32 col_hovered = GetColorU32((plot_type == ImGuiPlotType_Lines) ? ImGuiCol_PlotLinesHovered : ImGuiCol_PlotHistogramHovered);
+
         // Tooltip on hover
         if (hovered && inner_bb.Contains(g.IO.MousePos))
         {
@@ -3947,11 +3950,17 @@ int ImGui::PlotEx(ImGuiPlotType plot_type, const char* label, float (*values_get
 
             const float v0 = values_getter(data, (v_idx + values_offset) % values_count);
             const float v1 = values_getter(data, (v_idx + 1 + values_offset) % values_count);
-            if (plot_type == ImGuiPlotType_Lines)
+            if (plot_type == ImGuiPlotType_Lines && !b_comband)
                 SetTooltip("%d: %8.4g\n%d: %8.4g", v_idx, v0, v_idx + 1, v1);
-            else if (plot_type == ImGuiPlotType_Histogram)
+            else if (plot_type == ImGuiPlotType_Histogram || b_comband)
                 SetTooltip("%d: %8.4g", v_idx, v0);
             idx_hovered = v_idx;
+            if (b_comband)
+            {
+                ImVec2 pos0 = ImVec2(g.IO.MousePos.x, inner_bb.Min.y);
+                ImVec2 pos1 = ImVec2(g.IO.MousePos.x, inner_bb.Max.y);
+                window->DrawList->AddLine(pos0, pos1, col_hovered);
+            }
         }
 
         const float t_step = 1.0f / (float)res_w;
@@ -3962,18 +3971,12 @@ int ImGui::PlotEx(ImGuiPlotType plot_type, const char* label, float (*values_get
         ImVec2 tp0 = ImVec2( t0, 1.0f - ImSaturate((v0 - scale_min) * inv_scale) );                       // Point in the normalized space of our target rectangle
         float histogram_zero_line_t = (scale_min * scale_max < 0.0f) ? (1 + scale_min * inv_scale) : (scale_min < 0.0f ? 0.0f : 1.0f);   // Where does the zero line stands
 
-        const ImU32 col_base = GetColorU32((plot_type == ImGuiPlotType_Lines) ? ImGuiCol_PlotLines : ImGuiCol_PlotHistogram);
-        const ImU32 col_hovered = GetColorU32((plot_type == ImGuiPlotType_Lines) ? ImGuiCol_PlotLinesHovered : ImGuiCol_PlotHistogramHovered);
-
         for (int n = 0; n < res_w; n++)
         {
             const float t1 = t0 + t_step;
-            // Modify By Dicky
             int v1_idx = (int)(t0 * item_count + 0.5f);
-            //IM_ASSERT(v1_idx >= 0 && v1_idx < values_count);
             if (v1_idx < 0) v1_idx = 0;
             if (v1_idx > values_count) v1_idx = values_count;
-            // Modify By Dicky end
             const float v1 = values_getter(data, (v1_idx + values_offset + 1) % values_count);
             const ImVec2 tp1 = ImVec2( t1, 1.0f - ImSaturate((v1 - scale_min) * inv_scale) );
 
@@ -3983,7 +3986,6 @@ int ImGui::PlotEx(ImGuiPlotType plot_type, const char* label, float (*values_get
             if (plot_type == ImGuiPlotType_Lines)
             {
                 window->DrawList->AddLine(pos0, pos1, idx_hovered == v1_idx ? col_hovered : col_base);
-                // Add By Dicky
                 if (b_comband)
                 {
                     ImVec2 _pos1 = ImLerp(inner_bb.Min, inner_bb.Max, ImVec2(tp1.x, histogram_zero_line_t));
@@ -3991,7 +3993,6 @@ int ImGui::PlotEx(ImGuiPlotType plot_type, const char* label, float (*values_get
                         _pos1.x -= 1.0f;
                     window->DrawList->AddRectFilled(pos0, _pos1, idx_hovered == v1_idx ? GetColorU32(ImGuiCol_PlotHistogramHovered) : GetColorU32(ImGuiCol_PlotHistogram));
                 }
-                // Add By Dicky end
             }
             else if (plot_type == ImGuiPlotType_Histogram)
             {
