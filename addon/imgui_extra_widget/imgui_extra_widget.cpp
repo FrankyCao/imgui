@@ -3940,6 +3940,8 @@ int ImGui::PlotEx(ImGuiPlotType plot_type, const char* label, float (*values_get
 
         const ImU32 col_base = GetColorU32((plot_type == ImGuiPlotType_Lines) ? ImGuiCol_PlotLines : ImGuiCol_PlotHistogram);
         const ImU32 col_hovered = GetColorU32((plot_type == ImGuiPlotType_Lines) ? ImGuiCol_PlotLinesHovered : ImGuiCol_PlotHistogramHovered);
+        const float t_step = 1.0f / (float)res_w;
+        const float inv_scale = (scale_min == scale_max) ? 0.0f : (1.0f / (scale_max - scale_min));
 
         // Tooltip on hover
         if (hovered && inner_bb.Contains(g.IO.MousePos))
@@ -3948,23 +3950,24 @@ int ImGui::PlotEx(ImGuiPlotType plot_type, const char* label, float (*values_get
             const int v_idx = (int)(t * item_count);
             IM_ASSERT(v_idx >= 0 && v_idx < values_count);
 
-            const float v0 = values_getter(data, (v_idx + values_offset) % values_count);
-            const float v1 = values_getter(data, (v_idx + 1 + values_offset) % values_count);
-            if (plot_type == ImGuiPlotType_Lines && !b_comband)
-                SetTooltip("%d: %8.4g\n%d: %8.4g", v_idx, v0, v_idx + 1, v1);
-            else if (plot_type == ImGuiPlotType_Histogram || b_comband)
-                SetTooltip("%d: %8.4g", v_idx, v0);
-            idx_hovered = v_idx;
+            const float _v0 = values_getter(data, (v_idx + values_offset) % values_count);
+            const float _v1 = values_getter(data, (v_idx + 1 + values_offset) % values_count);
             if (b_comband)
             {
+                ImVec2 tp  = ImVec2(g.IO.MousePos.x, 1.0f - ImSaturate((_v0 - scale_min) * inv_scale)); 
                 ImVec2 pos0 = ImVec2(g.IO.MousePos.x, inner_bb.Min.y);
                 ImVec2 pos1 = ImVec2(g.IO.MousePos.x, inner_bb.Max.y);
+                ImVec2 tpos = ImLerp(inner_bb.Min, inner_bb.Max, tp);
+                tpos.x = g.IO.MousePos.x;
                 window->DrawList->AddLine(pos0, pos1, col_hovered);
+                window->DrawList->AddCircleFilled(tpos, 2, IM_COL32(0, 255, 0, 255));
             }
+            if (plot_type == ImGuiPlotType_Lines && !b_comband)
+                SetTooltip("%d: %8.4g\n%d: %8.4g", v_idx, _v0, v_idx + 1, _v1);
+            else if (plot_type == ImGuiPlotType_Histogram || b_comband)
+                SetTooltip("%d: %8.4g", v_idx, _v0);
+            idx_hovered = v_idx;
         }
-
-        const float t_step = 1.0f / (float)res_w;
-        const float inv_scale = (scale_min == scale_max) ? 0.0f : (1.0f / (scale_max - scale_min));
 
         float v0 = values_getter(data, (0 + values_offset) % values_count);
         float t0 = 0.0f;
