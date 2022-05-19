@@ -2005,8 +2005,8 @@ int GetAbsoluteFiles(std::string directory, std::vector<std::string>& filesAbsol
 				filesAbsolutePath.push_back(absolutePath);
 				if (!surfix)
 				{
-					char * pos = strchr(d_ent->d_name, '.');
-					*pos = '\0';
+					char * pos = strrchr(d_ent->d_name, '.');
+					if (pos) *pos = '\0';
 				}
 				filesname.push_back(d_ent->d_name);
 			}
