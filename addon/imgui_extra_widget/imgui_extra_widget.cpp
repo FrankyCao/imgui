@@ -4198,9 +4198,11 @@ void ImGui::Piano::down(int key, int velocity)
 
 void ImGui::Piano::draw(ImVec2 size, bool input)
 {
+    static char* key_name[] = { "Q", "2", "W", "3", "E", "R", "5", "T", "6", "Y", "7", "U", "Z", "S", "X", "D", "C", "V", "G", "B", "H", "N", "J", "M"};
     ImGuiIO &io = ImGui::GetIO();
     ImU32 Black = IM_COL32(0, 0, 0, 255);
     ImU32 White = IM_COL32(255, 255, 255, 255);
+    ImU32 White_Bark = IM_COL32(208, 208, 208, 255);
     ImU32 EventSustained = IM_COL32(192,192,192,255);
     ImU32 EventBlack = IM_COL32(255,0,0,255);
     ImGui::BeginGroup();
@@ -4214,11 +4216,44 @@ void ImGui::Piano::draw(ImVec2 size, bool input)
     {
         ImRect key_rect(ImVec2(p.x + key * key_width, p.y), ImVec2(p.x + key * key_width + key_width, p.y + white_key_height));
         ImU32 col = White;
-        if (input && key_rect.Contains(io.MousePos) && (key_rect.Max.y - io.MousePos.y) < white_key_height - black_key_height)
+        bool draw_text = false;
+        char * key_name_str = nullptr;
+        if (input)
         {
-            if (ImGui::IsMouseDown(ImGuiMouseButton_Left))
+
+            if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && 
+                key_rect.Contains(io.MousePos) && 
+                (key_rect.Max.y - io.MousePos.y) < (white_key_height - black_key_height))
                 key_states[cur_key] += 127;
+
+            if (IsKeyDown(ImGuiKey_LeftShift) && !IsKeyDown(ImGuiKey_RightShift) && !IsKeyDown(ImGuiKey_RightAlt) && cur_key >= 24 && cur_key < 48)
+            {
+                col = White;
+                draw_text = true;
+                key_name_str = key_name[cur_key - 24];
+            }
+            else if (!IsKeyDown(ImGuiKey_LeftShift) && !IsKeyDown(ImGuiKey_RightShift) && !IsKeyDown(ImGuiKey_RightAlt) && cur_key >= 48 && cur_key < 72)
+            {
+                col = White;
+                draw_text = true;
+                key_name_str = key_name[cur_key - 48];
+            }
+            else if (IsKeyDown(ImGuiKey_RightAlt) && !IsKeyDown(ImGuiKey_LeftShift) && !IsKeyDown(ImGuiKey_RightShift) && cur_key >= 72 && cur_key < 96)
+            {
+                col = White;
+                draw_text = true;
+                key_name_str = key_name[cur_key - 72];
+            }
+            else if (IsKeyDown(ImGuiKey_RightShift) && !IsKeyDown(ImGuiKey_LeftShift) && !IsKeyDown(ImGuiKey_RightAlt) && cur_key >= 96 && cur_key < 120)
+            {
+                col = White;
+                draw_text = true;
+                key_name_str = key_name[cur_key - 96];
+            }
+            else
+                col = White_Bark;
         }
+
         if (key_states[cur_key])
         {
             if (key_states[cur_key] == -1)
@@ -4231,6 +4266,12 @@ void ImGui::Piano::draw(ImVec2 size, bool input)
         }
         draw_list->AddRectFilled(key_rect.Min, key_rect.Max, col, 2, ImDrawCornerFlags_All);
         draw_list->AddRect(key_rect.Min, key_rect.Max, Black, 2, ImDrawCornerFlags_All);
+        if (draw_text && key_name_str)
+        {
+            auto font_size = ImGui::CalcTextSize(key_name_str);
+            auto text_pos = ImVec2(key_rect.Min.x + (key_rect.GetWidth() - font_size.x) / 2, key_rect.Max.y - font_size.y - 4);
+            draw_list->AddText(text_pos, IM_COL32_BLACK, key_name_str);
+        }
         cur_key++;
         if (has_black(key))
         {
@@ -4244,10 +4285,32 @@ void ImGui::Piano::draw(ImVec2 size, bool input)
         {
             ImRect key_rect(ImVec2(p.x + key * key_width + key_width * 3 / 4, p.y), ImVec2(p.x + key * key_width + key_width * 5 / 4 + 1, p.y + black_key_height));
             ImU32 col = Black;
-            if (input && key_rect.Contains(io.MousePos))
+            bool draw_text = false;
+            char * key_name_str = nullptr;
+            if (input)
             {
-                if (ImGui::IsMouseDown(ImGuiMouseButton_Left))
+                if (key_rect.Contains(io.MousePos) && ImGui::IsMouseDown(ImGuiMouseButton_Left))
                     key_states[cur_key] += 127;
+                if (IsKeyDown(ImGuiKey_LeftShift) && !IsKeyDown(ImGuiKey_RightShift) && !IsKeyDown(ImGuiKey_RightAlt) && cur_key >= 24 && cur_key < 48)
+                {
+                    draw_text = true;
+                    key_name_str = key_name[cur_key - 24];
+                }
+                else if (!IsKeyDown(ImGuiKey_LeftShift) && !IsKeyDown(ImGuiKey_RightShift) && !IsKeyDown(ImGuiKey_RightAlt) && cur_key >= 48 && cur_key < 72)
+                {
+                    draw_text = true;
+                    key_name_str = key_name[cur_key - 48];
+                }
+                else if (IsKeyDown(ImGuiKey_RightAlt) && !IsKeyDown(ImGuiKey_LeftShift) && !IsKeyDown(ImGuiKey_RightShift) && cur_key >= 72 && cur_key < 96)
+                {
+                    draw_text = true;
+                    key_name_str = key_name[cur_key - 72];
+                }
+                else if (IsKeyDown(ImGuiKey_RightShift) && !IsKeyDown(ImGuiKey_LeftShift) && !IsKeyDown(ImGuiKey_RightAlt) && cur_key >= 96 && cur_key < 120)
+                {
+                    draw_text = true;
+                    key_name_str = key_name[cur_key - 96];
+                }
             }
             if (key_states[cur_key])
             {
@@ -4261,7 +4324,12 @@ void ImGui::Piano::draw(ImVec2 size, bool input)
             }
             draw_list->AddRectFilled(key_rect.Min, key_rect.Max, col, 2, ImDrawCornerFlags_All);
             draw_list->AddRect(key_rect.Min, key_rect.Max, Black, 2, ImDrawCornerFlags_All);
-
+            if (draw_text && key_name_str)
+            {
+                auto font_size = ImGui::CalcTextSize(key_name_str);
+                auto text_pos = ImVec2(key_rect.Min.x + (key_rect.GetWidth() - font_size.x) / 2, key_rect.Max.y - font_size.y - 4);
+                draw_list->AddText(text_pos, IM_COL32_WHITE, key_name_str);
+            }
             cur_key += 2;
         } 
         else
@@ -4271,88 +4339,77 @@ void ImGui::Piano::draw(ImVec2 size, bool input)
     }
     if (input)
     {
-        /*
+        /*                 1#  2#      4#  5#  6#
          *      ┏━━━┯━━━━┯━━━┯━━━┯━━━┯━━━┯━━━┯━━━┯━━━┯━━━┯━━━┯━━━┯━━━┯━━┓
          *      ┃ ` │ 1  │ 2 │ 3 │ 4 │ 5 │ 6 │ 7 │ 8 │ 9 │ 0 │ - │ = │BS┃
          *      ┠───┼───┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┨
-         *      ┃Tab│ Q │ W │ E │ R │ T │ Y │ U │ I │ O │ P │ [ │ ] │ | ┃
+         *      ┃Tab│Q1f│W2f│E3f│R4f│T5f│Y6f│U7f│ I │ O │ P │ [ │ ] │ | ┃
          *      ┠───┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴───┨
          *      ┃ Cap │ A │S1#│D2#│ F │G4#│H5#│J6#│ K │ L │ ; │ ' │ Ret ┃
          *      ┠─────┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─────┨
-         * f3-> ┃ Shift │Z 1│X 2│C 3│V 4│B 5│N 6│M 7│ , │ . │ / │ Shift ┃ <-g3
+         * f2-> ┃ Shift │Z 1│X 2│C 3│V 4│B 5│N 6│M 7│ , │ . │ / │ Shift ┃<-g2
          *      ┠──┬───┬┴──┬┴──┬┴───┴───┴───┴───┴───┼───┼───┼───┼───┬───┨
          *      ┃Fn│Ctl│Alt│Cmd│      Space         │Cmd│Alt│ < │ v │ > ┃
          *      ┗━━┷━━━┷━━━┷━━━┷━━━━━━━━━━━━━━━━━━━━┷━━━┷━━━┷━━━┷━━━┷━━━┛
-         *              f2  f1        clean          g1  g2
+         *                             clean             g3
         */
+        auto check_key = [&](ImGuiKey key, int ckey)
+        {
+            if          (ImGui::IsKeyDown(key))        key_states[ckey] += 127;
+            else if (ImGui::IsKeyReleased(key))  { if (key_states[ckey] > 0) key_states[ckey] = -2; }
+        };
+
         if (IsKeyDown(ImGuiKey_Space) || ImGui::IsMouseReleased(ImGuiMouseButton_Left))
         {
             for (int i = 0; i < 256; i++) if (key_states[i] > 0) key_states[i] = -2;
         }
         else if (IsKeyReleased(ImGuiKey_LeftShift))
         {
-            for (int i = 0; i< 36; i++) if (key_states[i] > 0) key_states[i] = -2;
-        }
-        else if (IsKeyReleased(ImGuiKey_LeftAlt))
-        {
-            for (int i = 36; i < 48; i++) if (key_states[i] > 0) key_states[i] = -2;
-        }
-        else if (IsKeyReleased(ImGuiKey_LeftSuper))
-        {
-            for (int i = 48; i < 60; i++) if (key_states[i] > 0) key_states[i] = -2;
-        }
-        else if (IsKeyReleased(ImGuiKey_RightSuper))
-        {
-            for (int i = 72; i < 84; i++) if (key_states[i] > 0) key_states[i] = -2;
+            for (int i = 0; i < 48; i++) if (key_states[i] > 0) key_states[i] = -2;
         }
         else if (IsKeyReleased(ImGuiKey_RightAlt))
         {
-            for (int i = 84; i < 96; i++) if (key_states[i] > 0) key_states[i] = -2;
+            for (int i = 72; i < 96; i++) if (key_states[i] > 0) key_states[i] = -2;
         }
         else if (IsKeyReleased(ImGuiKey_RightShift))
         {
-            for (int i = 96; i < 108; i++) if (key_states[i] > 0) key_states[i] = -2;
+            for (int i = 96; i < 120; i++) if (key_states[i] > 0) key_states[i] = -2;
         }
         else
         {
-            int cur_key = 60;
-            if (IsKeyDown(ImGuiKey_LeftShift))
-                cur_key -= 12 * 3;
-            else if (IsKeyDown(ImGuiKey_LeftAlt))
+            int cur_key = 48;
+            if (IsKeyDown(ImGuiKey_LeftShift) && !IsKeyDown(ImGuiKey_RightShift) && !IsKeyDown(ImGuiKey_RightAlt))
                 cur_key -= 12 * 2;
-            else if (IsKeyDown(ImGuiKey_LeftSuper))
-                cur_key -= 12 * 1;
-            else if (IsKeyDown(ImGuiKey_RightSuper))
-                cur_key += 12 * 1;
-            else if (IsKeyDown(ImGuiKey_RightAlt))
+            else if (IsKeyDown(ImGuiKey_RightAlt) && !IsKeyDown(ImGuiKey_LeftShift) && !IsKeyDown(ImGuiKey_RightShift))
                 cur_key += 12 * 2;
-            else if (IsKeyDown(ImGuiKey_RightShift))
-                cur_key += 12 * 3;
-
-            if (ImGui::IsKeyDown(ImGuiKey_Z))           key_states[cur_key] += 127;
-            else if (ImGui::IsKeyReleased(ImGuiKey_Z))  { if (key_states[cur_key] > 0) key_states[cur_key] = -2; }
-            if (ImGui::IsKeyDown(ImGuiKey_S))           key_states[cur_key + 1] += 127;
-            else if (ImGui::IsKeyReleased(ImGuiKey_S))  { if (key_states[cur_key + 1] > 0) key_states[cur_key + 1] = -2; }
-            if (ImGui::IsKeyDown(ImGuiKey_X))           key_states[cur_key + 2] += 127;
-            else if (ImGui::IsKeyReleased(ImGuiKey_X))  { if (key_states[cur_key + 2] > 0) key_states[cur_key + 2] = -2; }
-            if (ImGui::IsKeyDown(ImGuiKey_D))           key_states[cur_key + 3] += 127;
-            else if (ImGui::IsKeyReleased(ImGuiKey_D))  { if (key_states[cur_key + 3] > 0) key_states[cur_key + 3] = -2; }
-            if (ImGui::IsKeyDown(ImGuiKey_C))           key_states[cur_key + 4] += 127;
-            else if (ImGui::IsKeyReleased(ImGuiKey_C))  { if (key_states[cur_key + 4] > 0) key_states[cur_key + 4] = -2; }
-            if (ImGui::IsKeyDown(ImGuiKey_V))           key_states[cur_key + 5] += 127;
-            else if (ImGui::IsKeyReleased(ImGuiKey_V))  { if (key_states[cur_key + 5] > 0) key_states[cur_key + 5] = -2; }
-            if (ImGui::IsKeyDown(ImGuiKey_G))           key_states[cur_key + 6] += 127;
-            else if (ImGui::IsKeyReleased(ImGuiKey_G))  { if (key_states[cur_key + 6] > 0) key_states[cur_key + 6] = -2; }
-            if (ImGui::IsKeyDown(ImGuiKey_B))           key_states[cur_key + 7] += 127;
-            else if (ImGui::IsKeyReleased(ImGuiKey_B))  { if (key_states[cur_key + 7] > 0) key_states[cur_key + 7] = -2; }
-            if (ImGui::IsKeyDown(ImGuiKey_H))           key_states[cur_key + 8] += 127;
-            else if (ImGui::IsKeyReleased(ImGuiKey_H))  { if (key_states[cur_key + 8] > 0) key_states[cur_key + 8] = -2; }
-            if (ImGui::IsKeyDown(ImGuiKey_N))           key_states[cur_key + 9] += 127;
-            else if (ImGui::IsKeyReleased(ImGuiKey_N))  { if (key_states[cur_key + 9] > 0) key_states[cur_key + 9] = -2; }
-            if (ImGui::IsKeyDown(ImGuiKey_J))           key_states[cur_key + 10] += 127;
-            else if (ImGui::IsKeyReleased(ImGuiKey_J))  { if (key_states[cur_key + 10] > 0) key_states[cur_key + 10] = -2; }
-            if (ImGui::IsKeyDown(ImGuiKey_M))           key_states[cur_key + 11] += 127;
-            else if (ImGui::IsKeyReleased(ImGuiKey_M))  { if (key_states[cur_key + 11] > 0) key_states[cur_key + 11] = -2; }
+            else if (IsKeyDown(ImGuiKey_RightShift) && !IsKeyDown(ImGuiKey_LeftShift) && !IsKeyDown(ImGuiKey_RightAlt))
+                cur_key += 12 * 4;
+            // low key
+            check_key(ImGuiKey_Q, cur_key++);   // F1
+            check_key(ImGuiKey_2, cur_key++);   // F1#
+            check_key(ImGuiKey_W, cur_key++);   // F2
+            check_key(ImGuiKey_3, cur_key++);   // F2#
+            check_key(ImGuiKey_E, cur_key++);   // F3
+            check_key(ImGuiKey_R, cur_key++);   // F4
+            check_key(ImGuiKey_5, cur_key++);   // F4#
+            check_key(ImGuiKey_T, cur_key++);   // F5
+            check_key(ImGuiKey_6, cur_key++);   // F5#
+            check_key(ImGuiKey_Y, cur_key++);   // F6
+            check_key(ImGuiKey_7, cur_key++);   // F6#
+            check_key(ImGuiKey_U, cur_key++);   // F7
+            // high key
+            check_key(ImGuiKey_Z, cur_key++);   // C1
+            check_key(ImGuiKey_S, cur_key++);   // C1#
+            check_key(ImGuiKey_X, cur_key++);   // C2
+            check_key(ImGuiKey_D, cur_key++);   // C2#
+            check_key(ImGuiKey_C, cur_key++);   // C3
+            check_key(ImGuiKey_V, cur_key++);   // C4
+            check_key(ImGuiKey_G, cur_key++);   // C4#
+            check_key(ImGuiKey_B, cur_key++);   // C5
+            check_key(ImGuiKey_H, cur_key++);   // C5#
+            check_key(ImGuiKey_N, cur_key++);   // C6
+            check_key(ImGuiKey_J, cur_key++);   // C6#
+            check_key(ImGuiKey_M, cur_key++);   // C7
         }
     }
     ImGui::InvisibleButton("##keyboard", size);
