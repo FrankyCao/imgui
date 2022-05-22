@@ -4198,7 +4198,8 @@ void ImGui::Piano::down(int key, int velocity)
 
 void ImGui::Piano::draw(ImVec2 size, bool input)
 {
-    static char* key_name[] = { "Q", "2", "W", "3", "E", "R", "5", "T", "6", "Y", "7", "U", "Z", "S", "X", "D", "C", "V", "G", "B", "H", "N", "J", "M"};
+    static char key_name[] = { 'Q', '2', 'W', '3', 'E', 'R', '5', 'T', '6', 'Y', '7', 'U', 'Z', 'S', 'X', 'D', 'C', 'V', 'G', 'B', 'H', 'N', 'J', 'M'};
+    char buf[4];
     ImGuiIO &io = ImGui::GetIO();
     ImU32 Black = IM_COL32(0, 0, 0, 255);
     ImU32 White = IM_COL32(255, 255, 255, 255);
@@ -4217,10 +4218,9 @@ void ImGui::Piano::draw(ImVec2 size, bool input)
         ImRect key_rect(ImVec2(p.x + key * key_width, p.y), ImVec2(p.x + key * key_width + key_width, p.y + white_key_height));
         ImU32 col = White;
         bool draw_text = false;
-        char * key_name_str = nullptr;
+        char key_name_str = ' ';
         if (input)
         {
-
             if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && 
                 key_rect.Contains(io.MousePos) && 
                 (key_rect.Max.y - io.MousePos.y) < (white_key_height - black_key_height))
@@ -4266,11 +4266,12 @@ void ImGui::Piano::draw(ImVec2 size, bool input)
         }
         draw_list->AddRectFilled(key_rect.Min, key_rect.Max, col, 2, ImDrawCornerFlags_All);
         draw_list->AddRect(key_rect.Min, key_rect.Max, Black, 2, ImDrawCornerFlags_All);
-        if (draw_text && key_name_str)
+        if (draw_text && key_name_str != ' ')
         {
-            auto font_size = ImGui::CalcTextSize(key_name_str);
+            ImFormatString(buf, 4, "%c\n", key_name_str);
+            auto font_size = ImGui::CalcTextSize(buf);
             auto text_pos = ImVec2(key_rect.Min.x + (key_rect.GetWidth() - font_size.x) / 2, key_rect.Max.y - font_size.y - 4);
-            draw_list->AddText(text_pos, IM_COL32_BLACK, key_name_str);
+            draw_list->AddText(text_pos, IM_COL32_BLACK, buf);
         }
         cur_key++;
         if (has_black(key))
@@ -4286,7 +4287,7 @@ void ImGui::Piano::draw(ImVec2 size, bool input)
             ImRect key_rect(ImVec2(p.x + key * key_width + key_width * 3 / 4, p.y), ImVec2(p.x + key * key_width + key_width * 5 / 4 + 1, p.y + black_key_height));
             ImU32 col = Black;
             bool draw_text = false;
-            char * key_name_str = nullptr;
+            char key_name_str = ' ';
             if (input)
             {
                 if (key_rect.Contains(io.MousePos) && ImGui::IsMouseDown(ImGuiMouseButton_Left))
@@ -4324,11 +4325,12 @@ void ImGui::Piano::draw(ImVec2 size, bool input)
             }
             draw_list->AddRectFilled(key_rect.Min, key_rect.Max, col, 2, ImDrawCornerFlags_All);
             draw_list->AddRect(key_rect.Min, key_rect.Max, Black, 2, ImDrawCornerFlags_All);
-            if (draw_text && key_name_str)
+            if (draw_text && key_name_str != ' ')
             {
-                auto font_size = ImGui::CalcTextSize(key_name_str);
+                ImFormatString(buf, 4, "%c\n", key_name_str);
+                auto font_size = ImGui::CalcTextSize(buf);
                 auto text_pos = ImVec2(key_rect.Min.x + (key_rect.GetWidth() - font_size.x) / 2, key_rect.Max.y - font_size.y - 4);
-                draw_list->AddText(text_pos, IM_COL32_WHITE, key_name_str);
+                draw_list->AddText(text_pos, IM_COL32_WHITE, buf);
             }
             cur_key += 2;
         } 
