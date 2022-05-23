@@ -360,7 +360,7 @@ IMGUI_API void      LoadingIndicatorCircle2(const char* label, float indicatorRa
 
 namespace ImGui
 {
-class Piano {
+class IMGUI_API Piano {
 public:
     int key_states[256] = {0};
     void up(int key);
