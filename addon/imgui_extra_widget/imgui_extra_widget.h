@@ -364,7 +364,7 @@ class IMGUI_API Piano {
 public:
     int key_states[256] = {0};
     void up(int key);
-    void draw(ImVec2 size, bool input = false);
+    void draw_keyboard(ImVec2 size, bool input = false);
     void down(int key, int velocity);
     void reset();
 };

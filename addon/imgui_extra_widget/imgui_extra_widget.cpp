@@ -4196,7 +4196,7 @@ void ImGui::Piano::down(int key, int velocity)
     key_states[key] = velocity;
 }
 
-void ImGui::Piano::draw(ImVec2 size, bool input)
+void ImGui::Piano::draw_keyboard(ImVec2 size, bool input)
 {
     static char key_name[] = { 'Q', '2', 'W', '3', 'E', 'R', '5', 'T', '6', 'Y', '7', 'U', 'Z', 'S', 'X', 'D', 'C', 'V', 'G', 'B', 'H', 'N', 'J', 'M'};
     char buf[4];
