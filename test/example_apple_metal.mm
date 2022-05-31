@@ -36,7 +36,11 @@
 
 static std::string get_file_contents(const char *filename)
 {
+#ifdef DEFAULT_DOCUMENT_PATH
     std::string file_path = std::string(DEFAULT_DOCUMENT_PATH) + std::string(filename);
+#else
+    std::string file_path = std::string(filename);
+#endif
     std::ifstream infile(file_path, std::ios::in | std::ios::binary);
     if (infile.is_open())
     {

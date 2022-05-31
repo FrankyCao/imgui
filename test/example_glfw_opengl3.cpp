@@ -29,7 +29,11 @@
 
 static std::string get_file_contents(const char *filename)
 {
+#ifdef DEFAULT_DOCUMENT_PATH
     std::string file_path = std::string(DEFAULT_DOCUMENT_PATH) + std::string(filename);
+#else
+    std::string file_path = std::string(filename);
+#endif
     std::ifstream infile(file_path, std::ios::in | std::ios::binary);
     if (infile.is_open())
     {
@@ -157,7 +161,11 @@ int main(int, char**)
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
+#ifdef DEFAULT_CONFIG_PATH
     std::string ini_file = std::string(DEFAULT_CONFIG_PATH) + "glfw_opengl3.ini";
+#else
+    std::string ini_file = "glfw_opengl3.ini";
+#endif
     io.IniFilename = ini_file.c_str();
     io.FontGlobalScale = window_scale;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
@@ -199,7 +207,11 @@ int main(int, char**)
 
     // load file dialog resource
     ImGuiFileDialog filedialog;
+#ifdef DEFAULT_CONFIG_PATH
     std::string bookmark_path = std::string(DEFAULT_CONFIG_PATH) + "bookmark.ini";
+#else
+    std::string bookmark_path = "bookmark.ini";
+#endif
     prepare_file_dialog_demo_window(&filedialog, bookmark_path.c_str());
 
     // init memory edit
