@@ -1,4 +1,4 @@
-Fork from *Dear ImGui(https://github.com/ocornut/imgui)* docking/multiview branch and stack layout support
+Fork from *Dear ImGui(https://github.com/ocornut/imgui)* docking/multiview branch and stack layout support and add CMake build script
 Add following addon collection also：
 * ImGuiFileDialog(https://github.com/aiekick/ImGuiFileDialog/tree/Lib_Only)
 * ImGuiTabWindow(https://github.com/Flix01/imgui/tree/imgui_with_addons)
@@ -12,6 +12,14 @@ Add following addon collection also：
 - Add immat for simulation OpenCV Mat(Tanlu team).
 - Add Icon collection(https://github.com/juliettef/IconFontCppHeaders).
 - Add mono Chinese fonts(hei/kai/song/sarasa).
+- Add Application framework to create app simply few function
+- Add power saving mode for imgui, Configurable by coding.
+- Add vulkan texture support(ugly)
+- New method to handle multi-monitor with different DPI setting
+- Add newest std_image code, including read/write/resize
+- Add dll load wrap
+- Add dir iterate wrap
+- Add many helper utils in imgui_helper.cpp
 
 =====
 
