@@ -1,3 +1,19 @@
+Fork from *Dear ImGui(https://github.com/ocornut/imgui)* docking/multiview branch and stack layout support
+Add following addon collection also：
+* ImGuiFileDialog(https://github.com/aiekick/ImGuiFileDialog/tree/Lib_Only)
+* ImGuiTabWindow(https://github.com/Flix01/imgui/tree/imgui_with_addons)
+* Markdown(https://github.com/juliettef/imgui_markdown)
+* MemoryEditor(http://www.github.com/ocornut/imgui_club)
+* ImGui Node editor(https://github.com/thedmd/imgui-node-editor/tree/feature/blueprint-next)
+* TextEditor and other widget(https://github.com/Flix01/imgui/tree/imgui_with_addons/addons)
+* Hotkey(https://github.com/CedricGuillemet/ImHotKey)
+
+Add VkShader for vulkan compute(Tanlu team)
+Add immat for simulation OpenCV Mat(Tanlu team)
+Add Icon collection(https://github.com/juliettef/IconFontCppHeaders)
+Add mono Chinese fonts(hei/kai/song/sarasa)
+=====
+
 Dear ImGui
 =====
 
