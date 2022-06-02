@@ -8,10 +8,11 @@ Add following addon collection also：
 * TextEditor and other widget(https://github.com/Flix01/imgui/tree/imgui_with_addons/addons)
 * Hotkey(https://github.com/CedricGuillemet/ImHotKey)
 
-Add VkShader for vulkan compute(Tanlu team)
-Add immat for simulation OpenCV Mat(Tanlu team)
-Add Icon collection(https://github.com/juliettef/IconFontCppHeaders)
-Add mono Chinese fonts(hei/kai/song/sarasa)
+- Add VkShader for vulkan compute(Tanlu team).
+- Add immat for simulation OpenCV Mat(Tanlu team).
+- Add Icon collection(https://github.com/juliettef/IconFontCppHeaders).
+- Add mono Chinese fonts(hei/kai/song/sarasa).
+
 =====
 
 Dear ImGui
