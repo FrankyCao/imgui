@@ -30,7 +30,8 @@ static std::vector<std::string> split(std::string str, std::string pattern)
     return result;
 }
 
-int DIR_Iterate(std::string directory, std::vector<std::string>& filesAbsolutePath, std::vector<std::string>& filesname, bool surfix, std::string filters)
+/*
+int DIR_Iterate(std::string directory, std::vector<std::string>& filesAbsolutePath, std::vector<std::string>& filesname, bool suffix, std::string filters)
 {
     DIR* dir = opendir(directory.c_str());
     if ( dir == NULL )
@@ -60,7 +61,7 @@ int DIR_Iterate(std::string directory, std::vector<std::string>& filesAbsolutePa
                     newDirectory = directory + std::string(d_ent->d_name);
                 }
                 
-                if ( -1 == DIR_Iterate(newDirectory, filesAbsolutePath, filesname, surfix, filters) )
+                if ( -1 == DIR_Iterate(newDirectory, filesAbsolutePath, filesname, suffix, filters) )
                 {
                     return -1;
                 }
@@ -75,8 +76,8 @@ int DIR_Iterate(std::string directory, std::vector<std::string>& filesAbsolutePa
                     absolutePath = directory + std::string(d_ent->d_name);
                 }
                 char * pos = strchr(d_ent->d_name, '.');
-                std::string surfix_name = std::string(pos);
-                if (!surfix)
+                std::string suffix_name = std::string(pos);
+                if (!suffix)
                 {
                     *pos = '\0';
                 }
@@ -89,7 +90,7 @@ int DIR_Iterate(std::string directory, std::vector<std::string>& filesAbsolutePa
                 {
                     for (auto filter : filter_array)
                     {
-                        if (surfix_name.compare(filter) == 0)
+                        if (suffix_name.compare(filter) == 0)
                         {
                             filesAbsolutePath.push_back(absolutePath);
                             filesname.push_back(d_ent->d_name);
@@ -104,4 +105,87 @@ int DIR_Iterate(std::string directory, std::vector<std::string>& filesAbsolutePa
     std::sort(filesAbsolutePath.begin(), filesAbsolutePath.end());
     std::sort(filesname.begin(), filesname.end());
     return 0;
+}
+*/
+
+int DIR_Iterate(std::string directory, std::vector<std::string>& filesAbsolutePath, std::vector<std::string>& filesname, std::vector<std::string>& suffix_filter, bool suffix, bool recurrence, bool sort)
+{
+	DIR* dir = opendir(directory.c_str());
+	if ( dir == NULL )
+	{
+		//std::cout << directory << " is not a directory or not exist!" << std::endl;
+		return -1;
+	}
+	struct dirent* d_ent = NULL;
+	char dot[3] = ".";
+	char dotdot[6] = "..";
+	
+	while ( (d_ent = readdir(dir)) != NULL )
+	{
+		if ( (strcmp(d_ent->d_name, dot) != 0)
+			&& (strcmp(d_ent->d_name, dotdot) != 0) )
+		{
+			if ( d_ent->d_type == DT_DIR)
+			{
+                if (recurrence)
+                {
+                    std::string newDirectory = directory + std::string("/") + std::string(d_ent->d_name);
+                    if( directory[directory.length()-1] == '/')
+                    {
+                        newDirectory = directory + std::string(d_ent->d_name);
+                    }
+                    if ( -1 == DIR_Iterate(newDirectory, filesAbsolutePath, filesname, suffix_filter, suffix) )
+                    {
+                        return -1;
+                    }
+                }
+			}
+			else
+			{
+				if (d_ent->d_name[0] == '.')
+					continue;
+                bool need_add = false;
+                std::string suffix_str;
+				std::string absolutePath = directory + std::string("/") + std::string(d_ent->d_name);
+				if( directory[directory.length()-1] == '/')
+				{
+					absolutePath = directory + std::string(d_ent->d_name);
+				}
+                char * pos = strrchr(d_ent->d_name, '.');
+                if (pos)
+                {
+                    suffix_str = std::string(pos + 1);
+                    for(auto &elem : suffix_str) elem = std::tolower(elem);
+                }
+
+                if (!suffix_filter.empty())
+                {
+                    for (auto filter : suffix_filter)
+                    {
+                        if (filter.compare(suffix_str) == 0)
+                        {
+                            need_add = true;
+                            break;
+                        }
+                    }
+                }
+                else
+                    need_add = true;
+				filesAbsolutePath.push_back(absolutePath);
+				if (!suffix)
+				{
+					char * pos = strrchr(d_ent->d_name, '.');
+					if (pos) *pos = '\0';
+				}
+				filesname.push_back(d_ent->d_name);
+			}
+		}
+	}
+	closedir(dir);
+    if (sort)
+    {
+        std::sort(filesAbsolutePath.begin(), filesAbsolutePath.end());
+        std::sort(filesname.begin(), filesname.end());
+    }
+	return 0;
 }

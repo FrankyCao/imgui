@@ -482,8 +482,6 @@ IMGUI_API int StringAppend(ImVector<char>& v,const char* fmt, ...);
 // ImGui Theme generator
 IMGUI_API void ThemeGenerator(const char* name, bool* p_open = NULL, ImGuiWindowFlags flags = 0);
 
-// File traversal
-IMGUI_API int GetAbsoluteFiles(std::string directory, std::vector<std::string>& filesAbsolutePath, std::vector<std::string>& filesname, bool surfix = true, bool recurrence = true, bool sort = true);
 } // ImGuiHelper
 
 #ifndef NO_IMGUIKNOWNCOLOR_DEFINITIONS

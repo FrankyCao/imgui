@@ -5132,7 +5132,7 @@ namespace IGFD
 	}
 
 	// add by Dicky
-	std::string IGFD::FileDialog::GetCurrentFileSurfix()
+	std::string IGFD::FileDialog::GetCurrentFileSuffix()
 	{
 		std::string result;
 		std::string vFile = prFileDialogInternal.puFileManager.GetResultingFileName(prFileDialogInternal);

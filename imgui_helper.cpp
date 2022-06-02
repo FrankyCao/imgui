@@ -1961,66 +1961,6 @@ void ThemeGenerator(const char* name, bool* p_open, ImGuiWindowFlags flags)
     ImGui::End();
 }
 
-int GetAbsoluteFiles(std::string directory, std::vector<std::string>& filesAbsolutePath, std::vector<std::string>& filesname, bool surfix, bool recurrence, bool sort)
-{
-	DIR* dir = opendir(directory.c_str());
-	if ( dir == NULL )
-	{
-		//std::cout << directory << " is not a directory or not exist!" << std::endl;
-		return -1;
-	}
-	struct dirent* d_ent = NULL;
-	char dot[3] = ".";
-	char dotdot[6] = "..";
-	
-	while ( (d_ent = readdir(dir)) != NULL )
-	{
-		if ( (strcmp(d_ent->d_name, dot) != 0)
-			&& (strcmp(d_ent->d_name, dotdot) != 0) )
-		{
-			if ( d_ent->d_type == DT_DIR)
-			{
-                if (recurrence)
-                {
-                    std::string newDirectory = directory + std::string("/") + std::string(d_ent->d_name);
-                    if( directory[directory.length()-1] == '/')
-                    {
-                        newDirectory = directory + std::string(d_ent->d_name);
-                    }
-                    if ( -1 == GetAbsoluteFiles(newDirectory, filesAbsolutePath, filesname, surfix) )
-                    {
-                        return -1;
-                    }
-                }
-			}
-			else
-			{
-				if (d_ent->d_name[0] == '.')
-					continue;
-				std::string absolutePath = directory + std::string("/") + std::string(d_ent->d_name);
-				if( directory[directory.length()-1] == '/')
-				{
-					absolutePath = directory + std::string(d_ent->d_name);
-				}
-				filesAbsolutePath.push_back(absolutePath);
-				if (!surfix)
-				{
-					char * pos = strrchr(d_ent->d_name, '.');
-					if (pos) *pos = '\0';
-				}
-				filesname.push_back(d_ent->d_name);
-			}
-		}
-	}
-	closedir(dir);
-    if (sort)
-    {
-        std::sort(filesAbsolutePath.begin(), filesAbsolutePath.end());
-        std::sort(filesname.begin(), filesname.end());
-    }
-	return 0;
-}
-
 } //namespace ImGuiHelper
 
 namespace base64 

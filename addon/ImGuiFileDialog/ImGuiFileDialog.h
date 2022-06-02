@@ -1584,7 +1584,7 @@ namespace IGFD
 		std::string GetFilePathName();								// Save File behavior : will always return the content of the field with current filter extention and current path
 		std::string GetCurrentFileName();							// Save File behavior : will always return the content of the field with current filter extention
 		// add by dicky
-		std::string GetCurrentFileSurfix();                         // return file extention
+		std::string GetCurrentFileSuffix();                         // return file extention
 		// add by dicky end
 		std::string GetCurrentPath();								// will return current path
 		std::string GetCurrentFilter();								// will return selected filter

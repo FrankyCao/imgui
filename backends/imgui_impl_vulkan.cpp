@@ -2243,22 +2243,22 @@ void ImGui_ImplVulkan_SaveTexture(ImTextureVk texture, std::string path)
         throw std::runtime_error("failed to map image memory!");
     }
     {
-        std::string file_surfix;
+        std::string file_suffix;
         auto separator = path.find_last_of('.');
         if (separator != std::string::npos)
-            file_surfix = path.substr(separator + 1);
-        if (!file_surfix.empty())
+            file_suffix = path.substr(separator + 1);
+        if (!file_suffix.empty())
         {
-            if (file_surfix.compare("png") == 0 || file_surfix.compare("PNG") == 0)
+            if (file_suffix.compare("png") == 0 || file_suffix.compare("PNG") == 0)
                 stbi_write_png(path.c_str(), texture->textureWidth, texture->textureHeight, 4, data, texture->textureWidth * 4);
-            else if (file_surfix.compare("jpg") == 0 || file_surfix.compare("JPG") == 0 ||
-                    file_surfix.compare("jpeg") == 0 || file_surfix.compare("JPEG") == 0)
+            else if (file_suffix.compare("jpg") == 0 || file_suffix.compare("JPG") == 0 ||
+                    file_suffix.compare("jpeg") == 0 || file_suffix.compare("JPEG") == 0)
                 stbi_write_jpg(path.c_str(), texture->textureWidth, texture->textureHeight, 4, data, texture->textureWidth * 4);
-            else if (file_surfix.compare("bmp") == 0 || file_surfix.compare("BMP") == 0)
+            else if (file_suffix.compare("bmp") == 0 || file_suffix.compare("BMP") == 0)
                 stbi_write_bmp(path.c_str(), texture->textureWidth, texture->textureHeight, 4, data);
-            else if (file_surfix.compare("tga") == 0 || file_surfix.compare("TGA") == 0)
+            else if (file_suffix.compare("tga") == 0 || file_suffix.compare("TGA") == 0)
                 stbi_write_tga(path.c_str(), texture->textureWidth, texture->textureHeight, 4, data);
-            //else if (file_surfix.compare("hdr") == 0 || file_surfix.compare("HDR") == 0)
+            //else if (file_suffix.compare("hdr") == 0 || file_suffix.compare("HDR") == 0)
             //    stbi_write_hdr(path.c_str(), texture->textureWidth, texture->textureHeight, 4, data); // HDR only support float
         }
     }
