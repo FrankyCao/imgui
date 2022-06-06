@@ -2445,16 +2445,16 @@ inline void ImMat::get_pixel(int x, int y, ImPixel& color)
             if (c > 3) color.a = (float)at<uint16_t>(x, y, 3) / UINT16_MAX;
         break;
         case IM_DT_INT32:
-            if (c > 0) color.r = (float)at<uint32_t>(x, y, 0) / UINT32_MAX;
-            if (c > 1) color.g = (float)at<uint32_t>(x, y, 1) / UINT32_MAX;
-            if (c > 2) color.b = (float)at<uint32_t>(x, y, 2) / UINT32_MAX;
-            if (c > 3) color.a = (float)at<uint32_t>(x, y, 3) / UINT32_MAX;
+            if (c > 0) color.r = (float)at<uint32_t>(x, y, 0) / (float)UINT32_MAX;
+            if (c > 1) color.g = (float)at<uint32_t>(x, y, 1) / (float)UINT32_MAX;
+            if (c > 2) color.b = (float)at<uint32_t>(x, y, 2) / (float)UINT32_MAX;
+            if (c > 3) color.a = (float)at<uint32_t>(x, y, 3) / (float)UINT32_MAX;
         break;
         case IM_DT_INT64:
-            if (c > 0) color.r = (float)at<uint64_t>(x, y, 0) / UINT64_MAX;
-            if (c > 1) color.g = (float)at<uint64_t>(x, y, 1) / UINT64_MAX;
-            if (c > 2) color.b = (float)at<uint64_t>(x, y, 2) / UINT64_MAX;
-            if (c > 3) color.a = (float)at<uint64_t>(x, y, 3) / UINT64_MAX;
+            if (c > 0) color.r = (float)at<uint64_t>(x, y, 0) / (float)UINT64_MAX;
+            if (c > 1) color.g = (float)at<uint64_t>(x, y, 1) / (float)UINT64_MAX;
+            if (c > 2) color.b = (float)at<uint64_t>(x, y, 2) / (float)UINT64_MAX;
+            if (c > 3) color.a = (float)at<uint64_t>(x, y, 3) / (float)UINT64_MAX;
         break;
         case IM_DT_FLOAT16:
             // TODO::Dicky
@@ -2502,16 +2502,16 @@ inline void ImMat::draw_dot(int x, int y, ImPixel color)
             if (c > 3) at<uint16_t>(x, y, 3) = color.a * UINT16_MAX;
         break;
         case IM_DT_INT32:
-            if (c > 0) at<uint32_t>(x, y, 0) = color.r * UINT32_MAX;
-            if (c > 1) at<uint32_t>(x, y, 1) = color.g * UINT32_MAX;
-            if (c > 2) at<uint32_t>(x, y, 2) = color.b * UINT32_MAX;
-            if (c > 3) at<uint32_t>(x, y, 3) = color.a * UINT32_MAX;
+            if (c > 0) at<uint32_t>(x, y, 0) = color.r * (float)UINT32_MAX;
+            if (c > 1) at<uint32_t>(x, y, 1) = color.g * (float)UINT32_MAX;
+            if (c > 2) at<uint32_t>(x, y, 2) = color.b * (float)UINT32_MAX;
+            if (c > 3) at<uint32_t>(x, y, 3) = color.a * (float)UINT32_MAX;
         break;
         case IM_DT_INT64:
-            if (c > 0) at<uint64_t>(x, y, 0) = color.r * UINT64_MAX;
-            if (c > 1) at<uint64_t>(x, y, 1) = color.g * UINT64_MAX;
-            if (c > 2) at<uint64_t>(x, y, 2) = color.b * UINT64_MAX;
-            if (c > 3) at<uint64_t>(x, y, 3) = color.a * UINT64_MAX;
+            if (c > 0) at<uint64_t>(x, y, 0) = color.r * (float)UINT64_MAX;
+            if (c > 1) at<uint64_t>(x, y, 1) = color.g * (float)UINT64_MAX;
+            if (c > 2) at<uint64_t>(x, y, 2) = color.b * (float)UINT64_MAX;
+            if (c > 3) at<uint64_t>(x, y, 3) = color.a * (float)UINT64_MAX;
         break;
         case IM_DT_FLOAT16:
             // TODO::Dicky
@@ -2554,16 +2554,16 @@ inline void ImMat::alphablend(int x, int y, float alpha, ImPixel color)
             if (c > 3) at<uint16_t>(x, y, 3) = (uint16_t)(color.a * UINT16_MAX);
         break;
         case IM_DT_INT32:
-            if (c > 0) at<uint32_t>(x, y, 0) = at<uint32_t>(x, y, 0) * (1 - alpha) + color.r * alpha * UINT32_MAX;
-            if (c > 1) at<uint32_t>(x, y, 1) = at<uint32_t>(x, y, 1) * (1 - alpha) + color.g * alpha * UINT32_MAX;
-            if (c > 2) at<uint32_t>(x, y, 2) = at<uint32_t>(x, y, 2) * (1 - alpha) + color.b * alpha * UINT32_MAX;
-            if (c > 3) at<uint32_t>(x, y, 3) = (uint32_t)(color.a * UINT32_MAX);
+            if (c > 0) at<uint32_t>(x, y, 0) = at<uint32_t>(x, y, 0) * (1 - alpha) + color.r * alpha * (float)UINT32_MAX;
+            if (c > 1) at<uint32_t>(x, y, 1) = at<uint32_t>(x, y, 1) * (1 - alpha) + color.g * alpha * (float)UINT32_MAX;
+            if (c > 2) at<uint32_t>(x, y, 2) = at<uint32_t>(x, y, 2) * (1 - alpha) + color.b * alpha * (float)UINT32_MAX;
+            if (c > 3) at<uint32_t>(x, y, 3) = (uint32_t)(color.a * (float)UINT32_MAX);
         break;
         case IM_DT_INT64:
-            if (c > 0) at<uint64_t>(x, y, 0) = at<uint64_t>(x, y, 0) * (1 - alpha) + color.r * alpha * UINT64_MAX;
-            if (c > 1) at<uint64_t>(x, y, 1) = at<uint64_t>(x, y, 1) * (1 - alpha) + color.g * alpha * UINT64_MAX;
-            if (c > 2) at<uint64_t>(x, y, 2) = at<uint64_t>(x, y, 2) * (1 - alpha) + color.b * alpha * UINT64_MAX;
-            if (c > 3) at<uint64_t>(x, y, 3) = (uint64_t)(color.a * UINT64_MAX);
+            if (c > 0) at<uint64_t>(x, y, 0) = at<uint64_t>(x, y, 0) * (1 - alpha) + color.r * alpha * (float)UINT64_MAX;
+            if (c > 1) at<uint64_t>(x, y, 1) = at<uint64_t>(x, y, 1) * (1 - alpha) + color.g * alpha * (float)UINT64_MAX;
+            if (c > 2) at<uint64_t>(x, y, 2) = at<uint64_t>(x, y, 2) * (1 - alpha) + color.b * alpha * (float)UINT64_MAX;
+            if (c > 3) at<uint64_t>(x, y, 3) = (uint64_t)(color.a * (float)UINT64_MAX);
         break;
         case IM_DT_FLOAT16:
             // TODO::Dicky

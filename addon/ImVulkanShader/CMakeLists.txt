@@ -28,10 +28,30 @@ option(VKSHADER_STATIC                "Build Vulkan Shader as static library" OF
 find_package(PkgConfig)
 find_package(Vulkan)
 
-find_package(OpenMP)
-if(NOT TARGET OpenMP::OpenMP_CXX)
+set(LINK_LIBS)
+
+if (APPLE)
+    message(STATUS "VkShader(Apple) Use OpenMP")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xpreprocessor -fopenmp")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Xpreprocessor -fopenmp")
+    set(LINK_LIBS ${LINK_LIBS} -L/usr/local/lib -lomp)
+else()
+    find_package(OpenMP)
+    if(NOT TARGET OpenMP::OpenMP_CXX)
     set_property(TARGET OpenMP::OpenMP_CXX
-        PROPERTY INTERFACE_LINK_LIBRARIES ${OpenMP_CXX_FLAGS} Threads::Threads)
+                PROPERTY INTERFACE_LINK_LIBRARIES ${OpenMP_CXX_FLAGS} Threads::Threads)
+    endif()
+    if(WIN32 OR MINGW)
+        message(STATUS "VkShader(Windows) Use OpenMP")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+        set(LINK_LIBS ${LINK_LIBS} gmp)
+    else()
+        message(STATUS "VkShader Use OpenMP")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+        set(LINK_LIBS ${LINK_LIBS} gmp)
+    endif()
 endif()
 
 if(PKG_CONFIG_FOUND)
@@ -43,8 +63,6 @@ if(PKG_CONFIG_FOUND)
         endif(VULKAN_FOUND)
     endif(NOT VULKAN_FOUND)
 endif(PKG_CONFIG_FOUND)
-
-set(LINK_LIBS)
 
 set(VKSHADER_INC_DIRS
     ${Vulkan_INCLUDE_DIR}
