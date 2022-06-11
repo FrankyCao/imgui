@@ -783,9 +783,10 @@ void TextV(int fntIndex, const char *fmt, va_list args) {
     if (ImGui::GetCurrentWindow()->SkipItems) return;
 
     ImGuiContext& g = *GImGui;
-    const char* text_end = g.TempBuffer + ImFormatStringV(g.TempBuffer, IM_ARRAYSIZE(g.TempBuffer), fmt, args);
+    const char* text, *text_end;
+    ImFormatStringToTempBufferV(&text, &text_end, fmt, args);
     ImGui::PushFont(fntIndex);
-    TextUnformatted(g.TempBuffer, text_end);
+    TextUnformatted(text, text_end);
     ImGui::PopFont();
 }
 void Text(int fntIndex, const char *fmt,...)    {
