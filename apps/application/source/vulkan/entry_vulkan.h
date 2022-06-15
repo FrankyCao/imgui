@@ -53,7 +53,6 @@ static void SetupVulkan(std::vector<const char*>& extensions, int gpu = -1)
     VkResult err;
 
     // Create Vulkan Instance
-    // VK_HEADER_VERSION 216
     {
         uint32_t instance_api_version = VK_MAKE_VERSION(1, 0, 0);
         err = vkEnumerateInstanceVersion(&instance_api_version);
@@ -69,7 +68,7 @@ static void SetupVulkan(std::vector<const char*>& extensions, int gpu = -1)
         applicationInfo.apiVersion = instance_api_version;
 
         VkInstanceCreateInfo create_info = {};
-#if VK_HEADER_VERSION >= 216
+#if defined(__APPLE__) && VK_HEADER_VERSION >= 216
         extensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
         extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
         create_info.flags = VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
