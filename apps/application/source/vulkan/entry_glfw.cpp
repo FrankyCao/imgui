@@ -68,8 +68,11 @@ int main(int, char**)
     }
 
     uint32_t extensions_count = 0;
-    const char** extensions = glfwGetRequiredInstanceExtensions(&extensions_count);
-    SetupVulkan(extensions, extensions_count);
+    const char** ext = glfwGetRequiredInstanceExtensions(&extensions_count);
+    std::vector<const char*> extensions;
+    for (int i = 0; i < extensions_count; i++)
+        extensions.push_back(ext[i]);
+    SetupVulkan(extensions);
 
     // Create Window Surface
     VkSurfaceKHR surface;

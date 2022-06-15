@@ -947,9 +947,13 @@ int create_gpu_instance()
     applicationInfo.apiVersion = instance_api_version;
 
     VkInstanceCreateInfo instanceCreateInfo;
+#if VK_HEADER_VERSION >= 216
+    enabledExtensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+    enabledExtensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+    instanceCreateInfo.flags = VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+#endif
     instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     instanceCreateInfo.pNext = 0;
-    instanceCreateInfo.flags = 0;
     instanceCreateInfo.pApplicationInfo = &applicationInfo;
     instanceCreateInfo.enabledLayerCount = enabledLayers.size();
     instanceCreateInfo.ppEnabledLayerNames = enabledLayers.data();

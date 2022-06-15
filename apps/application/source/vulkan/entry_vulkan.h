@@ -48,11 +48,12 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debug_report(VkDebugReportFlagsEXT flags, 
 }
 #endif // IMGUI_VULKAN_DEBUG_REPORT
 
-static void SetupVulkan(const char** extensions, uint32_t extensions_count, int gpu = -1)
+static void SetupVulkan(std::vector<const char*>& extensions, int gpu = -1)
 {
     VkResult err;
 
     // Create Vulkan Instance
+    // VK_HEADER_VERSION 216
     {
         uint32_t instance_api_version = VK_MAKE_VERSION(1, 0, 0);
         err = vkEnumerateInstanceVersion(&instance_api_version);
@@ -68,10 +69,15 @@ static void SetupVulkan(const char** extensions, uint32_t extensions_count, int 
         applicationInfo.apiVersion = instance_api_version;
 
         VkInstanceCreateInfo create_info = {};
+#if VK_HEADER_VERSION >= 216
+        extensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+        extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+        create_info.flags = VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+#endif
         create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
         create_info.pApplicationInfo = &applicationInfo;
-        create_info.enabledExtensionCount = extensions_count;
-        create_info.ppEnabledExtensionNames = extensions;
+        create_info.enabledExtensionCount = extensions.size();
+        create_info.ppEnabledExtensionNames = extensions.data();
 #ifdef IMGUI_VULKAN_DEBUG_REPORT
         // Enabling validation layers
         const char* layers[] = { "VK_LAYER_KHRONOS_validation" };
@@ -79,16 +85,13 @@ static void SetupVulkan(const char** extensions, uint32_t extensions_count, int 
         create_info.ppEnabledLayerNames = layers;
 
         // Enable debug report extension (we need additional storage, so we duplicate the user array to add our new extension to it)
-        const char** extensions_ext = (const char**)malloc(sizeof(const char*) * (extensions_count + 1));
-        memcpy(extensions_ext, extensions, extensions_count * sizeof(const char*));
-        extensions_ext[extensions_count] = "VK_EXT_debug_report";
-        create_info.enabledExtensionCount = extensions_count + 1;
-        create_info.ppEnabledExtensionNames = extensions_ext;
+        extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+        create_info.enabledExtensionCount = extensions.size();
+        create_info.ppEnabledExtensionNames = extensions.data();
 
         // Create Vulkan Instance
         err = vkCreateInstance(&create_info, g_Allocator, &g_Instance);
         check_vk_result(err);
-        free(extensions_ext);
 
         // Get the function pointer (required for any extensions)
         auto vkCreateDebugReportCallbackEXT = (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(g_Instance, "vkCreateDebugReportCallbackEXT");

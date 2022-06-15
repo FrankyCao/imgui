@@ -48,10 +48,13 @@ int main(int, char**)
     // Setup Vulkan
     uint32_t extensions_count = 0;
     SDL_Vulkan_GetInstanceExtensions(window, &extensions_count, NULL);
-    const char** extensions = new const char*[extensions_count];
-    SDL_Vulkan_GetInstanceExtensions(window, &extensions_count, extensions);
-    SetupVulkan(extensions, extensions_count);
-    delete[] extensions;
+    const char** ext = new const char*[extensions_count];
+    SDL_Vulkan_GetInstanceExtensions(window, &extensions_count, ext);
+    std::vector<const char*> extensions;
+    for (int i = 0; i < extensions_count; i++)
+        extensions.push_back(ext[i]);
+    SetupVulkan(extensions);
+    delete[] ext;
 
     // Create Window Surface
     VkSurfaceKHR surface;

@@ -101,10 +101,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     instance_extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
     instance_extensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
     instance_extensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
-
-    uint32_t extensions_count = instance_extensions.size();
-    const char** extensions = instance_extensions.data();
-    SetupVulkan(extensions, extensions_count);
+    SetupVulkan(instance_extensions);
     
     // Create Window Surface
     VkSurfaceKHR surface;
