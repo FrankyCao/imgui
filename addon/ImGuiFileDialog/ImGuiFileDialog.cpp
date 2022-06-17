@@ -854,6 +854,27 @@ namespace IGFD
 			(collectionfilters.find(vFilter) != collectionfilters.end());
 	}
 
+	bool IGFD::FilterManager::FilterInfos::regex_exist(const std::string& vFilter) const
+	{
+		if (std::regex_search(vFilter, filter_regex))
+		{
+			return true;
+		}
+		else
+		{
+			for (auto regex : collectionfilters_regex)
+			{
+				if (std::regex_search(vFilter, regex))
+				{
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+
 	/////////////////////////////////////////////////////////////////////////////////////
 	//// FILTER MANAGER /////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -894,6 +915,13 @@ namespace IGFD
 						{
 							infos.collectionfilters.emplace(a);
 							infos.collectionfilters_optimized.emplace(Utils::LowerCaseString(a));
+
+							// a regex
+							if (a.find('(') != std::string::npos) {
+								if (a.find(')') != std::string::npos) {
+									infos.collectionfilters_regex.push_back(std::regex(a));
+								}
+							}
 						}
 					}
 					p = lp + 1;
@@ -902,6 +930,14 @@ namespace IGFD
 				{
 					infos.filter = puDLGFilters.substr(lp, p - lp);
 					infos.filter_optimized = Utils::LowerCaseString(infos.filter);
+
+					// a regex
+					if (infos.filter.find('(') != std::string::npos) {
+						if (infos.filter.find(')') != std::string::npos) {
+							infos.filter_regex = std::regex(infos.filter);
+						}
+					}
+
 					p++;
 				}
 
@@ -995,7 +1031,12 @@ namespace IGFD
 						{
 							vFileInfos->fileStyle = _file.second;
 						}
-						else if (_file.first == vFileInfos->fileNameExt) // for links who are equal to style criteria
+						else if (_file.first.find('(') != std::string::npos &&
+							std::regex_search(vFileInfos->fileNameExt, std::regex(_file.first)))  // for links who are equal to style criteria
+						{
+							vFileInfos->fileStyle = _file.second;
+						}
+						else if (_file.first == vFileInfos->fileNameExt)  // for links who are equal to style criteria
 						{
 							vFileInfos->fileStyle = _file.second;
 						}
@@ -1003,21 +1044,38 @@ namespace IGFD
 
 					if (_flag.first & IGFD_FileStyleByExtention)
 					{
-						if (_file.first == vFileInfos->fileExt)
+						if (_file.first.find('(') != std::string::npos &&
+							std::regex_search(vFileInfos->fileExt, std::regex(_file.first)))
+						{
+							vFileInfos->fileStyle = _file.second;
+						}
+						else if (_file.first == vFileInfos->fileExt)
 						{
 							vFileInfos->fileStyle = _file.second;
 						}
 					}
+
 					if (_flag.first & IGFD_FileStyleByFullName)
 					{
-						if (_file.first == vFileInfos->fileNameExt)
+						if (_file.first.find('(') != std::string::npos &&
+							std::regex_search(vFileInfos->fileNameExt, std::regex(_file.first)))
+						{
+							vFileInfos->fileStyle = _file.second;
+						}
+						else if (_file.first == vFileInfos->fileNameExt)
 						{
 							vFileInfos->fileStyle = _file.second;
 						}
 					}
+
 					if (_flag.first & IGFD_FileStyleByContainedInFullName)
 					{
-						if (vFileInfos->fileNameExt.find(_file.first) != std::string::npos)
+						if (_file.first.find('(') != std::string::npos &&
+							std::regex_search(vFileInfos->fileNameExt, std::regex(_file.first)))
+						{
+							vFileInfos->fileStyle = _file.second;
+						}
+						else if (vFileInfos->fileNameExt.find(_file.first) != std::string::npos)
 						{
 							vFileInfos->fileStyle = _file.second;
 						}
@@ -1148,20 +1206,19 @@ namespace IGFD
 		prFilesStyle.clear();
 	}
 		
-	bool IGFD::FilterManager::IsCoveredByFilters(const std::string& vTag, bool vIsCaseInsensitive) const
+	bool IGFD::FilterManager::IsCoveredByFilters(const std::string& vNameExt, const std::string& vExt, bool vIsCaseInsensitive) const
 	{
 		if (!puDLGFilters.empty() && !prSelectedFilter.empty())
 		{
 			// check if current file extention is covered by current filter
 			// we do that here, for avoid doing that during filelist display
 			// for better fps
-			if (prSelectedFilter.exist(vTag, vIsCaseInsensitive) || 
+			return (
+				prSelectedFilter.exist(vExt, vIsCaseInsensitive) ||
 				prSelectedFilter.exist(".*", vIsCaseInsensitive) ||
 				prSelectedFilter.exist("*.*", vIsCaseInsensitive) ||
-				prSelectedFilter.filter == ".*")
-			{
-				return true;
-			}
+				prSelectedFilter.filter == ".*" ||
+				prSelectedFilter.regex_exist(vNameExt));
 		}
 
 		return false;
@@ -1527,7 +1584,7 @@ namespace IGFD
 				infos->fileExt = infos->fileNameExt.substr(lpt);
 			}
 
-			if (!vFileDialogInternal.puFilterManager.IsCoveredByFilters(infos->fileExt, 
+			if (!vFileDialogInternal.puFilterManager.IsCoveredByFilters(infos->fileNameExt, infos->fileExt,
 				(vFileDialogInternal.puDLGflags & ImGuiFileDialogFlags_CaseInsensitiveExtention) != 0))
 			{
 				return;
@@ -1566,7 +1623,7 @@ namespace IGFD
 				infos->fileExt = infos->fileNameExt.substr(lpt);
 			}
 
-			if (!vFileDialogInternal.puFilterManager.IsCoveredByFilters(infos->fileExt,
+			if (!vFileDialogInternal.puFilterManager.IsCoveredByFilters(infos->fileNameExt, infos->fileExt,
 				(vFileDialogInternal.puDLGflags & ImGuiFileDialogFlags_CaseInsensitiveExtention) != 0))
 			{
 				return;
@@ -2445,23 +2502,23 @@ namespace IGFD
 			else
 			{
 				int _id = 0;
-                // Modify By Dicky
-                std::vector<std::string>::iterator begin = prCurrentPathDecomposition.begin();
-                std::vector<std::string>::iterator end = prCurrentPathDecomposition.end();
-                if (vFileDialogInternal.puDLGflags & ImGuiFileDialogFlags_PathDecompositionShort)
-                {
-                    begin = end;
-                    if (begin != prCurrentPathDecomposition.begin())
-                        begin --;
-                    if (begin != prCurrentPathDecomposition.begin())
-                        begin --;
-                    if (begin != prCurrentPathDecomposition.begin())
-                    {
-                        ImGui::TextUnformatted("<-");
-                        ImGui::SameLine();
-                    }
-                }
-                // Modify By Dicky end
+				// Modify By Dicky
+				std::vector<std::string>::iterator begin = prCurrentPathDecomposition.begin();
+				std::vector<std::string>::iterator end = prCurrentPathDecomposition.end();
+				if (vFileDialogInternal.puDLGflags & ImGuiFileDialogFlags_PathDecompositionShort)
+				{
+					begin = end;
+					if (begin != prCurrentPathDecomposition.begin())
+						begin --;
+					if (begin != prCurrentPathDecomposition.begin())
+						begin --;
+					if (begin != prCurrentPathDecomposition.begin())
+					{
+						ImGui::TextUnformatted("<-");
+						ImGui::SameLine();
+					}
+				}
+				// Modify By Dicky end
 				for (auto itPathDecomp = begin/*prCurrentPathDecomposition.begin() */;          // Modify By Dicky
 					itPathDecomp != end/*prCurrentPathDecomposition.end()*/; ++itPathDecomp)    // Modify By Dicky
 				{
@@ -4369,13 +4426,13 @@ namespace IGFD
 		auto& fdFile = prFileDialogInternal.puFileManager;
 		if (prFileDialogInternal.puCanWeContinue && strlen(fdFile.puFileNameBuffer))
 		{
-            // add by dicky for embedded mode no button
-            if ((prFileDialogInternal.puDLGflags & ImGuiFileDialogFlags_NoDialog) &&
-                (prFileDialogInternal.puDLGflags & ImGuiFileDialogFlags_NoButton))
-            {
+			// add by dicky for embedded mode no button
+			if ((prFileDialogInternal.puDLGflags & ImGuiFileDialogFlags_NoDialog) &&
+				(prFileDialogInternal.puDLGflags & ImGuiFileDialogFlags_NoButton))
+			{
 				return prFileDialogInternal.puIsOk;
-            }
-            // add by dicky end
+			}
+			// add by dicky end
 			if (IMGUI_BUTTON(okButtonString "##validationdialog", ImVec2(okButtonWidth, 0.0f)) || prFileDialogInternal.puIsOk)
 			{
 				prFileDialogInternal.puIsOk = true;
@@ -4393,13 +4450,13 @@ namespace IGFD
 
 	bool IGFD::FileDialog::prDrawCancelButton()
 	{
-        // add by dicky for embedded mode no button
-        if ((prFileDialogInternal.puDLGflags & ImGuiFileDialogFlags_NoDialog) &&
-            (prFileDialogInternal.puDLGflags & ImGuiFileDialogFlags_NoButton))
-        {
+		// add by dicky for embedded mode no button
+		if ((prFileDialogInternal.puDLGflags & ImGuiFileDialogFlags_NoDialog) &&
+			(prFileDialogInternal.puDLGflags & ImGuiFileDialogFlags_NoButton))
+		{
 			return false;
-        }
-        // add by dicky end
+		}
+		// add by dicky end
 		if (IMGUI_BUTTON(cancelButtonString "##validationdialog", ImVec2(cancelButtonWidth, 0.0f)) ||
 			prFileDialogInternal.puNeedToExitDialog) // dialog exit asked
 		{
@@ -4534,7 +4591,7 @@ namespace IGFD
 				// nav system, selectable cause open directory or select directory
 				if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_NavEnableKeyboard)
 				{
-                    // Modify By Dicky aways using double click to chooser
+                    			// Modify By Dicky aways using double click to chooser
 					if (fdi.puDLGDirectoryMode) // directory chooser
 					{
 						if (ImGui::IsMouseDoubleClicked(0))
@@ -4550,14 +4607,14 @@ namespace IGFD
 					{
 						if (ImGui::IsMouseDoubleClicked(0))
 						{
-                            fdi.puPathClicked = fdi.SelectDirectory(vInfos);
+                            				fdi.puPathClicked = fdi.SelectDirectory(vInfos);
 						}
 						else
 						{
-                            fdi.SelectFileName(prFileDialogInternal, vInfos);
+                            				fdi.SelectFileName(prFileDialogInternal, vInfos);
 						}
 					}
-                    /*
+                    			/*
 					// little fix for get back the mouse behavior in nav system
 					if (ImGui::IsMouseDoubleClicked(0)) // 0 -> left mouse button double click
 					{
@@ -4571,8 +4628,8 @@ namespace IGFD
 					{
 						fdi.puPathClicked = fdi.SelectDirectory(vInfos);
 					}
-                    */
-                    // Modify By Dicky end
+                    			*/
+                    			// Modify By Dicky end
 				}
 				else // no nav system => classic behavior
 				{
