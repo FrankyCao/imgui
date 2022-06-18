@@ -2726,7 +2726,7 @@ void ImRFFT(float* data, int N,  bool forward)
 	{
 		data[0] = c1 * ((h1r = data[0]) + data[1]);
 		data[1] = c1 * (h1r - data[1]);
-		ImFFT(data, N >> 1, -1);
+		ImFFT(data, N >> 1, forward);
 	}
 
 	/* normalisation section */

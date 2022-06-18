@@ -440,4 +440,100 @@ void ShowImKalmanDemoWindow()
         kalman.covariance(1.f / (pow(10, noise_covariance_pow)), 1.f / (pow(10, measurement_noise_covariance_pow)));
     }
 }
+
+void ShowImFFTDemoWindow()
+{
+#define FFT_DATA_LENGTH 2048
+#define SUB_LENGTH (FFT_DATA_LENGTH / 4)
+    ImMat time_demain_one, time_demain_two;
+    time_demain_one.create_type(FFT_DATA_LENGTH, IM_DT_FLOAT32);
+    time_demain_two.create_type(FFT_DATA_LENGTH, IM_DT_FLOAT32);
+    static int signal_type = 0;
+    static const char * signal_item[] = {"sine", "sweep", "segmentation"};
+    ImGui::Combo("Signal Type", &signal_type, signal_item, IM_ARRAYSIZE(signal_item));
+    // init time domain data
+    switch (signal_type)
+    {
+        case 0:
+        {
+            for (int i = 0; i < FFT_DATA_LENGTH; i++)
+            {
+                float t = (float)i / (float)FFT_DATA_LENGTH;
+                time_demain_one.at<float>(i) = 0.5 * sin(2 * M_PI * 100 * t);
+                time_demain_two.at<float>(i) = 0.5 * sin(2 * M_PI * 200 * t);
+            }
+        }
+        break;
+        case 1:
+        {
+            float f1 = 0.f;
+            float step = 100.f / (float)FFT_DATA_LENGTH;
+            for (int i = 0; i < FFT_DATA_LENGTH; i++)
+            {
+                float t = (float)i / (float)FFT_DATA_LENGTH;
+                time_demain_one.at<float>(i) = 0.5 * sin(2 * M_PI * f1 * t);
+                time_demain_two.at<float>(FFT_DATA_LENGTH - i - 1) = 0.5 * sin(2 * M_PI * f1 * t);
+                f1 += step;
+            }
+        }
+        break;
+        case 2:
+        {
+            for (int i = 0; i < SUB_LENGTH; i++)
+            {
+                float t = (float)i / (float)FFT_DATA_LENGTH;
+                time_demain_one.at<float>(i + SUB_LENGTH * 0) = 0.1 * sin(2 * M_PI * 100 * t);
+                time_demain_one.at<float>(i + SUB_LENGTH * 1) = 0.2 * sin(2 * M_PI * 200 * t);
+                time_demain_one.at<float>(i + SUB_LENGTH * 2) = 0.3 * sin(2 * M_PI * 300 * t);
+                time_demain_one.at<float>(i + SUB_LENGTH * 3) = 0.4 * sin(2 * M_PI * 400 * t);
+                time_demain_two.at<float>(i + SUB_LENGTH * 0) = 0.4 * sin(2 * M_PI * 400 * t);
+                time_demain_two.at<float>(i + SUB_LENGTH * 1) = 0.3 * sin(2 * M_PI * 300 * t);
+                time_demain_two.at<float>(i + SUB_LENGTH * 2) = 0.2 * sin(2 * M_PI * 200 * t);
+                time_demain_two.at<float>(i + SUB_LENGTH * 3) = 0.1 * sin(2 * M_PI * 100 * t);
+            }
+        }
+        break;
+        default: break;
+    }
+    // init frequency domain data
+    ImMat frequency_domain_one;
+    ImMat frequency_domain_two;
+    frequency_domain_one.clone_from(time_demain_one);
+    frequency_domain_two.clone_from(time_demain_two);
+
+    // do fft
+    ImRFFT((float *)frequency_domain_one.data, frequency_domain_one.w, true);
+    ImRFFT((float *)frequency_domain_two.data, frequency_domain_two.w, true);
+
+    ImMat amplitude_one;
+    ImMat amplitude_two;
+    amplitude_one.create_type((FFT_DATA_LENGTH >> 1) + 1, IM_DT_FLOAT32);
+    amplitude_two.create_type((FFT_DATA_LENGTH >> 1) + 1, IM_DT_FLOAT32);
+    ImReComposeAmplitude((float*)frequency_domain_one.data, (float *)amplitude_one.data, FFT_DATA_LENGTH);
+    ImReComposeAmplitude((float*)frequency_domain_two.data, (float *)amplitude_two.data, FFT_DATA_LENGTH);
+
+    // do ifft
+    ImMat time_domain_out_one;
+    ImMat time_domain_out_two;
+    time_domain_out_one.clone_from(frequency_domain_one);
+    time_domain_out_two.clone_from(frequency_domain_two);
+    ImRFFT((float *)time_domain_out_one.data, time_domain_out_one.w, false);
+    ImRFFT((float *)time_domain_out_two.data, time_domain_out_two.w, false);
+
+    ImVec2 channel_view_size = ImVec2(1024, 128);
+    ImGui::PushStyleColor(ImGuiCol_PlotLines, ImVec4(0.f, 1.f, 0.f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(0.5f, 0.5f, 0.5f, 0.5f));
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, 0);
+    // draw time domain
+    ImGui::PlotLines("##time_channel_one", (float *)time_demain_one.data, time_demain_one.w, 0, nullptr, -1.0, 1.0, channel_view_size, 4, true, false);
+    ImGui::PlotLines("##time_channel_two", (float *)time_demain_two.data, time_demain_two.w, 0, nullptr, -1.0, 1.0, channel_view_size, 4, true, false);
+    // draw frequency domain data
+    ImGui::PlotLines("##fft_one", (float *)amplitude_one.data, amplitude_one.w, 0, nullptr, 0.0, 12.0, channel_view_size, 4, true, true);
+    ImGui::PlotLines("##fft_two", (float *)amplitude_two.data, amplitude_two.w, 0, nullptr, 0.0, 12.0, channel_view_size, 4, true, true);
+    // draw time domain out(ifft)
+    ImGui::PlotLines("##time_channel_out_one", (float *)time_domain_out_one.data, time_domain_out_one.w, 0, nullptr, -1.0, 1.0, channel_view_size, 4, true, false);
+    ImGui::PlotLines("##time_channel_out_two", (float *)time_domain_out_two.data, time_domain_out_two.w, 0, nullptr, -1.0, 1.0, channel_view_size, 4, true, false);
+
+    ImGui::PopStyleColor(3);
+}
 } // namespace ImGui
