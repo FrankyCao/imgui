@@ -445,16 +445,25 @@ void ShowImFFTDemoWindow()
 {
 #define FFT_DATA_LENGTH 2048
 #define SUB_LENGTH (FFT_DATA_LENGTH / 4)
+    ImGuiIO &io = ImGui::GetIO();
+    static float wave_scale = 1.0f;
+    static float fft_scale = 1.0f;
     ImMat time_demain_one, time_demain_two;
     time_demain_one.create_type(FFT_DATA_LENGTH, IM_DT_FLOAT32);
     time_demain_two.create_type(FFT_DATA_LENGTH, IM_DT_FLOAT32);
     static int signal_type = 0;
-    static const char * signal_item[] = {"sine", "sweep", "segmentation"};
+    static const char * signal_item[] = {"Sine", "Square wave", "Triangular Wave", "Sawtooth wave", "Sweep", "Segmentation", "High-Frequency noise"};
+    static int view_type = 0;
+    static const char * view_item[] = {"FFT", "Amplitude", "Phase"};
+    ImGui::PushItemWidth(200);
     ImGui::Combo("Signal Type", &signal_type, signal_item, IM_ARRAYSIZE(signal_item));
+    ImGui::SameLine();
+    ImGui::Combo("View Type", &view_type, view_item, IM_ARRAYSIZE(view_item));
+    ImGui::PopItemWidth();
     // init time domain data
     switch (signal_type)
     {
-        case 0:
+        case 0: // Sine
         {
             for (int i = 0; i < FFT_DATA_LENGTH; i++)
             {
@@ -464,7 +473,56 @@ void ShowImFFTDemoWindow()
             }
         }
         break;
-        case 1:
+        case 1: // Square wave
+        {
+            int sign1 = 1;
+            float step1 = 0;
+            float t1 = (float)FFT_DATA_LENGTH / 50.f;
+            int sign2 = 1;
+            float step2 = 0;
+            float t2 = (float)FFT_DATA_LENGTH / 80.f;
+            for (int i = 0; i < FFT_DATA_LENGTH; i++)
+            {
+                step1 ++; if (step1 >= t1) { step1 = 0; sign1 = -sign1; }
+                step2 ++; if (step2 >= t2) { step2 = 0; sign2 = -sign2; }
+                time_demain_one.at<float>(i) = 0.5 * sign1;
+                time_demain_two.at<float>(i) = 0.5 * sign2;
+            }
+        }
+        break;
+        case 2: // Triangular Wave
+        {
+            int sign1 = 1;
+            float step1 = -1;
+            float t1 = 50.f / (float)FFT_DATA_LENGTH;
+            int sign2 = 1;
+            float step2 = -1;
+            float t2 = 80.f / (float)FFT_DATA_LENGTH;
+            for (int i = 0; i < FFT_DATA_LENGTH; i++)
+            {
+                step1 += t1 * sign1; if (step1 >= 1.0 || step1 <= -1.0) sign1 = -sign1;
+                step2 += t2 * sign2; if (step2 >= 1.0 || step2 <= -1.0) sign2 = -sign2;
+                time_demain_one.at<float>(i) = 0.5 * step1;
+                time_demain_two.at<float>(i) = 0.5 * step2;
+            }
+        }
+        break;
+        case 3: // Sawtooth wave
+        {
+            float step1 = -1;
+            float t1 = 50.f / (float)FFT_DATA_LENGTH;
+            float step2 = -1;
+            float t2 = 80.f / (float)FFT_DATA_LENGTH;
+            for (int i = 0; i < FFT_DATA_LENGTH; i++)
+            {
+                step1 += t1; if (step1 >= 1.0) step1 = -1;
+                step2 += t2; if (step2 >= 1.0) step2 = -1;
+                time_demain_one.at<float>(i) = 0.5 * step1;
+                time_demain_two.at<float>(i) = 0.5 * step2;
+            }
+        }
+        break;
+        case 4: // Sweep
         {
             float f1 = 0.f;
             float step = 100.f / (float)FFT_DATA_LENGTH;
@@ -477,7 +535,7 @@ void ShowImFFTDemoWindow()
             }
         }
         break;
-        case 2:
+        case 5: // Segmentation
         {
             for (int i = 0; i < SUB_LENGTH; i++)
             {
@@ -493,8 +551,26 @@ void ShowImFFTDemoWindow()
             }
         }
         break;
+        case 6: // High-Frequency noise
+        {
+            for (int i = 0; i < FFT_DATA_LENGTH; i++)
+            {
+                float t = (float)i / (float)FFT_DATA_LENGTH;
+                if (i > FFT_DATA_LENGTH / 2 - 10 && i < FFT_DATA_LENGTH / 2 + 10)
+                {
+                    time_demain_one.at<float>(i) = 0.5 * sin(2 * M_PI * 400 * t);
+                    time_demain_two.at<float>(i) = 0.5 * sin(2 * M_PI * 200 * t);
+                }
+                else
+                {
+                    time_demain_one.at<float>(i) = 0.2 * sin(2 * M_PI * 40 * t) + 0.4 * sin(2 * M_PI * 80 * t);
+                    time_demain_two.at<float>(i) = 0.2 * sin(2 * M_PI * 20 * t) + 0.4 * sin(2 * M_PI * 40 * t);
+                }
+            }
+        }
         default: break;
     }
+
     // init frequency domain data
     ImMat frequency_domain_one;
     ImMat frequency_domain_two;
@@ -512,6 +588,13 @@ void ShowImFFTDemoWindow()
     ImReComposeAmplitude((float*)frequency_domain_one.data, (float *)amplitude_one.data, FFT_DATA_LENGTH);
     ImReComposeAmplitude((float*)frequency_domain_two.data, (float *)amplitude_two.data, FFT_DATA_LENGTH);
 
+    ImMat phase_one;
+    ImMat phase_two;
+    phase_one.create_type((FFT_DATA_LENGTH >> 1) + 1, IM_DT_FLOAT32);
+    phase_two.create_type((FFT_DATA_LENGTH >> 1) + 1, IM_DT_FLOAT32);
+    ImReComposePhase((float*)frequency_domain_one.data, (float *)phase_one.data, FFT_DATA_LENGTH);
+    ImReComposePhase((float*)frequency_domain_two.data, (float *)phase_two.data, FFT_DATA_LENGTH);
+
     // do ifft
     ImMat time_domain_out_one;
     ImMat time_domain_out_two;
@@ -522,17 +605,72 @@ void ShowImFFTDemoWindow()
 
     ImVec2 channel_view_size = ImVec2(1024, 128);
     ImGui::PushStyleColor(ImGuiCol_PlotLines, ImVec4(0.f, 1.f, 0.f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(0.5f, 0.5f, 0.5f, 0.5f));
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, 0);
+    ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(0.f, 0.5f, 0.0f, 0.5f));
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.2f, 0.2f, 0.2f, 1.f));
+
     // draw time domain
-    ImGui::PlotLines("##time_channel_one", (float *)time_demain_one.data, time_demain_one.w, 0, nullptr, -1.0, 1.0, channel_view_size, 4, true, false);
-    ImGui::PlotLines("##time_channel_two", (float *)time_demain_two.data, time_demain_two.w, 0, nullptr, -1.0, 1.0, channel_view_size, 4, true, false);
+    ImGui::BeginGroup();
+    ImGui::PlotLines("##time_channel_one", (float *)time_demain_one.data, time_demain_one.w, 0, nullptr, -1.0 * wave_scale, 1.0 * wave_scale, channel_view_size, 4, true, false);
+    ImGui::PlotLines("##time_channel_two", (float *)time_demain_two.data, time_demain_two.w, 0, nullptr, -1.0 * wave_scale, 1.0 * wave_scale, channel_view_size, 4, true, false);
+    ImGui::EndGroup();
+    if (ImGui::IsItemHovered())
+    {
+        if (io.MouseWheel < -FLT_EPSILON) { wave_scale *= 0.9f; if (wave_scale < 0.1f) wave_scale = 0.1f; }
+        if (io.MouseWheel >  FLT_EPSILON) { wave_scale *= 1.1f; if (wave_scale > 4.0f) wave_scale = 4.0f; }
+        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) wave_scale = 1.0;
+    }
     // draw frequency domain data
-    ImGui::PlotLines("##fft_one", (float *)amplitude_one.data, amplitude_one.w, 0, nullptr, 0.0, 12.0, channel_view_size, 4, true, true);
-    ImGui::PlotLines("##fft_two", (float *)amplitude_two.data, amplitude_two.w, 0, nullptr, 0.0, 12.0, channel_view_size, 4, true, true);
+    float * fft_data_one = nullptr;
+    float * fft_data_two = nullptr;
+    int data_count_one = 0;
+    int data_count_two = 0;
+    bool combonded = true;
+    float f_min = 0.f;
+    float f_max = 1.f;
+    switch (view_type)
+    {
+        case 0:
+            fft_data_one = (float *)frequency_domain_one.data; data_count_one = frequency_domain_one.w;
+            fft_data_two = (float *)frequency_domain_two.data; data_count_two = frequency_domain_two.w;
+            combonded = true;
+            f_min = 0.f; f_max = 8.f;
+        break;
+        case 1:
+            fft_data_one = (float *)amplitude_one.data; data_count_one = amplitude_one.w;
+            fft_data_two = (float *)amplitude_two.data; data_count_two = amplitude_two.w;
+            combonded = true;
+            f_min = 0.f; f_max = 16.f;
+        break;
+        case 2:
+            fft_data_one = (float *)phase_one.data; data_count_one = phase_one.w;
+            fft_data_two = (float *)phase_two.data; data_count_two = phase_two.w;
+            combonded = false;
+            f_min = -360.f; f_max = 360.f;
+        break;
+        default: break;
+    }
+    ImGui::BeginGroup();
+    ImGui::PlotLines("##fft_one", fft_data_one, data_count_one, 0, nullptr, f_min * fft_scale, f_max * fft_scale, channel_view_size, 4, true, combonded);
+    ImGui::PlotLines("##fft_two", fft_data_two, data_count_two, 0, nullptr, f_min * fft_scale, f_max * fft_scale, channel_view_size, 4, true, combonded);
+    ImGui::EndGroup();
+    if (ImGui::IsItemHovered())
+    {
+        if (io.MouseWheel < -FLT_EPSILON) { fft_scale *= 0.9f; if (fft_scale < 0.1f) fft_scale = 0.1f; }
+        if (io.MouseWheel >  FLT_EPSILON) { fft_scale *= 1.1f; if (fft_scale > 4.0f) fft_scale = 4.0f; }
+        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) fft_scale = 1.0;
+    }
+
     // draw time domain out(ifft)
-    ImGui::PlotLines("##time_channel_out_one", (float *)time_domain_out_one.data, time_domain_out_one.w, 0, nullptr, -1.0, 1.0, channel_view_size, 4, true, false);
-    ImGui::PlotLines("##time_channel_out_two", (float *)time_domain_out_two.data, time_domain_out_two.w, 0, nullptr, -1.0, 1.0, channel_view_size, 4, true, false);
+    ImGui::BeginGroup();
+    ImGui::PlotLines("##time_channel_out_one", (float *)time_domain_out_one.data, time_domain_out_one.w, 0, nullptr, -1.0 * wave_scale, 1.0 * wave_scale, channel_view_size, 4, true, false);
+    ImGui::PlotLines("##time_channel_out_two", (float *)time_domain_out_two.data, time_domain_out_two.w, 0, nullptr, -1.0 * wave_scale, 1.0 * wave_scale, channel_view_size, 4, true, false);
+    ImGui::EndGroup();
+    if (ImGui::IsItemHovered())
+    {
+        if (io.MouseWheel < -FLT_EPSILON) { wave_scale *= 0.9f; if (wave_scale < 0.1f) wave_scale = 0.1f; }
+        if (io.MouseWheel >  FLT_EPSILON) { wave_scale *= 1.1f; if (wave_scale > 4.0f) wave_scale = 4.0f; }
+        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) wave_scale = 1.0;
+    }
 
     ImGui::PopStyleColor(3);
 }
