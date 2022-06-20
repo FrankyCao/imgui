@@ -443,7 +443,7 @@ void ShowImKalmanDemoWindow()
 
 void ShowImFFTDemoWindow()
 {
-#define FFT_DATA_LENGTH 2048
+#define FFT_DATA_LENGTH 1024
 #define SUB_LENGTH (FFT_DATA_LENGTH / 4)
     ImGuiIO &io = ImGui::GetIO();
     static float wave_scale = 1.0f;
@@ -480,7 +480,7 @@ void ShowImFFTDemoWindow()
             float t1 = (float)FFT_DATA_LENGTH / 50.f;
             int sign2 = 1;
             float step2 = 0;
-            float t2 = (float)FFT_DATA_LENGTH / 80.f;
+            float t2 = (float)FFT_DATA_LENGTH / 100.f;
             for (int i = 0; i < FFT_DATA_LENGTH; i++)
             {
                 step1 ++; if (step1 >= t1) { step1 = 0; sign1 = -sign1; }
@@ -497,7 +497,7 @@ void ShowImFFTDemoWindow()
             float t1 = 50.f / (float)FFT_DATA_LENGTH;
             int sign2 = 1;
             float step2 = -1;
-            float t2 = 80.f / (float)FFT_DATA_LENGTH;
+            float t2 = 100.f / (float)FFT_DATA_LENGTH;
             for (int i = 0; i < FFT_DATA_LENGTH; i++)
             {
                 step1 += t1 * sign1; if (step1 >= 1.0 || step1 <= -1.0) sign1 = -sign1;
@@ -512,7 +512,7 @@ void ShowImFFTDemoWindow()
             float step1 = -1;
             float t1 = 50.f / (float)FFT_DATA_LENGTH;
             float step2 = -1;
-            float t2 = 80.f / (float)FFT_DATA_LENGTH;
+            float t2 = 100.f / (float)FFT_DATA_LENGTH;
             for (int i = 0; i < FFT_DATA_LENGTH; i++)
             {
                 step1 += t1; if (step1 >= 1.0) step1 = -1;
@@ -577,6 +577,17 @@ void ShowImFFTDemoWindow()
     frequency_domain_one.clone_from(time_demain_one);
     frequency_domain_two.clone_from(time_demain_two);
 
+    // init STFT
+    //ImMat short_time_domain_one;
+    //ImMat short_time_domain_two;
+    //const int window = FFT_DATA_LENGTH / 4;
+    //const int hope = window / 2;
+    //short_time_domain_one.create_type(FFT_DATA_LENGTH * 4, IM_DT_FLOAT32);
+    //short_time_domain_two.create_type(FFT_DATA_LENGTH * 4, IM_DT_FLOAT32);
+    //// do stft
+    //ImSTFT((float *)frequency_domain_one.data, (float *)short_time_domain_one.data, frequency_domain_one.w, window, hope, true);
+    //ImSTFT((float *)frequency_domain_two.data, (float *)short_time_domain_two.data, frequency_domain_two.w, window, hope, true);
+
     // do fft
     ImRFFT((float *)frequency_domain_one.data, frequency_domain_one.w, true);
     ImRFFT((float *)frequency_domain_two.data, frequency_domain_two.w, true);
@@ -603,7 +614,7 @@ void ShowImFFTDemoWindow()
     ImRFFT((float *)time_domain_out_one.data, time_domain_out_one.w, false);
     ImRFFT((float *)time_domain_out_two.data, time_domain_out_two.w, false);
 
-    ImVec2 channel_view_size = ImVec2(1024, 128);
+    ImVec2 channel_view_size = ImVec2(FFT_DATA_LENGTH, 128);
     ImGui::PushStyleColor(ImGuiCol_PlotLines, ImVec4(0.f, 1.f, 0.f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(0.f, 0.5f, 0.0f, 0.5f));
     ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.2f, 0.2f, 0.2f, 1.f));
@@ -631,9 +642,9 @@ void ShowImFFTDemoWindow()
     {
         case 0:
             fft_data_one = (float *)frequency_domain_one.data; data_count_one = frequency_domain_one.w;
-            fft_data_two = (float *)frequency_domain_two.data; data_count_two = frequency_domain_two.w;
-            combonded = true;
-            f_min = 0.f; f_max = 8.f;
+            fft_data_two = (float *)frequency_domain_two.data; data_count_two = frequency_domain_two.w;             
+            combonded = false;
+            f_min = -8.f; f_max = 8.f;
         break;
         case 1:
             fft_data_one = (float *)amplitude_one.data; data_count_one = amplitude_one.w;

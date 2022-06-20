@@ -2925,6 +2925,42 @@ float ImDoDecibel(float * in, int samples, bool inverse)
 	db = 20 * log10(tmp) - (inverse ? zero_db : 0);
 	return db;
 }
+
+void ImSTFT (float* data, float * out, int N, int window, int hope, bool forward)
+{
+    assert(window <= N);
+    assert(hope <= window);
+    if (window == 0) window = N >> 2;   // 1/4 N
+    if (hope == 0) hope = window >> 1;  // 1/2 window
+    int frames = 1 + (N - window) / hope;
+    int overlap = window - hope;
+
+    // init hanning window
+    float * hannwin = (float *)calloc(1, window * sizeof(float));
+    for (int i = 0; i < window; i++) hannwin[i] = 0.5 * (1 + cos(M_PI + 2 * M_PI * i / (window - 1)));
+
+    // create buffer
+    float *buffer_fft = (float *)calloc(1, window * sizeof(float));
+
+    // STFT
+    for (int i = 0; i < frames; i++)
+    {
+        if (forward)
+        {
+            for (int n = 0; n < window / 2; n++)
+            {
+                buffer_fft[n * 2 + 0] = data[i * hope + n * 2 + 0] * hannwin[n];
+                buffer_fft[n * 2 + 1] = data[i * hope + n * 2 + 1] * hannwin[n];
+            }
+            ImRFFT(buffer_fft, window, forward);
+            memcpy(out + i * window, buffer_fft, window * sizeof(float));
+        }
+    }
+
+    // release buffer
+    free(buffer_fft);
+    free(hannwin);
+}
 } // namespace ImGui
 
 //-----------------------------------------------------------------------------
