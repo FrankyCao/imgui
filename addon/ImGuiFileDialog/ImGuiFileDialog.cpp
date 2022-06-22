@@ -831,8 +831,12 @@ namespace IGFD
 
 	void IGFD::FilterManager::FilterInfos::clear()
 	{
-		filter.clear(); 
+		filter.clear();
+		filter_regex = std::regex();
 		collectionfilters.clear();
+		filter_optimized.clear();
+		collectionfilters_optimized.clear();
+		collectionfilters_regex.clear();
 	}
 
 	bool IGFD::FilterManager::FilterInfos::empty() const
@@ -890,8 +894,10 @@ namespace IGFD
 
 		if (!puDLGFilters.empty())
 		{
-			// ".*,.cpp,.h,.hpp"
-			// "Source files{.cpp,.h,.hpp},Image files{.png,.gif,.jpg,.jpeg},.md"
+			// ".*,.cpp,.h,.hpp" => simple filters
+			// "Source files{.cpp,.h,.hpp},Image files{.png,.gif,.jpg,.jpeg},.md" => collection filters
+			// "([.][0-9]{3}),.cpp,.h,.hpp" => simple filters with regex
+			// "frames files{([.][0-9]{3}),.frames}" => collection filters with regex
 
 			bool currentFilterFound = false;
 
@@ -3800,7 +3806,6 @@ namespace IGFD
 		prFileDialogInternal.puDLGflags = vFlags;
 		prFileDialogInternal.puDLGoptionsPane = nullptr;
 		prFileDialogInternal.puDLGoptionsPaneWidth = 0.0f;
-		prFileDialogInternal.puDLGmodal = false;
 
 		prFileDialogInternal.puFilterManager.puDLGdefaultExt.clear();
 		prFileDialogInternal.puFilterManager.ParseFilters(vFilters);
@@ -3843,7 +3848,6 @@ namespace IGFD
 		prFileDialogInternal.puDLGoptionsPaneWidth = 0.0f;
 		prFileDialogInternal.puDLGuserDatas = vUserDatas;
 		prFileDialogInternal.puDLGflags = vFlags;
-		prFileDialogInternal.puDLGmodal = false;
 
 		auto ps = IGFD::Utils::ParsePathFileName(vFilePathName);
 		if (ps.isOk)
@@ -3901,7 +3905,6 @@ namespace IGFD
 		prFileDialogInternal.puDLGflags = vFlags;
 		prFileDialogInternal.puDLGoptionsPane = vSidePane;
 		prFileDialogInternal.puDLGoptionsPaneWidth = vSidePaneWidth;
-		prFileDialogInternal.puDLGmodal = false;
 
 		prFileDialogInternal.puFilterManager.puDLGdefaultExt.clear();
 		prFileDialogInternal.puFilterManager.ParseFilters(vFilters);
@@ -3949,7 +3952,6 @@ namespace IGFD
 		prFileDialogInternal.puDLGoptionsPaneWidth = vSidePaneWidth;
 		prFileDialogInternal.puDLGuserDatas = vUserDatas;
 		prFileDialogInternal.puDLGflags = vFlags;
-		prFileDialogInternal.puDLGmodal = false;
 
 		auto ps = IGFD::Utils::ParsePathFileName(vFilePathName);
 		if (ps.isOk)
@@ -3979,102 +3981,6 @@ namespace IGFD
 #ifdef USE_BOOKMARK
 		prBookmarkPaneShown = vFlags & ImGuiFileDialogFlags_ShowBookmark ? true : false; // Modify By Dicky
 #endif // USE_BOOKMARK
-	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////////////
-	///// FILE DIALOG MODAL DIALOG ///////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////////////////////////////////
-
-	void IGFD::FileDialog::OpenModal(
-		const std::string& vKey,
-		const std::string& vTitle,
-		const char* vFilters,
-		const std::string& vPath,
-		const std::string& vFileName,
-		const int& vCountSelectionMax,
-		UserDatas vUserDatas,
-		ImGuiFileDialogFlags vFlags)
-	{
-		if (prFileDialogInternal.puShowDialog) // if already opened, quit
-			return;
-
-		OpenDialog(
-			vKey, vTitle, vFilters,
-			vPath, vFileName,
-			vCountSelectionMax, vUserDatas, vFlags);
-
-		prFileDialogInternal.puDLGmodal = true;
-	}
-
-	void IGFD::FileDialog::OpenModal(
-		const std::string& vKey,
-		const std::string& vTitle,
-		const char* vFilters,
-		const std::string& vFilePathName,
-		const int& vCountSelectionMax,
-		UserDatas vUserDatas,
-		ImGuiFileDialogFlags vFlags)
-	{
-		if (prFileDialogInternal.puShowDialog) // if already opened, quit
-			return;
-
-		OpenDialog(
-			vKey, vTitle, vFilters,
-			vFilePathName,
-			vCountSelectionMax, vUserDatas, vFlags);
-
-		prFileDialogInternal.puDLGmodal = true;
-	}
-
-	// with pane
-	// path and fileNameExt can be specified
-	void IGFD::FileDialog::OpenModal(
-		const std::string& vKey,
-		const std::string& vTitle,
-		const char* vFilters,
-		const std::string& vPath,
-		const std::string& vFileName,
-		const PaneFun& vSidePane,
-		const float& vSidePaneWidth,
-		const int& vCountSelectionMax,
-		UserDatas vUserDatas,
-		ImGuiFileDialogFlags vFlags)
-	{
-		if (prFileDialogInternal.puShowDialog) // if already opened, quit
-			return;
-
-		OpenDialog(
-			vKey, vTitle, vFilters,
-			vPath, vFileName,
-			vSidePane, vSidePaneWidth,
-			vCountSelectionMax, vUserDatas, vFlags);
-
-		prFileDialogInternal.puDLGmodal = true;
-	}
-
-	// with pane
-	// path and filename are obtained from filePathName
-	void IGFD::FileDialog::OpenModal(
-		const std::string& vKey,
-		const std::string& vTitle,
-		const char* vFilters,
-		const std::string& vFilePathName,
-		const PaneFun& vSidePane,
-		const float& vSidePaneWidth,
-		const int& vCountSelectionMax,
-		UserDatas vUserDatas,
-		ImGuiFileDialogFlags vFlags)
-	{
-		if (prFileDialogInternal.puShowDialog) // if already opened, quit
-			return;
-
-		OpenDialog(
-			vKey, vTitle, vFilters,
-			vFilePathName,
-			vSidePane, vSidePaneWidth,
-			vCountSelectionMax, vUserDatas, vFlags);
-
-		prFileDialogInternal.puDLGmodal = true;
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////
@@ -4130,7 +4036,7 @@ namespace IGFD
 			{
 				ImGui::SetNextWindowSizeConstraints(vMinSize, vMaxSize);
 
-				if (prFileDialogInternal.puDLGmodal &&
+				if (prFileDialogInternal.puDLGflags & ImGuiFileDialogFlags_Modal &&
 					!prFileDialogInternal.puOkResultToConfirm) // disable modal because the confirm dialog for overwrite is a new modal
 				{
 					ImGui::OpenPopup(name.c_str());
@@ -4206,7 +4112,7 @@ namespace IGFD
 				// when the confirm to overwrite dialog will appear we need to 
 				// disable the modal mode of the main file dialog
 				// see prOkResultToConfirm under
-				if (prFileDialogInternal.puDLGmodal &&
+				if (prFileDialogInternal.puDLGflags & ImGuiFileDialogFlags_Modal &&
 					!prFileDialogInternal.puOkResultToConfirm)
 					ImGui::EndPopup();
 			}
@@ -4218,7 +4124,8 @@ namespace IGFD
 			else
 			{
 				// same things here regarding prOkResultToConfirm
-				if (!prFileDialogInternal.puDLGmodal || prFileDialogInternal.puOkResultToConfirm)
+				if (!(prFileDialogInternal.puDLGflags & ImGuiFileDialogFlags_Modal) ||
+					prFileDialogInternal.puOkResultToConfirm)
 					ImGui::End();
 			}
 			// confirm the result and show the confirm to overwrite dialog if needed
@@ -5478,89 +5385,6 @@ IMGUIFILEDIALOG_API void IGFD_OpenPaneDialog2(
 	if (vContext)
 	{
 		vContext->OpenDialog(
-			vKey, vTitle, vFilters,
-			vFilePathName,
-			vSidePane, vSidePaneWidth,
-			vCountSelectionMax, vUserDatas, flags);
-	}
-}
-
-// modal dialog
-IMGUIFILEDIALOG_API void IGFD_OpenModal(
-	ImGuiFileDialog* vContext,
-	const char* vKey,
-	const char* vTitle,
-	const char* vFilters,
-	const char* vPath,
-	const char* vFileName,
-	const int vCountSelectionMax,
-	void* vUserDatas,
-	ImGuiFileDialogFlags flags)
-{
-	if (vContext)
-	{
-		vContext->OpenModal(
-			vKey, vTitle, vFilters, vPath, vFileName,
-			vCountSelectionMax, vUserDatas, flags);
-	}
-}
-
-IMGUIFILEDIALOG_API void IGFD_OpenModal2(
-	ImGuiFileDialog* vContext,
-	const char* vKey,
-	const char* vTitle,
-	const char* vFilters,
-	const char* vFilePathName,
-	const int vCountSelectionMax,
-	void* vUserDatas,
-	ImGuiFileDialogFlags flags)
-{
-	if (vContext)
-	{
-		vContext->OpenModal(
-			vKey, vTitle, vFilters, vFilePathName,
-			vCountSelectionMax, vUserDatas, flags);
-	}
-}
-
-IMGUIFILEDIALOG_API void IGFD_OpenPaneModal(
-	ImGuiFileDialog* vContext,
-	const char* vKey,
-	const char* vTitle,
-	const char* vFilters,
-	const char* vPath,
-	const char* vFileName,
-	IGFD_PaneFun vSidePane,
-	const float vSidePaneWidth,
-	const int vCountSelectionMax,
-	void* vUserDatas,
-	ImGuiFileDialogFlags flags)
-{
-	if (vContext)
-	{
-		vContext->OpenModal(
-			vKey, vTitle, vFilters,
-			vPath, vFileName,
-			vSidePane, vSidePaneWidth,
-			vCountSelectionMax, vUserDatas, flags);
-	}
-}
-
-IMGUIFILEDIALOG_API void IGFD_OpenPaneModal2(
-	ImGuiFileDialog* vContext,
-	const char* vKey,
-	const char* vTitle,
-	const char* vFilters,
-	const char* vFilePathName,
-	IGFD_PaneFun vSidePane,
-	const float vSidePaneWidth,
-	const int vCountSelectionMax,
-	void* vUserDatas,
-	ImGuiFileDialogFlags flags)
-{
-	if (vContext)
-	{
-		vContext->OpenModal(
 			vKey, vTitle, vFilters,
 			vFilePathName,
 			vSidePane, vSidePaneWidth,

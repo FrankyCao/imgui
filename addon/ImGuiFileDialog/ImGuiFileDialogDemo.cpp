@@ -185,18 +185,14 @@ void show_file_dialog_demo_window(ImGuiFileDialog * dlg, bool * open)
 		ImGui::Checkbox("Use file dialog constraint", &_UseWindowContraints);
 		ImGui::Text("Constraints is used here for define min/max file dialog size");
 		ImGui::Separator();
-		static bool standardDialogMode = false;
-		ImGui::Text("Open Mode : ");
-		ImGui::SameLine();
-		if (RadioButtonLabeled("Standard", "Open dialog in standard mode", standardDialogMode, false)) standardDialogMode = true;
-		ImGui::SameLine();
-		if (RadioButtonLabeled("Modal", "Open dialog in modal mode", !standardDialogMode, false)) standardDialogMode = false;
-
 		static ImGuiFileDialogFlags flags = ImGuiFileDialogFlags_ConfirmOverwrite;
 		ImGui::Text("ImGuiFileDialog Flags : ");
 		ImGui::Indent();
 		{
 			ImGui::Text("Commons :");
+			RadioButtonLabeled_BitWize<ImGuiFileDialogFlags>("Modal", "Open dialog in modal mode", &flags, ImGuiFileDialogFlags_Modal);
+			ImGui::SameLine();
+
 			RadioButtonLabeled_BitWize<ImGuiFileDialogFlags>("Overwrite", "Overwrite verifcation before dialog closing", &flags, ImGuiFileDialogFlags_ConfirmOverwrite);
 			ImGui::SameLine();
 			RadioButtonLabeled_BitWize<ImGuiFileDialogFlags>("Hide Hidden Files", "Hide Hidden Files", &flags, ImGuiFileDialogFlags_DontShowHiddenFiles);
@@ -219,60 +215,36 @@ void show_file_dialog_demo_window(ImGuiFileDialog * dlg, bool * open)
 		if (ImGui::Button(ICON_IGFD_FOLDER_OPEN " Open File Dialog"))
 		{
 			const char* filters = ".*,.cpp,.h,.hpp";
-			if (standardDialogMode)
-				dlg->OpenDialog("ChooseFileDlgKey",	ICON_IGFD_FOLDER_OPEN " Choose a File", filters, ".", "", 1, nullptr, flags);
-			else
-				dlg->OpenModal("ChooseFileDlgKey",	ICON_IGFD_FOLDER_OPEN " Choose a File", filters, ".", "", 1, nullptr, flags);
+			dlg->OpenDialog("ChooseFileDlgKey",	ICON_IGFD_FOLDER_OPEN " Choose a File", filters, ".", "", 1, nullptr, flags);
 		}
 		if (ImGui::Button(ICON_IGFD_FOLDER_OPEN " Open File Dialog with collections of filters"))
 		{
 			const char* filters = "Source files (*.cpp *.h *.hpp){.cpp,.h,.hpp},Image files (*.png *.gif *.jpg *.jpeg){.png,.gif,.jpg,.jpeg},.md";
-			if (standardDialogMode)
-				dlg->OpenDialog("ChooseFileDlgKey",	ICON_IGFD_FOLDER_OPEN " Choose a File", filters, ".", "", 1, nullptr, flags);
-			else
-				dlg->OpenModal("ChooseFileDlgKey",	ICON_IGFD_FOLDER_OPEN " Choose a File", filters, ".", "", 1, nullptr, flags);
+			dlg->OpenDialog("ChooseFileDlgKey",	ICON_IGFD_FOLDER_OPEN " Choose a File", filters, ".", "", 1, nullptr, flags);
 		}
 		if (ImGui::Button(ICON_IGFD_FOLDER_OPEN " Open File Dialog with selection of 5 items"))
 		{
 			const char* filters = ".*,.cpp,.h,.hpp";
-			if (standardDialogMode)
-				dlg->OpenDialog("ChooseFileDlgKey",	ICON_IGFD_FOLDER_OPEN " Choose a File", filters, ".", "", 5, nullptr, flags);
-			else
-				dlg->OpenModal("ChooseFileDlgKey", ICON_IGFD_FOLDER_OPEN " Choose a File", filters, ".", "", 5, nullptr, flags);
+			dlg->OpenDialog("ChooseFileDlgKey",	ICON_IGFD_FOLDER_OPEN " Choose a File", filters, ".", "", 5, nullptr, flags);
 		}
 		if (ImGui::Button(ICON_IGFD_FOLDER_OPEN " Open File Dialog with infinite selection"))
 		{
 			const char* filters = ".*,.cpp,.h,.hpp";
-			if (standardDialogMode)
-				dlg->OpenDialog("ChooseFileDlgKey",	ICON_IGFD_FOLDER_OPEN " Choose a File", filters, ".", "", 0, nullptr, flags);
-			else
-				dlg->OpenModal("ChooseFileDlgKey",	ICON_IGFD_FOLDER_OPEN " Choose a File", filters, ".", "", 0, nullptr, flags);
+			dlg->OpenDialog("ChooseFileDlgKey",	ICON_IGFD_FOLDER_OPEN " Choose a File", filters, ".", "", 0, nullptr, flags);
 		}
 		if (ImGui::Button(ICON_IGFD_FOLDER_OPEN " Open File Dialog with last file path name"))
 		{
 			const char* filters = ".*,.cpp,.h,.hpp";
-			if (standardDialogMode)
-				ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", ICON_IGFD_FOLDER_OPEN " Choose a File", filters, filePathName, 1, nullptr, flags);
-			else
-				ImGuiFileDialog::Instance()->OpenModal("ChooseFileDlgKey", ICON_IGFD_FOLDER_OPEN " Choose a File", filters, filePathName, 1, nullptr, flags);
+			ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", ICON_IGFD_FOLDER_OPEN " Choose a File", filters, filePathName, 1, nullptr, flags);
 		}
 		if (ImGui::Button(ICON_IGFD_FOLDER_OPEN " Open All file types with filter .*"))
 		{
-			if (standardDialogMode)
-				dlg->OpenDialog("ChooseFileDlgKey",	ICON_IGFD_FOLDER_OPEN " Choose a File", ".*", ".", "", 1, nullptr, flags);
-			else
-				dlg->OpenModal("ChooseFileDlgKey",	ICON_IGFD_FOLDER_OPEN " Choose a File", ".*", ".", "", 1, nullptr, flags);
+			dlg->OpenDialog("ChooseFileDlgKey",	ICON_IGFD_FOLDER_OPEN " Choose a File", ".*", ".", "", 1, nullptr, flags);
 		}
 		if (ImGui::Button(ICON_IGFD_SAVE " Save File Dialog with a custom pane"))
 		{
 			const char* filters = "C++ File (*.cpp){.cpp}";
-			if (standardDialogMode)
-				dlg->OpenDialog("ChooseFileDlgKey",
-					ICON_IGFD_SAVE " Choose a File", filters,
-					".", "", std::bind(&InfosPane, std::placeholders::_1, std::placeholders::_2,
-						std::placeholders::_3), 350, 1, IGFDUserDatas("SaveFile"), flags);
-			else
-				dlg->OpenModal("ChooseFileDlgKey",
+			dlg->OpenDialog("ChooseFileDlgKey",
 					ICON_IGFD_SAVE " Choose a File", filters,
 					".", "", std::bind(&InfosPane, std::placeholders::_1, std::placeholders::_2,
 						std::placeholders::_3), 350, 1, IGFDUserDatas("SaveFile"), flags);
@@ -280,29 +252,19 @@ void show_file_dialog_demo_window(ImGuiFileDialog * dlg, bool * open)
 		if (ImGui::Button(ICON_IGFD_SAVE " Save File Dialog with Confirm Dialog For Overwrite File if exist"))
 		{
 			const char* filters = "C/C++ File (*.c *.cpp){.c,.cpp}, Header File (*.h){.h}";
-			if (standardDialogMode)
-				dlg->OpenDialog("ChooseFileDlgKey", ICON_IGFD_SAVE " Choose a File", filters, ".", "", 1, IGFDUserDatas("SaveFile"), ImGuiFileDialogFlags_ConfirmOverwrite);
-			else
-				dlg->OpenModal("ChooseFileDlgKey",	ICON_IGFD_SAVE " Choose a File", filters, ".", "", 1, IGFDUserDatas("SaveFile"), ImGuiFileDialogFlags_ConfirmOverwrite);
+			dlg->OpenDialog("ChooseFileDlgKey", ICON_IGFD_SAVE " Choose a File", filters, ".", "", 1, IGFDUserDatas("SaveFile"), ImGuiFileDialogFlags_ConfirmOverwrite);
 		}
 
 		if (ImGui::Button(ICON_IGFD_FOLDER_OPEN " Open Directory Dialog"))
 		{
 			// let filters be null for open directory chooser
-			if (standardDialogMode)
-				dlg->OpenDialog("ChooseDirDlgKey",
-					ICON_IGFD_FOLDER_OPEN " Choose a Directory", nullptr, ".", 1, nullptr, flags);
-			else
-				dlg->OpenModal("ChooseDirDlgKey",
+			dlg->OpenDialog("ChooseDirDlgKey",
 					ICON_IGFD_FOLDER_OPEN " Choose a Directory", nullptr, ".", 1, nullptr, flags);
 		}
 		if (ImGui::Button(ICON_IGFD_FOLDER_OPEN " Open Directory Dialog with selection of 5 items"))
 		{
 			// set filters be null for open directory chooser
-			if (standardDialogMode)
-				dlg->OpenDialog("ChooseDirDlgKey", ICON_IGFD_FOLDER_OPEN " Choose a Directory", nullptr, ".", "", 5, nullptr, flags);
-			else
-				dlg->OpenModal("ChooseDirDlgKey", ICON_IGFD_FOLDER_OPEN " Choose a Directory", nullptr, ".", "", 5, nullptr, flags);
+			dlg->OpenDialog("ChooseDirDlgKey", ICON_IGFD_FOLDER_OPEN " Choose a Directory", nullptr, ".", "", 5, nullptr, flags);
 		}
 
         if (ImGui::Button(ICON_IGFD_FOLDER_OPEN " Embedded Dialog demo"))
