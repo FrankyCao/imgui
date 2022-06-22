@@ -9,6 +9,7 @@
 #include <cerrno>
 #include <imgui_markdown.h>
 #include <imgui_memory_editor.h>
+#include <implot.h>
 #include <ImGuiFileDialog.h>
 #include <imgui_extra_widget.h>
 #include <HotKey.h>
@@ -209,7 +210,7 @@ public:
     bool show_demo_window = true;
     bool show_viewport_fullscreen = false;
     bool show_another_window = false;
-
+    bool show_implot_window = false;
     bool show_file_dialog_window = false;
     bool show_markdown_window = false;
     bool show_widget_window = false;
@@ -413,6 +414,7 @@ void Application_Initialize(void** handle)
     Example * example = (Example *)*handle;
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.IniFilename = ini_file.c_str();
+    ImPlot::CreateContext();
 }
 
 void Application_Finalize(void** handle)
@@ -423,6 +425,7 @@ void Application_Finalize(void** handle)
         delete example;
         *handle = nullptr;
     }
+    ImPlot::DestroyContext();
 }
 
 bool Application_Frame(void* handle, bool app_will_quit)
@@ -456,6 +459,7 @@ bool Application_Frame(void* handle, bool app_will_quit)
                 Application_FullScreen(example->show_viewport_fullscreen);
         }
         ImGui::Checkbox("Another Window", &example->show_another_window);
+        ImGui::Checkbox("ImPlot Window", &example->show_implot_window);
         ImGui::Checkbox("File Dialog Window", &example->show_file_dialog_window);
         ImGui::Checkbox("Memory Edit Window", &example->mem_edit.Open);
         ImGui::Checkbox("Show Markdown Window", &example->show_markdown_window);
@@ -509,6 +513,12 @@ bool Application_Frame(void* handle, bool app_will_quit)
         if (ImGui::Button("Close Me"))
             example->show_another_window = false;
         ImGui::End();
+    }
+
+    // Show ImPlot simple window
+    if (example->show_implot_window)
+    {
+        ImPlot::ShowDemoWindow(&example->show_implot_window);
     }
 
     // Show FileDialog demo window

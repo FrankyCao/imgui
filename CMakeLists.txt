@@ -665,6 +665,28 @@ if (IMGUI_BUILD_EXAMPLE)
     )
 endif(IMGUI_BUILD_EXAMPLE)
 
+# implot
+set(IMGUI_SRC
+    ${IMGUI_SRC}
+    addon/implot/implot.cpp
+    addon/implot/implot_items.cpp
+)
+set(IMGUI_INCS
+    ${IMGUI_INCS}
+    addon/implot/implot_internal.h
+    addon/implot/implot.h
+)
+set(IMGUI_INC_DIRS
+    ${IMGUI_INC_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/addon/implot
+)
+if (IMGUI_BUILD_EXAMPLE)
+    set(IMGUI_SRC
+        ${IMGUI_SRC}
+        addon/implot/implot_demo.cpp
+    )
+endif(IMGUI_BUILD_EXAMPLE)
+
 # Colorful Text Edit
 set(IMGUI_SRC
     ${IMGUI_SRC}
@@ -920,8 +942,8 @@ set(LIBRARY SHARED)
 endif(IMGUI_STATIC)
 
 set(IMGUI_VERSION_MAJOR 1)
-set(IMGUI_VERSION_MINOR 87)
-set(IMGUI_VERSION_PATCH 29)
+set(IMGUI_VERSION_MINOR 88)
+set(IMGUI_VERSION_PATCH 00)
 set(IMGUI_VERSION_STRING ${IMGUI_VERSION_MAJOR}.${IMGUI_VERSION_MINOR}.${IMGUI_VERSION_PATCH})
 
 add_library(imgui ${LIBRARY} ${IMGUI_SRC} ${IMGUI_INCS})
