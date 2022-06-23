@@ -1662,18 +1662,21 @@ bool ImGui::RangeSelect2D(char const* pLabel, float* pCurMinX, float* pCurMinY, 
 	ImVec2 const vSize(vSizeFull, vSizeFull);
 	float const fHeightOffset = ImGui::GetTextLineHeight();
 	ImVec2 const vHeightOffset(0.0f, fHeightOffset);
-    ImVec2 const FrameSize = ImVec2(w, w) + vHeightOffset * 3;
+    ImVec2 const FrameSize = ImVec2(w, w) + vHeightOffset * 4;
     ImGui::BeginChild(iID, FrameSize, false, ImGuiWindowFlags_NoMove);
-	ImVec2 vPos = ImGui::GetCursorScreenPos();
+	ImVec2 vPos = ImGui::GetCursorScreenPos() + ImVec2(0, 4);
 	ImRect oRect(vPos + vHeightOffset, vPos + vSize + vHeightOffset);
 	constexpr float fCursorOff = 10.0f;
 	float const fXLimit = fCursorOff / oRect.GetWidth();
 	float const fYLimit = fCursorOff / oRect.GetHeight();
 	ImVec2 const vCursorPos((oRect.Max.x - oRect.Min.x) * fScaleX + oRect.Min.x, (oRect.Max.y - oRect.Min.y) * fScaleY + oRect.Min.y);
-	ImGui::Dummy(vHeightOffset);
-	ImGui::Dummy(vHeightOffset);
-	//ImGui::Text(pLabel);
+	
+    ImGui::TextUnformatted(pLabel);
+    ImGui::Spacing();
 	ImGui::PushID(iID);
+
+    ImGui::Dummy(vHeightOffset);
+	ImGui::Dummy(vHeightOffset);
 	ImU32 const uFrameCol = ImGui::GetColorU32(ImGuiCol_FrameBg);
 	ImU32 const uFrameZoneCol = ImGui::GetColorU32(ImGuiCol_FrameBgActive);
 	ImVec2 const vOriginPos = ImGui::GetCursorScreenPos();
@@ -1710,10 +1713,9 @@ bool ImGui::RangeSelect2D(char const* pLabel, float* pCurMinX, float* pCurMinY, 
 	ImRect vDragHandleHeight(oHeightHandle.Min - ImVec2(fCursorOff, fCursorOff) - vSecurity, oHeightHandle.Max + ImVec2(fCursorOff, fCursorOff) + vSecurity);
 	ImRect vDragRect(oRegionRect.Min, oRegionRect.Max);
 	float const fArbitrarySpeedScaleBar = 0.0125f;
-	bool hovered;
-	bool held;
-	bool pressed = ImGui::ButtonBehavior(vDragBBMin, ImGui::GetID("##Zone"), &hovered, &held);
-	if (hovered && held)
+    static bool drag_mouse = false;
+
+    if (ImGui::IsMouseHoveringRect(vDragBBMin.Min, vDragBBMin.Max) && ImGui::IsMouseDown(ImGuiMouseButton_Left))
 	{
 		ImVec2 const vLocalCursorPos = ImGui::GetMousePos();
 		ImVec2 newVal = Rescalev(vLocalCursorPos, ImVec2(oRect.Min.x, oRect.Min.y), ImVec2(oRect.Max.x, oRect.Max.y), ImVec2(fBoundMinX, fBoundMinY), ImVec2(fBoundMaxX, fBoundMaxY));
@@ -1722,11 +1724,11 @@ bool ImGui::RangeSelect2D(char const* pLabel, float* pCurMinX, float* pCurMinY, 
 		*pCurMinX = newVal.x;
 		*pCurMinY = newVal.y;
 		bModified = true;
+        drag_mouse = true;
 	}
 	else
 	{
-		pressed = ImGui::ButtonBehavior(vDragBBMax, ImGui::GetID("##Zone"), &hovered, &held);
-		if (hovered && held)
+        if (ImGui::IsMouseHoveringRect(vDragBBMax.Min, vDragBBMax.Max) && ImGui::IsMouseDown(ImGuiMouseButton_Left))
 		{
 			ImVec2 const vLocalCursorPos = ImGui::GetMousePos();
 					
@@ -1736,11 +1738,11 @@ bool ImGui::RangeSelect2D(char const* pLabel, float* pCurMinX, float* pCurMinY, 
 			*pCurMaxX = newVal.x;
 			*pCurMaxY = newVal.y;
 			bModified = true;
+            drag_mouse = true;
 		}
 		else
 		{
-			pressed = ImGui::ButtonBehavior(vDragHandleMin, ImGui::GetID("##Zone"), &hovered, &held);
-			if (hovered && held)
+            if (ImGui::IsMouseHoveringRect(vDragHandleMin.Min, vDragHandleMin.Max) && ImGui::IsMouseDown(ImGuiMouseButton_Left))
 			{
 				constexpr float fSpeedHandleWidth = 0.125f;
 				float fDeltaWidth = oWidthHandle.GetCenter().x - ImGui::GetMousePos().x;
@@ -1765,11 +1767,11 @@ bool ImGui::RangeSelect2D(char const* pLabel, float* pCurMinX, float* pCurMinY, 
 					*pCurMaxX = ImClamp(*pCurMaxX - fDeltaWidthValue, *pCurMinX, fBoundMaxX);
 				}
 				bModified = true;
+                drag_mouse = true;
 			}
 			else
 			{
-				pressed = ImGui::ButtonBehavior(vDragHandleHeight, ImGui::GetID("##Zone"), &hovered, &held);
-				if (hovered && held)
+                if (ImGui::IsMouseHoveringRect(vDragHandleHeight.Min, vDragHandleHeight.Max) && ImGui::IsMouseDown(ImGuiMouseButton_Left))
 				{
 					constexpr float fSpeedHandleHeight = 0.125f;
 					float fDeltaHeight = oHeightHandle.GetCenter().y - ImGui::GetMousePos().y;
@@ -1796,11 +1798,11 @@ bool ImGui::RangeSelect2D(char const* pLabel, float* pCurMinX, float* pCurMinY, 
 						*pCurMaxY = ImClamp(*pCurMaxY - fDeltaHeightValue, *pCurMinY, fBoundMaxY);
 					}
 					bModified = true;
+                    drag_mouse = true;
 				}
 				else
 				{
-					pressed = ImGui::ButtonBehavior(vDragRect, ImGui::GetID("##Zone"), &hovered, &held);
-					if (hovered && held)
+                    if (ImGui::IsMouseHoveringRect(vDragRect.Min, vDragRect.Max) && ImGui::IsMouseDown(ImGuiMouseButton_Left))
 					{
 						// Top Left
 						pDrawList->AddLine(oDragZone.Min, oDragZone.Min + ImVec2(oRegionRect.GetWidth() * 0.2f, 0.0f), uFrameCol, 1.0f);
@@ -1836,12 +1838,20 @@ bool ImGui::RangeSelect2D(char const* pLabel, float* pCurMinX, float* pCurMinY, 
 							*pCurMaxY = ImClamp(*pCurMaxY + fLocalDeltaY, *pCurMinY, fBoundMaxY);
 						}
 					}
+                    drag_mouse = true;
 				}
 			}
 		}
 	}
 
-    ImGui::CaptureMouseFromApp(held);
+    if (drag_mouse)
+        ImGui::CaptureMouseFromApp();
+
+    if (!ImGui::IsMouseDown(ImGuiMouseButton_Left) && drag_mouse)
+    {
+        drag_mouse = false;
+        ImGui::CaptureMouseFromApp(false);
+    }
 
 	char pBufferMinX[16];
 	char pBufferMaxX[16];
