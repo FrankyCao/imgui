@@ -9,11 +9,14 @@
 #include "imgui_helper.h"
 #include <errno.h>
 #include <mutex>
+#include <sstream>
+#include <iomanip>
 
 #ifdef _WIN32
 #include <windows.h>
 #include <shellapi.h>	// ShellExecuteA(...) - Shell32.lib
 #include <objbase.h>    // CoInitializeEx(...)  - ole32.lib
+#define mkdir(dir, mode) _mkdir(dir)
 #if IMGUI_RENDERING_DX11
 struct IUnknown;
 #include <d3d11.h>
@@ -22,10 +25,24 @@ struct IUnknown;
 #endif
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
+#define PATH_SEP '\\'
+#define PATH_SETTINGS "\\\AppData\\Roaming\\" //?
 #else //_WIN32
 #include <unistd.h>
 #include <stdlib.h> // system
+#include <pwd.h>
+#include <sys/stat.h>
+#define PATH_SEP '/'
 #endif //_WIN32
+
+#if defined(__APPLE__)
+#define PATH_SETTINGS "/Library/Application Support/"
+#include <mach/task.h>
+#include <mach/mach_init.h>
+#elif defined(__linux__)
+#include <sys/sysinfo.h>
+#define PATH_SETTINGS "/.config/"
+#endif
 
 #if defined(__EMSCRIPTEN__)
 #define IMGUI_IMPL_OPENGL_ES2               // Emscripten    -> GL ES 2, "#version 100"
@@ -1550,13 +1567,6 @@ bool GetFileContent(const char *filePath, ImVector<char> &contentOut, bool clear
 //----------------------------------------------------
     return true;
 }
-bool FileExists(const char *filePath)   {
-    if (!filePath || strlen(filePath)==0) return false;
-    FILE* f = (FILE *)ImFileOpen(filePath, "rb");
-    if (!f) return false;
-    fclose(f);f=NULL;
-    return true;
-}
 
 bool SetFileContent(const char *filePath, const unsigned char* content, int contentSize,const char* modes)	{
     if (!filePath || !content) return false;
@@ -1960,6 +1970,182 @@ void ThemeGenerator(const char* name, bool* p_open, ImGuiWindowFlags flags)
         ImGui::LogFinish();
     }
     ImGui::End();
+}
+
+// System Toolkit
+bool file_exists(const std::string& path)
+{
+#ifdef _WIN32
+    if (path.empty()) return false;
+    FILE* f = (FILE *)ImFileOpen(path.c_str(), "rb");
+    if (!f) return false;
+    fclose(f);f=NULL;
+    return true;
+#else
+    if (path.empty())
+        return false;
+
+    return access(path.c_str(), R_OK) == 0;
+#endif
+}
+
+std::string date_time_string()
+{
+    std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+    time_t t = std::chrono::system_clock::to_time_t(now);
+    tm* datetime = localtime(&t);
+
+    auto duration = now.time_since_epoch();
+    auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count() % 1000;
+
+    std::ostringstream oss;
+    oss << std::setw(4) << std::setfill('0') << std::to_string(datetime->tm_year + 1900);
+    oss << std::setw(2) << std::setfill('0') << std::to_string(datetime->tm_mon + 1);
+    oss << std::setw(2) << std::setfill('0') << std::to_string(datetime->tm_mday );
+    oss << std::setw(2) << std::setfill('0') << std::to_string(datetime->tm_hour );
+    oss << std::setw(2) << std::setfill('0') << std::to_string(datetime->tm_min );
+    oss << std::setw(2) << std::setfill('0') << std::to_string(datetime->tm_sec );
+    oss << std::setw(3) << std::setfill('0') << std::to_string(millis);
+
+    // fixed length string (17 chars) YYYYMMDDHHmmssiii
+    return oss.str();
+}
+
+std::string username()
+{
+    std::string userName;
+    // try the system user info
+    struct passwd* pwd = getpwuid(getuid());
+    if (pwd)
+        userName = std::string(pwd->pw_name);
+    else
+        // try the $USER environment variable
+        userName = std::string(getenv("USER"));
+
+    return userName;
+}
+
+std::string home_path()
+{
+    std::string homePath;
+    // try the system user info
+    // NB: avoids depending on changes of the $HOME env. variable
+    struct passwd* pwd = getpwuid(getuid());
+    if (pwd)
+        homePath = std::string(pwd->pw_dir);
+    else
+        // try the $HOME environment variable
+        homePath = std::string(getenv("HOME"));
+
+    return homePath + PATH_SEP;
+}
+
+bool create_directory(const std::string& path)
+{
+    return !mkdir(path.c_str(), 0755) || errno == EEXIST;
+}
+
+std::string settings_path(std::string app_name)
+{
+    // start from home folder
+    // NB: use the env.variable $HOME to allow system to specify
+    // another directory (e.g. inside a snap)
+    std::string home(getenv("HOME"));
+
+    // 2. try to access user settings folder
+    std::string settingspath = home + PATH_SETTINGS;
+    if (file_exists(settingspath)) {
+        // good, we have a place to put the settings file
+        // settings should be in 'vimix' subfolder
+        settingspath += app_name;
+
+        // 3. create the vmix subfolder in settings folder if not existing already
+        if ( !file_exists(settingspath)) {
+            if ( !create_directory(settingspath) )
+                // fallback to home if settings path cannot be created
+                settingspath = home;
+        }
+
+        return settingspath;
+    }
+    else {
+        // fallback to home if settings path does not exists
+        return home;
+    }
+}
+
+std::string temp_path()
+{
+    std::string temp;
+
+    const char *tmpdir = getenv("TMPDIR");
+    if (tmpdir)
+        temp = std::string(tmpdir);
+    else
+        temp = std::string( P_tmpdir );
+
+    temp += PATH_SEP;
+    return temp;
+}
+
+void execute(const std::string& command)
+{
+    int ignored __attribute__((unused));
+#ifdef _WIN32
+        ShellExecuteA( nullptr, nullptr, url.c_str(), nullptr, nullptr, 0 );
+#elif defined(__APPLE__)
+    (void) system( command.c_str() );
+#else
+    ignored = system( command.c_str() );
+#endif
+}
+
+size_t memory_usage()
+{
+#if defined(__linux__)
+    // Grabbing info directly from the /proc pseudo-filesystem.  Reading from
+    // /proc/self/statm gives info on your own process, as one line of
+    // numbers that are: virtual mem program size, resident set size,
+    // shared pages, text/code, data/stack, library, dirty pages.  The
+    // mem sizes should all be multiplied by the page size.
+    size_t size = 0;
+    FILE *file = fopen("/proc/self/statm", "r");
+    if (file) {
+        unsigned long m = 0;
+        int ret = 0, ret2 = 0;
+        ret = fscanf (file, "%lu", &m);  // virtual mem program size,
+        ret2 = fscanf (file, "%lu", &m);  // resident set size,
+        fclose (file);
+        if (ret>0 && ret2>0)
+            size = (size_t)m * getpagesize();
+    }
+    return size;
+
+#elif defined(__APPLE__)
+    // Inspired from
+    // http://miknight.blogspot.com/2005/11/resident-set-size-in-mac-os-x.html
+    struct task_basic_info t_info;
+    mach_msg_type_number_t t_info_count = TASK_BASIC_INFO_COUNT;
+    task_info(current_task(), TASK_BASIC_INFO, (task_info_t)&t_info, &t_info_count);
+    return t_info.resident_size;
+
+#elif defined(_WIN32)
+    // According to MSDN...
+    PROCESS_MEMORY_COUNTERS counters;
+    if (GetProcessMemoryInfo (GetCurrentProcess(), &counters, sizeof (counters)))
+        return counters.PagefileUsage;
+    else return 0;
+
+#else
+    return 0;
+#endif
+}
+
+size_t memory_max_usage()
+{
+    struct rusage r_usage;
+    getrusage(RUSAGE_SELF,&r_usage);
+    return 1024 * r_usage.ru_maxrss;
 }
 
 } //namespace ImGuiHelper

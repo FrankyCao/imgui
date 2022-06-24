@@ -502,6 +502,13 @@ bool Application_Frame(void* handle, bool app_will_quit)
 
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", ImGui::GetIO().DeltaTime * 1000.f, ImGui::GetIO().Framerate);
         ImGui::Text("Frames since last input: %d", ImGui::GetIO().FrameCountSinceLastInput);
+        ImGui::Text("Time Date: %s", ImGuiHelper::date_time_string().c_str());
+        ImGui::Text("User Name: %s", ImGuiHelper::username().c_str());
+        ImGui::Text("Home path: %s", ImGuiHelper::home_path().c_str());
+        ImGui::Text("Temp path: %s", ImGuiHelper::temp_path().c_str());
+        ImGui::Text("Setting path: %s", ImGuiHelper::settings_path("ImGui Example").c_str());
+        ImGui::Text("Memory usage: %zu", ImGuiHelper::memory_usage());
+        ImGui::Text("Memory Max usage: %zu", ImGuiHelper::memory_max_usage());
         ImGui::End();
     }
 

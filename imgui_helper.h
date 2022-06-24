@@ -392,9 +392,30 @@ public:
 // These classed are supposed to be used internally
 namespace ImGuiHelper {
 typedef ImGui::FieldType FieldType;
-
+// System Toolkit
 IMGUI_API bool GetFileContent(const char* filePath,ImVector<char>& contentOut,bool clearContentOutBeforeUsage=true,const char* modes="rb",bool appendTrailingZeroIfModesIsNotBinary=true);
-IMGUI_API bool FileExists(const char* filePath);
+IMGUI_API bool SetFileContent(const char *filePath, const unsigned char* content, int contentSize,const char* modes="wb");
+
+// true of file exists
+IMGUI_API bool file_exists(const std::string& path);
+// get fixed length string (17 chars) YYYYMMDDHHmmssiii
+IMGUI_API std::string date_time_string();
+// get the OS dependent username
+IMGUI_API std::string username();
+// get the OS dependent home path
+IMGUI_API std::string home_path();
+// create directory and return true on success
+IMGUI_API bool create_directory(const std::string& path);
+// get the OS dependent path where to store settings
+IMGUI_API std::string settings_path(std::string app_name);
+// get the OS dependent path where to store temporary files
+IMGUI_API std::string temp_path();
+// try to execute a command
+IMGUI_API void execute(const std::string& command);
+// return memory used (in bytes)
+IMGUI_API size_t memory_usage();
+// return maximum memory resident set size used (in bytes)
+IMGUI_API size_t memory_max_usage();
 
 class IMGUI_API Deserializer {
     char* f_data;
@@ -425,8 +446,6 @@ protected:
     void operator=(const Deserializer&) {}
     Deserializer(const Deserializer&) {}
 };
-
-IMGUI_API bool SetFileContent(const char *filePath, const unsigned char* content, int contentSize,const char* modes="wb");
 
 class ISerializable;
 class Serializer {
