@@ -392,12 +392,6 @@ void Example::DrawLineDemo()
 
 }
 
-#ifdef DEFAULT_CONFIG_PATH
-static std::string ini_file = std::string(DEFAULT_CONFIG_PATH) + "Application_Example.ini";
-#else
-static std::string ini_file = "Application_Example.ini";
-#endif
-
 void Application_GetWindowProperties(ApplicationWindowProperty& property)
 {
     property.name = "Application_Example";
@@ -412,8 +406,6 @@ void Application_Initialize(void** handle)
     srand((unsigned int)time(0));
     *handle = new Example();
     Example * example = (Example *)*handle;
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.IniFilename = ini_file.c_str();
     ImPlot::CreateContext();
 }
 

@@ -82,6 +82,12 @@ int main(int argc, char** argv)
     if (property.docking) io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
     if (property.viewport)io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
     if (!property.auto_merge) io.ConfigViewportsNoAutoMerge = true;
+    // Setup App setting file path
+    auto setting_path = ImGuiHelper::settings_path(property.name);
+    auto ini_name = property.name;
+    remove(ini_name.begin(), ini_name.end(), ' ');
+    setting_path += ini_name + ".ini";
+    io.IniFilename = setting_path.c_str();
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();

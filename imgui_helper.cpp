@@ -2076,12 +2076,11 @@ std::string settings_path(std::string app_name)
                 // fallback to home if settings path cannot be created
                 settingspath = home;
         }
-
-        return settingspath;
+        return settingspath + PATH_SEP;
     }
     else {
         // fallback to home if settings path does not exists
-        return home;
+        return home + PATH_SEP;
     }
 }
 
