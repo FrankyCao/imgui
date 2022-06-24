@@ -32,6 +32,7 @@ struct IUnknown;
 #include <stdlib.h> // system
 #include <pwd.h>
 #include <sys/stat.h>
+#include <sys/resource.h>
 #define PATH_SEP '/'
 #endif //_WIN32
 
