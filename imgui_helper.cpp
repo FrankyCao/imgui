@@ -16,7 +16,7 @@
 #include <windows.h>
 #include <shellapi.h>	// ShellExecuteA(...) - Shell32.lib
 #include <objbase.h>    // CoInitializeEx(...)  - ole32.lib
-#define mkdir(dir, mode) _mkdir(dir)
+#include <psapi.h> 
 #if IMGUI_RENDERING_DX11
 struct IUnknown;
 #include <d3d11.h>
@@ -26,7 +26,7 @@ struct IUnknown;
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
 #define PATH_SEP '\\'
-#define PATH_SETTINGS "\\\AppData\\Roaming\\" //?
+#define PATH_SETTINGS "\\AppData\\Roaming\\"
 #else //_WIN32
 #include <unistd.h>
 #include <stdlib.h> // system
@@ -1975,18 +1975,10 @@ void ThemeGenerator(const char* name, bool* p_open, ImGuiWindowFlags flags)
 // System Toolkit
 bool file_exists(const std::string& path)
 {
-#ifdef _WIN32
-    if (path.empty()) return false;
-    FILE* f = (FILE *)ImFileOpen(path.c_str(), "rb");
-    if (!f) return false;
-    fclose(f);f=NULL;
-    return true;
-#else
     if (path.empty())
         return false;
 
     return access(path.c_str(), R_OK) == 0;
-#endif
 }
 
 std::string date_time_string()
@@ -2014,6 +2006,14 @@ std::string date_time_string()
 std::string username()
 {
     std::string userName;
+#ifdef _WIN32
+    CHAR cUserNameBuffer[256];
+    DWORD dwUserNameSize = 256;
+    if(GetUserName(cUserNameBuffer, &dwUserNameSize))
+    {
+        userName = std::string(cUserNameBuffer);
+    }
+#else
     // try the system user info
     struct passwd* pwd = getpwuid(getuid());
     if (pwd)
@@ -2021,13 +2021,16 @@ std::string username()
     else
         // try the $USER environment variable
         userName = std::string(getenv("USER"));
-
+#endif
     return userName;
 }
 
 std::string home_path()
 {
     std::string homePath;
+#ifdef _WIN32
+    homePath = std::string(getenv("HOMEPATH"));
+#else
     // try the system user info
     // NB: avoids depending on changes of the $HOME env. variable
     struct passwd* pwd = getpwuid(getuid());
@@ -2036,13 +2039,17 @@ std::string home_path()
     else
         // try the $HOME environment variable
         homePath = std::string(getenv("HOME"));
-
+#endif
     return homePath + PATH_SEP;
 }
 
 bool create_directory(const std::string& path)
 {
+#ifdef _WIN32
+    return !mkdir(path.c_str()) || errno == EEXIST;
+#else
     return !mkdir(path.c_str(), 0755) || errno == EEXIST;
+#endif
 }
 
 std::string settings_path(std::string app_name)
@@ -2050,13 +2057,16 @@ std::string settings_path(std::string app_name)
     // start from home folder
     // NB: use the env.variable $HOME to allow system to specify
     // another directory (e.g. inside a snap)
+#ifdef _WIN32
+    std::string home(getenv("HOMEPATH"));
+#else
     std::string home(getenv("HOME"));
-
+#endif
     // 2. try to access user settings folder
     std::string settingspath = home + PATH_SETTINGS;
     if (file_exists(settingspath)) {
         // good, we have a place to put the settings file
-        // settings should be in 'vimix' subfolder
+        // settings should be in 'app_name' subfolder
         settingspath += app_name;
 
         // 3. create the vmix subfolder in settings folder if not existing already
@@ -2077,8 +2087,11 @@ std::string settings_path(std::string app_name)
 std::string temp_path()
 {
     std::string temp;
-
+#ifdef _WIN32
+    const char *tmpdir = getenv("TEMP");
+#else
     const char *tmpdir = getenv("TMPDIR");
+#endif
     if (tmpdir)
         temp = std::string(tmpdir);
     else
@@ -2092,7 +2105,7 @@ void execute(const std::string& command)
 {
     int ignored __attribute__((unused));
 #ifdef _WIN32
-        ShellExecuteA( nullptr, nullptr, url.c_str(), nullptr, nullptr, 0 );
+    ShellExecuteA( nullptr, nullptr, command.c_str(), nullptr, nullptr, 0 );
 #elif defined(__APPLE__)
     (void) system( command.c_str() );
 #else
