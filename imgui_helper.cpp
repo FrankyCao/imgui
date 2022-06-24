@@ -2156,9 +2156,16 @@ size_t memory_usage()
 
 size_t memory_max_usage()
 {
+#ifdef _WIN32
+    PROCESS_MEMORY_COUNTERS counters;
+    if (GetProcessMemoryInfo (GetCurrentProcess(), &counters, sizeof (counters)))
+        return counters.PeakPagefileUsage;
+    else return 0;
+#else
     struct rusage r_usage;
     getrusage(RUSAGE_SELF,&r_usage);
     return 1024 * r_usage.ru_maxrss;
+#endif
 }
 
 } //namespace ImGuiHelper
