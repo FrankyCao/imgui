@@ -44,7 +44,11 @@ int main(int, char**)
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
+#ifdef DEFAULT_CONFIG_PATH
     std::string ini_file = std::string(DEFAULT_CONFIG_PATH) + "sdl_opengl2.ini";
+#else
+    std::string ini_file = "sdl_opengl2.ini";
+#endif
     io.IniFilename = ini_file.c_str();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
