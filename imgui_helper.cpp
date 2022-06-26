@@ -40,6 +40,7 @@ struct IUnknown;
 #define PATH_SETTINGS "/Library/Application Support/"
 #include <mach/task.h>
 #include <mach/mach_init.h>
+#include <mach-o/dyld.h>
 #elif defined(__linux__)
 #include <sys/sysinfo.h>
 #define PATH_SETTINGS "/.config/"
@@ -1982,6 +1983,11 @@ bool file_exists(const std::string& path)
     return access(path.c_str(), R_OK) == 0;
 }
 
+std::string path_filename(const std::string& path)
+{
+    return path.substr(0, path.find_last_of(PATH_SEP) + 1);
+}
+
 std::string date_time_string()
 {
     std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
@@ -2030,7 +2036,8 @@ std::string home_path()
 {
     std::string homePath;
 #ifdef _WIN32
-    homePath = std::string(getenv("HOMEPATH"));
+    std::string homeDrive = std::string(getenv("HOMEDRIVE"));
+    homePath = homeDrive + std::string(getenv("HOMEPATH"));
 #else
     // try the system user info
     // NB: avoids depending on changes of the $HOME env. variable
@@ -2099,6 +2106,66 @@ std::string temp_path()
 
     temp += PATH_SEP;
     return temp;
+}
+
+std::string cwd_path()
+{
+    char mCwdPath[PATH_MAX] = {0};
+
+    if (getcwd(mCwdPath, sizeof(mCwdPath)) != NULL)
+        return std::string(mCwdPath) + PATH_SEP;
+    else
+        return std::string();
+}
+
+std::string exec_path()
+{
+    std::string path = std::string(); 
+    // Preallocate PATH_MAX (e.g., 4096) characters and hope the executable path isn't longer (including null byte)
+    char exePath[PATH_MAX];
+#if defined(__linux__)
+    // Return written bytes, indicating if memory was sufficient
+    int len = readlink("/proc/self/exe", exePath, PATH_MAX);
+    if (len <= 0 || len == PATH_MAX) // memory not sufficient or general error occured
+        return path;
+    path = path_filename(std::string(exePath));
+#elif defined(_WIN32)
+    // Return written bytes, indicating if memory was sufficient
+    unsigned int len = GetModuleFileNameA(GetModuleHandleA(0x0), exePath, MAX_PATH);
+    if (len == 0) // memory not sufficient or general error occured
+        return path;
+    path = path_filename(std::string(exePath));
+#elif defined(__APPLE__)
+    unsigned int len = (unsigned int)PATH_MAX;
+    // Obtain executable path to canonical path, return zero on success
+    if (_NSGetExecutablePath(exePath, &len) == 0)
+    {
+        // Convert executable path to canonical path, return null pointer on error
+        char * realPath = realpath(exePath, 0x0);
+        if (realPath == 0x0)
+            return path;
+        path = path_filename(std::string(realPath));
+        free(realPath);
+    }
+    else // len is initialized with the required number of bytes (including zero byte)
+    {
+        char * intermediatePath = (char *)malloc(sizeof(char) * len);
+        // Convert executable path to canonical path, return null pointer on error
+        if (_NSGetExecutablePath(intermediatePath, &len) != 0)
+        {
+            free(intermediatePath);
+            return path;
+        }
+        char * realPath = realpath(intermediatePath, 0x0);
+        free(intermediatePath);
+        // Check if conversion to canonical path succeeded
+        if (realPath == 0x0)
+            return path;
+        path = path_filename(std::string(realPath));
+        free(realPath);
+    }
+#endif
+    return path;
 }
 
 void execute(const std::string& command)

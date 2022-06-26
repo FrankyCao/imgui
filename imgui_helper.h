@@ -398,12 +398,18 @@ IMGUI_API bool SetFileContent(const char *filePath, const unsigned char* content
 
 // true of file exists
 IMGUI_API bool file_exists(const std::string& path);
+// extract the path of a filename from a full URI (e.g. file:://home/me/toto.mpg -> file:://home/me/)
+IMGUI_API std::string path_filename(const std::string& path);
 // get fixed length string (17 chars) YYYYMMDDHHmmssiii
 IMGUI_API std::string date_time_string();
 // get the OS dependent username
 IMGUI_API std::string username();
 // get the OS dependent home path
 IMGUI_API std::string home_path();
+// get the current working directory
+IMGUI_API std::string cwd_path();
+// get the current exec directory
+IMGUI_API std::string exec_path();
 // create directory and return true on success
 IMGUI_API bool create_directory(const std::string& path);
 // get the OS dependent path where to store settings

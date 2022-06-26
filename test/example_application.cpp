@@ -498,6 +498,8 @@ bool Application_Frame(void* handle, bool app_will_quit)
         ImGui::Text("User Name: %s", ImGuiHelper::username().c_str());
         ImGui::Text("Home path: %s", ImGuiHelper::home_path().c_str());
         ImGui::Text("Temp path: %s", ImGuiHelper::temp_path().c_str());
+        ImGui::Text("Working path: %s", ImGuiHelper::cwd_path().c_str());
+        ImGui::Text("Exec path: %s", ImGuiHelper::exec_path().c_str());
         ImGui::Text("Setting path: %s", ImGuiHelper::settings_path("ImGui Example").c_str());
         ImGui::Text("Memory usage: %zu", ImGuiHelper::memory_usage());
         ImGui::Text("Memory Max usage: %zu", ImGuiHelper::memory_max_usage());
