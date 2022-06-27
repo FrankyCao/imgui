@@ -79,7 +79,7 @@
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>   // for glfwGetWin32Window()
 #endif
-#ifdef __APPLE__
+#if defined(__APPLE__) && defined(__clang__) // modify by Dicky for Apple gcc build issue
 #define GLFW_EXPOSE_NATIVE_COCOA
 #include <GLFW/glfw3native.h>   // for glfwGetCocoaWindow()
 #endif
