@@ -21,6 +21,10 @@ if (POLICY CMP0111)
     cmake_policy(SET CMP0111 NEW)
 endif()
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+#if we need run on MacOS before 12.0, then uncomment following code, but not guarantee it's working
+#if(APPLE)
+#set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0") 
+#endif(APPLE)
 
 option(VKSHADER_VULKAN_BENCHMARK      "Enable Vulkan Shader Benchmark" OFF)
 option(VKSHADER_STATIC                "Build Vulkan Shader as static library" OFF)
