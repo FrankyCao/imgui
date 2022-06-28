@@ -3212,26 +3212,44 @@ void ImSTFT (float* data, float * out, int N, int window, int hope, bool forward
     float * hannwin = (float *)calloc(1, window * sizeof(float));
     for (int i = 0; i < window; i++) hannwin[i] = 0.5 * (1 + cos(M_PI + 2 * M_PI * i / (window - 1)));
 
-    // create buffer
+    // create fft buffer
     float *buffer_fft = (float *)calloc(1, window * sizeof(float));
+
+    // create overlap buffer
+    float *buffer_overlap = (float *)calloc(1, overlap * sizeof(float));
 
     // STFT
     for (int i = 0; i < frames; i++)
     {
         if (forward)
         {
-            for (int n = 0; n < window / 2; n++)
-            {
-                buffer_fft[n * 2 + 0] = data[i * hope + n * 2 + 0] * hannwin[n];
-                buffer_fft[n * 2 + 1] = data[i * hope + n * 2 + 1] * hannwin[n];
-            }
+            for (int n = 0; n < window; n++)
+                buffer_fft[n] = data[i * hope + n] * hannwin[n];
             ImRFFT(buffer_fft, window, forward);
             memcpy(out + i * window, buffer_fft, window * sizeof(float));
+        }
+        else
+        {
+            memcpy(buffer_fft, data + i * window, window * sizeof(float));
+            ImRFFT(buffer_fft, window, forward);
+            for (int n = 0; n < hope; n++)
+                out[i * hope + n] = buffer_fft[n] + buffer_overlap[n];
+            if (i == frames - 1)
+            {
+                for (int n = 0; n < overlap; n++)
+                    out[(i + 1) * hope + n] = buffer_fft[hope + n];
+            }
+            else
+            {
+                for (int n = 0; n < overlap; n++)
+                    buffer_overlap[n] = buffer_fft[hope + n];
+            }
         }
     }
 
     // release buffer
     free(buffer_fft);
+    free(buffer_overlap);
     free(hannwin);
 }
 } // namespace ImGui

@@ -446,6 +446,7 @@ void ShowImFFTDemoWindow()
 #define FFT_DATA_LENGTH 1024
 #define SUB_LENGTH (FFT_DATA_LENGTH / 4)
     ImGuiIO &io = ImGui::GetIO();
+    static bool stft = false;
     static float wave_scale = 1.0f;
     static float fft_scale = 1.0f;
     ImMat time_demain_one, time_demain_two;
@@ -459,6 +460,8 @@ void ShowImFFTDemoWindow()
     ImGui::Combo("Signal Type", &signal_type, signal_item, IM_ARRAYSIZE(signal_item));
     ImGui::SameLine();
     ImGui::Combo("View Type", &view_type, view_item, IM_ARRAYSIZE(view_item));
+    ImGui::SameLine();
+    ImGui::Checkbox("STFT", &stft);
     ImGui::PopItemWidth();
     // init time domain data
     switch (signal_type)
@@ -578,15 +581,23 @@ void ShowImFFTDemoWindow()
     frequency_domain_two.clone_from(time_demain_two);
 
     // init STFT
-    //ImMat short_time_domain_one;
-    //ImMat short_time_domain_two;
-    //const int window = FFT_DATA_LENGTH / 4;
-    //const int hope = window / 2;
-    //short_time_domain_one.create_type(FFT_DATA_LENGTH * 4, IM_DT_FLOAT32);
-    //short_time_domain_two.create_type(FFT_DATA_LENGTH * 4, IM_DT_FLOAT32);
-    //// do stft
-    //ImSTFT((float *)frequency_domain_one.data, (float *)short_time_domain_one.data, frequency_domain_one.w, window, hope, true);
-    //ImSTFT((float *)frequency_domain_two.data, (float *)short_time_domain_two.data, frequency_domain_two.w, window, hope, true);
+    ImMat short_time_domain_one;
+    ImMat short_time_domain_two;
+    const int window = FFT_DATA_LENGTH / 4;
+    const int hope = window / 2;
+    const int frames = 1 + (FFT_DATA_LENGTH - window) / hope;
+    short_time_domain_one.create_type(window * frames, IM_DT_FLOAT32);
+    short_time_domain_two.create_type(window * frames, IM_DT_FLOAT32);
+    // do stft
+    ImSTFT((float *)frequency_domain_one.data, (float *)short_time_domain_one.data, frequency_domain_one.w, window, hope, true);
+    ImSTFT((float *)frequency_domain_two.data, (float *)short_time_domain_two.data, frequency_domain_two.w, window, hope, true);
+    // do istft
+    ImMat short_time_domain_out_one;
+    ImMat short_time_domain_out_two;
+    short_time_domain_out_one.create_type(FFT_DATA_LENGTH, IM_DT_FLOAT32);
+    short_time_domain_out_two.create_type(FFT_DATA_LENGTH, IM_DT_FLOAT32);
+    ImSTFT((float *)short_time_domain_one.data, (float *)short_time_domain_out_one.data, short_time_domain_out_one.w, window, hope, false);
+    ImSTFT((float *)short_time_domain_two.data, (float *)short_time_domain_out_two.data, short_time_domain_out_two.w, window, hope, false);
 
     // do fft
     ImRFFT((float *)frequency_domain_one.data, frequency_domain_one.w, true);
@@ -641,8 +652,16 @@ void ShowImFFTDemoWindow()
     switch (view_type)
     {
         case 0:
-            fft_data_one = (float *)frequency_domain_one.data; data_count_one = frequency_domain_one.w;
-            fft_data_two = (float *)frequency_domain_two.data; data_count_two = frequency_domain_two.w;             
+            if (stft)
+            {
+                fft_data_one = (float *)short_time_domain_one.data; data_count_one = short_time_domain_one.w;
+                fft_data_two = (float *)short_time_domain_two.data; data_count_two = short_time_domain_two.w;
+            }
+            else
+            {
+                fft_data_one = (float *)frequency_domain_one.data; data_count_one = frequency_domain_one.w;
+                fft_data_two = (float *)frequency_domain_two.data; data_count_two = frequency_domain_two.w;
+            }
             combonded = false;
             f_min = -8.f; f_max = 8.f;
         break;
@@ -673,8 +692,16 @@ void ShowImFFTDemoWindow()
 
     // draw time domain out(ifft)
     ImGui::BeginGroup();
-    ImGui::PlotLines("##time_channel_out_one", (float *)time_domain_out_one.data, time_domain_out_one.w, 0, nullptr, -1.0 * wave_scale, 1.0 * wave_scale, channel_view_size, 4, true, false);
-    ImGui::PlotLines("##time_channel_out_two", (float *)time_domain_out_two.data, time_domain_out_two.w, 0, nullptr, -1.0 * wave_scale, 1.0 * wave_scale, channel_view_size, 4, true, false);
+    if (stft)
+    {
+        ImGui::PlotLines("##time_channel_out_one", (float *)short_time_domain_out_one.data, short_time_domain_out_one.w, 0, nullptr, -1.0 * wave_scale, 1.0 * wave_scale, channel_view_size, 4, true, false);
+        ImGui::PlotLines("##time_channel_out_two", (float *)short_time_domain_out_two.data, short_time_domain_out_two.w, 0, nullptr, -1.0 * wave_scale, 1.0 * wave_scale, channel_view_size, 4, true, false);
+    }
+    else
+    {
+        ImGui::PlotLines("##time_channel_out_one", (float *)time_domain_out_one.data, time_domain_out_one.w, 0, nullptr, -1.0 * wave_scale, 1.0 * wave_scale, channel_view_size, 4, true, false);
+        ImGui::PlotLines("##time_channel_out_two", (float *)time_domain_out_two.data, time_domain_out_two.w, 0, nullptr, -1.0 * wave_scale, 1.0 * wave_scale, channel_view_size, 4, true, false);
+    }
     ImGui::EndGroup();
     if (ImGui::IsItemHovered())
     {
