@@ -90,24 +90,23 @@ IMGUI_API int ImReComposePhase(float * in, float * out, int samples);
 IMGUI_API int ImReComposeDBShort(float * in, float * out, int samples, bool inverse = true);
 IMGUI_API int ImReComposeDBLong(float * in, float * out, int samples, bool inverse = true);
 IMGUI_API float ImDoDecibel(float * in, int samples, bool inverse = true);
-// STFT
+// STFT 1D
 struct IMGUI_API ImSTFT
 {
-    ImSTFT(int _window, int _hope, bool _forward = true);
+    ImSTFT(int _window, int _hope);
     ~ImSTFT();
-    int exec(float* in, size_t in_size, float * out, size_t out_size);
-    
-    // analyzer stft
-    int compose_amplitude(float* in, size_t in_size, float * out, size_t out_size, int samples);
+    void stft(float* in, float* out);
+    void istft(float* in, float* out);
 
-    float * hannwin = nullptr;
 private:
-    float * buffer_fft = nullptr;
-    float * buffer_overlap = nullptr;
-    int window = 0;
-    int hope = 0;
-    int overlap = 0;
-    bool forward = true;
+    void *hannwin {nullptr};
+    void *overlap {nullptr};
+
+    int frame_size;
+    int shift_size;
+    int overlap_size;
+    float* buf  {nullptr};
+    float* amplitude {nullptr};
 };
 
 #ifdef IMGUI_USE_ZLIB	// requires linking to library -lZlib

@@ -3199,131 +3199,107 @@ float ImDoDecibel(float * in, int samples, bool inverse)
 	return db;
 }
 
-ImSTFT::ImSTFT(int _window, int _hope, bool _forward)
+struct HannWindow
 {
-    window = _window;
-    hope = _hope;
-    forward = _forward;
-    overlap = window - hope; // > 0?
-    assert(hope !=0 && window != 0 && hope <= window);
-    // create hannwin
-    hannwin = (float *)calloc(1, window * sizeof(float));
-    for (int i = 0; i < window; i++) hannwin[i] = 0.5 * (1.0 - cos(2.0 * M_PI * (i / (double)window)));
-    //float tmp = 0;
-    //for (int i = 0; i < window; i++) tmp += hannwin[i] * hannwin[i];
-    //tmp /= _hope;
-    //tmp = std::sqrt(tmp);
-    //for (int i = 0; i < window; i++) hannwin[i] /= tmp;
-    // create fft buffer
-    buffer_fft = (float *)calloc(1, window * sizeof(float));
-    // create overlap buffer
-    buffer_overlap = (float *)calloc(1, overlap * sizeof(float));
+    inline HannWindow(int _frame_size, int _shift_size)
+    {
+        float tmp = 0;
+        shift_size = _shift_size;
+        frame_size = _frame_size;
+        hann = new float[frame_size];
+        for (int i = 0; i < frame_size; i++) hann[i] = 0.5 * (1.0 - cos(2.0 * M_PI * (i / (float)frame_size)));
+        for (int i = 0; i < frame_size; i++) tmp += hann[i] * hann[i];
+        tmp /= shift_size;
+        tmp = std::sqrt(tmp);
+        for (int i = 0; i < frame_size; i++) hann[i] /= tmp;
+    }
+    inline ~HannWindow() { delete[] hann; };
+    inline void Process(float * buffer) { for (int i = 0; i < frame_size; i++) buffer[i] *= hann[i]; }
+
+private:
+    float *hann {nullptr};
+    int shift_size;
+    int frame_size;
+};
+
+struct Overlap
+{
+public:
+    inline Overlap(uint32_t _frame_size, uint32_t _shift_size)
+    {
+        frame_size = _frame_size;
+        shift_size = _shift_size;
+        buf_offset = 0;
+        num_block = frame_size / shift_size;
+        output = new float[shift_size];
+        buf = new float[frame_size];
+        memset(buf, 0, frame_size * sizeof(float));
+    }
+    inline ~Overlap() { delete[] buf; delete[] output; };
+    inline float *overlap(float *in)
+    {
+        // Shift
+        for (int i = 0; i < static_cast<int>(frame_size - shift_size); i++) buf[i] = buf[i + shift_size];
+        // Emptying Last Block
+        memset(buf + shift_size * (num_block - 1), 0, sizeof(float) * shift_size);
+        // Sum
+        for (int i = 0; i < static_cast<int>(frame_size); i++) buf[i] += in[i];
+        // Distribution for float format
+        for (int i = 0; i < static_cast<int>(shift_size); i++) output[i] = static_cast<float>(buf[i]);
+        return output;
+    }
+
+private:
+    uint32_t frame_size;
+    uint32_t shift_size;
+    uint32_t num_block;
+    uint32_t buf_offset;
+    float *output;
+    float *buf;
+};
+
+ImSTFT::ImSTFT(int frame_, int shift_)
+{
+    frame_size = frame_;
+    shift_size = shift_;
+    overlap_size = frame_size - shift_size;
+    hannwin = new HannWindow(frame_size, shift_size);
+    overlap = new Overlap(frame_size, shift_size);
+    buf = new float[frame_size];
+    memset(buf, 0, sizeof(float) * frame_size);
+    amplitude = new float[frame_size];
+    memset(amplitude, 0, sizeof(float) * ((frame_size >> 1) + 1));
 }
 
 ImSTFT::~ImSTFT()
+{ 
+    delete (HannWindow*)hannwin; 
+    delete (Overlap*)overlap; 
+    delete[] buf;
+    delete[] amplitude;
+};
+
+void ImSTFT::stft(float* in, float* out)
 {
-    if (buffer_fft) { free(buffer_fft); buffer_fft = nullptr; };
-    if (buffer_overlap) { free(buffer_overlap); buffer_overlap = nullptr; }
-    if (hannwin) { free(hannwin); hannwin = nullptr; }
+    /*** Shfit & Copy***/
+    for (int i = 0; i < overlap_size; i++) buf[i] = buf[i + shift_size];
+    for (int i = 0; i < shift_size; i++) buf[overlap_size + i] = static_cast<float>(in[i]);
+    memcpy(out, buf, sizeof(float) * frame_size);
+    /*** Window ***/
+    ((HannWindow*)hannwin)->Process(out);
+    /*** FFT ***/
+    ImGui::ImRFFT(out, frame_size, true);
 }
 
-int ImSTFT::exec(float* in, size_t in_size, float * out, size_t out_size)
+void ImSTFT::istft(float* in, float* out)
 {
-    int frame = 0;
-    float * in_data = in;
-    float * in_end = in + in_size;
-    float * out_data = out;
-    float * out_end = out + out_size;
-    if (forward)
-    {
-        // first using last remain data(size=hope)+in(size=overlap)
-        for (int n = 0; n < hope; n++)
-            buffer_fft[n] = buffer_overlap[overlap - hope + n] * hannwin[n];
-        for (int n = hope; n < window; n++)
-            buffer_fft[n] = in[n - hope] * hannwin[n];
-        ImRFFT(buffer_fft, window, forward);
-        memcpy(out_data, buffer_fft, window * sizeof(float));
-        out_data += window;
-        frame++;
-        // add current data
-        while(in_data + window <= in_end)
-        {
-            for (int n = 0; n < window; n++)
-                buffer_fft[n] = in_data[n] * hannwin[n];
-            ImRFFT(buffer_fft, window, forward);
-            memcpy(out_data, buffer_fft, window * sizeof(float));
-            in_data += hope;
-            out_data += window;
-            frame++;
-            if (out_data >= out_end)
-                return frame;
-        }
-        // last data till in+hope>in_end
-        while(in_data + hope <= in_end)
-        {
-            int remain_data = in_end - in_data;
-            for (int n = 0; n < remain_data; n++)
-                buffer_fft[n] = in_data[n] * hannwin[n];
-            for (int n = remain_data; n < window; n++)
-                buffer_fft[n] = 0;
-            ImRFFT(buffer_fft, window, forward);
-            memcpy(out_data, buffer_fft, window * sizeof(float));
-            in_data += hope;
-            out_data += window;
-            frame++;
-            if (out_data >= out_end)
-                break;
-        }
-        // store last overlap(size=overlap)
-        //for (int n = 0; n < overlap; n++)
-        //    buffer_overlap[n] = in_end[n-overlap];
-    }
-    else
-    {
-        // first prepare overlap data
-        memcpy(buffer_fft, in_data, window * sizeof(float));
-        ImRFFT(buffer_fft, window, forward);
-        for (int n = 0; n < overlap; n++)
-            buffer_overlap[n] = buffer_fft[n + hope];
-        in_data += window;
-        frame++;
-        // remain data: in(size = window) out(size = hope)
-        while (in_data + window <= in_end)
-        {
-            memcpy(buffer_fft, in_data, window * sizeof(float));
-            ImRFFT(buffer_fft, window, forward);
-            for (int n = 0; n < hope; n++)
-                out_data[n] = buffer_fft[n] + buffer_overlap[n];
-            for (int n = 0; n < overlap; n++)
-                buffer_overlap[n] = buffer_fft[hope + n];
-            in_data += window;
-            out_data += hope;
-            frame++;
-        }
-    }
-    return frame;
+    /*** iFFT ***/
+    ImGui::ImRFFT(in, frame_size, false);
+    /*** Window ***/
+    ((HannWindow*)hannwin)->Process(in);
+    /*** Output ***/
+    memcpy(out, ((Overlap*)overlap)->overlap(in), sizeof(float) * shift_size);
 }
-
-int ImSTFT::compose_amplitude(float* in, size_t in_size, float * out, size_t out_size, int samples)
-{
-    // first add all sub window data into one window
-    int ret = 0;
-    assert(in && out && in_size && out_size);
-    int frames = in_size / samples;
-    // first add all sub window data into one window
-    float * in_combine = (float *)calloc(1, out_size * sizeof(float));
-    for (int i = 0; i < frames; i++)
-    {
-        ImReComposeAmplitude(&in[i * samples], in_combine, samples);
-        for (int n = 0; n < out_size; n++)
-        {
-            out[n] += in_combine[n];
-        }
-    }
-    free(in_combine);
-    return ret;
-}
-
 } // namespace ImGui
 
 //-----------------------------------------------------------------------------

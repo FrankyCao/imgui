@@ -602,11 +602,11 @@ void ShowImSTFTDemoWindow()
 #define STFT_SUB_LENGTH (STFT_DATA_LENGTH / 4)
     ImGuiIO &io = ImGui::GetIO();
     static float wave_scale = 1.0f;
-    static float fft_scale = 1.0f;
+    static float fft_scale = 16.0f;
     ImMat time_domain;
     time_domain.create_type(STFT_DATA_LENGTH, IM_DT_FLOAT32);
     static int signal_type = 0;
-    static const char * signal_item[] = {"Sine", "Sweep", "Segmentation", "High-Frequency Disturbing"};
+    static const char * signal_item[] = {"Sine", "Sweep", "Inverse Sweep", "Segmentation", "Inverse Segmentation", "High-Frequency Disturbing"};
     ImGui::PushItemWidth(200);
     ImGui::Combo("Signal Type", &signal_type, signal_item, IM_ARRAYSIZE(signal_item));
     ImGui::PopItemWidth();
@@ -630,12 +630,23 @@ void ShowImSTFTDemoWindow()
             {
                 float t = (float)i / (float)STFT_DATA_LENGTH;
                 time_domain.at<float>(i) = 0.5 * sin(2 * M_PI * f * t);
-                //time_demain.at<float>(STFT_DATA_LENGTH - i - 1) = 0.5 * sin(2 * M_PI * f * t);
                 f += step;
             }
         }
         break;
-        case 2: // Segmentation
+        case 2: // Inverse Sweep
+        {
+            float f = 0.f;
+            float step = 100.f / (float)STFT_DATA_LENGTH;
+            for (int i = 0; i < STFT_DATA_LENGTH; i++)
+            {
+                float t = (float)i / (float)STFT_DATA_LENGTH;
+                time_domain.at<float>(STFT_DATA_LENGTH - i - 1) = 0.5 * sin(2 * M_PI * f * t);
+                f += step;
+            }
+        }
+        break;
+        case 3: // Segmentation
         {
             for (int i = 0; i < STFT_SUB_LENGTH; i++)
             {
@@ -644,14 +655,22 @@ void ShowImSTFTDemoWindow()
                 time_domain.at<float>(i + STFT_SUB_LENGTH * 1) = 0.2 * sin(2 * M_PI * 200 * t);
                 time_domain.at<float>(i + STFT_SUB_LENGTH * 2) = 0.3 * sin(2 * M_PI * 300 * t);
                 time_domain.at<float>(i + STFT_SUB_LENGTH * 3) = 0.4 * sin(2 * M_PI * 400 * t);
-                //time_domain.at<float>(i + STFT_SUB_LENGTH * 0) = 0.4 * sin(2 * M_PI * 400 * t);
-                //time_domain.at<float>(i + STFT_SUB_LENGTH * 1) = 0.3 * sin(2 * M_PI * 300 * t);
-                //time_domain.at<float>(i + STFT_SUB_LENGTH * 2) = 0.2 * sin(2 * M_PI * 200 * t);
-                //time_domain.at<float>(i + STFT_SUB_LENGTH * 3) = 0.1 * sin(2 * M_PI * 100 * t);
             }
         }
         break;
-        case 3: // High-Frequency Disturbing
+        case 4: // Inverse Segmentation
+        {
+            for (int i = 0; i < STFT_SUB_LENGTH; i++)
+            {
+                float t = (float)i / (float)STFT_DATA_LENGTH;
+                time_domain.at<float>(i + STFT_SUB_LENGTH * 0) = 0.4 * sin(2 * M_PI * 400 * t);
+                time_domain.at<float>(i + STFT_SUB_LENGTH * 1) = 0.3 * sin(2 * M_PI * 300 * t);
+                time_domain.at<float>(i + STFT_SUB_LENGTH * 2) = 0.2 * sin(2 * M_PI * 200 * t);
+                time_domain.at<float>(i + STFT_SUB_LENGTH * 3) = 0.1 * sin(2 * M_PI * 100 * t);
+            }
+        }
+        break;
+        case 5: // High-Frequency Disturbing
         {
             for (int i = 0; i < STFT_DATA_LENGTH; i++)
             {
@@ -670,46 +689,42 @@ void ShowImSTFTDemoWindow()
     }
 
     // init STFT
-    ImMat short_time_domain;
-    const int window = STFT_DATA_LENGTH / 2;
-    const int hope = window / 2;
-    const int overlay = window - hope;
-    ImSTFT stft(window, hope);
-    ImSTFT istft(window, hope, false);
-    const int frames = STFT_DATA_LENGTH / hope + 1;
-    short_time_domain.create_type(window * frames, IM_DT_FLOAT32);
-    // do stft
-    stft.exec((float *)time_domain.data, time_domain.w, (float *)short_time_domain.data, short_time_domain.w);
-    // do istft
+    const int window = STFT_DATA_LENGTH / 4;
+    const int hope = window / 4;
+    const int overlap = window - hope;
+    ImSTFT process(window, hope);
+    ImMat short_time_domain, padding_data;
+    short_time_domain.create_type(window + 2, IM_DT_FLOAT32);
+    padding_data.create_type(window, IM_DT_FLOAT32);
     ImMat short_time_domain_out;
     short_time_domain_out.create_type(STFT_DATA_LENGTH, IM_DT_FLOAT32);
-    istft.exec((float *)short_time_domain.data, short_time_domain.w, (float *)short_time_domain_out.data, short_time_domain_out.w);
-    
-    // do analizer
     ImMat short_time_amplitude;
     short_time_amplitude.create_type((window >> 1) + 1, IM_DT_FLOAT32);
-    stft.compose_amplitude((float *)short_time_domain.data, short_time_domain.w, (float *)short_time_amplitude.data, short_time_amplitude.w, window);
-
-    // init sliding stft
-#define SLIDER_NUMBER   8
-    const int slider_window = STFT_DATA_LENGTH / SLIDER_NUMBER;
-    const int sub_window = slider_window / 2;
-    const int sub_hope = sub_window / 2;
-    ImSTFT stft_sub(sub_window, sub_hope);
-    ImSTFT istft_sub(sub_window, sub_hope, false);
-    const int sub_frames = slider_window / sub_hope + 1;
-    ImMat sub_short_time_domain;
-    sub_short_time_domain.create_type(sub_window * sub_frames, IM_DT_FLOAT32);
-    ImMat sub_short_time_domain_out;
-    sub_short_time_domain_out.create_type(STFT_DATA_LENGTH, IM_DT_FLOAT32);
-    for (int i = 0; i < SLIDER_NUMBER; i++)
+    int length = 0;
+    // stft/istft/analyzer with slipping window
+    while (length < STFT_DATA_LENGTH + overlap)
     {
-        // do sliding stft
-        stft_sub.exec((float *)time_domain.data + i * slider_window, slider_window, (float *)sub_short_time_domain.data, sub_short_time_domain.w);
-        // do sliding istft
-        istft_sub.exec((float *)sub_short_time_domain.data, sub_short_time_domain.w, (float *)sub_short_time_domain_out.data + i * slider_window, slider_window);
-    }
+        ImMat amplitude;
+        amplitude.create_like(short_time_amplitude);
+        float * in_data, *out_data;
+        if (length < STFT_DATA_LENGTH)
+            in_data = (float *)time_domain.data + length;
+        else
+            in_data = (float *)padding_data.data;
+        process.stft(in_data, (float *)short_time_domain.data);
 
+        // do analyzer
+        ImReComposeAmplitude((float *)short_time_domain.data, (float *)amplitude.data, window);
+        for (int i = 0; i < amplitude.w; i++) short_time_amplitude.at<float>(i) += amplitude.at<float>(i);
+        // analyzer end
+
+        if (length >= overlap)
+            out_data = (float *)short_time_domain_out.data + length - overlap;
+        else
+            out_data = (float *)padding_data.data;
+        process.istft((float *)short_time_domain.data, out_data);
+        length += hope;
+    }
     // draw result
     ImVec2 channel_view_size = ImVec2(STFT_DATA_LENGTH / 4, 128);
     ImGui::PushStyleColor(ImGuiCol_PlotLines, ImVec4(0.f, 1.f, 0.f, 1.0f));
@@ -725,22 +740,14 @@ void ShowImSTFTDemoWindow()
         if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) wave_scale = 1.0;
     }
 
-    // draw frequency domain data
-    float * fft_data = (float *)short_time_amplitude.data;
-    int data_count = short_time_amplitude.w;
-    bool combonded = true;
-    float f_min = 0.f;
-    float f_max = 32.f;
-    ImGui::PlotLines("##stft_domain", fft_data, data_count, 0, nullptr, f_min * fft_scale, f_max * fft_scale, channel_view_size, 4, true, combonded);
+    // draw stft domain (amplitude)
+    ImGui::PlotLines("##stft_domain", (float *)short_time_amplitude.data, short_time_amplitude.w, 0, nullptr, 0.0 * fft_scale, 1.0 * fft_scale, channel_view_size, 4, true, true);
     if (ImGui::IsItemHovered())
     {
         if (io.MouseWheel < -FLT_EPSILON) { fft_scale *= 0.9f; if (fft_scale < 0.1f) fft_scale = 0.1f; }
-        if (io.MouseWheel >  FLT_EPSILON) { fft_scale *= 1.1f; if (fft_scale > 4.0f) fft_scale = 4.0f; }
+        if (io.MouseWheel >  FLT_EPSILON) { fft_scale *= 1.1f; if (fft_scale > 32.0f) fft_scale = 32.0f; }
         if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) fft_scale = 1.0;
     }
-
-    // draw window function data
-    ImGui::PlotLines("##window_function", stft.hannwin, window, 0, nullptr, 0, 1.0, channel_view_size, 4, true, combonded);
 
     // draw time domain out(istft)
     ImGui::PlotLines("##time_domain_out", (float *)short_time_domain_out.data, short_time_domain_out.w, 0, nullptr, -1.0 * wave_scale, 1.0 * wave_scale, channel_view_size, 4, true, false);
@@ -750,17 +757,8 @@ void ShowImSTFTDemoWindow()
         if (io.MouseWheel >  FLT_EPSILON) { wave_scale *= 1.1f; if (wave_scale > 4.0f) wave_scale = 4.0f; }
         if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) wave_scale = 1.0;
     }
-
-    // draw time domain out(istft sliding)
-    ImGui::PlotLines("##sub_time_domain_out", (float *)sub_short_time_domain_out.data, sub_short_time_domain_out.w, 0, nullptr, -1.0 * wave_scale, 1.0 * wave_scale, channel_view_size, 4, true, false);
-    if (ImGui::IsItemHovered())
-    {
-        if (io.MouseWheel < -FLT_EPSILON) { wave_scale *= 0.9f; if (wave_scale < 0.1f) wave_scale = 0.1f; }
-        if (io.MouseWheel >  FLT_EPSILON) { wave_scale *= 1.1f; if (wave_scale > 4.0f) wave_scale = 4.0f; }
-        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) wave_scale = 1.0;
-    }
-
     ImGui::PopStyleColor(3);
+
 }
 
 } // namespace ImGui
