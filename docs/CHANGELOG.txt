@@ -99,6 +99,25 @@ Other changes:
 
 
 -----------------------------------------------------------------------
+ VERSION 1.89 WIP (In Progress)
+-----------------------------------------------------------------------
+
+Breaking changes:
+
+Other Changes:
+
+- InputText: added experimental io.ConfigInputTextEnterKeepActive feature to make pressing
+  Enter keep the input active and select all text.
+- Backends: Metal: Use __bridge for ARC based systems. (#5403) [@stack]
+- Backends: OSX: Fixes to support full app creation in C++. (#5403) [@stack]
+
+Docking+Viewports Branch:
+
+- Backends: GLFW: Fixed leftover static variable preventing from changing or
+  reinitializing backend while application is running. (#4616, #5434) [@rtoumazet]
+
+
+-----------------------------------------------------------------------
  VERSION 1.88 (Released 2022-06-21)
 -----------------------------------------------------------------------
 

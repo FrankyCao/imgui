@@ -83,13 +83,32 @@ IMGUI_API bool Base85DecodeFromFile(const char* filePath,ImVector<char>& rv);
 // FFT 1D
 IMGUI_API void ImFFT (float* data, int N, bool forward);
 IMGUI_API void ImRFFT (float* data, int N, bool forward);
-IMGUI_API void ImSTFT (float* data, float * out, int N, int window, int hope, bool forward);
+//IMGUI_API void ImSTFT (float* data, float * out, int N, int window, int hope, bool forward);
 IMGUI_API int ImReComposeDB(float * in, float * out, int samples, bool inverse = true);
 IMGUI_API int ImReComposeAmplitude(float * in, float * out, int samples);
 IMGUI_API int ImReComposePhase(float * in, float * out, int samples);
 IMGUI_API int ImReComposeDBShort(float * in, float * out, int samples, bool inverse = true);
 IMGUI_API int ImReComposeDBLong(float * in, float * out, int samples, bool inverse = true);
 IMGUI_API float ImDoDecibel(float * in, int samples, bool inverse = true);
+// STFT
+struct IMGUI_API ImSTFT
+{
+    ImSTFT(int _window, int _hope, bool _forward = true);
+    ~ImSTFT();
+    int exec(float* in, size_t in_size, float * out, size_t out_size);
+    
+    // analyzer stft
+    int compose_amplitude(float* in, size_t in_size, float * out, size_t out_size, int samples);
+
+    float * hannwin = nullptr;
+private:
+    float * buffer_fft = nullptr;
+    float * buffer_overlap = nullptr;
+    int window = 0;
+    int hope = 0;
+    int overlap = 0;
+    bool forward = true;
+};
 
 #ifdef IMGUI_USE_ZLIB	// requires linking to library -lZlib
 // Two methods that fill rv and return true on success

@@ -217,6 +217,7 @@ public:
     bool show_mat_draw_window = false;
     bool show_kalman_window = false;
     bool show_fft_window = false;
+    bool show_stft_window = false;
     bool show_text_editor_window = false;
     bool show_tab_window = false;
 
@@ -458,6 +459,7 @@ bool Application_Frame(void* handle, bool app_will_quit)
         ImGui::Checkbox("Show Extra Widget Window", &example->show_widget_window);
         ImGui::Checkbox("Show Kalman Window", &example->show_kalman_window);
         ImGui::Checkbox("Show FFT Window", &example->show_fft_window);
+        ImGui::Checkbox("Show STFT Window", &example->show_stft_window);
         ImGui::Checkbox("Show ImMat Draw Window", &example->show_mat_draw_window);
         ImGui::Checkbox("Show Text Edit Window", &example->show_text_editor_window);
         ImGui::Checkbox("Show Tab Window", &example->show_tab_window);
@@ -578,8 +580,17 @@ bool Application_Frame(void* handle, bool app_will_quit)
     if (example->show_fft_window)
     {
         ImGui::SetNextWindowSize(ImVec2(1024, 1024), ImGuiCond_FirstUseEver);
-        ImGui::Begin("Kalman Demo", &example->show_fft_window);
+        ImGui::Begin("FFT Demo", &example->show_fft_window);
         ImGui::ShowImFFTDemoWindow();
+        ImGui::End();
+    }
+
+    // Show STFT Window
+    if (example->show_stft_window)
+    {
+        ImGui::SetNextWindowSize(ImVec2(1024, 1024), ImGuiCond_FirstUseEver);
+        ImGui::Begin("STFT Demo", &example->show_stft_window);
+        ImGui::ShowImSTFTDemoWindow();
         ImGui::End();
     }
 

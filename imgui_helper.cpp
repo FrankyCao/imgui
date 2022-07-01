@@ -3199,59 +3199,131 @@ float ImDoDecibel(float * in, int samples, bool inverse)
 	return db;
 }
 
-void ImSTFT (float* data, float * out, int N, int window, int hope, bool forward)
+ImSTFT::ImSTFT(int _window, int _hope, bool _forward)
 {
-    assert(window <= N);
-    assert(hope <= window);
-    if (window == 0) window = N >> 2;   // 1/4 N
-    if (hope == 0) hope = window >> 1;  // 1/2 window
-    int frames = 1 + (N - window) / hope;
-    int overlap = window - hope;
-
-    // init hanning window
-    float * hannwin = (float *)calloc(1, window * sizeof(float));
-    for (int i = 0; i < window; i++) hannwin[i] = 0.5 * (1 + cos(M_PI + 2 * M_PI * i / (window - 1)));
-
+    window = _window;
+    hope = _hope;
+    forward = _forward;
+    overlap = window - hope; // > 0?
+    assert(hope !=0 && window != 0 && hope <= window);
+    // create hannwin
+    hannwin = (float *)calloc(1, window * sizeof(float));
+    for (int i = 0; i < window; i++) hannwin[i] = 0.5 * (1.0 - cos(2.0 * M_PI * (i / (double)window)));
+    //float tmp = 0;
+    //for (int i = 0; i < window; i++) tmp += hannwin[i] * hannwin[i];
+    //tmp /= _hope;
+    //tmp = std::sqrt(tmp);
+    //for (int i = 0; i < window; i++) hannwin[i] /= tmp;
     // create fft buffer
-    float *buffer_fft = (float *)calloc(1, window * sizeof(float));
-
+    buffer_fft = (float *)calloc(1, window * sizeof(float));
     // create overlap buffer
-    float *buffer_overlap = (float *)calloc(1, overlap * sizeof(float));
+    buffer_overlap = (float *)calloc(1, overlap * sizeof(float));
+}
 
-    // STFT
-    for (int i = 0; i < frames; i++)
+ImSTFT::~ImSTFT()
+{
+    if (buffer_fft) { free(buffer_fft); buffer_fft = nullptr; };
+    if (buffer_overlap) { free(buffer_overlap); buffer_overlap = nullptr; }
+    if (hannwin) { free(hannwin); hannwin = nullptr; }
+}
+
+int ImSTFT::exec(float* in, size_t in_size, float * out, size_t out_size)
+{
+    int frame = 0;
+    float * in_data = in;
+    float * in_end = in + in_size;
+    float * out_data = out;
+    float * out_end = out + out_size;
+    if (forward)
     {
-        if (forward)
+        // first using last remain data(size=hope)+in(size=overlap)
+        for (int n = 0; n < hope; n++)
+            buffer_fft[n] = buffer_overlap[overlap - hope + n] * hannwin[n];
+        for (int n = hope; n < window; n++)
+            buffer_fft[n] = in[n - hope] * hannwin[n];
+        ImRFFT(buffer_fft, window, forward);
+        memcpy(out_data, buffer_fft, window * sizeof(float));
+        out_data += window;
+        frame++;
+        // add current data
+        while(in_data + window <= in_end)
         {
             for (int n = 0; n < window; n++)
-                buffer_fft[n] = data[i * hope + n] * hannwin[n];
+                buffer_fft[n] = in_data[n] * hannwin[n];
             ImRFFT(buffer_fft, window, forward);
-            memcpy(out + i * window, buffer_fft, window * sizeof(float));
+            memcpy(out_data, buffer_fft, window * sizeof(float));
+            in_data += hope;
+            out_data += window;
+            frame++;
+            if (out_data >= out_end)
+                return frame;
         }
-        else
+        // last data till in+hope>in_end
+        while(in_data + hope <= in_end)
         {
-            memcpy(buffer_fft, data + i * window, window * sizeof(float));
+            int remain_data = in_end - in_data;
+            for (int n = 0; n < remain_data; n++)
+                buffer_fft[n] = in_data[n] * hannwin[n];
+            for (int n = remain_data; n < window; n++)
+                buffer_fft[n] = 0;
+            ImRFFT(buffer_fft, window, forward);
+            memcpy(out_data, buffer_fft, window * sizeof(float));
+            in_data += hope;
+            out_data += window;
+            frame++;
+            if (out_data >= out_end)
+                break;
+        }
+        // store last overlap(size=overlap)
+        //for (int n = 0; n < overlap; n++)
+        //    buffer_overlap[n] = in_end[n-overlap];
+    }
+    else
+    {
+        // first prepare overlap data
+        memcpy(buffer_fft, in_data, window * sizeof(float));
+        ImRFFT(buffer_fft, window, forward);
+        for (int n = 0; n < overlap; n++)
+            buffer_overlap[n] = buffer_fft[n + hope];
+        in_data += window;
+        frame++;
+        // remain data: in(size = window) out(size = hope)
+        while (in_data + window <= in_end)
+        {
+            memcpy(buffer_fft, in_data, window * sizeof(float));
             ImRFFT(buffer_fft, window, forward);
             for (int n = 0; n < hope; n++)
-                out[i * hope + n] = buffer_fft[n] + buffer_overlap[n];
-            if (i == frames - 1)
-            {
-                for (int n = 0; n < overlap; n++)
-                    out[(i + 1) * hope + n] = buffer_fft[hope + n];
-            }
-            else
-            {
-                for (int n = 0; n < overlap; n++)
-                    buffer_overlap[n] = buffer_fft[hope + n];
-            }
+                out_data[n] = buffer_fft[n] + buffer_overlap[n];
+            for (int n = 0; n < overlap; n++)
+                buffer_overlap[n] = buffer_fft[hope + n];
+            in_data += window;
+            out_data += hope;
+            frame++;
         }
     }
-
-    // release buffer
-    free(buffer_fft);
-    free(buffer_overlap);
-    free(hannwin);
+    return frame;
 }
+
+int ImSTFT::compose_amplitude(float* in, size_t in_size, float * out, size_t out_size, int samples)
+{
+    // first add all sub window data into one window
+    int ret = 0;
+    assert(in && out && in_size && out_size);
+    int frames = in_size / samples;
+    // first add all sub window data into one window
+    float * in_combine = (float *)calloc(1, out_size * sizeof(float));
+    for (int i = 0; i < frames; i++)
+    {
+        ImReComposeAmplitude(&in[i * samples], in_combine, samples);
+        for (int n = 0; n < out_size; n++)
+        {
+            out[n] += in_combine[n];
+        }
+    }
+    free(in_combine);
+    return ret;
+}
+
 } // namespace ImGui
 
 //-----------------------------------------------------------------------------

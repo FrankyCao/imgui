@@ -304,6 +304,7 @@ IMGUI_API void ImageInspect(const int width,
 IMGUI_API void ShowExtraWidgetDemoWindow();
 IMGUI_API void ShowImKalmanDemoWindow();
 IMGUI_API void ShowImFFTDemoWindow();
+IMGUI_API void ShowImSTFTDemoWindow();
 #endif
 } // namespace ImGui
 
