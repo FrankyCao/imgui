@@ -83,7 +83,7 @@ IMGUI_API bool Base85DecodeFromFile(const char* filePath,ImVector<char>& rv);
 // FFT 1D
 IMGUI_API void ImFFT (float* data, int N, bool forward);
 IMGUI_API void ImRFFT (float* data, int N, bool forward);
-//IMGUI_API void ImSTFT (float* data, float * out, int N, int window, int hope, bool forward);
+IMGUI_API void ImRFFT (float* in, float* out, int N, bool forward);
 IMGUI_API int ImReComposeDB(float * in, float * out, int samples, bool inverse = true);
 IMGUI_API int ImReComposeAmplitude(float * in, float * out, int samples);
 IMGUI_API int ImReComposePhase(float * in, float * out, int samples);

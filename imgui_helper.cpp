@@ -3009,6 +3009,12 @@ void ImRFFT(float* data, int N,  bool forward)
 		data[k] *= tmp;
 }
 
+void ImRFFT(float* in, float* out, int N,  bool forward)
+{
+    memcpy(out, in, sizeof(float) * N);
+    ImRFFT(out, N, forward);
+}
+
 int ImReComposeDB(float * in, float * out, int samples, bool inverse)
 {
 	int i,max = 0;
