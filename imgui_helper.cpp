@@ -3273,8 +3273,6 @@ ImSTFT::ImSTFT(int frame_, int shift_)
     overlap = new Overlap(frame_size, shift_size);
     buf = new float[frame_size];
     memset(buf, 0, sizeof(float) * frame_size);
-    amplitude = new float[frame_size];
-    memset(amplitude, 0, sizeof(float) * ((frame_size >> 1) + 1));
 }
 
 ImSTFT::~ImSTFT()
@@ -3282,7 +3280,6 @@ ImSTFT::~ImSTFT()
     delete (HannWindow*)hannwin; 
     delete (Overlap*)overlap; 
     delete[] buf;
-    delete[] amplitude;
 };
 
 void ImSTFT::stft(float* in, float* out)

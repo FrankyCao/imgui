@@ -6,6 +6,7 @@
 #include <imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
+#include <immat.h>
 
 namespace ImGui {
 enum ImGuiKnobType
@@ -370,5 +371,12 @@ public:
     void down(int key, int velocity);
     void reset();
 };
+} // namespace ImGui
+
+namespace ImGui
+{
+
+IMGUI_API void  ImSpectrogram(const ImMat& in_mat, ImMat& out_mat, int window = 512, bool stft = false, int hope = 128);
+
 } // namespace ImGui
 #endif // IMGUI_WIDGET_H

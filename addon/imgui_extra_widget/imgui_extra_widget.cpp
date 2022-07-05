@@ -3,6 +3,7 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 #include "imgui_internal.h"
+#include "imgui_helper.h"
 #include <iostream>
 #include <cmath>
 #include <sstream>
@@ -4431,4 +4432,78 @@ void ImGui::Piano::draw_keyboard(ImVec2 size, bool input)
 void ImGui::Piano::reset()
 {
     memset(key_states, 0, sizeof(key_states));
+}
+
+void ImGui::ImSpectrogram(const ImGui::ImMat& in_mat, ImGui::ImMat& out_mat, int window, bool bstft, int hope)
+{
+    assert(in_mat.c == 1 && in_mat.h == 1 && in_mat.type == IM_DT_FLOAT32);
+    auto powoftwo = [&](int n) { return(n > 0 && !(n & (n - 1))); };
+    if (window == 0 || !powoftwo(window)) window = 512;
+    if (bstft) { if (hope == 0 || hope > window) hope = window / 2; }
+
+    int blocks = in_mat.w / window;
+    if (bstft) blocks = in_mat.w / hope - 1;
+    out_mat.create_type(blocks, (window >> 1) + 1, 4, IM_DT_INT8);
+    out_mat.elempack = 4;
+    float* pin = (float *)in_mat.data;
+    float* pin_end =  pin + in_mat.w;
+    if (bstft)
+    {
+        ImGui::ImSTFT stft(window, hope);
+        ImGui::ImMat fft_data, db_data, zero_data;
+        fft_data.create_type(window, IM_DT_FLOAT32);
+        zero_data.create_type(window, IM_DT_FLOAT32);
+        db_data.create_type((window >> 1) + 1, IM_DT_FLOAT32);
+        int current_block = 0;
+        int length = 0;
+        while (length < in_mat.w + window - hope)
+        {
+            float * in_data;
+            if (length < in_mat.w)
+                in_data = pin + length;
+            else
+                in_data = (float *)zero_data.data;
+
+            stft.stft(in_data, (float *)fft_data.data);
+            ImGui::ImReComposeDB((float*)fft_data.data, (float *)db_data.data, fft_data.w);
+
+            if (length >= window - hope)
+            {
+                for (int n = 0; n < out_mat.h; n++)
+                {
+                    auto value = db_data.at<float>(n);
+                    if (value < -64) value = -64;
+                    value = (int)((value + 64) + 170) % 255; 
+                    auto hue = value / 255.f;
+                    auto color = ImColor::HSV(hue, 1.0, 1.0);
+                    out_mat.draw_dot(current_block, out_mat.h - n - 1, ImPixel(color.Value.x, color.Value.y, color.Value.z, color.Value.w));
+                }
+                current_block ++;
+            }
+            length += hope;
+        }
+    }
+    else
+    {
+        ImGui::ImMat fft_data, db_data;
+        fft_data.create_type(window, IM_DT_FLOAT32);
+        db_data.create_type((window >> 1) + 1, IM_DT_FLOAT32);
+        int current_block = 0;
+        while (pin < pin_end)
+        {
+            ImGui::ImRFFT(pin, (float*)fft_data.data, window, true);
+            ImGui::ImReComposeDB((float*)fft_data.data, (float *)db_data.data, fft_data.w);
+            for (int n = 0; n < out_mat.h; n++)
+            {
+                auto value = db_data.at<float>(n);
+                if (value < -64) value = -64;
+                value = (int)((value + 64) + 170) % 255; 
+                auto hue = value / 255.f;
+                auto color = ImColor::HSV(hue, 1.0, 1.0);
+                out_mat.draw_dot(current_block, out_mat.h - n - 1, ImPixel(color.Value.x, color.Value.y, color.Value.z, color.Value.w));
+            }
+            pin += window;
+            current_block ++;
+        }
+    }
 }

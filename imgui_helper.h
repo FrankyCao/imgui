@@ -106,7 +106,6 @@ private:
     int shift_size;
     int overlap_size;
     float* buf  {nullptr};
-    float* amplitude {nullptr};
 };
 
 #ifdef IMGUI_USE_ZLIB	// requires linking to library -lZlib

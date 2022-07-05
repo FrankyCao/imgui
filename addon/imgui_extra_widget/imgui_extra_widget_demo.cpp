@@ -454,8 +454,13 @@ void ShowImFFTDemoWindow()
     static const char * signal_item[] = {"Sine", "Square wave", "Triangular Wave", "Sawtooth wave"};
     static int view_type = 0;
     static const char * view_item[] = {"FFT", "Amplitude", "Phase", "DB"};
+    static ImGui::ImMat spectrogram;
+    static ImTextureID spectrogram_texture = nullptr;
     ImGui::PushItemWidth(200);
-    ImGui::Combo("Signal Type", &signal_type, signal_item, IM_ARRAYSIZE(signal_item));
+    if (ImGui::Combo("Signal Type", &signal_type, signal_item, IM_ARRAYSIZE(signal_item)))
+    {
+        spectrogram.release();
+    }
     ImGui::SameLine();
     ImGui::Combo("View Type", &view_type, view_item, IM_ARRAYSIZE(view_item));
     ImGui::PopItemWidth();
@@ -509,6 +514,13 @@ void ShowImFFTDemoWindow()
         default: break;
     }
 
+    // spectrogram
+    if (spectrogram.empty())
+    {
+        ImSpectrogram(time_domain, spectrogram, 128);
+        if (spectrogram_texture) { ImGui::ImDestroyTexture(spectrogram_texture); spectrogram_texture = nullptr; }
+        ImGui::ImMatToTexture(spectrogram, spectrogram_texture);
+    }
     // init frequency domain data
     ImMat frequency_domain;
     frequency_domain.clone_from(time_domain);
@@ -546,6 +558,13 @@ void ShowImFFTDemoWindow()
         if (io.MouseWheel >  FLT_EPSILON) { wave_scale *= 1.1f; if (wave_scale > 4.0f) wave_scale = 4.0f; }
         if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) wave_scale = 1.0;
     }
+
+    // draw spectrogram
+    if (spectrogram_texture)
+    {
+        ImGui::Image(spectrogram_texture, channel_view_size);
+    }
+
     // draw frequency domain data
     float * fft_data = nullptr;
     int data_count = 0;
@@ -598,7 +617,7 @@ void ShowImFFTDemoWindow()
 
 void ShowImSTFTDemoWindow()
 {
-#define STFT_DATA_LENGTH 4096
+#define STFT_DATA_LENGTH 8192
 #define STFT_SUB_LENGTH (STFT_DATA_LENGTH / 4)
     ImGuiIO &io = ImGui::GetIO();
     static float wave_scale = 1.0f;
@@ -606,9 +625,21 @@ void ShowImSTFTDemoWindow()
     ImMat time_domain;
     time_domain.create_type(STFT_DATA_LENGTH, IM_DT_FLOAT32);
     static int signal_type = 0;
-    static const char * signal_item[] = {"Sine", "Sweep", "Inverse Sweep", "Segmentation", "Inverse Segmentation", "High-Frequency Disturbing"};
+    static const char * signal_item[] = { "Sine", "Sweep", "Inverse Sweep", "Segmentation", "Inverse Segmentation", "High-Frequency Disturbing" };
+    static int fft_type = 0;
+    static const char * fft_item[] = { "FFT", "STFT" };
+    static ImGui::ImMat spectrogram;
+    static ImTextureID spectrogram_texture = nullptr;
     ImGui::PushItemWidth(200);
-    ImGui::Combo("Signal Type", &signal_type, signal_item, IM_ARRAYSIZE(signal_item));
+    if (ImGui::Combo("Signal Type", &signal_type, signal_item, IM_ARRAYSIZE(signal_item)))
+    {
+        spectrogram.release();
+    }
+    ImGui::SameLine();
+    if (ImGui::Combo("Spectrogram Type", &fft_type, fft_item, IM_ARRAYSIZE(fft_item)))
+    {
+        spectrogram.release();
+    }
     ImGui::PopItemWidth();
     // init time domain data
     switch (signal_type)
@@ -625,7 +656,7 @@ void ShowImSTFTDemoWindow()
         case 1: // Sweep
         {
             float f = 0.f;
-            float step = 100.f / (float)STFT_DATA_LENGTH;
+            float step = 1000.f / (float)STFT_DATA_LENGTH;
             for (int i = 0; i < STFT_DATA_LENGTH; i++)
             {
                 float t = (float)i / (float)STFT_DATA_LENGTH;
@@ -637,7 +668,7 @@ void ShowImSTFTDemoWindow()
         case 2: // Inverse Sweep
         {
             float f = 0.f;
-            float step = 100.f / (float)STFT_DATA_LENGTH;
+            float step = 1000.f / (float)STFT_DATA_LENGTH;
             for (int i = 0; i < STFT_DATA_LENGTH; i++)
             {
                 float t = (float)i / (float)STFT_DATA_LENGTH;
@@ -688,6 +719,17 @@ void ShowImSTFTDemoWindow()
         default: break;
     }
 
+    // spectrogram
+    if (spectrogram.empty())
+    {
+        if (fft_type == 0)
+            ImSpectrogram(time_domain, spectrogram, time_domain.w / 4);
+        else
+            ImSpectrogram(time_domain, spectrogram, 512, true, 128);
+        if (spectrogram_texture) { ImGui::ImDestroyTexture(spectrogram_texture); spectrogram_texture = nullptr; }
+        ImGui::ImMatToTexture(spectrogram, spectrogram_texture);
+    }
+    
     // init STFT
     const int window = STFT_DATA_LENGTH / 4;
     const int hope = window / 4;
@@ -726,7 +768,7 @@ void ShowImSTFTDemoWindow()
         length += hope;
     }
     // draw result
-    ImVec2 channel_view_size = ImVec2(STFT_DATA_LENGTH / 4, 128);
+    ImVec2 channel_view_size = ImVec2(STFT_DATA_LENGTH / 8, 128);
     ImGui::PushStyleColor(ImGuiCol_PlotLines, ImVec4(0.f, 1.f, 0.f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(0.f, 0.5f, 0.0f, 0.5f));
     ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.2f, 0.2f, 0.2f, 1.f));
@@ -738,6 +780,12 @@ void ShowImSTFTDemoWindow()
         if (io.MouseWheel < -FLT_EPSILON) { wave_scale *= 0.9f; if (wave_scale < 0.1f) wave_scale = 0.1f; }
         if (io.MouseWheel >  FLT_EPSILON) { wave_scale *= 1.1f; if (wave_scale > 4.0f) wave_scale = 4.0f; }
         if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) wave_scale = 1.0;
+    }
+
+    // draw spectrogram
+    if (spectrogram_texture)
+    {
+        ImGui::Image(spectrogram_texture, channel_view_size);
     }
 
     // draw stft domain (amplitude)
