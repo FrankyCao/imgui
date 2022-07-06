@@ -451,7 +451,7 @@ void ShowImFFTDemoWindow()
     ImMat time_domain;
     time_domain.create_type(FFT_DATA_LENGTH, IM_DT_FLOAT32);
     static int signal_type = 0;
-    static const char * signal_item[] = {"Sine", "Square wave", "Triangular Wave", "Sawtooth wave"};
+    static const char * signal_item[] = {"Sine", "Composition", "Square wave", "Triangular Wave", "Sawtooth wave"};
     static int view_type = 0;
     static const char * view_item[] = {"FFT", "Amplitude", "Phase", "DB"};
     static ImGui::ImMat spectrogram;
@@ -476,7 +476,16 @@ void ShowImFFTDemoWindow()
             }
         }
         break;
-        case 1: // Square wave
+        case 1: // Composition
+        {
+            for (int i = 0; i < FFT_DATA_LENGTH; i++)
+            {
+                float t = (float)i / (float)FFT_DATA_LENGTH;
+                time_domain.at<float>(i) = 0.2 * sin(2 * M_PI * 100 * t) + 0.3 * sin(2 * M_PI * 200 * t) + 0.4 * sin(2 * M_PI * 300 * t);
+            }
+        }
+        break;
+        case 2: // Square wave
         {
             int sign = 1;
             float step = 0;
@@ -488,7 +497,7 @@ void ShowImFFTDemoWindow()
             }
         }
         break;
-        case 2: // Triangular Wave
+        case 3: // Triangular Wave
         {
             int sign = 1;
             float step = -1;
@@ -500,7 +509,7 @@ void ShowImFFTDemoWindow()
             }
         }
         break;
-        case 3: // Sawtooth wave
+        case 4: // Sawtooth wave
         {
             float step = -1;
             float t = 50.f / (float)FFT_DATA_LENGTH;
@@ -586,7 +595,7 @@ void ShowImFFTDemoWindow()
         case 2:
             fft_data = (float *)phase.data; data_count = phase.w;
             combonded = false;
-            f_min = -360.f; f_max = 360.f;
+            f_min = -180.f; f_max = 180.f;
         break;
         case 3:
             fft_data = (float *)db.data; data_count = db.w;
@@ -617,11 +626,12 @@ void ShowImFFTDemoWindow()
 
 void ShowImSTFTDemoWindow()
 {
-#define STFT_DATA_LENGTH 8192
+#define STFT_DATA_LENGTH (512*128)
 #define STFT_SUB_LENGTH (STFT_DATA_LENGTH / 4)
     ImGuiIO &io = ImGui::GetIO();
     static float wave_scale = 1.0f;
     static float fft_scale = 16.0f;
+    const float rate = 44100.f;
     ImMat time_domain;
     time_domain.create_type(STFT_DATA_LENGTH, IM_DT_FLOAT32);
     static int signal_type = 0;
@@ -648,30 +658,30 @@ void ShowImSTFTDemoWindow()
         {
             for (int i = 0; i < STFT_DATA_LENGTH; i++)
             {
-                float t = (float)i / (float)STFT_DATA_LENGTH;
-                time_domain.at<float>(i) = 0.5 * sin(2 * M_PI * 100 * t);
+                float t = (float)i / rate;
+                time_domain.at<float>(i) = 0.5 * sin(2 * M_PI * 1000 * t);
             }
         }
         break;
         case 1: // Sweep
         {
             float f = 0.f;
-            float step = 1000.f / (float)STFT_DATA_LENGTH;
+            float fstep = 10000.f / (float)STFT_DATA_LENGTH;
             for (int i = 0; i < STFT_DATA_LENGTH; i++)
             {
-                float t = (float)i / (float)STFT_DATA_LENGTH;
+                float t = (float)i / rate;
                 time_domain.at<float>(i) = 0.5 * sin(2 * M_PI * f * t);
-                f += step;
+                f += fstep;
             }
         }
         break;
         case 2: // Inverse Sweep
         {
             float f = 0.f;
-            float step = 1000.f / (float)STFT_DATA_LENGTH;
+            float step = 10000.f / (float)STFT_DATA_LENGTH;
             for (int i = 0; i < STFT_DATA_LENGTH; i++)
             {
-                float t = (float)i / (float)STFT_DATA_LENGTH;
+                float t = (float)i / rate;
                 time_domain.at<float>(STFT_DATA_LENGTH - i - 1) = 0.5 * sin(2 * M_PI * f * t);
                 f += step;
             }
@@ -681,11 +691,11 @@ void ShowImSTFTDemoWindow()
         {
             for (int i = 0; i < STFT_SUB_LENGTH; i++)
             {
-                float t = (float)i / (float)STFT_DATA_LENGTH;
-                time_domain.at<float>(i + STFT_SUB_LENGTH * 0) = 0.1 * sin(2 * M_PI * 100 * t);
-                time_domain.at<float>(i + STFT_SUB_LENGTH * 1) = 0.2 * sin(2 * M_PI * 200 * t);
-                time_domain.at<float>(i + STFT_SUB_LENGTH * 2) = 0.3 * sin(2 * M_PI * 300 * t);
-                time_domain.at<float>(i + STFT_SUB_LENGTH * 3) = 0.4 * sin(2 * M_PI * 400 * t);
+                float t = (float)i / rate;
+                time_domain.at<float>(i + STFT_SUB_LENGTH * 0) = 0.1 * sin(2 * M_PI * 1000 * t);
+                time_domain.at<float>(i + STFT_SUB_LENGTH * 1) = 0.2 * sin(2 * M_PI * 2000 * t);
+                time_domain.at<float>(i + STFT_SUB_LENGTH * 2) = 0.3 * sin(2 * M_PI * 3000 * t);
+                time_domain.at<float>(i + STFT_SUB_LENGTH * 3) = 0.4 * sin(2 * M_PI * 4000 * t);
             }
         }
         break;
@@ -693,11 +703,11 @@ void ShowImSTFTDemoWindow()
         {
             for (int i = 0; i < STFT_SUB_LENGTH; i++)
             {
-                float t = (float)i / (float)STFT_DATA_LENGTH;
-                time_domain.at<float>(i + STFT_SUB_LENGTH * 0) = 0.4 * sin(2 * M_PI * 400 * t);
-                time_domain.at<float>(i + STFT_SUB_LENGTH * 1) = 0.3 * sin(2 * M_PI * 300 * t);
-                time_domain.at<float>(i + STFT_SUB_LENGTH * 2) = 0.2 * sin(2 * M_PI * 200 * t);
-                time_domain.at<float>(i + STFT_SUB_LENGTH * 3) = 0.1 * sin(2 * M_PI * 100 * t);
+                float t = (float)i / rate;
+                time_domain.at<float>(i + STFT_SUB_LENGTH * 0) = 0.4 * sin(2 * M_PI * 4000 * t);
+                time_domain.at<float>(i + STFT_SUB_LENGTH * 1) = 0.3 * sin(2 * M_PI * 3000 * t);
+                time_domain.at<float>(i + STFT_SUB_LENGTH * 2) = 0.2 * sin(2 * M_PI * 2000 * t);
+                time_domain.at<float>(i + STFT_SUB_LENGTH * 3) = 0.1 * sin(2 * M_PI * 1000 * t);
             }
         }
         break;
@@ -705,7 +715,7 @@ void ShowImSTFTDemoWindow()
         {
             for (int i = 0; i < STFT_DATA_LENGTH; i++)
             {
-                float t = (float)i / (float)STFT_DATA_LENGTH;
+                float t = (float)i / rate;
                 if (i > STFT_DATA_LENGTH / 2 - 40 && i < STFT_DATA_LENGTH / 2 + 40)
                 {
                     time_domain.at<float>(i) = 0.2 * sin(2 * M_PI * 40 * t) + 0.4 * sin(2 * M_PI * 80 * t) + 0.3 * sin(2 * M_PI * 800 * t);
@@ -723,7 +733,7 @@ void ShowImSTFTDemoWindow()
     if (spectrogram.empty())
     {
         if (fft_type == 0)
-            ImSpectrogram(time_domain, spectrogram, time_domain.w / 4);
+            ImSpectrogram(time_domain, spectrogram, 2048);
         else
             ImSpectrogram(time_domain, spectrogram, 512, true, 128);
         if (spectrogram_texture) { ImGui::ImDestroyTexture(spectrogram_texture); spectrogram_texture = nullptr; }
@@ -768,7 +778,7 @@ void ShowImSTFTDemoWindow()
         length += hope;
     }
     // draw result
-    ImVec2 channel_view_size = ImVec2(STFT_DATA_LENGTH / 8, 128);
+    ImVec2 channel_view_size = ImVec2(1024, 128);
     ImGui::PushStyleColor(ImGuiCol_PlotLines, ImVec4(0.f, 1.f, 0.f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(0.f, 0.5f, 0.0f, 0.5f));
     ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.2f, 0.2f, 0.2f, 1.f));

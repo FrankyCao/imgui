@@ -2940,7 +2940,6 @@ void ImFFT(float* data, int N,  bool forward)
 	}
 
 	/* normalisation section */
-
 	const float tmp = 1.0 / sqrt ((float)N);
 	for (i = 0; i < n; i++)
 		data[i] *= tmp;
@@ -3003,7 +3002,6 @@ void ImRFFT(float* data, int N,  bool forward)
 	}
 
 	/* normalisation section */
-
 	const float tmp = forward ? M_SQRT1_2 : M_SQRT2;
 	for (k = 0; k < N; k++)
 		data[k] *= tmp;
@@ -3026,7 +3024,7 @@ int ImReComposeDB(float * in, float * out, int samples, bool inverse)
 	{
 		if (i != 0 && i != (samples >> 1))
 		{
-			tmp = 2 * (sqr(in[2 * i]) + sqr(in[2 * i+1]));
+			tmp = 2 * (sqr(in[2 * i]) + sqr(in[2 * i + 1]));
 		}
 		else
 		{
@@ -3069,58 +3067,16 @@ int ImReComposeAmplitude(float * in, float * out, int samples)
 
 int ImReComposePhase(float * in, float * out, int samples)
 {
-	int i;
-	float tmp;
-	int quadrant;
-	for (i = 0; i < (samples >> 1) + 1; i++)
+    for (int i = 0; i < (samples >> 1) + 1; i++)
 	{
-		if (in[2 * i] > 0 && in[2 * i + 1] > 0)
-		{
-			quadrant = 1;
-		}
-		else if (in[2 * i] < 0 && in[2 * i + 1] > 0)
-		{
-			quadrant = 2;
-		}
-		else if (in[2 * i] < 0 && in[2 * i + 1] < 0)
-		{
-			quadrant = 3;
-		}
-		else if (in[2 * i] > 0 && in[2 * i + 1] < 0)
-		{
-			quadrant = 4;
-		}
-		else
-		{
-			quadrant = 1;
-		}
-		if (i != 0 && i != (samples >> 1))
-		{
-			tmp = atan((in[2 * i]/in[2 * i + 1]));
-			out[i] = tmp * 180 / M_PI;
-			switch (quadrant)
-			{
-				case 1:
-					break;
-				case 2:
-					out[i] = 180 + out[i];
-					break;
-				case 3:
-					out[i] = 180 + out[i];
-					break;
-				case 4:
-					out[i] = 360 + out[i];
-					break;
-				default:
-					break;
-			}
-		}
-		else
-		{
-			out[i] = 0;
-		}
-	}
-	return 1;
+        float hAngle = 0;
+        float dx = in[2 * i];
+        float dy = in[2 * i + 1];
+        hAngle = atan2(dy, dx);
+        hAngle = 180.f * hAngle / M_PI;
+        out[i] = hAngle;
+    }
+	return 0;
 }
 
 int ImReComposeDBShort(float * in, float * out, int samples, bool inverse)

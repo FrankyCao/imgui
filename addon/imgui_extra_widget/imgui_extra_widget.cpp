@@ -4443,7 +4443,8 @@ void ImGui::ImSpectrogram(const ImGui::ImMat& in_mat, ImGui::ImMat& out_mat, int
 
     int blocks = in_mat.w / window;
     if (bstft) blocks = in_mat.w / hope - 1;
-    out_mat.create_type(blocks, (window >> 1) + 1, 4, IM_DT_INT8);
+    int N_FRQ = (window >> 1) + 1;
+    out_mat.create_type(blocks, N_FRQ, 4, IM_DT_INT8);
     out_mat.elempack = 4;
     float* pin = (float *)in_mat.data;
     float* pin_end =  pin + in_mat.w;
@@ -4453,7 +4454,7 @@ void ImGui::ImSpectrogram(const ImGui::ImMat& in_mat, ImGui::ImMat& out_mat, int
         ImGui::ImMat fft_data, db_data, zero_data;
         fft_data.create_type(window, IM_DT_FLOAT32);
         zero_data.create_type(window, IM_DT_FLOAT32);
-        db_data.create_type((window >> 1) + 1, IM_DT_FLOAT32);
+        db_data.create_type(N_FRQ, IM_DT_FLOAT32);
         int current_block = 0;
         int length = 0;
         while (length < in_mat.w + window - hope)
@@ -4465,7 +4466,7 @@ void ImGui::ImSpectrogram(const ImGui::ImMat& in_mat, ImGui::ImMat& out_mat, int
                 in_data = (float *)zero_data.data;
 
             stft.stft(in_data, (float *)fft_data.data);
-            ImGui::ImReComposeDB((float*)fft_data.data, (float *)db_data.data, fft_data.w);
+            ImGui::ImReComposeDB((float*)fft_data.data, (float *)db_data.data, fft_data.w, false);
 
             if (length >= window - hope)
             {
@@ -4487,12 +4488,12 @@ void ImGui::ImSpectrogram(const ImGui::ImMat& in_mat, ImGui::ImMat& out_mat, int
     {
         ImGui::ImMat fft_data, db_data;
         fft_data.create_type(window, IM_DT_FLOAT32);
-        db_data.create_type((window >> 1) + 1, IM_DT_FLOAT32);
+        db_data.create_type(N_FRQ, IM_DT_FLOAT32);
         int current_block = 0;
         while (pin < pin_end)
         {
             ImGui::ImRFFT(pin, (float*)fft_data.data, window, true);
-            ImGui::ImReComposeDB((float*)fft_data.data, (float *)db_data.data, fft_data.w);
+            ImGui::ImReComposeDB((float*)fft_data.data, (float *)db_data.data, fft_data.w, false);
             for (int n = 0; n < out_mat.h; n++)
             {
                 auto value = db_data.at<float>(n);
