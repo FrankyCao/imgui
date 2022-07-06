@@ -4,7 +4,8 @@
 #include <imgui_internal.h>
 #include <imgui_helper.h>
 //-----------------------------------------------------------------------------------------------------------------
-#include "imgui_extra_widget.h"
+#include <imgui_extra_widget.h>
+#include <implot.h>
 
 namespace ImGui
 {
@@ -448,6 +449,7 @@ void ShowImFFTDemoWindow()
     ImGuiIO &io = ImGui::GetIO();
     static float wave_scale = 1.0f;
     static float fft_scale = 1.0f;
+    static float x_scale = 1.0f;
     ImMat time_domain;
     time_domain.create_type(FFT_DATA_LENGTH, IM_DT_FLOAT32);
     static int signal_type = 0;
@@ -526,46 +528,54 @@ void ShowImFFTDemoWindow()
     // spectrogram
     if (spectrogram.empty())
     {
-        ImSpectrogram(time_domain, spectrogram, 128);
+        ImGui::ImSpectrogram(time_domain, spectrogram, 128);
         if (spectrogram_texture) { ImGui::ImDestroyTexture(spectrogram_texture); spectrogram_texture = nullptr; }
         ImGui::ImMatToTexture(spectrogram, spectrogram_texture);
     }
     // init frequency domain data
-    ImMat frequency_domain;
+    ImGui::ImMat frequency_domain;
     frequency_domain.clone_from(time_domain);
 
     // do fft
     ImRFFT((float *)frequency_domain.data, frequency_domain.w, true);
 
-    ImMat amplitude;
+    ImGui::ImMat amplitude;
     amplitude.create_type((FFT_DATA_LENGTH >> 1) + 1, IM_DT_FLOAT32);
-    ImReComposeAmplitude((float*)frequency_domain.data, (float *)amplitude.data, FFT_DATA_LENGTH);
+    ImGui::ImReComposeAmplitude((float*)frequency_domain.data, (float *)amplitude.data, FFT_DATA_LENGTH);
 
-    ImMat phase;
+    ImGui::ImMat phase;
     phase.create_type((FFT_DATA_LENGTH >> 1) + 1, IM_DT_FLOAT32);
-    ImReComposePhase((float*)frequency_domain.data, (float *)phase.data, FFT_DATA_LENGTH);
+    ImGui::ImReComposePhase((float*)frequency_domain.data, (float *)phase.data, FFT_DATA_LENGTH);
 
-    ImMat db;
+    ImGui::ImMat db;
     db.create_type((FFT_DATA_LENGTH >> 1) + 1, IM_DT_FLOAT32);
-    ImReComposeDB((float*)frequency_domain.data, (float *)db.data, FFT_DATA_LENGTH, false);
+    ImGui::ImReComposeDB((float*)frequency_domain.data, (float *)db.data, FFT_DATA_LENGTH, false);
 
     // do ifft
     ImMat time_domain_out;
     time_domain_out.clone_from(frequency_domain);
     ImRFFT((float *)time_domain_out.data, time_domain_out.w, false);
 
-    ImVec2 channel_view_size = ImVec2(FFT_DATA_LENGTH, 128);
-    ImGui::PushStyleColor(ImGuiCol_PlotLines, ImVec4(0.f, 1.f, 0.f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(0.f, 0.5f, 0.0f, 0.5f));
+    ImGui::BeginChild("FFT Result");
+    // draw result
+    ImVec2 channel_view_size = ImVec2(1024 * x_scale, 128);
     ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.2f, 0.2f, 0.2f, 1.f));
 
     // draw time domain
-    ImGui::PlotLines("##time_domain", (float *)time_domain.data, time_domain.w, 0, nullptr, -1.0 * wave_scale, 1.0 * wave_scale, channel_view_size, 4, true, false);
+    if (ImPlot::BeginPlot("##time_domain", channel_view_size, ImPlotFlags_CanvasOnly | ImPlotFlags_NoFrame | ImPlotFlags_NoChild | ImPlotFlags_NoInputs))
+    {
+        ImPlot::SetupAxes(NULL, NULL, ImPlotAxisFlags_NoDecorations, ImPlotAxisFlags_NoDecorations);
+        ImPlot::SetupAxesLimits(0, time_domain.w, -1.0 * wave_scale, 1.0 * wave_scale, ImGuiCond_Always);
+        ImPlot::PlotLine("##TimeDomain", (float *)time_domain.data, time_domain.w);
+        ImPlot::EndPlot();
+    }
     if (ImGui::IsItemHovered())
     {
         if (io.MouseWheel < -FLT_EPSILON) { wave_scale *= 0.9f; if (wave_scale < 0.1f) wave_scale = 0.1f; }
         if (io.MouseWheel >  FLT_EPSILON) { wave_scale *= 1.1f; if (wave_scale > 4.0f) wave_scale = 4.0f; }
-        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) wave_scale = 1.0;
+        if (io.MouseWheelH < -FLT_EPSILON) { x_scale *= 0.9f; if (x_scale < 1.0f) x_scale = 1.0f; }
+        if (io.MouseWheelH >  FLT_EPSILON) { x_scale *= 1.1f; if (x_scale > 16.0f) x_scale = 16.0f; }
+        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) { wave_scale = 1.0; x_scale = 1.0; }
     }
 
     // draw spectrogram
@@ -577,51 +587,67 @@ void ShowImFFTDemoWindow()
     // draw frequency domain data
     float * fft_data = nullptr;
     int data_count = 0;
-    bool combonded = true;
-    float f_min = 0.f;
-    float f_max = 1.f;
+    double f_min = 0.f;
+    double f_max = 1.f;
     switch (view_type)
     {
         case 0:
             fft_data = (float *)frequency_domain.data; data_count = frequency_domain.w;
-            combonded = false;
             f_min = -8.f; f_max = 8.f;
         break;
         case 1:
             fft_data = (float *)amplitude.data; data_count = amplitude.w;
-            combonded = true;
-            f_min = 0.f; f_max = 16.f;
+            f_min = 0.f; f_max = 32.f;
         break;
         case 2:
             fft_data = (float *)phase.data; data_count = phase.w;
-            combonded = false;
             f_min = -180.f; f_max = 180.f;
         break;
         case 3:
             fft_data = (float *)db.data; data_count = db.w;
-            combonded = true;
             f_min = 0.f; f_max = 32.f;
         break;
         default: break;
     }
-    ImGui::PlotLines("##fft_domain", fft_data, data_count, 0, nullptr, f_min * fft_scale, f_max * fft_scale, channel_view_size, 4, true, combonded);
+
+    if (ImPlot::BeginPlot("##fft_domain", channel_view_size, ImPlotFlags_CanvasOnly | ImPlotFlags_NoFrame | ImPlotFlags_NoChild | ImPlotFlags_NoInputs))
+    {
+        ImPlot::SetupAxes(NULL, NULL, ImPlotAxisFlags_NoDecorations, ImPlotAxisFlags_NoDecorations);
+        ImPlot::SetupAxesLimits(0, data_count, f_min * fft_scale, f_max * fft_scale, ImGuiCond_Always);
+        ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 0.75f);
+        ImPlot::PlotShaded("##FFTDomainAMP", (float *)fft_data, data_count);
+        ImPlot::PopStyleVar();
+        ImPlot::PlotLine("##FFTDomain", (float *)fft_data, data_count);
+        ImPlot::EndPlot();
+    }
     if (ImGui::IsItemHovered())
     {
         if (io.MouseWheel < -FLT_EPSILON) { fft_scale *= 0.9f; if (fft_scale < 0.1f) fft_scale = 0.1f; }
         if (io.MouseWheel >  FLT_EPSILON) { fft_scale *= 1.1f; if (fft_scale > 4.0f) fft_scale = 4.0f; }
-        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) fft_scale = 1.0;
+        if (io.MouseWheelH < -FLT_EPSILON) { x_scale *= 0.9f; if (x_scale < 1.0f) x_scale = 1.0f; }
+        if (io.MouseWheelH >  FLT_EPSILON) { x_scale *= 1.1f; if (x_scale > 16.0f) x_scale = 16.0f; }
+        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) { fft_scale = 1.0; x_scale = 1.0f; }
     }
 
     // draw time domain out(ifft)
-    ImGui::PlotLines("##time_domain_out", (float *)time_domain_out.data, time_domain_out.w, 0, nullptr, -1.0 * wave_scale, 1.0 * wave_scale, channel_view_size, 4, true, false);
+    if (ImPlot::BeginPlot("##time_domain_out", channel_view_size, ImPlotFlags_CanvasOnly | ImPlotFlags_NoFrame | ImPlotFlags_NoChild | ImPlotFlags_NoInputs))
+    {
+        ImPlot::SetupAxes(NULL, NULL, ImPlotAxisFlags_NoDecorations, ImPlotAxisFlags_NoDecorations);
+        ImPlot::SetupAxesLimits(0, time_domain_out.w, -1.0 * wave_scale, 1.0 * wave_scale, ImGuiCond_Always);
+        ImPlot::PlotLine("##TimeDomainOut", (float *)time_domain_out.data, time_domain_out.w);
+        ImPlot::EndPlot();
+    }
     if (ImGui::IsItemHovered())
     {
         if (io.MouseWheel < -FLT_EPSILON) { wave_scale *= 0.9f; if (wave_scale < 0.1f) wave_scale = 0.1f; }
         if (io.MouseWheel >  FLT_EPSILON) { wave_scale *= 1.1f; if (wave_scale > 4.0f) wave_scale = 4.0f; }
-        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) wave_scale = 1.0;
+        if (io.MouseWheelH < -FLT_EPSILON) { x_scale *= 0.9f; if (x_scale < 1.0f) x_scale = 1.0f; }
+        if (io.MouseWheelH >  FLT_EPSILON) { x_scale *= 1.1f; if (x_scale > 16.0f) x_scale = 16.0f; }
+        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) { wave_scale = 1.0; x_scale = 1.0; }
     }
 
-    ImGui::PopStyleColor(3);
+    ImGui::PopStyleColor();
+    ImGui::EndChild();
 }
 
 void ShowImSTFTDemoWindow()
@@ -631,6 +657,7 @@ void ShowImSTFTDemoWindow()
     ImGuiIO &io = ImGui::GetIO();
     static float wave_scale = 1.0f;
     static float fft_scale = 16.0f;
+    static float x_scale = 1.0f;
     const float rate = 44100.f;
     ImMat time_domain;
     time_domain.create_type(STFT_DATA_LENGTH, IM_DT_FLOAT32);
@@ -733,9 +760,9 @@ void ShowImSTFTDemoWindow()
     if (spectrogram.empty())
     {
         if (fft_type == 0)
-            ImSpectrogram(time_domain, spectrogram, 2048);
+            ImGui::ImSpectrogram(time_domain, spectrogram, 2048);
         else
-            ImSpectrogram(time_domain, spectrogram, 512, true, 128);
+            ImGui::ImSpectrogram(time_domain, spectrogram, 512, true, 128);
         if (spectrogram_texture) { ImGui::ImDestroyTexture(spectrogram_texture); spectrogram_texture = nullptr; }
         ImGui::ImMatToTexture(spectrogram, spectrogram_texture);
     }
@@ -744,13 +771,13 @@ void ShowImSTFTDemoWindow()
     const int window = STFT_DATA_LENGTH / 4;
     const int hope = window / 4;
     const int overlap = window - hope;
-    ImSTFT process(window, hope);
-    ImMat short_time_domain, padding_data;
+    ImGui::ImSTFT process(window, hope);
+    ImGui::ImMat short_time_domain, padding_data;
     short_time_domain.create_type(window + 2, IM_DT_FLOAT32);
     padding_data.create_type(window, IM_DT_FLOAT32);
-    ImMat short_time_domain_out;
+    ImGui::ImMat short_time_domain_out;
     short_time_domain_out.create_type(STFT_DATA_LENGTH, IM_DT_FLOAT32);
-    ImMat short_time_amplitude;
+    ImGui::ImMat short_time_amplitude;
     short_time_amplitude.create_type((window >> 1) + 1, IM_DT_FLOAT32);
     int length = 0;
     // stft/istft/analyzer with slipping window
@@ -766,7 +793,7 @@ void ShowImSTFTDemoWindow()
         process.stft(in_data, (float *)short_time_domain.data);
 
         // do analyzer
-        ImReComposeAmplitude((float *)short_time_domain.data, (float *)amplitude.data, window);
+        ImGui::ImReComposeAmplitude((float *)short_time_domain.data, (float *)amplitude.data, window);
         for (int i = 0; i < amplitude.w; i++) short_time_amplitude.at<float>(i) += amplitude.at<float>(i);
         // analyzer end
 
@@ -777,19 +804,27 @@ void ShowImSTFTDemoWindow()
         process.istft((float *)short_time_domain.data, out_data);
         length += hope;
     }
+
+    ImGui::BeginChild("STFT Result");
     // draw result
-    ImVec2 channel_view_size = ImVec2(1024, 128);
-    ImGui::PushStyleColor(ImGuiCol_PlotLines, ImVec4(0.f, 1.f, 0.f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(0.f, 0.5f, 0.0f, 0.5f));
+    ImVec2 channel_view_size = ImVec2(1024 * x_scale, 128);
     ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.2f, 0.2f, 0.2f, 1.f));
 
     // draw time domain
-    ImGui::PlotLines("##time_domain", (float *)time_domain.data, time_domain.w, 0, nullptr, -1.0 * wave_scale, 1.0 * wave_scale, channel_view_size, 4, true, false);
+    if (ImPlot::BeginPlot("##time_domain", channel_view_size, ImPlotFlags_CanvasOnly | ImPlotFlags_NoFrame | ImPlotFlags_NoChild | ImPlotFlags_NoInputs))
+    {
+        ImPlot::SetupAxes(NULL, NULL, ImPlotAxisFlags_NoDecorations, ImPlotAxisFlags_NoDecorations);
+        ImPlot::SetupAxesLimits(0, time_domain.w, -1.0 * wave_scale, 1.0 * wave_scale, ImGuiCond_Always);
+        ImPlot::PlotLine("##TimeDomain", (float *)time_domain.data, time_domain.w);
+        ImPlot::EndPlot();
+    }
     if (ImGui::IsItemHovered())
     {
         if (io.MouseWheel < -FLT_EPSILON) { wave_scale *= 0.9f; if (wave_scale < 0.1f) wave_scale = 0.1f; }
         if (io.MouseWheel >  FLT_EPSILON) { wave_scale *= 1.1f; if (wave_scale > 4.0f) wave_scale = 4.0f; }
-        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) wave_scale = 1.0;
+        if (io.MouseWheelH < -FLT_EPSILON) { x_scale *= 0.9f; if (x_scale < 1.0f) x_scale = 1.0f; }
+        if (io.MouseWheelH >  FLT_EPSILON) { x_scale *= 1.1f; if (x_scale > 16.0f) x_scale = 16.0f; }
+        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) { wave_scale = 1.0; x_scale = 1.0; }
     }
 
     // draw spectrogram
@@ -799,24 +834,43 @@ void ShowImSTFTDemoWindow()
     }
 
     // draw stft domain (amplitude)
-    ImGui::PlotLines("##stft_domain", (float *)short_time_amplitude.data, short_time_amplitude.w, 0, nullptr, 0.0 * fft_scale, 1.0 * fft_scale, channel_view_size, 4, true, true);
+    if (ImPlot::BeginPlot("##stft_domain", channel_view_size, ImPlotFlags_CanvasOnly | ImPlotFlags_NoFrame | ImPlotFlags_NoChild | ImPlotFlags_NoInputs))
+    {
+        ImPlot::SetupAxes(NULL, NULL, ImPlotAxisFlags_NoDecorations, ImPlotAxisFlags_NoDecorations);
+        ImPlot::SetupAxesLimits(0, short_time_amplitude.w, 0.0 * fft_scale, 1.0 * fft_scale, ImGuiCond_Always);
+        ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 0.75f);
+        ImPlot::PlotShaded("##STFTDomainAMP", (float *)short_time_amplitude, short_time_amplitude.w);
+        ImPlot::PopStyleVar();
+        ImPlot::PlotLine("##STFTDomain", (float *)short_time_amplitude.data, short_time_amplitude.w);
+        ImPlot::EndPlot();
+    }
     if (ImGui::IsItemHovered())
     {
         if (io.MouseWheel < -FLT_EPSILON) { fft_scale *= 0.9f; if (fft_scale < 0.1f) fft_scale = 0.1f; }
         if (io.MouseWheel >  FLT_EPSILON) { fft_scale *= 1.1f; if (fft_scale > 32.0f) fft_scale = 32.0f; }
-        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) fft_scale = 1.0;
+        if (io.MouseWheelH < -FLT_EPSILON) { x_scale *= 0.9f; if (x_scale < 1.0f) x_scale = 1.0f; }
+        if (io.MouseWheelH >  FLT_EPSILON) { x_scale *= 1.1f; if (x_scale > 16.0f) x_scale = 16.0f; }
+        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) { fft_scale = 1.0; x_scale = 1.0; }
     }
 
     // draw time domain out(istft)
-    ImGui::PlotLines("##time_domain_out", (float *)short_time_domain_out.data, short_time_domain_out.w, 0, nullptr, -1.0 * wave_scale, 1.0 * wave_scale, channel_view_size, 4, true, false);
+    if (ImPlot::BeginPlot("##time_domain_out", channel_view_size, ImPlotFlags_CanvasOnly | ImPlotFlags_NoFrame | ImPlotFlags_NoChild | ImPlotFlags_NoInputs))
+    {
+        ImPlot::SetupAxes(NULL, NULL, ImPlotAxisFlags_NoDecorations, ImPlotAxisFlags_NoDecorations);
+        ImPlot::SetupAxesLimits(0, short_time_domain_out.w, -1.0 * wave_scale, 1.0 * wave_scale, ImGuiCond_Always);
+        ImPlot::PlotLine("##TimeDomainOut", (float *)short_time_domain_out.data, short_time_domain_out.w);
+        ImPlot::EndPlot();
+    }
     if (ImGui::IsItemHovered())
     {
         if (io.MouseWheel < -FLT_EPSILON) { wave_scale *= 0.9f; if (wave_scale < 0.1f) wave_scale = 0.1f; }
         if (io.MouseWheel >  FLT_EPSILON) { wave_scale *= 1.1f; if (wave_scale > 4.0f) wave_scale = 4.0f; }
-        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) wave_scale = 1.0;
+        if (io.MouseWheelH < -FLT_EPSILON) { x_scale *= 0.9f; if (x_scale < 1.0f) x_scale = 1.0f; }
+        if (io.MouseWheelH >  FLT_EPSILON) { x_scale *= 1.1f; if (x_scale > 16.0f) x_scale = 16.0f; }
+        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) { wave_scale = 1.0; x_scale = 1.0; }
     }
-    ImGui::PopStyleColor(3);
-
+    ImGui::PopStyleColor();
+    ImGui::EndChild();
 }
 
 } // namespace ImGui
