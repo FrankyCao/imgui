@@ -161,6 +161,100 @@ void ShowExtraWidgetDemoWindow()
 
         ImGui::TreePop();
     }
+    if (ImGui::TreeNode("Extra Spinners"))
+    {
+        static int hue = 0;
+        static float nextdot = 0, nextdot2;
+        nextdot -= 0.07f;
+        static float velocity = 1.f;
+        ImGui::SliderFloat("Speed", &velocity, 0.0f, 10.0f, "velocity = %.3f");
+        ImGui::Spinner("Spinner", 16, 2, ImColor::HSV(++hue * 0.005f, 0.8f, 0.8f), 8 * velocity);
+
+        ImGui::SameLine();
+        ImGui::SpinnerAng("SpinnerAng", 16, 6, ImColor(255, 255, 255), ImColor(255, 255, 255, 128), 6 * velocity);
+
+        ImGui::SameLine();
+        ImGui::SpinnerDots("SpinnerDots", nextdot, 16, 4, ImColor(255, 255, 255), 1 * velocity);
+
+        ImGui::SameLine();
+        ImGui::SpinnerAng("SpinnerAngNoBg", 16, 6, ImColor(255, 255, 255), ImColor(255, 255, 255, 0), 6 * velocity);
+
+        ImGui::SameLine();
+        ImGui::SpinnerAng("SpinnerAng270", 16, 6, ImColor(255, 255, 255), ImColor(255, 255, 255, 128), 6 * velocity, 270.f / 360.f * 2 * IM_PI);
+
+        ImGui::SameLine();
+        ImGui::SpinnerAng("SpinnerAng270NoBg", 16, 6, ImColor(255, 255, 255), ImColor(255, 255, 255, 0), 6 * velocity, 270.f / 360.f * 2 * IM_PI );
+
+        ImGui::SameLine();
+        ImGui::SpinnerVDots("SpinnerVDots", 16, 4, ImColor(255, 255, 255), 2.7f * velocity);
+
+        // Next Line
+        ImGui::SpinnerBounceDots("SpinnerBounceDots", 6, ImColor(255, 255, 255), 6 * velocity, 3);
+
+        ImGui::SameLine();
+        ImGui::SpinnerFadeDots("SpinnerFadeDots", 6, ImColor(255, 255, 255), 8 * velocity, 3);
+
+        ImGui::SameLine();
+        ImGui::SpinnerScaleDots("SpinnerMovingDots", 6, ImColor(255, 255, 255), 7 * velocity, 3);
+
+        ImGui::SameLine();
+        ImGui::SpinnerMovingDots("SpinnerMovingDots", 6, ImColor(255, 255, 255), 30 * velocity, 3);
+
+        ImGui::SameLine(); ImGui::Dummy({10, 0}); ImGui::SameLine();
+        ImGui::SpinnerRotateDots("SpinnerRotateDots", 16, 6, ImColor(255, 255, 255), 4 * velocity, 2);
+
+        ImGui::SameLine(); ImGui::Dummy({10, 0}); ImGui::SameLine();
+        ImGui::SpinnerTwinAng("SpinnerTwinAng", 16, 16, 6, ImColor(255, 255, 255), ImColor(255, 0, 0), 4 * velocity);
+
+        // next line
+        ImGui::SpinnerTwinAng180("SpinnerTwinAng", 16, 12, 4, ImColor(255, 255, 255), ImColor(255, 0, 0), 4 * velocity);
+
+        ImGui::SameLine();
+        ImGui::SpinnerTwinAng360("SpinnerTwinAng360", 16, 11, 4, ImColor(255, 255, 255), ImColor(255, 0, 0), 4 * velocity);
+
+        ImGui::SameLine();
+        ImGui::SpinnerIncDots("SpinnerIncDots", 16, 4, ImColor(255, 255, 255), 5.6f, 6);
+
+        ImGui::SameLine();
+        nextdot2 -= 0.2f * velocity;
+        ImGui::SpinnerDots("SpinnerDots", nextdot2, 16, 4, ImColor(255, 255, 255), 0.3f, 12, 6, 0.f);
+
+        ImGui::SameLine();
+        ImGui::SpinnerIncScaleDots("SpinnerIncScaleDots", 16, 4, ImColor(255, 255, 255), 6.6f, 6);
+
+        ImGui::SameLine();
+        ImGui::SpinnerAng("SpinnerAng90", 16, 6, ImColor(255, 255, 255), ImColor(255, 255, 255, 128), 8.f * velocity, IM_PI / 2.f);
+
+        ImGui::SameLine();
+        ImGui::SpinnerAng("SpinnerAng90", 16, 6, ImColor(255, 255, 255), ImColor(255, 255, 255, 0), 8.5f * velocity, IM_PI / 2.f);
+
+        ImGui::SameLine();
+        ImGui::SpinnerFadeBars("SpinnerFadeBars", 10, ImColor(255, 255, 255), 6.8f, 3);
+
+        // Next line
+        ImGui::SpinnerBarsRotateFade("SpinnerBarsRotateFade", 8, 18, 4, ImColor(255, 255, 255), 7.6f, 6);
+
+        ImGui::SameLine();
+        ImGui::SpinnerFadeBars("SpinnerFadeScaleBars", 10, ImColor(255, 255, 255), 6.8f, 3, true);
+
+        ImGui::SameLine(); ImGui::Dummy({10, 0}); ImGui::SameLine();
+        ImGui::SpinnerBarsScaleMiddle("SpinnerBarsScaleMiddle", 6, ImColor(255, 255, 255), 8.8f, 3);
+
+        ImGui::SameLine(); ImGui::Dummy({10, 0}); ImGui::SameLine();
+        ImGui::SpinnerAngTwin("SpinnerAngTwin1", 16, 13, 2, ImColor(255, 0, 0), ImColor(255, 255, 255), 6 * velocity, IM_PI / 2.f);
+
+        ImGui::SameLine();
+        ImGui::SpinnerAngTwin("SpinnerAngTwin2", 13, 16, 2, ImColor(255, 0, 0), ImColor(255, 255, 255), 6 * velocity, IM_PI / 2.f);
+
+        ImGui::SameLine();
+        ImGui::SpinnerAngTwin("SpinnerAngTwin3", 13, 16, 2, ImColor(255, 0, 0), ImColor(255, 255, 255), 6 * velocity, IM_PI / 2.f, 2);
+
+        ImGui::SameLine();
+        ImGui::SpinnerAngTwin("SpinnerAngTwin4", 16, 13, 2, ImColor(255, 0, 0), ImColor(255, 255, 255), 6 * velocity, IM_PI / 2.f, 2);
+
+        // End
+        ImGui::TreePop();
+    }
 	if (ImGui::TreeNode("Color Bands"))
 	{
         ImGui::PushItemWidth(300);
