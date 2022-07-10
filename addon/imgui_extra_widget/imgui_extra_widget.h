@@ -50,6 +50,11 @@ IMGUI_API void RoundProgressBar(float radius, float *p_value, float v_min, float
 // Splitter
 IMGUI_API bool Splitter(bool split_vertically, float thickness, float* size1, float* size2, float min_size1, float min_size2, float splitter_long_axis_size = -1.0f);
 
+// Based on the code from: https://github.com/benoitjacquier/imgui
+IMGUI_API bool ColorCombo(const char* label,ImVec4 *pColorOut=NULL,bool supportsAlpha=false,float width=0.f,bool closeWhenMouseLeavesIt=true);
+// Based on the code from: https://github.com/benoitjacquier/imgui
+IMGUI_API bool ColorChooser(bool* open,ImVec4* pColorOut=NULL, bool supportsAlpha=true);
+
 // ToggleButton
 IMGUI_API bool ToggleButton(const char* str_id, bool* v);
 IMGUI_API bool ToggleButton(const char *str_id, bool *v, const ImVec2 &size);

@@ -124,6 +124,23 @@ void ShowExtraWidgetDemoWindow()
         ImGui::SameLine();
         ImGui::ColoredButton("You##ColoredButtonV1You", ImVec2(cbv1width, 0.0f), IM_COL32(255, 255, 255, 255), IM_COL32(50, 220, 60, 255), IM_COL32(69, 150, 70, 255),10.0f); // FrameRounding in [0.0,12.0]
 
+        // ColorComboTest
+        ImGui::Spacing();
+        static ImVec4 chosenColor(1,1,1,1);
+        if (ImGui::ColorCombo("ColorCombo",&chosenColor))
+        {
+            // choice OK here
+        }
+
+        ImGui::SameLine();
+        static bool color_choose = false;
+        ImGui::CheckButton("+",&color_choose);
+        if (ImGui::ColorChooser(&color_choose, &chosenColor))
+        {
+            // choice OK here
+        }
+
+
         ImGui::TreePop();
     }
     if (ImGui::TreeNode("Extended ProgressBar and Indicator"))

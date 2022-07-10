@@ -769,6 +769,340 @@ bool ImGui::Splitter(bool split_vertically, float thickness, float* size1, float
 	return SplitterBehavior(bb, id, split_vertically ? ImGuiAxis_X : ImGuiAxis_Y, size1, size2, min_size1, min_size2, 1.0, 0.01);
 }
 
+// Based on the code from: https://github.com/benoitjacquier/imgui
+// Based on the code from: https://github.com/benoitjacquier/imgui
+inline static bool ColorChooserInternal(ImVec4 *pColorOut,bool supportsAlpha,bool showSliders,ImGuiWindowFlags extra_flags=0,bool* pisAnyItemActive=NULL,float windowWidth = 180/*,bool isCombo = false*/)
+{
+    bool colorSelected = false;
+    if (pisAnyItemActive) *pisAnyItemActive=false;
+    //const bool isCombo = (extra_flags&ImGuiWindowFlags_ComboBox);
+
+    ImVec4 color = pColorOut ? *pColorOut : ImVec4(0,0,0,1);
+    if (!supportsAlpha) color.w=1.f;
+
+    ImGuiContext& g = *GImGui;
+    const float smallWidth = windowWidth/9.f;
+
+    static const ImU32 black = ImGui::ColorConvertFloat4ToU32(ImVec4(0,0,0,1));
+    static const ImU32 white = ImGui::ColorConvertFloat4ToU32(ImVec4(1,1,1,1));
+    static float hue, sat, val;
+
+    ImGui::ColorConvertRGBtoHSV( color.x, color.y, color.z, hue, sat, val );
+
+
+    ImGuiWindow* colorWindow = ImGui::GetCurrentWindow();
+
+    const float quadSize = windowWidth - smallWidth - colorWindow->WindowPadding.x*2;
+    //if (isCombo) ImGui::SetCursorPosX(ImGui::GetCursorPos().x+colorWindow->WindowPadding.x);
+    // Hue Saturation Value
+    if (ImGui::BeginChild("ValueSaturationQuad##ValueSaturationQuadColorChooser", ImVec2(quadSize, quadSize), false,extra_flags ))
+    //ImGui::BeginGroup();
+    {
+        const int step = 5;
+        ImVec2 pos = ImVec2(0, 0);
+        ImGuiWindow* window = ImGui::GetCurrentWindow();
+
+        ImVec4 c00(1, 1, 1, 1);
+        ImVec4 c10(1, 1, 1, 1);
+        ImVec4 c01(1, 1, 1, 1);
+        ImVec4 c11(1, 1, 1, 1);
+        for (int y = 0; y < step; y++) {
+            for (int x = 0; x < step; x++) {
+                float s0 = (float)x / (float)step;
+                float s1 = (float)(x + 1) / (float)step;
+                float v0 = 1.0 - (float)(y) / (float)step;
+                float v1 = 1.0 - (float)(y + 1) / (float)step;
+
+
+                ImGui::ColorConvertHSVtoRGB(hue, s0, v0, c00.x, c00.y, c00.z);
+                ImGui::ColorConvertHSVtoRGB(hue, s1, v0, c10.x, c10.y, c10.z);
+                ImGui::ColorConvertHSVtoRGB(hue, s0, v1, c01.x, c01.y, c01.z);
+                ImGui::ColorConvertHSVtoRGB(hue, s1, v1, c11.x, c11.y, c11.z);
+
+                window->DrawList->AddRectFilledMultiColor(window->Pos + pos, window->Pos + pos + ImVec2(quadSize / step, quadSize / step),
+                                                        ImGui::ColorConvertFloat4ToU32(c00),
+                                                        ImGui::ColorConvertFloat4ToU32(c10),
+                                                        ImGui::ColorConvertFloat4ToU32(c11),
+                                                        ImGui::ColorConvertFloat4ToU32(c01));
+
+                pos.x += quadSize / step;
+            }
+            pos.x = 0;
+            pos.y += quadSize / step;
+        }
+
+        window->DrawList->AddCircle(window->Pos + ImVec2(sat, 1-val)*quadSize, 4, val<0.5f?white:black, 4);
+
+        const ImGuiID id = window->GetID("ValueSaturationQuad");
+        ImRect bb(window->Pos, window->Pos + window->Size);
+        bool hovered, held;
+        /*bool pressed = */ImGui::ButtonBehavior(bb, id, &hovered, &held, ImGuiButtonFlags_NoKeyModifiers);///*false,*/ false);
+        if (hovered) ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+        if (held)   {
+            ImVec2 pos = g.IO.MousePos - window->Pos;
+            sat = ImSaturate(pos.x / (float)quadSize);
+            val = 1 - ImSaturate(pos.y / (float)quadSize);
+            ImGui::ColorConvertHSVtoRGB(hue, sat, val, color.x, color.y, color.z);
+            colorSelected = true;
+        }
+
+    }
+    ImGui::EndChild();	// ValueSaturationQuad
+    //ImGui::EndGroup();
+
+    ImGui::SameLine();
+
+    //if (isCombo) ImGui::SetCursorPosX(ImGui::GetCursorPos().x+colorWindow->WindowPadding.x+quadSize);
+
+    //Vertical tint
+    if (ImGui::BeginChild("Tint##TintColorChooser", ImVec2(smallWidth, quadSize), false,extra_flags))
+    //ImGui::BeginGroup();
+    {
+        const int step = 8;
+        const int width = (int)smallWidth;
+        ImGuiWindow* window = ImGui::GetCurrentWindow();
+        ImVec2 pos(0, 0);
+        ImVec4 c0(1, 1, 1, 1);
+        ImVec4 c1(1, 1, 1, 1);
+        for (int y = 0; y < step; y++) {
+            float tint0 = (float)(y) / (float)step;
+            float tint1 = (float)(y + 1) / (float)step;
+            ImGui::ColorConvertHSVtoRGB(tint0, 1.0, 1.0, c0.x, c0.y, c0.z);
+            ImGui::ColorConvertHSVtoRGB(tint1, 1.0, 1.0, c1.x, c1.y, c1.z);
+
+            window->DrawList->AddRectFilledMultiColor(window->Pos + pos, window->Pos + pos + ImVec2(width, quadSize / step),
+                                                    ImGui::ColorConvertFloat4ToU32(c0),
+                                                    ImGui::ColorConvertFloat4ToU32(c0),
+                                                    ImGui::ColorConvertFloat4ToU32(c1),
+                                                    ImGui::ColorConvertFloat4ToU32(c1));
+
+            pos.y += quadSize / step;
+        }
+
+        window->DrawList->AddCircle(window->Pos + ImVec2(smallWidth*0.5f, hue*quadSize), 4, black, 4);
+        //window->DrawList->AddLine(window->Pos + ImVec2(0, hue*quadSize), window->Pos + ImVec2(width, hue*quadSize), ColorConvertFloat4ToU32(ImVec4(0, 0, 0, 1)));
+        bool hovered, held;
+        const ImGuiID id = window->GetID("Tint");
+        ImRect bb(window->Pos, window->Pos + window->Size);
+        /*bool pressed = */ImGui::ButtonBehavior(bb, id, &hovered, &held,ImGuiButtonFlags_NoKeyModifiers);// /*false,*/ false);
+        if (hovered) ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+        if (held)
+        {
+
+            ImVec2 pos = g.IO.MousePos - window->Pos;
+            hue = ImClamp( pos.y / (float)quadSize, 0.0f, 1.0f );
+            ImGui::ColorConvertHSVtoRGB( hue, sat, val, color.x, color.y, color.z );
+            colorSelected = true;
+        }
+
+    }
+    ImGui::EndChild(); // "Tint"
+    //ImGui::EndGroup();
+
+    if (showSliders)
+    {
+        //Sliders
+        //ImGui::PushItemHeight();
+        //if (isCombo) ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x+colorWindow->WindowPadding.x,ImGui::GetCursorPos().y+colorWindow->WindowPadding.y+quadSize));
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("Sliders");
+        static bool useHsvSliders = false;
+        static const char* btnNames[2] = {"to HSV","to RGB"};
+        const int index = useHsvSliders?1:0;
+        ImGui::SameLine();
+        if (ImGui::SmallButton(btnNames[index])) useHsvSliders=!useHsvSliders;
+
+        ImGui::Separator();
+        const ImVec2 sliderSize = /*isCombo ? ImVec2(-1,quadSize) : */ImVec2(-1,-1);
+        if (ImGui::BeginChild("Sliders##SliderColorChooser", sliderSize, false,extra_flags))
+        {
+            {
+                int r = ImSaturate( useHsvSliders ? hue : color.x )*255.f;
+                int g = ImSaturate( useHsvSliders ? sat : color.y )*255.f;
+                int b = ImSaturate( useHsvSliders ? val : color.z )*255.f;
+                int a = ImSaturate( color.w )*255.f;
+
+                static const char* names[2][3]={{"R","G","B"},{"H","S","V"}};
+                bool sliderMoved = false;
+                sliderMoved|= ImGui::SliderInt(names[index][0], &r, 0, 255);
+                sliderMoved|= ImGui::SliderInt(names[index][1], &g, 0, 255);
+                sliderMoved|= ImGui::SliderInt(names[index][2], &b, 0, 255);
+                sliderMoved|= (supportsAlpha && ImGui::SliderInt("A", &a, 0, 255));
+                if (sliderMoved)
+                {
+                    colorSelected = true;
+                    color.x = (float)r/255.f;
+                    color.y = (float)g/255.f;
+                    color.z = (float)b/255.f;
+                    if (useHsvSliders)  ImGui::ColorConvertHSVtoRGB(color.x,color.y,color.z,color.x,color.y,color.z);
+                    if (supportsAlpha) color.w = (float)a/255.f;
+                }
+                //ColorConvertRGBtoHSV(s_color.x, s_color.y, s_color.z, tint, sat, val);*/
+                if (pisAnyItemActive) *pisAnyItemActive|=sliderMoved;
+            }
+        }
+        ImGui::EndChild();
+    }
+
+    if (colorSelected && pColorOut) *pColorOut = color;
+
+    return colorSelected;
+}
+
+bool ImGui::ColorCombo(const char* label,ImVec4 *pColorOut,bool supportsAlpha,float width,bool closeWhenMouseLeavesIt)
+{
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    if (window->SkipItems) return false;
+
+    ImGuiContext& g = *GImGui;
+    const ImGuiStyle& style = g.Style;
+    const ImGuiID id = window->GetID(label);
+
+    const float itemWidth = width>=0 ? width : ImGui::CalcItemWidth();
+    const ImVec2 label_size = ImGui::CalcTextSize(label);
+    const float color_quad_size = (g.FontSize + style.FramePadding.x);
+    const float arrow_size = (g.FontSize + style.FramePadding.x * 2.0f);
+    ImVec2 totalSize = ImVec2(label_size.x+color_quad_size+arrow_size, label_size.y) + style.FramePadding*2.0f;
+    if (totalSize.x < itemWidth) totalSize.x = itemWidth;
+    const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + totalSize);
+    const ImRect total_bb(frame_bb.Min, frame_bb.Max);// + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
+    ItemSize(total_bb, style.FramePadding.y);
+    if (!ItemAdd(total_bb, id)) return false;
+    const float windowWidth = frame_bb.Max.x - frame_bb.Min.x - style.FramePadding.x;
+
+
+    ImVec4 color = pColorOut ? *pColorOut : ImVec4(0,0,0,1);
+    if (!supportsAlpha) color.w=1.f;
+
+    const bool hovered = ItemHoverable(frame_bb, id);
+
+    const ImRect value_bb(frame_bb.Min, frame_bb.Max - ImVec2(arrow_size, 0.0f));
+    RenderFrame(frame_bb.Min, frame_bb.Max, GetColorU32(ImGuiCol_FrameBg), true, style.FrameRounding);
+    RenderFrame(frame_bb.Min,ImVec2(frame_bb.Min.x+color_quad_size,frame_bb.Max.y), ImColor(style.Colors[ImGuiCol_Text]), true, style.FrameRounding);
+    RenderFrame(ImVec2(frame_bb.Min.x+1,frame_bb.Min.y+1), ImVec2(frame_bb.Min.x+color_quad_size-1,frame_bb.Max.y-1),
+                ImGui::ColorConvertFloat4ToU32(ImVec4(color.x,color.y,color.z,1.f)),
+                true, style.FrameRounding);
+
+    RenderFrame(ImVec2(frame_bb.Max.x-arrow_size, frame_bb.Min.y), frame_bb.Max, GetColorU32(hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button), true, style.FrameRounding); // FIXME-ROUNDING
+    RenderArrow(window->DrawList,ImVec2(frame_bb.Max.x-arrow_size, frame_bb.Min.y) + style.FramePadding,GetColorU32(ImGuiCol_Text), ImGuiDir_Down);
+
+    RenderTextClipped(ImVec2(frame_bb.Min.x+color_quad_size,frame_bb.Min.y) + style.FramePadding, value_bb.Max, label, NULL, NULL);
+
+    if (hovered)
+    {
+        SetHoveredID(id);
+        if (g.IO.MouseClicked[0])
+        {
+            ClearActiveID();
+            if (ImGui::IsPopupOpen(id,0))
+            {
+                ClosePopupToLevel(g.OpenPopupStack.Size - 1,true);
+            }
+            else
+            {
+                FocusWindow(window);
+                ImGui::OpenPopup(label);
+            }
+        }
+        static ImVec4 copiedColor(1,1,1,1);
+        static const ImVec4* pCopiedColor = NULL;
+        if (g.IO.MouseClicked[1]) { // right-click (copy color)
+            copiedColor = color;
+            pCopiedColor = &copiedColor;
+            //fprintf(stderr,"Copied\n");
+        }
+        else if (g.IO.MouseClicked[2] && pCopiedColor && pColorOut) { // middle-click (paste color)
+            pColorOut->x = pCopiedColor->x;
+            pColorOut->y = pCopiedColor->y;
+            pColorOut->z = pCopiedColor->z;
+            if (supportsAlpha) pColorOut->w = pCopiedColor->w;
+            color = *pColorOut;
+            //fprintf(stderr,"Pasted\n");
+        }
+    }
+
+    bool value_changed = false;
+    if (ImGui::IsPopupOpen(id,0))
+    {
+        ImRect popup_rect(ImVec2(frame_bb.Min.x, frame_bb.Max.y), ImVec2(frame_bb.Max.x, frame_bb.Max.y));
+        //popup_rect.Max.y = ImMin(popup_rect.Max.y, g.IO.DisplaySize.y - style.DisplaySafeAreaPadding.y); // Adhoc height limit for Combo. Ideally should be handled in Begin() along with other popups size, we want to have the possibility of moving the popup above as well.
+        ImGui::SetNextWindowPos(popup_rect.Min);
+        ImGui::SetNextWindowSize(ImVec2(windowWidth,-1));//popup_rect.GetSize());
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, style.FramePadding);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4,2));
+
+        bool mustCloseCombo = false;
+        const ImGuiWindowFlags flags =  0;//ImGuiWindowFlags_Modal;//ImGuiWindowFlags_ComboBox;  // ImGuiWindowFlags_ComboBox is no more available... what now ?
+        if (ImGui::BeginPopup(label, flags))
+        {
+            bool comboItemActive = false;
+            value_changed = ColorChooserInternal(pColorOut,supportsAlpha,false,flags,&comboItemActive,windowWidth/*,true*/);
+            if (closeWhenMouseLeavesIt && !comboItemActive)
+            {
+                const float distance = g.FontSize*1.75f;//1.3334f;//24;
+                //fprintf(stderr,"%1.f",distance);
+                ImVec2 pos = ImGui::GetWindowPos();pos.x-=distance;pos.y-=distance;
+                ImVec2 size = ImGui::GetWindowSize();
+                size.x+=2.f*distance;
+                size.y+=2.f*distance+windowWidth*8.f/9.f;   // problem: is seems that ImGuiWindowFlags_ComboBox does not return the full window height
+                const ImVec2& mousePos = ImGui::GetIO().MousePos;
+                if (mousePos.x<pos.x || mousePos.y<pos.y || mousePos.x>pos.x+size.x || mousePos.y>pos.y+size.y) {
+                    mustCloseCombo = true;
+                    //fprintf(stderr,"Leaving ColorCombo: pos(%1f,%1f) size(%1f,%1f)\n",pos.x,pos.y,size.x,size.y);
+                }
+            }
+            ImGui::EndPopup();
+        }
+        if (mustCloseCombo && ImGui::IsPopupOpen(id,0)) {
+            ClosePopupToLevel(g.OpenPopupStack.Size - 1,true);
+        }
+        ImGui::PopStyleVar(3);
+    }
+    return value_changed;
+}
+
+// Based on the code from: https://github.com/benoitjacquier/imgui
+bool ImGui::ColorChooser(bool* open,ImVec4 *pColorOut,bool supportsAlpha)
+{
+    static bool lastOpen = false;
+    static const ImVec2 windowSize(175,285);
+
+    if (open && !*open) {lastOpen=false;return false;}
+    if (open && *open && *open!=lastOpen) {
+        ImGui::SetNextWindowPos(ImGui::GetCursorScreenPos());
+        ImGui::SetNextWindowSize(windowSize);
+        lastOpen=*open;
+    }
+
+    //ImGui::OpenPopup("Color Chooser##myColorChoserPrivate");
+    bool colorSelected = false;
+
+    ImGuiWindowFlags WindowFlags = 0;
+    //WindowFlags |= ImGuiWindowFlags_NoTitleBar;
+    WindowFlags |= ImGuiWindowFlags_NoResize;
+    //WindowFlags |= ImGuiWindowFlags_NoMove;
+    WindowFlags |= ImGuiWindowFlags_NoScrollbar;
+    WindowFlags |= ImGuiWindowFlags_NoCollapse;
+    WindowFlags |= ImGuiWindowFlags_NoScrollWithMouse;
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4,2));
+
+    if (open) ImGui::SetNextWindowFocus();
+    //if (ImGui::BeginPopupModal("Color Chooser##myColorChoserPrivate",open,WindowFlags))
+    //if (ImGui::Begin("Color Chooser##myColorChoserPrivate",open,windowSize,-1.f,WindowFlags)) // Old API
+    ImGui::SetNextWindowSize(windowSize, ImGuiCond_FirstUseEver);
+    if (ImGui::Begin("Color Chooser##myColorChoserPrivate",open,WindowFlags))
+    {
+        colorSelected = ColorChooserInternal(pColorOut,supportsAlpha,true);
+        //ImGui::EndPopup();
+    }
+    ImGui::End();
+    ImGui::PopStyleVar(2);
+    return colorSelected;
+}
+
 // ToggleButton
 bool ImGui::ToggleButton(const char* str_id, bool* v)
 {
