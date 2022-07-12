@@ -5453,3 +5453,28 @@ void ImGui::SpinnerIncScaleDots(const char *label, float radius, float thickness
         window->DrawList->AddCircleFilled(ImVec2(centre.x + ImCos(a) * radius, centre.y + ImSin(a) * radius), th, color, 8);
     }
 }
+
+void ImGui::SpinnerBounceBall(const char *label, float radius, float thickness, const ImColor &color, float speed)
+{
+    SPINNER_HEADER(pos, size, centre);
+
+    // Render
+    ImGuiStorage *storage = window->DC.StateStorage;
+    const ImGuiID vtimeId = window->GetID("##vtime");
+    const ImGuiID hmaxId = window->GetID("##hmax");
+
+    float vtime = storage->GetFloat(vtimeId, 0.f);
+    float hmax = storage->GetFloat(hmaxId, 1.f);
+
+    vtime += 0.05;
+    hmax += 0.01;
+    float dtime = ImFmod((float)vtime, IM_PI);
+    float maxht = ImMax(ImSin(ImFmod((float)hmax, IM_PI)), 0.7f) * radius;
+
+    float start = ImFmod(ImGui::GetTime() * speed, IM_PI);
+
+    storage->SetFloat(vtimeId, vtime);
+    storage->SetFloat(hmaxId, hmax);
+
+    window->DrawList->AddCircleFilled(ImVec2(centre.x, centre.y + radius - ImSin(start) * 2.f * maxht), thickness, color, 8);
+}

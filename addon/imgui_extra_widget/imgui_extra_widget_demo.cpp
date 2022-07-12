@@ -205,6 +205,9 @@ void ShowExtraWidgetDemoWindow()
         ImGui::SameLine();
         ImGui::SpinnerVDots("SpinnerVDots", 16, 4, ImColor(255, 255, 255), 2.7f * velocity);
 
+        ImGui::SameLine(); ImGui::Dummy({10, 0}); ImGui::SameLine();
+        ImGui::SpinnerBounceBall("SpinnerBounceBall", 16, 6, ImColor(255, 255, 255), 4 * velocity);
+
         // Next Line
         ImGui::SpinnerBounceDots("SpinnerBounceDots", 6, ImColor(255, 255, 255), 6 * velocity, 3);
 
