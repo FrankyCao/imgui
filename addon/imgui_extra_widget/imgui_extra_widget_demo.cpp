@@ -272,6 +272,16 @@ void ShowExtraWidgetDemoWindow()
         ImGui::SameLine();
         ImGui::SpinnerAngTwin("SpinnerAngTwin4", 16, 13, 2, ImColor(255, 0, 0), ImColor(255, 255, 255), 6 * velocity, IM_PI / 2.f, 2);
 
+
+      // next line
+        ImGui::SpinnerTwinBall("SpinnerTwinBall", 16, 11, 2, 2.5f, ImColor(255, 0, 0), ImColor(255, 255, 255), 6 * velocity, 2);
+
+        ImGui::SameLine();
+        ImGui::SpinnerTwinBall("SpinnerTwinBall2", 15, 19, 2, 2.f, ImColor(255, 0, 0), ImColor(255, 255, 255), 6 * velocity, 3);
+
+        ImGui::SameLine();
+        ImGui::SpinnerTwinBall("SpinnerTwinBall2", 16, 16, 2, 5.f, ImColor(255, 0, 0), ImColor(255, 255, 255), 5 * velocity, 1);
+
         // End
         ImGui::TreePop();
     }

@@ -5466,15 +5466,40 @@ void ImGui::SpinnerBounceBall(const char *label, float radius, float thickness, 
     float vtime = storage->GetFloat(vtimeId, 0.f);
     float hmax = storage->GetFloat(hmaxId, 1.f);
 
-    vtime += 0.05;
-    hmax += 0.01;
-    float dtime = ImFmod((float)vtime, IM_PI);
+    vtime += 0.05f;
+    hmax += 0.01f;
     float maxht = ImMax(ImSin(ImFmod((float)hmax, IM_PI)), 0.7f) * radius;
 
-    float start = ImFmod(ImGui::GetTime() * speed, IM_PI);
+    float start = ImFmod((float)ImGui::GetTime() * speed, IM_PI);
 
     storage->SetFloat(vtimeId, vtime);
     storage->SetFloat(hmaxId, hmax);
 
     window->DrawList->AddCircleFilled(ImVec2(centre.x, centre.y + radius - ImSin(start) * 2.f * maxht), thickness, color, 8);
+}
+
+void ImGui::SpinnerTwinBall(const char *label, float radius1, float radius2, float thickness, float b_thickness, const ImColor &ball, const ImColor &bg, float speed, size_t balls)
+{
+    float radius = ImMax(radius1, radius2);
+    SPINNER_HEADER(pos, size, centre);
+
+    // Render
+    window->DrawList->PathClear();
+    const size_t num_segments = window->DrawList->_CalcCircleAutoSegmentCount(radius);
+    float start = (float)ImGui::GetTime() * speed;
+    const float bg_angle_offset = IM_PI * 2.f / num_segments;
+
+    for (size_t i = 0; i <= num_segments; i++)
+    {
+        const float a = start + (i * bg_angle_offset);
+        window->DrawList->PathLineTo(ImVec2(centre.x + ImCos(a) * radius1, centre.y + ImSin(a) * radius1));
+    }
+    window->DrawList->PathStroke(bg, false, thickness);
+
+    for (size_t b_num = 0; b_num < balls; ++b_num)
+    {
+        float b_start = 2 * IM_PI / balls;
+        const float a = b_start * b_num + start;
+        window->DrawList->AddCircleFilled(ImVec2(centre.x + ImCos(a) * radius2, centre.y + ImSin(a) * radius2), b_thickness, ball);
+    }
 }
