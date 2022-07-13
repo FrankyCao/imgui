@@ -3002,9 +3002,9 @@ void ImRFFT(float* data, int N,  bool forward)
 	}
 
 	/* normalisation section */
-	const float tmp = forward ? M_SQRT1_2 : M_SQRT2;
-	for (k = 0; k < N; k++)
-		data[k] *= tmp;
+	//const float tmp = forward ? M_SQRT1_2 : M_SQRT2;
+	//for (k = 0; k < N; k++)
+	//	data[k] *= tmp;
 }
 
 void ImRFFT(float* in, float* out, int N,  bool forward)
