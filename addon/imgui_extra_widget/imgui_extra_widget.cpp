@@ -5503,3 +5503,60 @@ void ImGui::SpinnerTwinBall(const char *label, float radius1, float radius2, flo
         window->DrawList->AddCircleFilled(ImVec2(centre.x + ImCos(a) * radius2, centre.y + ImSin(a) * radius2), b_thickness, ball);
     }
 }
+
+void ImGui::SpinnerAngTriple(const char *label, float radius1, float radius2, float radius3, float thickness, const ImColor &c1, const ImColor &c2, const ImColor &c3, float speed, float angle)
+{
+    float radius = ImMax(ImMax(radius1, radius2), radius3);
+    SPINNER_HEADER(pos, size, centre);
+
+    // Render
+    float start1 = (float)ImGui::GetTime() * speed;
+    const size_t num_segments = window->DrawList->_CalcCircleAutoSegmentCount(radius) * 2;
+    const float angle_offset = angle / num_segments;
+    window->DrawList->PathClear();
+    for (size_t i = 0; i < num_segments; i++)
+    {
+        const float a = start1 + (i * angle_offset);
+        window->DrawList->PathLineTo(ImVec2(centre.x + ImCos(a) * radius1, centre.y + ImSin(a) * radius1));
+    }
+    window->DrawList->PathStroke(c1, false, thickness);
+
+    float start2 = (float)ImGui::GetTime() * 1.2f * speed;
+    window->DrawList->PathClear();
+    for (size_t i = 0; i < num_segments; i++)
+    {
+        const float a = start2 + (i * angle_offset);
+        window->DrawList->PathLineTo(ImVec2(centre.x + ImCos(-a) * radius2, centre.y + ImSin(-a) * radius2));
+    }
+    window->DrawList->PathStroke(c2, false, thickness);
+
+    float start3 = (float)ImGui::GetTime() * 0.9f * speed;
+    window->DrawList->PathClear();
+    for (size_t i = 0; i < num_segments; i++)
+    {
+        const float a = start3 + (i * angle_offset);
+        window->DrawList->PathLineTo(ImVec2(centre.x + ImCos(a) * radius3, centre.y + ImSin(a) * radius3));
+    }
+    window->DrawList->PathStroke(c3, false, thickness);
+}
+
+void ImGui::SpinnerAngEclipse(const char *label, float radius, float thickness, const ImColor &color, float speed, float angle)
+{
+    SPINNER_HEADER(pos, size, centre);
+
+    // Render
+    const size_t num_segments = window->DrawList->_CalcCircleAutoSegmentCount(radius);
+    float start = (float)ImGui::GetTime()* speed;
+
+    const float angle_offset = angle / num_segments;
+    const float th = thickness / num_segments;
+    for (size_t i = 0; i < num_segments; i++)
+    {
+        const float a = start + (i * angle_offset);
+        const float a1 = start + ((i+1) * angle_offset);
+        window->DrawList->AddLine(ImVec2(centre.x + ImCos(a) * radius, centre.y + ImSin(a) * radius),
+                                ImVec2(centre.x + ImCos(a1) * radius, centre.y + ImSin(a1) * radius),
+                                color,
+                                th * i);
+    }
+}

@@ -208,6 +208,9 @@ void ShowExtraWidgetDemoWindow()
         ImGui::SameLine(); ImGui::Dummy({10, 0}); ImGui::SameLine();
         ImGui::SpinnerBounceBall("SpinnerBounceBall", 16, 6, ImColor(255, 255, 255), 4 * velocity);
 
+        ImGui::SameLine();
+        ImGui::SpinnerAngEclipse("SpinnerAng", 16, 5, ImColor(255, 255, 255), 6 * velocity);
+
         // Next Line
         ImGui::SpinnerBounceDots("SpinnerBounceDots", 6, ImColor(255, 255, 255), 6 * velocity, 3);
 
@@ -281,6 +284,9 @@ void ShowExtraWidgetDemoWindow()
 
         ImGui::SameLine();
         ImGui::SpinnerTwinBall("SpinnerTwinBall2", 16, 16, 2, 5.f, ImColor(255, 0, 0), ImColor(255, 255, 255), 5 * velocity, 1);
+
+        ImGui::SameLine();
+        ImGui::SpinnerAngTriple("SpinnerAngTriple", 16, 13, 10, 1.3f, ImColor(255, 255, 255), ImColor(255, 0, 0), ImColor(255, 255, 255), 5 * velocity, 1.5f * IM_PI);
 
         // End
         ImGui::TreePop();
