@@ -22,6 +22,7 @@
 // allocating more bytes keeps us safe from SEGV_ACCERR failure
 #define IM_MALLOC_OVERREAD 64
 
+#define OMP_THREADS 8
 // exchange-add operation for atomic operations on reference counters
 #if defined __riscv && !defined __riscv_atomic
 // riscv target without A extension
@@ -1981,7 +1982,7 @@ inline ImMat ImMat::operator+ (T v)
     m.create_like(*this);
     if (!m.data)
         return m;
-
+    #pragma omp parallel for num_threads(OMP_THREADS)
     for (int i = 0; i < total(); i++)
     {
         switch (type)
@@ -2003,6 +2004,7 @@ template<typename T>
 inline ImMat& ImMat::operator+=(T v)
 {
     assert(device == IM_DD_CPU);
+    #pragma omp parallel for num_threads(OMP_THREADS)
     for (int i = 0; i < total(); i++)
     {
         switch (type)
@@ -2029,7 +2031,7 @@ inline ImMat ImMat::operator- (T v)
     m.create_like(*this);
     if (!m.data)
         return m;
-    
+    #pragma omp parallel for num_threads(OMP_THREADS)
     for (int i = 0; i < total(); i++)
     {
         switch (type)
@@ -2052,7 +2054,7 @@ template<typename T>
 inline ImMat& ImMat::operator-=(T v)
 {
     assert(device == IM_DD_CPU);
-
+    #pragma omp parallel for num_threads(OMP_THREADS)
     for (int i = 0; i < total(); i++)
     {
         switch (type)
@@ -2080,7 +2082,7 @@ inline ImMat ImMat::operator* (T v)
     m.create_like(*this);
     if (!m.data)
         return m;
-    
+    #pragma omp parallel for num_threads(OMP_THREADS)
     for (int i = 0; i < total(); i++)
     {
         switch (type)
@@ -2103,7 +2105,7 @@ template<typename T>
 inline ImMat& ImMat::operator*=(T v)
 {
     assert(device == IM_DD_CPU);
-    
+    #pragma omp parallel for num_threads(OMP_THREADS)
     for (int i = 0; i < total(); i++)
     {
         switch (type)
@@ -2131,7 +2133,7 @@ inline ImMat ImMat::operator/ (T v)
     m.create_like(*this);
     if (!m.data)
         return m;
-    
+    #pragma omp parallel for num_threads(OMP_THREADS)
     for (int i = 0; i < total(); i++)
     {
         switch (type)
@@ -2154,7 +2156,7 @@ template<typename T>
 inline ImMat& ImMat::operator/=(T v)
 {
     assert(device == IM_DD_CPU);
-
+    #pragma omp parallel for num_threads(OMP_THREADS)
     for (int i = 0; i < total(); i++)
     {
         switch (type)
@@ -2183,6 +2185,7 @@ inline ImMat ImMat::operator+(const ImMat& mat)
     assert(type == mat.type);
     ImMat m;
     m.create_like(*this);
+    #pragma omp parallel for num_threads(OMP_THREADS)
     for (int i = 0; i < total(); i++)
     {
         switch (type)
@@ -2208,6 +2211,7 @@ inline ImMat& ImMat::operator+=(const ImMat& mat)
     assert(h == mat.h);
     assert(c == mat.c);
     assert(type == mat.type);
+    #pragma omp parallel for num_threads(OMP_THREADS)
     for (int i = 0; i < total(); i++)
     {
         switch (type)
@@ -2236,6 +2240,7 @@ inline ImMat ImMat::operator-(const ImMat& mat)
     assert(type == mat.type);
     ImMat m;
     m.create_like(*this);
+    #pragma omp parallel for num_threads(OMP_THREADS)
     for (int i = 0; i < total(); i++)
     {
         switch (type)
@@ -2261,6 +2266,7 @@ inline ImMat& ImMat::operator-=(const ImMat& mat)
     assert(h == mat.h);
     assert(c == mat.c);
     assert(type == mat.type);
+    #pragma omp parallel for num_threads(OMP_THREADS)
     for (int i = 0; i < total(); i++)
     {
         switch (type)
@@ -2289,6 +2295,7 @@ inline ImMat ImMat::operator/(const ImMat& mat)
     assert(type == mat.type);
     ImMat m;
     m.create_like(*this);
+    #pragma omp parallel for num_threads(OMP_THREADS)
     for (int i = 0; i < total(); i++)
     {
         switch (type)
@@ -2314,6 +2321,7 @@ inline ImMat& ImMat::operator/=(const ImMat& mat)
     assert(h == mat.h);
     assert(c == mat.c);
     assert(type == mat.type);
+    #pragma omp parallel for num_threads(OMP_THREADS)
     for (int i = 0; i < total(); i++)
     {
         switch (type)
@@ -2335,6 +2343,7 @@ inline ImMat& ImMat::operator/=(const ImMat& mat)
 inline ImMat& ImMat::square()
 {
     assert(device == IM_DD_CPU);
+    #pragma omp parallel for num_threads(OMP_THREADS)
     for (int i = 0; i < total(); i++)
     {
         switch (type)
