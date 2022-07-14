@@ -534,6 +534,11 @@ public:
     // mat sub
     ImMat operator-(const ImMat& mat);
     ImMat& operator-=(const ImMat& mat);
+    // mat div
+    ImMat operator/(const ImMat& mat);
+    ImMat& operator/=(const ImMat& mat);
+    // mat square
+    ImMat& square();
     // mat dot mul dims = 2 only
     ImMat operator*(const ImMat& mat);
     ImMat& operator*=(const ImMat& mat);
@@ -2268,6 +2273,80 @@ inline ImMat& ImMat::operator-=(const ImMat& mat)
             case IM_DT_FLOAT64: { ((double *) this->data)[i] = ((double *)this->data)[i]  - ((double *) mat.data)[i]; } break; 
             case IM_DT_FLOAT16: { ((uint16_t *)this->data)[i]= im_float32_to_float16(im_float16_to_float32(((unsigned short *)this->data)[i]) - 
                                                                                      im_float16_to_float32(((unsigned short *)mat.data)[i])); } break;
+            default: break;
+        }
+    }
+    return *this;
+}
+
+// mat div
+inline ImMat ImMat::operator/(const ImMat& mat)
+{
+    assert(device == IM_DD_CPU);
+    assert(w == mat.w);
+    assert(h == mat.h);
+    assert(c == mat.c);
+    assert(type == mat.type);
+    ImMat m;
+    m.create_like(*this);
+    for (int i = 0; i < total(); i++)
+    {
+        switch (type)
+        {
+            case IM_DT_INT8:    { ((int8_t *)m.data)[i]  = ((int8_t *) this->data)[i] / ((int8_t *) mat.data)[i]; } break;
+            case IM_DT_INT16:   { ((int16_t *)m.data)[i] = ((int16_t *)this->data)[i] / ((int16_t *)mat.data)[i]; } break; 
+            case IM_DT_INT32:   { ((int32_t *)m.data)[i] = ((int32_t *)this->data)[i] / ((int32_t *)mat.data)[i]; } break; 
+            case IM_DT_INT64:   { ((int64_t *)m.data)[i] = ((int64_t *)this->data)[i] / ((int64_t *)mat.data)[i]; } break; 
+            case IM_DT_FLOAT32: { ((float *)m.data)[i]   = ((float *)  this->data)[i] / ((float *)  mat.data)[i]; } break; 
+            case IM_DT_FLOAT64: { ((double *)m.data)[i]  = ((double *) this->data)[i] / ((double *) mat.data)[i]; } break; 
+            case IM_DT_FLOAT16: { ((uint16_t *)m.data)[i]= im_float32_to_float16(im_float16_to_float32(((unsigned short *)this->data)[i]) / 
+                                                                                 im_float16_to_float32(((unsigned short *)mat.data)[i])); } break;
+            default: break;
+        }
+    }
+    return m;
+}
+
+inline ImMat& ImMat::operator/=(const ImMat& mat)
+{
+    assert(device == IM_DD_CPU);
+    assert(w == mat.w);
+    assert(h == mat.h);
+    assert(c == mat.c);
+    assert(type == mat.type);
+    for (int i = 0; i < total(); i++)
+    {
+        switch (type)
+        {
+            case IM_DT_INT8:    { ((int8_t *) this->data)[i] = ((int8_t *) this->data)[i] / ((int8_t *) mat.data)[i]; } break;
+            case IM_DT_INT16:   { ((int16_t *)this->data)[i] = ((int16_t *)this->data)[i] / ((int16_t *)mat.data)[i]; } break; 
+            case IM_DT_INT32:   { ((int32_t *)this->data)[i] = ((int32_t *)this->data)[i] / ((int32_t *)mat.data)[i]; } break; 
+            case IM_DT_INT64:   { ((int64_t *)this->data)[i] = ((int64_t *)this->data)[i] / ((int64_t *)mat.data)[i]; } break; 
+            case IM_DT_FLOAT32: { ((float *)  this->data)[i] = ((float *)  this->data)[i] / ((float *)  mat.data)[i]; } break; 
+            case IM_DT_FLOAT64: { ((double *) this->data)[i] = ((double *) this->data)[i] / ((double *) mat.data)[i]; } break; 
+            case IM_DT_FLOAT16: { ((uint16_t *)this->data)[i]= im_float32_to_float16(im_float16_to_float32(((unsigned short *)this->data)[i]) / 
+                                                                                     im_float16_to_float32(((unsigned short *)mat.data)[i])); } break;
+            default: break;
+        }
+    }
+    return *this;
+}
+
+inline ImMat& ImMat::square()
+{
+    assert(device == IM_DD_CPU);
+    for (int i = 0; i < total(); i++)
+    {
+        switch (type)
+        {
+            case IM_DT_INT8:    { ((int8_t *) this->data)[i] = ((int8_t *) this->data)[i] * ((int8_t *) this->data)[i]; } break;
+            case IM_DT_INT16:   { ((int16_t *)this->data)[i] = ((int16_t *)this->data)[i] * ((int16_t *)this->data)[i]; } break; 
+            case IM_DT_INT32:   { ((int32_t *)this->data)[i] = ((int32_t *)this->data)[i] * ((int32_t *)this->data)[i]; } break; 
+            case IM_DT_INT64:   { ((int64_t *)this->data)[i] = ((int64_t *)this->data)[i] * ((int64_t *)this->data)[i]; } break; 
+            case IM_DT_FLOAT32: { ((float *)  this->data)[i] = ((float *)  this->data)[i] * ((float *)  this->data)[i]; } break; 
+            case IM_DT_FLOAT64: { ((double *) this->data)[i] = ((double *) this->data)[i] * ((double *) this->data)[i]; } break; 
+            case IM_DT_FLOAT16: { ((uint16_t *)this->data)[i]= im_float32_to_float16(im_float16_to_float32(((unsigned short *)this->data)[i]) * 
+                                                                                     im_float16_to_float32(((unsigned short *)this->data)[i])); } break;
             default: break;
         }
     }
