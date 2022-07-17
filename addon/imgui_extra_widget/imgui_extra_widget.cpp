@@ -4804,7 +4804,7 @@ void ImGui::ImSpectrogram(const ImGui::ImMat& in_mat, ImGui::ImMat& out_mat, int
                 in_data = (float *)zero_data.data;
 
             stft.stft(in_data, (float *)fft_data.data);
-            ImGui::ImReComposeDB((float*)fft_data.data, (float *)db_data.data, fft_data.w, false); // ?
+            ImGui::ImReComposeDB((float*)fft_data.data, (float *)db_data.data, fft_data.w, true); // ?
 
             if (length >= window - hope)
             {
@@ -4831,7 +4831,7 @@ void ImGui::ImSpectrogram(const ImGui::ImMat& in_mat, ImGui::ImMat& out_mat, int
         while (pin < pin_end)
         {
             ImGui::ImRFFT(pin, (float*)fft_data.data, window, true);
-            ImGui::ImReComposeDB((float*)fft_data.data, (float *)db_data.data, fft_data.w, false); // ?
+            ImGui::ImReComposeDB((float*)fft_data.data, (float *)db_data.data, fft_data.w, true); // ?
             for (int n = 0; n < out_mat.h; n++)
             {
                 auto value = db_data.at<float>(n);
