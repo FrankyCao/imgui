@@ -1928,7 +1928,7 @@ inline ImMat& ImMat::randn(T mean, T stddev)
     unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
     std::default_random_engine gen(seed);
     std::normal_distribution<T> dis(mean, stddev);
-
+    #pragma omp parallel for num_threads(OMP_THREADS)
     for (int i = 0; i < total(); i++)
     {
         switch (type)
@@ -1951,6 +1951,7 @@ template<typename T> ImMat& ImMat::clip(T v_min, T v_max)
 {
     assert(device == IM_DD_CPU);
     assert(total() > 0);
+    #pragma omp parallel for num_threads(OMP_THREADS)
     for (int i = 0; i < total(); i++)
     {
         switch (type)
