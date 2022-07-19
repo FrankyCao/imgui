@@ -229,6 +229,9 @@ void ShowExtraWidgetDemoWindow()
         ImGui::SameLine(); ImGui::Dummy({10, 0}); ImGui::SameLine();
         ImGui::SpinnerTwinAng("SpinnerTwinAng", 16, 16, 6, ImColor(255, 255, 255), ImColor(255, 0, 0), 4 * velocity);
 
+        ImGui::SameLine();
+        ImGui::SpinnerClock("SpinnerClock", 16, 2, ImColor(255, 0, 0), ImColor(255, 255, 255), 4 * velocity);
+
         // next line
         ImGui::SpinnerTwinAng180("SpinnerTwinAng", 16, 12, 4, ImColor(255, 255, 255), ImColor(255, 0, 0), 4 * velocity);
 
@@ -252,7 +255,10 @@ void ShowExtraWidgetDemoWindow()
         ImGui::SpinnerAng("SpinnerAng90", 16, 6, ImColor(255, 255, 255), ImColor(255, 255, 255, 0), 8.5f * velocity, IM_PI / 2.f);
 
         ImGui::SameLine();
-        ImGui::SpinnerFadeBars("SpinnerFadeBars", 10, ImColor(255, 255, 255), 6.8f, 3);
+        ImGui::SpinnerFadeBars("SpinnerFadeBars", 10, ImColor(255, 255, 255), 0.8f, 3);
+
+        ImGui::SameLine(); ImGui::Dummy({10, 0}); ImGui::SameLine();
+        ImGui::SpinnerPulsar("SpinnerPulsar", 16, 2, ImColor(255, 0, 0), ImColor(255, 255, 255), 1 * velocity);
 
         // Next line
         ImGui::SpinnerBarsRotateFade("SpinnerBarsRotateFade", 8, 18, 4, ImColor(255, 255, 255), 7.6f, 6);

@@ -4920,6 +4920,64 @@ void ImGui::SpinnerAng(const char *label, float radius, float thickness, const I
     window->DrawList->PathStroke(color, false, thickness);
 }
 
+void ImGui::SpinnerClock(const char *label, float radius, float thickness, const ImColor &color, const ImColor &bg, float speed)
+{
+    SPINNER_HEADER(pos, size, centre);
+
+    // Render
+    window->DrawList->PathClear();
+    const size_t num_segments = window->DrawList->_CalcCircleAutoSegmentCount(radius);
+    float start = (float)ImGui::GetTime() * speed;
+    const float bg_angle_offset = IM_PI * 2.f / num_segments;
+    for (size_t i = 0; i <= num_segments; i++)
+    {
+        const float a = start + (i * bg_angle_offset);
+        window->DrawList->PathLineTo(ImVec2(centre.x + ImCos(a) * radius, centre.y + ImSin(a) * radius));
+    }
+    window->DrawList->PathStroke(bg, false, thickness);
+
+    window->DrawList->AddLine(centre, ImVec2(centre.x + ImCos(start) * radius, centre.y + ImSin(start) * radius), color, thickness * 2);
+    window->DrawList->AddLine(centre, ImVec2(centre.x + ImCos(start * 0.5f) * radius / 2.f, centre.y + ImSin(start * 0.5f) * radius / 2.f), color, thickness * 2);
+}
+
+void ImGui::SpinnerPulsar(const char *label, float radius, float thickness, const ImColor &color, const ImColor &bg, float speed)
+{
+    SPINNER_HEADER(pos, size, centre);
+
+    ImGuiStorage *storage = window->DC.StateStorage;
+    const ImGuiID radiusbId = window->GetID("##radiusb");
+    float radius_b = storage->GetFloat(radiusbId, 0.8f);
+
+    // Render
+    window->DrawList->PathClear();
+    const size_t num_segments = window->DrawList->_CalcCircleAutoSegmentCount(radius);
+    float start = (float)ImGui::GetTime() * speed;
+    const float bg_angle_offset = IM_PI * 2.f / num_segments;
+
+    float start_r = ImFmod(start, IM_PI / 2.f);
+    float radius_k = ImSin(start_r);
+    float radius1 = radius_k * radius;
+    for (size_t i = 0; i <= num_segments; i++)
+    {
+        const float a = start + (i * bg_angle_offset);
+        window->DrawList->PathLineTo(ImVec2(centre.x + ImCos(a) * radius1, centre.y + ImSin(a) * radius1));
+    }
+    window->DrawList->PathStroke(bg, false, thickness);
+
+    radius_b -= (0.005f * speed);
+    radius_b = ImMax(radius_k, ImMax(0.8f, radius_b));
+    storage->SetFloat(radiusbId, radius_b);
+
+    float radius_tb = ImMax(radius_k, radius_b) * radius;
+    window->DrawList->PathClear();
+    for (size_t i = 0; i <= num_segments; i++)
+    {
+        const float a = start + (i * bg_angle_offset);
+        window->DrawList->PathLineTo(ImVec2(centre.x + ImCos(a) * radius_tb, centre.y + ImSin(a) * radius_tb));
+    }
+    window->DrawList->PathStroke(bg, false, thickness);
+}
+
 void ImGui::SpinnerDots(const char *label, float &nextdot, float radius, float thickness, const ImColor &color, float speed, size_t dots, size_t mdots, float minth)
 {
     SPINNER_HEADER(pos, size, centre);
