@@ -4811,10 +4811,11 @@ void ImGui::ImSpectrogram(const ImGui::ImMat& in_mat, ImGui::ImMat& out_mat, int
                 for (int n = 0; n < out_mat.h; n++)
                 {
                     auto value = db_data.at<float>(n);
-                    if (value < -64) value = -64;
+                    value = ImClamp(value, -64.f, 63.f);
+                    float light = (value + 64) / 127.f;
                     value = (int)((value + 64) + 170) % 255; 
                     auto hue = value / 255.f;
-                    auto color = ImColor::HSV(hue, 1.0, 1.0);
+                    auto color = ImColor::HSV(hue, 1.0, light);
                     out_mat.draw_dot(current_block, out_mat.h - n - 1, ImPixel(color.Value.x, color.Value.y, color.Value.z, color.Value.w));
                 }
                 current_block ++;

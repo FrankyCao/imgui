@@ -3024,7 +3024,7 @@ int ImReComposeDB(float * in, float * out, int samples, bool inverse)
 	{
 		if (i != 0 && i != (samples >> 1))
 		{
-			tmp = 2 * (sqr(in[2 * i]) + sqr(in[2 * i + 1]));
+			tmp = (sqr(in[2 * i]) + sqr(in[2 * i + 1])) / 2;
 		}
 		else
 		{
@@ -3049,7 +3049,7 @@ int ImReComposeAmplitude(float * in, float * out, int samples)
 	{
 		if (i != 0 && i != (samples >> 1))
 		{
-			tmp = 2 * (sqr(in[2 * i]) + sqr(in[2 * i+1]));
+			tmp = (sqr(in[2 * i]) + sqr(in[2 * i+1])) / 2;
 		}
 		else
 		{
