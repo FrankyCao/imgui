@@ -4804,15 +4804,16 @@ void ImGui::ImSpectrogram(const ImGui::ImMat& in_mat, ImGui::ImMat& out_mat, int
                 in_data = (float *)zero_data.data;
 
             stft.stft(in_data, (float *)fft_data.data);
-            ImGui::ImReComposeDB((float*)fft_data.data, (float *)db_data.data, fft_data.w, true); // ?
+            ImGui::ImReComposeDB((float*)fft_data.data, (float *)db_data.data, fft_data.w, false);
 
             if (length >= window - hope)
             {
                 for (int n = 0; n < out_mat.h; n++)
                 {
-                    auto value = db_data.at<float>(n);
+                    float value = db_data.at<float>(n) * M_SQRT2 + 64;
                     value = ImClamp(value, -64.f, 63.f);
                     float light = (value + 64) / 127.f;
+                    light = ImClamp(light, 0.f, 1.f);
                     value = (int)((value + 64) + 170) % 255; 
                     auto hue = value / 255.f;
                     auto color = ImColor::HSV(hue, 1.0, light);
@@ -4832,10 +4833,10 @@ void ImGui::ImSpectrogram(const ImGui::ImMat& in_mat, ImGui::ImMat& out_mat, int
         while (pin < pin_end)
         {
             ImGui::ImRFFT(pin, (float*)fft_data.data, window, true);
-            ImGui::ImReComposeDB((float*)fft_data.data, (float *)db_data.data, fft_data.w, true); // ?
+            ImGui::ImReComposeDB((float*)fft_data.data, (float *)db_data.data, fft_data.w, false);
             for (int n = 0; n < out_mat.h; n++)
             {
-                auto value = db_data.at<float>(n);
+                float value = db_data.at<float>(n) * M_SQRT2 + 64;
                 value = ImClamp(value, -64.f, 63.f);
                 float light = (value + 64) / 127.f;
                 value = (int)((value + 64) + 170) % 255; 

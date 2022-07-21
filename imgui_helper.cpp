@@ -3016,21 +3016,21 @@ void ImRFFT(float* in, float* out, int N,  bool forward)
 int ImReComposeDB(float * in, float * out, int samples, bool inverse)
 {
 	int i,max = 0;
-	float zero_db,db,max_db = -200.0;
-	float tmp;
-
+	float zero_db,db,max_db = -FLT_MAX;
+	float amplitude;
+    int N = samples >> 1;
 	zero_db = - 20 * log10((float)(1<<15));
-	for (i = 0; i < (samples >> 1) + 1; i++)
+	for (i = 0; i < N + 1; i++)
 	{
-		if (i != 0 && i != (samples >> 1))
+		if (i != 0/* && i != N*/)
 		{
-			tmp = (sqr(in[2 * i]) + sqr(in[2 * i + 1])) / 2;
+			amplitude = sqrt(sqr(in[2 * i]) + sqr(in[2 * i + 1]));
 		}
 		else
 		{
-			tmp = sqr(in[i == 0 ? 0 : 1]);
+			amplitude = 1.0f / (1<<15);
 		}
-		db = 20 * log10(tmp) - (inverse ? zero_db : 0);
+		db = 20 * log10(amplitude) - (inverse ? zero_db : 0);
 		out[i] = db;
 		if (db > max_db)
 		{
@@ -3047,13 +3047,13 @@ int ImReComposeAmplitude(float * in, float * out, int samples)
 	float tmp,dmax = 0;
 	for (i = 0; i < (samples >> 1) + 1; i++)
 	{
-		if (i != 0 && i != (samples >> 1))
+		if (i != 0/* && i != (samples >> 1)*/)
 		{
-			tmp = (sqr(in[2 * i]) + sqr(in[2 * i+1])) / 2;
+			tmp = sqrt(sqr(in[2 * i]) + sqr(in[2 * i + 1]));
 		}
 		else
 		{
-			tmp = sqr(in[i == 0 ? 0 : 1]);
+			tmp = 0;//sqr(in[i == 0 ? 0 : 1]);
 		}
 		out[i] = tmp;
 		if (tmp > dmax)
