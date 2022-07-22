@@ -1230,7 +1230,7 @@ add_executable(
 )
 target_link_libraries(
     vulkan_shader_test
-    VkShader
+    ${VKSHADER_LIBRARYS}
 )
 endif(IMGUI_BUILD_EXAMPLE AND IMGUI_VULKAN_SHADER)
 

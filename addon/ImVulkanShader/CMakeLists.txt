@@ -38,7 +38,7 @@ if (APPLE)
     message(STATUS "VkShader(Apple) Use OpenMP")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xpreprocessor -fopenmp")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Xpreprocessor -fopenmp")
-    set(LINK_LIBS ${LINK_LIBS} -L/usr/local/lib -lomp)
+    set(LINK_LIBS ${LINK_LIBS} -L/usr/local/lib -lomp pthread)
 else()
     find_package(OpenMP)
     if(NOT TARGET OpenMP::OpenMP_CXX)
@@ -49,12 +49,12 @@ else()
         message(STATUS "VkShader(Windows) Use OpenMP")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-        set(LINK_LIBS ${LINK_LIBS} gmp)
+        set(LINK_LIBS ${LINK_LIBS} gmp pthread)
     else()
         message(STATUS "VkShader Use OpenMP")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-        set(LINK_LIBS ${LINK_LIBS} gmp)
+        set(LINK_LIBS ${LINK_LIBS} gmp pthread)
     endif()
 endif()
 
@@ -76,23 +76,6 @@ set(LINK_LIBS
     ${LINK_LIBS}
     ${Vulkan_LIBRARY}
 )
-
-if (OpenMP_FOUND)
-    message(STATUS "VkShader Use OpenMP")
-    if (APPLE)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xpreprocessor -fopenmp")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Xpreprocessor -fopenmp")
-        SET(LINK_LIBS
-            ${LINK_LIBS}
-            -L/usr/local/lib -lomp
-        )
-    else()
-        if(NOT TARGET OpenMP::OpenMP_CXX AND (OpenMP_CXX_FOUND OR OPENMP_FOUND))
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-        endif()
-    endif()
-endif()
 
 find_package(Glslang COMPONENTS Glslang SPIRV)
 find_package(SpirvTools)
