@@ -4943,7 +4943,7 @@ void ImGui::SpinnerClock(const char *label, float radius, float thickness, const
     window->DrawList->AddLine(centre, ImVec2(centre.x + ImCos(start * 0.5f) * radius / 2.f, centre.y + ImSin(start * 0.5f) * radius / 2.f), color, thickness * 2);
 }
 
-void ImGui::SpinnerPulsar(const char *label, float radius, float thickness, const ImColor &color, const ImColor &bg, float speed)
+void ImGui::SpinnerPulsar(const char *label, float radius, float thickness, const ImColor &bg, float speed)
 {
     SPINNER_HEADER(pos, size, centre);
 
@@ -5677,5 +5677,39 @@ void ImGui::SpinnerAngEclipse(const char *label, float radius, float thickness, 
                                 ImVec2(centre.x + ImCos(a1) * radius, centre.y + ImSin(a1) * radius),
                                 color,
                                 th * i);
+    }
+}
+
+void ImGui::SpinnerGooeyBalls(const char *label, float radius, const ImColor &color, float speed)
+{
+    SPINNER_HEADER(pos, size, centre);
+
+    // Render
+    const size_t num_segments = window->DrawList->_CalcCircleAutoSegmentCount(radius);
+    const float start = ImFmod((float)ImGui::GetTime() * speed, IM_PI);
+
+    const float radius1 = (0.3f + 0.3f * ImSin(start)) * radius;
+    const float radius2 = radius - radius1;
+
+    window->DrawList->AddCircleFilled(ImVec2(centre.x - radius + radius1, centre.y), radius1, color, num_segments);
+    window->DrawList->AddCircleFilled(ImVec2(centre.x - radius + radius1 * 1.2f + radius2, centre.y), radius2, color, num_segments);
+}
+
+void ImGui::SpinnerRotateGooeyBalls(const char *label, float radius, float thickness, const ImColor &color, float speed, int balls)
+{
+    SPINNER_HEADER(pos, size, centre);
+
+    // Render
+    const size_t num_segments = window->DrawList->_CalcCircleAutoSegmentCount(radius);
+    const float start = ImFmod((float)ImGui::GetTime(), IM_PI);
+    const float rstart = ImFmod((float)ImGui::GetTime() * speed, IM_PI * 2);
+
+    const float radius1 = (0.2f + 0.3f * ImSin(start)) * radius;
+    const float angle_offset = IM_PI * 2.f / balls;
+
+    for (int i = 0; i <= balls; i++)
+    {
+        const float a = rstart + (i * angle_offset);
+        window->DrawList->AddCircleFilled(ImVec2(centre.x + ImCos(a) * radius1, centre.y + ImSin(a) * radius1), thickness, color, num_segments);
     }
 }
